@@ -1,0 +1,1250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSettingDcb</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-util Reference Manual">
+<link rel="up" href="ch01.html" title="libnm-util API Reference">
+<link rel="prev" href="NMSettingAdsl.html" title="NMSettingAdsl">
+<link rel="next" href="NMSetting8021x.html" title="NMSetting8021x">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMSettingAdsl.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-util Reference Manual</th>
+<td><a accesskey="n" href="NMSetting8021x.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMSettingDcb.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMSettingDcb.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMSettingDcb.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMSettingDcb.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMSettingDcb"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingDcb.top_of_page"></a>NMSettingDcb</span></h2>
+<p>NMSettingDcb — Connection properties for Data Center Bridging</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMSettingDcb.synopsis"></a><h2>Synopsis</h2>
+<a name="NMSettingDcbError"></a><a name="NMSettingDcbFlags"></a><pre class="synopsis">
+#include &lt;nm-setting-dcb.h&gt;
+
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-SETTING-NAME:CAPS" title="NM_SETTING_DCB_SETTING_NAME">NM_SETTING_DCB_SETTING_NAME</a>
+enum                <a class="link" href="NMSettingDcb.html#NMSettingDcbError-enum" title="enum NMSettingDcbError">NMSettingDcbError</a>;
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-ERROR:CAPS" title="NM_SETTING_DCB_ERROR">NM_SETTING_DCB_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMSettingDcb.html#nm-setting-dcb-error-quark" title="nm_setting_dcb_error_quark ()">nm_setting_dcb_error_quark</a>          (<em class="parameter"><code><span class="type">void</span></code></em>);
+enum                <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags-enum" title="enum NMSettingDcbFlags">NMSettingDcbFlags</a>;
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FCOE-MODE-FABRIC:CAPS" title="NM_SETTING_DCB_FCOE_MODE_FABRIC">NM_SETTING_DCB_FCOE_MODE_FABRIC</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FCOE-MODE-VN2VN:CAPS" title="NM_SETTING_DCB_FCOE_MODE_VN2VN">NM_SETTING_DCB_FCOE_MODE_VN2VN</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-APP-FCOE-FLAGS:CAPS" title="NM_SETTING_DCB_APP_FCOE_FLAGS">NM_SETTING_DCB_APP_FCOE_FLAGS</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-APP-FCOE-PRIORITY:CAPS" title="NM_SETTING_DCB_APP_FCOE_PRIORITY">NM_SETTING_DCB_APP_FCOE_PRIORITY</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-APP-FCOE-MODE:CAPS" title="NM_SETTING_DCB_APP_FCOE_MODE">NM_SETTING_DCB_APP_FCOE_MODE</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-APP-ISCSI-FLAGS:CAPS" title="NM_SETTING_DCB_APP_ISCSI_FLAGS">NM_SETTING_DCB_APP_ISCSI_FLAGS</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-APP-ISCSI-PRIORITY:CAPS" title="NM_SETTING_DCB_APP_ISCSI_PRIORITY">NM_SETTING_DCB_APP_ISCSI_PRIORITY</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-APP-FIP-FLAGS:CAPS" title="NM_SETTING_DCB_APP_FIP_FLAGS">NM_SETTING_DCB_APP_FIP_FLAGS</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-APP-FIP-PRIORITY:CAPS" title="NM_SETTING_DCB_APP_FIP_PRIORITY">NM_SETTING_DCB_APP_FIP_PRIORITY</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-FLOW-CONTROL-FLAGS:CAPS" title="NM_SETTING_DCB_PRIORITY_FLOW_CONTROL_FLAGS">NM_SETTING_DCB_PRIORITY_FLOW_CONTROL_FLAGS</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-FLOW-CONTROL:CAPS" title="NM_SETTING_DCB_PRIORITY_FLOW_CONTROL">NM_SETTING_DCB_PRIORITY_FLOW_CONTROL</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-GROUP-FLAGS:CAPS" title="NM_SETTING_DCB_PRIORITY_GROUP_FLAGS">NM_SETTING_DCB_PRIORITY_GROUP_FLAGS</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-GROUP-ID:CAPS" title="NM_SETTING_DCB_PRIORITY_GROUP_ID">NM_SETTING_DCB_PRIORITY_GROUP_ID</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-GROUP-BANDWIDTH:CAPS" title="NM_SETTING_DCB_PRIORITY_GROUP_BANDWIDTH">NM_SETTING_DCB_PRIORITY_GROUP_BANDWIDTH</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-BANDWIDTH:CAPS" title="NM_SETTING_DCB_PRIORITY_BANDWIDTH">NM_SETTING_DCB_PRIORITY_BANDWIDTH</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-STRICT-BANDWIDTH:CAPS" title="NM_SETTING_DCB_PRIORITY_STRICT_BANDWIDTH">NM_SETTING_DCB_PRIORITY_STRICT_BANDWIDTH</a>
+#define             <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-TRAFFIC-CLASS:CAPS" title="NM_SETTING_DCB_PRIORITY_TRAFFIC_CLASS">NM_SETTING_DCB_PRIORITY_TRAFFIC_CLASS</a>
+                    <a class="link" href="NMSettingDcb.html#NMSettingDcb-struct" title="NMSettingDcb">NMSettingDcb</a>;
+                    <a class="link" href="NMSettingDcb.html#NMSettingDcbClass" title="NMSettingDcbClass">NMSettingDcbClass</a>;
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         <a class="link" href="NMSettingDcb.html#nm-setting-dcb-new" title="nm_setting_dcb_new ()">nm_setting_dcb_new</a>                  (<em class="parameter"><code><span class="type">void</span></code></em>);
+<a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-app-fcoe-flags" title="nm_setting_dcb_get_app_fcoe_flags ()">nm_setting_dcb_get_app_fcoe_flags</a>   (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-app-fcoe-priority" title="nm_setting_dcb_get_app_fcoe_priority ()">nm_setting_dcb_get_app_fcoe_priority</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-app-fcoe-mode" title="nm_setting_dcb_get_app_fcoe_mode ()">nm_setting_dcb_get_app_fcoe_mode</a>    (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+<a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-app-iscsi-flags" title="nm_setting_dcb_get_app_iscsi_flags ()">nm_setting_dcb_get_app_iscsi_flags</a>  (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-app-iscsi-priority" title="nm_setting_dcb_get_app_iscsi_priority ()">nm_setting_dcb_get_app_iscsi_priority</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+<a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-app-fip-flags" title="nm_setting_dcb_get_app_fip_flags ()">nm_setting_dcb_get_app_fip_flags</a>    (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-app-fip-priority" title="nm_setting_dcb_get_app_fip_priority ()">nm_setting_dcb_get_app_fip_priority</a> (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+<a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-priority-flow-control-flags" title="nm_setting_dcb_get_priority_flow_control_flags ()">nm_setting_dcb_get_priority_flow_control_flags</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-priority-flow-control" title="nm_setting_dcb_get_priority_flow_control ()">nm_setting_dcb_get_priority_flow_control</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-set-priority-flow-control" title="nm_setting_dcb_set_priority_flow_control ()">nm_setting_dcb_set_priority_flow_control</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);
+<a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-priority-group-flags" title="nm_setting_dcb_get_priority_group_flags ()">nm_setting_dcb_get_priority_group_flags</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-priority-group-id" title="nm_setting_dcb_get_priority_group_id ()">nm_setting_dcb_get_priority_group_id</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-set-priority-group-id" title="nm_setting_dcb_set_priority_group_id ()">nm_setting_dcb_set_priority_group_id</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> group_id</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-priority-group-bandwidth" title="nm_setting_dcb_get_priority_group_bandwidth ()">nm_setting_dcb_get_priority_group_bandwidth</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> group_id</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-set-priority-group-bandwidth" title="nm_setting_dcb_set_priority_group_bandwidth ()">nm_setting_dcb_set_priority_group_bandwidth</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> group_id</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> bandwidth_percent</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-priority-bandwidth" title="nm_setting_dcb_get_priority_bandwidth ()">nm_setting_dcb_get_priority_bandwidth</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-set-priority-bandwidth" title="nm_setting_dcb_set_priority_bandwidth ()">nm_setting_dcb_set_priority_bandwidth</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> bandwidth_percent</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-priority-strict-bandwidth" title="nm_setting_dcb_get_priority_strict_bandwidth ()">nm_setting_dcb_get_priority_strict_bandwidth</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-set-priority-strict-bandwidth" title="nm_setting_dcb_set_priority_strict_bandwidth ()">nm_setting_dcb_set_priority_strict_bandwidth</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> strict</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="NMSettingDcb.html#nm-setting-dcb-get-priority-traffic-class" title="nm_setting_dcb_get_priority_traffic_class ()">nm_setting_dcb_get_priority_traffic_class</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSettingDcb.html#nm-setting-dcb-set-priority-traffic-class" title="nm_setting_dcb_set_priority_traffic_class ()">nm_setting_dcb_set_priority_traffic_class</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> traffic_class</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingDcb.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingDcbError
+</pre>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingDcbFlags
+</pre>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
+         +----NMSettingDcb
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingDcb.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-flags" title='The "app-fcoe-flags" property'>app-fcoe-flags</a>"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-mode" title='The "app-fcoe-mode" property'>app-fcoe-mode</a>"            <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-priority" title='The "app-fcoe-priority" property'>app-fcoe-priority</a>"        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fip-flags" title='The "app-fip-flags" property'>app-fip-flags</a>"            <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fip-priority" title='The "app-fip-priority" property'>app-fip-priority</a>"         <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--app-iscsi-flags" title='The "app-iscsi-flags" property'>app-iscsi-flags</a>"          <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--app-iscsi-priority" title='The "app-iscsi-priority" property'>app-iscsi-priority</a>"       <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-bandwidth" title='The "priority-bandwidth" property'>priority-bandwidth</a>"       <span class="type">GArray_guint_</span>*        : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-flow-control" title='The "priority-flow-control" property'>priority-flow-control</a>"    <span class="type">GArray_guint_</span>*        : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-flow-control-flags" title='The "priority-flow-control-flags" property'>priority-flow-control-flags</a>" <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-bandwidth" title='The "priority-group-bandwidth" property'>priority-group-bandwidth</a>" <span class="type">GArray_guint_</span>*        : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'>priority-group-flags</a>"     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-id" title='The "priority-group-id" property'>priority-group-id</a>"        <span class="type">GArray_guint_</span>*        : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-strict-bandwidth" title='The "priority-strict-bandwidth" property'>priority-strict-bandwidth</a>" <span class="type">GArray_guint_</span>*        : Read / Write
+  "<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-traffic-class" title='The "priority-traffic-class" property'>priority-traffic-class</a>"   <span class="type">GArray_guint_</span>*        : Read / Write
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingDcb.description"></a><h2>Description</h2>
+<p>
+The <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes properties
+for enabling and using Data Center Bridging (DCB) on Ethernet networks.
+DCB is a set of protocols (including 802.1Qbb, 802.1Qaz, 802.1Qau, and
+802.1AB) to eliminate packet loss in Ethernet networks and support the use
+of storage technologies like Fibre Channel over Ethernet (FCoE) and iSCSI.
+</p>
+</div>
+<div class="refsect1">
+<a name="NMSettingDcb.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-SETTING-NAME:CAPS"></a><h3>NM_SETTING_DCB_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_SETTING_NAME "dcb"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcbError-enum"></a><h3>enum NMSettingDcbError</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_DCB_ERROR_UNKNOWN = 0,      /*&lt; nick=UnknownError &gt;*/
+	NM_SETTING_DCB_ERROR_INVALID_PROPERTY, /*&lt; nick=InvalidProperty &gt;*/
+	NM_SETTING_DCB_ERROR_MISSING_PROPERTY  /*&lt; nick=MissingProperty &gt;*/
+} NMSettingDcbError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-DCB-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DCB_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-DCB-ERROR-INVALID-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DCB_ERROR_INVALID_PROPERTY</code></span></p></td>
+<td>the property was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-DCB-ERROR-MISSING-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DCB_ERROR_MISSING_PROPERTY</code></span></p></td>
+<td>the property was missing and is
+required
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-ERROR:CAPS"></a><h3>NM_SETTING_DCB_ERROR</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_ERROR nm_setting_dcb_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-error-quark"></a><h3>nm_setting_dcb_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_setting_dcb_error_quark          (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcbFlags-enum"></a><h3>enum NMSettingDcbFlags</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_DCB_FLAG_NONE      = 0x00000000,
+	NM_SETTING_DCB_FLAG_ENABLE    = 0x00000001,
+	NM_SETTING_DCB_FLAG_ADVERTISE = 0x00000002,
+	NM_SETTING_DCB_FLAG_WILLING   = 0x00000004
+} NMSettingDcbFlags;
+</pre>
+<p>
+DCB feature flags.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-DCB-FLAG-NONE:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DCB_FLAG_NONE</code></span></p></td>
+<td>no flag
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-DCB-FLAG-ENABLE:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></span></p></td>
+<td>the feature is enabled
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></span></p></td>
+<td>the feature is advertised
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-DCB-FLAG-WILLING:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></span></p></td>
+<td>the feature is willing to change based on
+peer configuration advertisements
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-FCOE-MODE-FABRIC:CAPS"></a><h3>NM_SETTING_DCB_FCOE_MODE_FABRIC</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_FCOE_MODE_FABRIC  "fabric"
+</pre>
+<p>
+Indicates that the FCoE controller should use "fabric" mode (default)
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-FCOE-MODE-VN2VN:CAPS"></a><h3>NM_SETTING_DCB_FCOE_MODE_VN2VN</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_FCOE_MODE_VN2VN   "vn2vn"
+</pre>
+<p>
+Indicates that the FCoE controller should use "VN2VN" mode.
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-APP-FCOE-FLAGS:CAPS"></a><h3>NM_SETTING_DCB_APP_FCOE_FLAGS</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_APP_FCOE_FLAGS         "app-fcoe-flags"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-APP-FCOE-PRIORITY:CAPS"></a><h3>NM_SETTING_DCB_APP_FCOE_PRIORITY</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_APP_FCOE_PRIORITY      "app-fcoe-priority"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-APP-FCOE-MODE:CAPS"></a><h3>NM_SETTING_DCB_APP_FCOE_MODE</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_APP_FCOE_MODE          "app-fcoe-mode"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-APP-ISCSI-FLAGS:CAPS"></a><h3>NM_SETTING_DCB_APP_ISCSI_FLAGS</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_APP_ISCSI_FLAGS        "app-iscsi-flags"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-APP-ISCSI-PRIORITY:CAPS"></a><h3>NM_SETTING_DCB_APP_ISCSI_PRIORITY</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_APP_ISCSI_PRIORITY     "app-iscsi-priority"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-APP-FIP-FLAGS:CAPS"></a><h3>NM_SETTING_DCB_APP_FIP_FLAGS</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_APP_FIP_FLAGS          "app-fip-flags"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-APP-FIP-PRIORITY:CAPS"></a><h3>NM_SETTING_DCB_APP_FIP_PRIORITY</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_APP_FIP_PRIORITY       "app-fip-priority"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-PRIORITY-FLOW-CONTROL-FLAGS:CAPS"></a><h3>NM_SETTING_DCB_PRIORITY_FLOW_CONTROL_FLAGS</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_PRIORITY_FLOW_CONTROL_FLAGS  "priority-flow-control-flags"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-PRIORITY-FLOW-CONTROL:CAPS"></a><h3>NM_SETTING_DCB_PRIORITY_FLOW_CONTROL</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_PRIORITY_FLOW_CONTROL        "priority-flow-control"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-PRIORITY-GROUP-FLAGS:CAPS"></a><h3>NM_SETTING_DCB_PRIORITY_GROUP_FLAGS</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_PRIORITY_GROUP_FLAGS      "priority-group-flags"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-PRIORITY-GROUP-ID:CAPS"></a><h3>NM_SETTING_DCB_PRIORITY_GROUP_ID</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_PRIORITY_GROUP_ID         "priority-group-id"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-PRIORITY-GROUP-BANDWIDTH:CAPS"></a><h3>NM_SETTING_DCB_PRIORITY_GROUP_BANDWIDTH</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_PRIORITY_GROUP_BANDWIDTH  "priority-group-bandwidth"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-PRIORITY-BANDWIDTH:CAPS"></a><h3>NM_SETTING_DCB_PRIORITY_BANDWIDTH</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_PRIORITY_BANDWIDTH        "priority-bandwidth"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-PRIORITY-STRICT-BANDWIDTH:CAPS"></a><h3>NM_SETTING_DCB_PRIORITY_STRICT_BANDWIDTH</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_PRIORITY_STRICT_BANDWIDTH "priority-strict-bandwidth"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-DCB-PRIORITY-TRAFFIC-CLASS:CAPS"></a><h3>NM_SETTING_DCB_PRIORITY_TRAFFIC_CLASS</h3>
+<pre class="programlisting">#define NM_SETTING_DCB_PRIORITY_TRAFFIC_CLASS    "priority-traffic-class"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb-struct"></a><h3>NMSettingDcb</h3>
+<pre class="programlisting">typedef struct _NMSettingDcb NMSettingDcb;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcbClass"></a><h3>NMSettingDcbClass</h3>
+<pre class="programlisting">typedef struct {
+	NMSettingClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+} NMSettingDcbClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-new"></a><h3>nm_setting_dcb_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         nm_setting_dcb_new                  (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> object with default values.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the new empty <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> object. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-app-fcoe-flags"></a><h3>nm_setting_dcb_get_app_fcoe_flags ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   nm_setting_dcb_get_app_fcoe_flags   (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-flags" title='The "app-fcoe-flags" property'><span class="type">"app-fcoe-flags"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-app-fcoe-priority"></a><h3>nm_setting_dcb_get_app_fcoe_priority ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                nm_setting_dcb_get_app_fcoe_priority
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-priority" title='The "app-fcoe-priority" property'><span class="type">"app-fcoe-priority"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-app-fcoe-mode"></a><h3>nm_setting_dcb_get_app_fcoe_mode ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_dcb_get_app_fcoe_mode    (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-mode" title='The "app-fcoe-mode" property'><span class="type">"app-fcoe-mode"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-app-iscsi-flags"></a><h3>nm_setting_dcb_get_app_iscsi_flags ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   nm_setting_dcb_get_app_iscsi_flags  (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-iscsi-flags" title='The "app-iscsi-flags" property'><span class="type">"app-iscsi-flags"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-app-iscsi-priority"></a><h3>nm_setting_dcb_get_app_iscsi_priority ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                nm_setting_dcb_get_app_iscsi_priority
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-iscsi-priority" title='The "app-iscsi-priority" property'><span class="type">"app-iscsi-priority"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-app-fip-flags"></a><h3>nm_setting_dcb_get_app_fip_flags ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   nm_setting_dcb_get_app_fip_flags    (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fip-flags" title='The "app-fip-flags" property'><span class="type">"app-fip-flags"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-app-fip-priority"></a><h3>nm_setting_dcb_get_app_fip_priority ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                nm_setting_dcb_get_app_fip_priority (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fip-priority" title='The "app-fip-priority" property'><span class="type">"app-fip-priority"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-priority-flow-control-flags"></a><h3>nm_setting_dcb_get_priority_flow_control_flags ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   nm_setting_dcb_get_priority_flow_control_flags
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-flow-control-flags" title='The "priority-flow-control-flags" property'><span class="type">"priority-flow-control-flags"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-priority-flow-control"></a><h3>nm_setting_dcb_get_priority_flow_control ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_dcb_get_priority_flow_control
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to retrieve flow control for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if flow control is enabled for the given <em class="parameter"><code>user_priority</code></em>,
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not enabled</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-set-priority-flow-control"></a><h3>nm_setting_dcb_set_priority_flow_control ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_dcb_set_priority_flow_control
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<p>
+These values are only valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-flow-control" title='The "priority-flow-control" property'><span class="type">"priority-flow-control"</span></a> includes
+the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to set flow control for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>enabled</code></em> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to enable flow control for this priority, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> to disable it</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-priority-group-flags"></a><h3>nm_setting_dcb_get_priority_group_flags ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="returnvalue">NMSettingDcbFlags</span></a>   nm_setting_dcb_get_priority_group_flags
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-priority-group-id"></a><h3>nm_setting_dcb_get_priority_group_id ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               nm_setting_dcb_get_priority_group_id
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to retrieve the group ID for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the group number <em class="parameter"><code>user_priority</code></em> is assigned to.  These values are
+only valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes the
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-set-priority-group-id"></a><h3>nm_setting_dcb_set_priority_group_id ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_dcb_set_priority_group_id
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> group_id</code></em>);</pre>
+<p>
+These values are only valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes
+the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to set flow control for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>the group (0 - 7) to assign <em class="parameter"><code>user_priority</code></em> to, or 15 for the
+unrestricted group.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-priority-group-bandwidth"></a><h3>nm_setting_dcb_get_priority_group_bandwidth ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               nm_setting_dcb_get_priority_group_bandwidth
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> group_id</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>the priority group (0 - 7) to retrieve the bandwidth percentage for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the bandwidth percentage assigned to <em class="parameter"><code>group_id</code></em>.  These values are
+only valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes the
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-set-priority-group-bandwidth"></a><h3>nm_setting_dcb_set_priority_group_bandwidth ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_dcb_set_priority_group_bandwidth
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> group_id</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> bandwidth_percent</code></em>);</pre>
+<p>
+These values are only valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes
+the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>group_id</code></em> :</span></p></td>
+<td>the priority group (0 - 7) to set the bandwidth percentage for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>bandwidth_percent</code></em> :</span></p></td>
+<td>the bandwidth percentage (0 - 100) to assign to <em class="parameter"><code>group_id</code></em> to</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-priority-bandwidth"></a><h3>nm_setting_dcb_get_priority_bandwidth ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               nm_setting_dcb_get_priority_bandwidth
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to retrieve the group bandwidth percentage for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the allowed bandwidth percentage of <em class="parameter"><code>user_priority</code></em> in its priority group.
+These values are only valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes the
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-set-priority-bandwidth"></a><h3>nm_setting_dcb_set_priority_bandwidth ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_dcb_set_priority_bandwidth
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> bandwidth_percent</code></em>);</pre>
+<p>
+These values are only valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes
+the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to set the bandwidth percentage for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>bandwidth_percent</code></em> :</span></p></td>
+<td>the bandwidth percentage (0 - 100) that <em class="parameter"><code>user_priority</code></em> is
+allowed to use within its priority group</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-priority-strict-bandwidth"></a><h3>nm_setting_dcb_get_priority_strict_bandwidth ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_dcb_get_priority_strict_bandwidth
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to retrieve strict bandwidth for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>user_priority</code></em> may use all of the bandwidth allocated to its
+assigned group, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not. These values are only valid when
+<a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-set-priority-strict-bandwidth"></a><h3>nm_setting_dcb_set_priority_strict_bandwidth ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_dcb_set_priority_strict_bandwidth
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> strict</code></em>);</pre>
+<p>
+These values are only valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes
+the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to set strict bandwidth for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>strict</code></em> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to allow <em class="parameter"><code>user_priority</code></em> to use all the bandwidth allocated to
+its priority group, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-get-priority-traffic-class"></a><h3>nm_setting_dcb_get_priority_traffic_class ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               nm_setting_dcb_get_priority_traffic_class
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_priority</code></em> :</span></p></td>
+<td>the User Priority (0 - 7) to retrieve the traffic class for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the traffic class assigned to <em class="parameter"><code>user_priority</code></em>. These values are only
+valid when <a class="link" href="NMSettingDcb.html#NMSettingDcb--priority-group-flags" title='The "priority-group-flags" property'><span class="type">"priority-group-flags"</span></a> includes the
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-dcb-set-priority-traffic-class"></a><h3>nm_setting_dcb_set_priority_traffic_class ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_dcb_set_priority_traffic_class
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> user_priority</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> traffic_class</code></em>);</pre>
+<p>
+</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingDcb.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMSettingDcb--app-fcoe-flags"></a><h3>The <code class="literal">"app-fcoe-flags"</code> property</h3>
+<pre class="programlisting">  "app-fcoe-flags"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write</pre>
+<p>
+Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for the DCB FCoE application.  Flags may
+be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.
+</p>
+<p>Allowed values: &lt;= 7</p>
+<p>Default value: 0</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--app-fcoe-mode"></a><h3>The <code class="literal">"app-fcoe-mode"</code> property</h3>
+<pre class="programlisting">  "app-fcoe-mode"            <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct</pre>
+<p>
+The FCoE controller mode; either <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FCOE-MODE-FABRIC:CAPS" title="NM_SETTING_DCB_FCOE_MODE_FABRIC"><code class="literal">NM_SETTING_DCB_FCOE_MODE_FABRIC</code></a>
+(default) or <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FCOE-MODE-VN2VN:CAPS" title="NM_SETTING_DCB_FCOE_MODE_VN2VN"><code class="literal">NM_SETTING_DCB_FCOE_MODE_VN2VN</code></a>.
+</p>
+<p>Default value: "fabric"</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--app-fcoe-priority"></a><h3>The <code class="literal">"app-fcoe-priority"</code> property</h3>
+<pre class="programlisting">  "app-fcoe-priority"        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct</pre>
+<p>
+The highest User Priority (0 - 7) which FCoE frames should use, or -1 for
+default priority.  Only used when the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-flags" title='The "app-fcoe-flags" property'><span class="type">"app-fcoe-flags"</span></a>
+property includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.
+</p>
+<p>Allowed values: [-1,7]</p>
+<p>Default value: -1</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--app-fip-flags"></a><h3>The <code class="literal">"app-fip-flags"</code> property</h3>
+<pre class="programlisting">  "app-fip-flags"            <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write</pre>
+<p>
+Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for the DCB FIP application.  Flags may
+be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.
+</p>
+<p>Allowed values: &lt;= 7</p>
+<p>Default value: 0</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--app-fip-priority"></a><h3>The <code class="literal">"app-fip-priority"</code> property</h3>
+<pre class="programlisting">  "app-fip-priority"         <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct</pre>
+<p>
+The highest User Priority (0 - 7) which FIP frames should use, or -1 for
+default priority.  Only used when the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fip-flags" title='The "app-fip-flags" property'><span class="type">"app-fip-flags"</span></a>
+property includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.
+</p>
+<p>Allowed values: [-1,7]</p>
+<p>Default value: -1</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--app-iscsi-flags"></a><h3>The <code class="literal">"app-iscsi-flags"</code> property</h3>
+<pre class="programlisting">  "app-iscsi-flags"          <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write</pre>
+<p>
+Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for the DCB iSCSI application.  Flags
+may be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.
+</p>
+<p>Allowed values: &lt;= 7</p>
+<p>Default value: 0</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--app-iscsi-priority"></a><h3>The <code class="literal">"app-iscsi-priority"</code> property</h3>
+<pre class="programlisting">  "app-iscsi-priority"       <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct</pre>
+<p>
+The highest User Priority (0 - 7) which iSCSI frames should use, or -1
+for default priority. Only used when the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-iscsi-flags" title='The "app-iscsi-flags" property'><span class="type">"app-iscsi-flags"</span></a>
+property includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.
+</p>
+<p>Allowed values: [-1,7]</p>
+<p>Default value: -1</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--priority-bandwidth"></a><h3>The <code class="literal">"priority-bandwidth"</code> property</h3>
+<pre class="programlisting">  "priority-bandwidth"       <span class="type">GArray_guint_</span>*        : Read / Write</pre>
+<p>
+An array of 8 uint values, where the array index corresponds to the User
+Priority (0 - 7) and the value indicates the percentage of bandwidth of
+the priority's assigned group that the priority may use.  The sum of all
+percentages for priorities which belong to the same group must total 100
+percent.
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--priority-flow-control"></a><h3>The <code class="literal">"priority-flow-control"</code> property</h3>
+<pre class="programlisting">  "priority-flow-control"    <span class="type">GArray_guint_</span>*        : Read / Write</pre>
+<p>
+An array of 8 uint values, where the array index corresponds to the User
+Priority (0 - 7) and the value indicates whether or not the corresponding
+priority should transmit priority pause.  Allowed values are 0 (do not
+transmit pause) and 1 (transmit pause).
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--priority-flow-control-flags"></a><h3>The <code class="literal">"priority-flow-control-flags"</code> property</h3>
+<pre class="programlisting">  "priority-flow-control-flags" <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write</pre>
+<p>
+Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for DCB Priority Flow Control (PFC).
+Flags may be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.
+</p>
+<p>Allowed values: &lt;= 7</p>
+<p>Default value: 0</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--priority-group-bandwidth"></a><h3>The <code class="literal">"priority-group-bandwidth"</code> property</h3>
+<pre class="programlisting">  "priority-group-bandwidth" <span class="type">GArray_guint_</span>*        : Read / Write</pre>
+<p>
+An array of 8 uint values, where the array index corresponds to the
+Priority Group ID (0 - 7) and the value indicates the percentage of link
+bandwidth allocated to that group.  Allowed values are 0 - 100, and the
+sum of all values must total 100 percent.
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--priority-group-flags"></a><h3>The <code class="literal">"priority-group-flags"</code> property</h3>
+<pre class="programlisting">  "priority-group-flags"     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write</pre>
+<p>
+Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for DCB Priority Groups.  Flags may be
+any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
+<a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.
+</p>
+<p>Allowed values: &lt;= 7</p>
+<p>Default value: 0</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--priority-group-id"></a><h3>The <code class="literal">"priority-group-id"</code> property</h3>
+<pre class="programlisting">  "priority-group-id"        <span class="type">GArray_guint_</span>*        : Read / Write</pre>
+<p>
+An array of 8 uint values, where the array index corresponds to the User
+Priority (0 - 7) and the value indicates the Priority Group ID.  Allowed
+Priority Group ID values are 0 - 7 or 15 for the unrestricted group.
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--priority-strict-bandwidth"></a><h3>The <code class="literal">"priority-strict-bandwidth"</code> property</h3>
+<pre class="programlisting">  "priority-strict-bandwidth" <span class="type">GArray_guint_</span>*        : Read / Write</pre>
+<p>
+An array of 8 uint values, where the array index corresponds to the User
+Priority (0 - 7) and the value indicates whether or not the priority may
+use all of the bandwidth allocated to its assigned group.  Allowed values
+are 0 (the priority may not utilize all bandwidth) or 1 (the priority may
+utilize all bandwidth).
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDcb--priority-traffic-class"></a><h3>The <code class="literal">"priority-traffic-class"</code> property</h3>
+<pre class="programlisting">  "priority-traffic-class"   <span class="type">GArray_guint_</span>*        : Read / Write</pre>
+<p>
+An array of 8 uint values, where the array index corresponds to the User
+Priority (0 - 7) and the value indicates the traffic class (0 - 7) to
+which the priority is mapped.
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

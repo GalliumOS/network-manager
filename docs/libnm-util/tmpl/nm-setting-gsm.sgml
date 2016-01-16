@@ -1,0 +1,355 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingGsm
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_GSM_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingGsmError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_GSM_ERROR_UNKNOWN: 
+@NM_SETTING_GSM_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_GSM_ERROR_MISSING_PROPERTY: 
+@NM_SETTING_GSM_ERROR_MISSING_SERIAL_SETTING: 
+
+<!-- ##### MACRO NM_SETTING_GSM_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_gsm_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_GSM_NUMBER ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_USERNAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_PASSWORD ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_PASSWORD_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_APN ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_NETWORK_ID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_PIN ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_PIN_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_HOME_ONLY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_ALLOWED_BANDS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_GSM_NETWORK_TYPE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingGsmNetworkType ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_GSM_NETWORK_TYPE_ANY: 
+@NM_SETTING_GSM_NETWORK_TYPE_UMTS_HSPA: 
+@NM_SETTING_GSM_NETWORK_TYPE_GPRS_EDGE: 
+@NM_SETTING_GSM_NETWORK_TYPE_PREFER_UMTS_HSPA: 
+@NM_SETTING_GSM_NETWORK_TYPE_PREFER_GPRS_EDGE: 
+@NM_SETTING_GSM_NETWORK_TYPE_PREFER_4G: 
+@NM_SETTING_GSM_NETWORK_TYPE_4G: 
+
+<!-- ##### ENUM NMSettingGsmNetworkBand ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_GSM_BAND_UNKNOWN: 
+@NM_SETTING_GSM_BAND_ANY: 
+@NM_SETTING_GSM_BAND_EGSM: 
+@NM_SETTING_GSM_BAND_DCS: 
+@NM_SETTING_GSM_BAND_PCS: 
+@NM_SETTING_GSM_BAND_G850: 
+@NM_SETTING_GSM_BAND_U2100: 
+@NM_SETTING_GSM_BAND_U1800: 
+@NM_SETTING_GSM_BAND_U17IV: 
+@NM_SETTING_GSM_BAND_U800: 
+@NM_SETTING_GSM_BAND_U850: 
+@NM_SETTING_GSM_BAND_U900: 
+@NM_SETTING_GSM_BAND_U17IX: 
+@NM_SETTING_GSM_BAND_U1900: 
+@NM_SETTING_GSM_BAND_U2600: 
+
+<!-- ##### MACRO NM_SETTING_GSM_BANDS_MAX ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingGsm ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingGsm:allowed-bands ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:apn ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:home-only ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:network-id ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:network-type ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:number ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:password ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:password-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:pin ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:pin-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingGsm:username ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingGsmClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_gsm_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_number ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_username ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_password ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_apn ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_network_id ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_pin ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_home_only ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_pin_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_password_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_network_type ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_gsm_get_allowed_bands ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

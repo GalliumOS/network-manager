@@ -1,0 +1,77 @@
+From: Thomas Voss <thomas.voss@canonical.com>
+Subject: Cull the scan list before signalling a scan is done.
+Bug: https://bugzilla.gnome.org/show_bug.cgi?id=737414
+
+The scan list should get cleaned up at the end of the scan, but before
+signalling that the scan is done (and before scheduling a new scan), so
+that when SCAN_DONE is received by applications, the scan list properly
+reflects the result of the scan, and don't retain some old APs.
+
+---
+ src/devices/wifi/nm-device-wifi.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
+
+Index: b/src/devices/wifi/nm-device-wifi.c
+===================================================================
+--- a/src/devices/wifi/nm-device-wifi.c
++++ b/src/devices/wifi/nm-device-wifi.c
+@@ -183,6 +183,10 @@ static void supplicant_iface_notify_scan
+                                                  GParamSpec * pspec,
+                                                  NMDeviceWifi * self);
+ 
++static void remove_outstanding_scanlist_cull(NMDeviceWifi *self);
++
++static gboolean cull_scan_list(NMDeviceWifi *self);
++
+ static void schedule_scanlist_cull (NMDeviceWifi *self);
+ 
+ static gboolean request_wireless_scan (gpointer user_data);
+@@ -1609,14 +1613,20 @@ supplicant_iface_scan_done_cb (NMSupplic
+ 	            nm_device_get_iface (NM_DEVICE (self)),
+ 	            success ? "successful" : "failed");
+ 
+-	g_signal_emit (self, signals[SCAN_DONE], 0, NULL);
+-
+-	schedule_scan (self, success);
++	/* Make sure that scheduled and not yet run scanlist cull
++	 * requests are aborted.
++	 */
++	remove_outstanding_scanlist_cull (self);
+ 
+ 	/* Ensure that old APs get removed, which otherwise only
+ 	 * happens when there are new BSSes.
+ 	 */
+-	schedule_scanlist_cull (self);
++	cull_scan_list (self);
++
++	/* And let listeners know that a scan is done, with
++	 * all last-seen timestamps being updated.
++	 */
++	g_signal_emit (self, signals[SCAN_DONE], 0, NULL);
+ 
+ 	if (priv->requested_scan) {
+ 		priv->requested_scan = FALSE;
+@@ -1836,13 +1846,22 @@ cull_scan_list (NMDeviceWifi *self)
+ }
+ 
+ static void
+-schedule_scanlist_cull (NMDeviceWifi *self)
++remove_outstanding_scanlist_cull (NMDeviceWifi *self)
+ {
+ 	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
+ 
+ 	/* Cull the scan list after the last request for it has come in */
+ 	if (priv->scanlist_cull_id)
+ 		g_source_remove (priv->scanlist_cull_id);
++}
++
++static void
++schedule_scanlist_cull (NMDeviceWifi *self)
++{
++	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
++
++	remove_outstanding_scanlist_cull(self);
++
+ 	priv->scanlist_cull_id = g_timeout_add_seconds (4, (GSourceFunc) cull_scan_list, self);
+ }
+ 

@@ -1,0 +1,397 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMVpnPluginUi</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="libnm-glib-NMVPNPlugin.html" title="NMVPNPlugin">
+<link rel="next" href="libnm-glib-nm-vpn-plugin-utils.html" title="nm-vpn-plugin-utils">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="libnm-glib-NMVPNPlugin.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="libnm-glib-nm-vpn-plugin-utils.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#libnm-glib-NMVpnPluginUi.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#libnm-glib-NMVpnPluginUi.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="libnm-glib-NMVpnPluginUi"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libnm-glib-NMVpnPluginUi.top_of_page"></a>NMVpnPluginUi</span></h2>
+<p>NMVpnPluginUi</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="libnm-glib-NMVpnPluginUi.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis"><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="returnvalue">NMVpnPluginUiInterface</span></a> * (<a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiFactory" title="NMVpnPluginUiFactory ()">*NMVpnPluginUiFactory</a>)        (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="returnvalue">NMVpnPluginUiInterface</span></a> * <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-factory" title="nm_vpn_plugin_ui_factory ()">nm_vpn_plugin_ui_factory</a>       (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+enum                <a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiCapability" title="enum NMVpnPluginUiCapability">NMVpnPluginUiCapability</a>;
+#define             <a class="link" href="libnm-glib-NMVpnPluginUi.html#NM-VPN-PLUGIN-UI-INTERFACE-NAME:CAPS" title="NM_VPN_PLUGIN_UI_INTERFACE_NAME">NM_VPN_PLUGIN_UI_INTERFACE_NAME</a>
+#define             <a class="link" href="libnm-glib-NMVpnPluginUi.html#NM-VPN-PLUGIN-UI-INTERFACE-DESC:CAPS" title="NM_VPN_PLUGIN_UI_INTERFACE_DESC">NM_VPN_PLUGIN_UI_INTERFACE_DESC</a>
+#define             <a class="link" href="libnm-glib-NMVpnPluginUi.html#NM-VPN-PLUGIN-UI-INTERFACE-SERVICE:CAPS" title="NM_VPN_PLUGIN_UI_INTERFACE_SERVICE">NM_VPN_PLUGIN_UI_INTERFACE_SERVICE</a>
+enum                <a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterfaceProp" title="enum NMVpnPluginUiInterfaceProp">NMVpnPluginUiInterfaceProp</a>;
+struct              <a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface">NMVpnPluginUiInterface</a>;
+<a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface"><span class="returnvalue">NMVpnPluginUiWidgetInterface</span></a> * <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-interface-ui-factory" title="nm_vpn_plugin_ui_interface_ui_factory ()">nm_vpn_plugin_ui_interface_ui_factory</a>
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-interface-get-capabilities" title="nm_vpn_plugin_ui_interface_get_capabilities ()">nm_vpn_plugin_ui_interface_get_capabilities</a>
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>);
+<a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="returnvalue">NMConnection</span></a> *      <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-interface-import" title="nm_vpn_plugin_ui_interface_import ()">nm_vpn_plugin_ui_interface_import</a>   (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-interface-export" title="nm_vpn_plugin_ui_interface_export ()">nm_vpn_plugin_ui_interface_export</a>   (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<span class="returnvalue">char</span> *              <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-interface-get-suggested-name" title="nm_vpn_plugin_ui_interface_get_suggested_name ()">nm_vpn_plugin_ui_interface_get_suggested_name</a>
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-interface-delete-connection" title="nm_vpn_plugin_ui_interface_delete_connection ()">nm_vpn_plugin_ui_interface_delete_connection</a>
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+struct              <a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface">NMVpnPluginUiWidgetInterface</a>;
+<a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-widget-interface-get-widget" title="nm_vpn_plugin_ui_widget_interface_get_widget ()">nm_vpn_plugin_ui_widget_interface_get_widget</a>
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface"><span class="type">NMVpnPluginUiWidgetInterface</span></a> *iface</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-widget-interface-update-connection" title="nm_vpn_plugin_ui_widget_interface_update_connection ()">nm_vpn_plugin_ui_widget_interface_update_connection</a>
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface"><span class="type">NMVpnPluginUiWidgetInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="libnm-glib-NMVpnPluginUi.html#nm-vpn-plugin-ui-widget-interface-save-secrets" title="nm_vpn_plugin_ui_widget_interface_save_secrets ()">nm_vpn_plugin_ui_widget_interface_save_secrets</a>
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface"><span class="type">NMVpnPluginUiWidgetInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="libnm-glib-NMVpnPluginUi.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="libnm-glib-NMVpnPluginUi.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NMVpnPluginUiFactory"></a><h3>NMVpnPluginUiFactory ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="returnvalue">NMVpnPluginUiInterface</span></a> * (*NMVpnPluginUiFactory)        (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-factory"></a><h3>nm_vpn_plugin_ui_factory ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="returnvalue">NMVpnPluginUiInterface</span></a> * nm_vpn_plugin_ui_factory       (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMVpnPluginUiCapability"></a><h3>enum NMVpnPluginUiCapability</h3>
+<pre class="programlisting">typedef enum {
+	NM_VPN_PLUGIN_UI_CAPABILITY_NONE   = 0x00,
+	NM_VPN_PLUGIN_UI_CAPABILITY_IMPORT = 0x01,
+	NM_VPN_PLUGIN_UI_CAPABILITY_EXPORT = 0x02,
+	NM_VPN_PLUGIN_UI_CAPABILITY_IPV6   = 0x04
+} NMVpnPluginUiCapability;
+</pre>
+<p>
+Flags that indicate to UI programs certain capabilities of the plugin.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-VPN-PLUGIN-UI-CAPABILITY-NONE:CAPS"></a><span class="term"><code class="literal">NM_VPN_PLUGIN_UI_CAPABILITY_NONE</code></span></p></td>
+<td>unknown or no capability
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-VPN-PLUGIN-UI-CAPABILITY-IMPORT:CAPS"></a><span class="term"><code class="literal">NM_VPN_PLUGIN_UI_CAPABILITY_IMPORT</code></span></p></td>
+<td>the plugin can import new connections
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-VPN-PLUGIN-UI-CAPABILITY-EXPORT:CAPS"></a><span class="term"><code class="literal">NM_VPN_PLUGIN_UI_CAPABILITY_EXPORT</code></span></p></td>
+<td>the plugin can export connections
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-VPN-PLUGIN-UI-CAPABILITY-IPV6:CAPS"></a><span class="term"><code class="literal">NM_VPN_PLUGIN_UI_CAPABILITY_IPV6</code></span></p></td>
+<td>the plugin supports IPv6 addressing
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-VPN-PLUGIN-UI-INTERFACE-NAME:CAPS"></a><h3>NM_VPN_PLUGIN_UI_INTERFACE_NAME</h3>
+<pre class="programlisting">#define NM_VPN_PLUGIN_UI_INTERFACE_NAME "name"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-VPN-PLUGIN-UI-INTERFACE-DESC:CAPS"></a><h3>NM_VPN_PLUGIN_UI_INTERFACE_DESC</h3>
+<pre class="programlisting">#define NM_VPN_PLUGIN_UI_INTERFACE_DESC "desc"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-VPN-PLUGIN-UI-INTERFACE-SERVICE:CAPS"></a><h3>NM_VPN_PLUGIN_UI_INTERFACE_SERVICE</h3>
+<pre class="programlisting">#define NM_VPN_PLUGIN_UI_INTERFACE_SERVICE "service"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMVpnPluginUiInterfaceProp"></a><h3>enum NMVpnPluginUiInterfaceProp</h3>
+<pre class="programlisting">typedef enum {
+	/* private */
+	NM_VPN_PLUGIN_UI_INTERFACE_PROP_FIRST = 0x1000,
+
+	/* public */
+	NM_VPN_PLUGIN_UI_INTERFACE_PROP_NAME = NM_VPN_PLUGIN_UI_INTERFACE_PROP_FIRST,
+	NM_VPN_PLUGIN_UI_INTERFACE_PROP_DESC,
+	NM_VPN_PLUGIN_UI_INTERFACE_PROP_SERVICE
+} NMVpnPluginUiInterfaceProp;
+</pre>
+<p>
+<a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> property numbers that plugins should override to provide certain
+information to UI programs.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-VPN-PLUGIN-UI-INTERFACE-PROP-FIRST:CAPS"></a><span class="term"><code class="literal">NM_VPN_PLUGIN_UI_INTERFACE_PROP_FIRST</code></span></p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-VPN-PLUGIN-UI-INTERFACE-PROP-NAME:CAPS"></a><span class="term"><code class="literal">NM_VPN_PLUGIN_UI_INTERFACE_PROP_NAME</code></span></p></td>
+<td>the VPN plugin's name
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-VPN-PLUGIN-UI-INTERFACE-PROP-DESC:CAPS"></a><span class="term"><code class="literal">NM_VPN_PLUGIN_UI_INTERFACE_PROP_DESC</code></span></p></td>
+<td>description of the VPN plugin and what
+VPN services it supports
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-VPN-PLUGIN-UI-INTERFACE-PROP-SERVICE:CAPS"></a><span class="term"><code class="literal">NM_VPN_PLUGIN_UI_INTERFACE_PROP_SERVICE</code></span></p></td>
+<td>the D-Bus service name used by the
+plugin's VPN service daemon
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMVpnPluginUiInterface"></a><h3>struct NMVpnPluginUiInterface</h3>
+<pre class="programlisting">struct NMVpnPluginUiInterface {
+	GTypeInterface g_iface;
+
+	/* Plugin's factory function that returns a GObject that implements
+	 * NMVpnPluginUiWidgetInterface, pre-filled with values from 'connection'
+	 * if non-NULL.
+	 */
+	NMVpnPluginUiWidgetInterface * (*ui_factory) (NMVpnPluginUiInterface *iface,
+	                                              NMConnection *connection,
+	                                              GError **error);
+
+	/* Plugin's capabiltity function that returns a bitmask of capabilities
+	 * described by NM_VPN_PLUGIN_UI_CAPABILITY_* defines.
+	 */
+	guint32 (*get_capabilities) (NMVpnPluginUiInterface *iface);
+
+	/* Try to import a connection from the specified path.  On success, return a
+	 * partial NMConnection object.  On error, return NULL and set 'error' with
+	 * additional information.  Note that 'error' can be NULL, in which case no
+	 * additional error information should be provided.
+	 */
+	NMConnection * (*import_from_file) (NMVpnPluginUiInterface *iface,
+	                                    const char *path,
+	                                    GError **error);
+
+	/* Export the given connection to the specified path.  Return TRUE on success.
+	 * On error, return FALSE and set 'error' with additional error information.
+	 * Note that 'error' can be NULL, in which case no additional error information
+	 * should be provided.
+	 */
+	gboolean (*export_to_file) (NMVpnPluginUiInterface *iface,
+	                            const char *path,
+	                            NMConnection *connection,
+	                            GError **error);
+
+	/* For a given connection, return a suggested file name.  Returned value should
+	 * be NULL or a suggested file name allocated via g_malloc/g_new/etc to be freed
+	 * by the caller.
+	 */
+	char * (*get_suggested_name) (NMVpnPluginUiInterface *iface, NMConnection *connection);
+
+	/* Deprecated and no longer used */
+	gboolean (*delete_connection) (NMVpnPluginUiInterface *iface, NMConnection *connection, GError **error);
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+	void (*_reserved5) (void);
+	void (*_reserved6) (void);
+};
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-interface-ui-factory"></a><h3>nm_vpn_plugin_ui_interface_ui_factory ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface"><span class="returnvalue">NMVpnPluginUiWidgetInterface</span></a> * nm_vpn_plugin_ui_interface_ui_factory
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-interface-get-capabilities"></a><h3>nm_vpn_plugin_ui_interface_get_capabilities ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             nm_vpn_plugin_ui_interface_get_capabilities
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-interface-import"></a><h3>nm_vpn_plugin_ui_interface_import ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="returnvalue">NMConnection</span></a> *      nm_vpn_plugin_ui_interface_import   (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-interface-export"></a><h3>nm_vpn_plugin_ui_interface_export ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_vpn_plugin_ui_interface_export   (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-interface-get-suggested-name"></a><h3>nm_vpn_plugin_ui_interface_get_suggested_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *              nm_vpn_plugin_ui_interface_get_suggested_name
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-interface-delete-connection"></a><h3>nm_vpn_plugin_ui_interface_delete_connection ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_vpn_plugin_ui_interface_delete_connection
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiInterface" title="struct NMVpnPluginUiInterface"><span class="type">NMVpnPluginUiInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMVpnPluginUiWidgetInterface"></a><h3>struct NMVpnPluginUiWidgetInterface</h3>
+<pre class="programlisting">struct NMVpnPluginUiWidgetInterface {
+	GTypeInterface g_iface;
+
+	/* Return the GtkWidget for the VPN's UI */
+	GObject * (*get_widget) (NMVpnPluginUiWidgetInterface *iface);
+
+	/* Called to save the user-entered options to the connection object.  Should
+	 * return FALSE and set 'error' if the current options are invalid.  'error'
+	 * should contain enough information for the plugin to determine which UI
+	 * widget is invalid at a later point in time.  For example, creating unique
+	 * error codes for what error occurred and populating the message field
+	 * of 'error' with the name of the invalid property.
+	 */
+	gboolean (*update_connection) (NMVpnPluginUiWidgetInterface *iface,
+	                               NMConnection *connection,
+	                               GError **error);
+
+	/* Deprecated and no longer used */
+	gboolean (*save_secrets) (NMVpnPluginUiWidgetInterface *iface,
+	                          NMConnection *connection,
+	                          GError **error);
+
+	/* Emitted when the value of a UI widget changes.  May trigger a validity
+	 * check via update_connection() to write values to the connection */
+	void (*changed) (NMVpnPluginUiWidgetInterface *iface);
+};
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-widget-interface-get-widget"></a><h3>nm_vpn_plugin_ui_widget_interface_get_widget ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           nm_vpn_plugin_ui_widget_interface_get_widget
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface"><span class="type">NMVpnPluginUiWidgetInterface</span></a> *iface</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-widget-interface-update-connection"></a><h3>nm_vpn_plugin_ui_widget_interface_update_connection ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_vpn_plugin_ui_widget_interface_update_connection
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface"><span class="type">NMVpnPluginUiWidgetInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-ui-widget-interface-save-secrets"></a><h3>nm_vpn_plugin_ui_widget_interface_save_secrets ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_vpn_plugin_ui_widget_interface_save_secrets
+                                                        (<em class="parameter"><code><a class="link" href="libnm-glib-NMVpnPluginUi.html#NMVpnPluginUiWidgetInterface" title="struct NMVpnPluginUiWidgetInterface"><span class="type">NMVpnPluginUiWidgetInterface</span></a> *iface</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

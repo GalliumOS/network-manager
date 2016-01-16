@@ -1,0 +1,89 @@
+From e2edf1afd6fa0a8e66ddd93d74e5f5781deacd47 Mon Sep 17 00:00:00 2001
+From: Thomas Haller <thaller@redhat.com>
+Date: Sun, 27 Jul 2014 04:54:13 +0200
+Subject: libnm-glib/test: add asserts to test-remote-settings-client
+
+- register a weak references and ensure that the connection
+  is removed when expected.
+
+- disconnect the vis_new_connection_cb() handler
+
+Signed-off-by: Thomas Haller <thaller@redhat.com>
+(cherry picked from commit 1de6d83e29b43ece726f49b43aeb632543aa42be)
+
+---
+ libnm-glib/tests/test-remote-settings-client.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+Index: b/libnm-glib/tests/test-remote-settings-client.c
+===================================================================
+--- a/libnm-glib/tests/test-remote-settings-client.c
++++ b/libnm-glib/tests/test-remote-settings-client.c
+@@ -51,9 +51,11 @@ cleanup (void)
+ 
+ #define test_assert(condition) \
+ do { \
+-	if (!G_LIKELY (condition)) \
++	gboolean _condition = !!( condition ); \
++	if (G_UNLIKELY (!_condition)) { \
+ 		cleanup (); \
+-	g_assert (condition); \
++		g_assert (!"test_assert() failed for " # condition); \
++	} \
+ } while (0)
+ 
+ /*******************************************************************/
+@@ -69,6 +71,7 @@ add_cb (NMRemoteSettings *s,
+ 
+ 	*((gboolean *) user_data) = TRUE;
+ 	remote = connection;
++	g_object_add_weak_pointer (G_OBJECT (connection), (void **) &remote);
+ }
+ 
+ #define TEST_CON_ID "blahblahblah"
+@@ -185,6 +188,7 @@ test_make_invisible (void)
+ 	} while ((done == FALSE) && (now - start < 5));
+ 	test_assert (done == TRUE);
+ 
++	g_assert (remote);
+ 	g_signal_handlers_disconnect_by_func (remote, G_CALLBACK (invis_removed_cb), &done);
+ 
+ 	/* Ensure NMRemoteSettings no longer has the connection */
+@@ -197,6 +201,7 @@ test_make_invisible (void)
+ 	}
+ 
+ 	/* And ensure the invisible connection no longer has any settings */
++	g_assert (remote);
+ 	nm_connection_for_each_setting_value (NM_CONNECTION (remote),
+ 	                                      invis_has_settings_cb,
+ 	                                      &has_settings);
+@@ -252,8 +257,11 @@ test_make_visible (void)
+ 	} while ((new == NULL) && (now - start < 5));
+ 
+ 	/* Ensure the new connection is the same as the one we made visible again */
++	test_assert (new);
+ 	test_assert (new == remote);
+ 
++	g_signal_handlers_disconnect_by_func (settings, G_CALLBACK (vis_new_connection_cb), &new);
++
+ 	/* Ensure NMRemoteSettings has the connection */
+ 	list = nm_remote_settings_list_connections (settings);
+ 	for (iter = list; iter; iter = g_slist_next (iter)) {
+@@ -310,6 +318,8 @@ test_remove_connection (void)
+ 	test_assert (g_slist_length (list) > 0);
+ 
+ 	connection = NM_REMOTE_CONNECTION (list->data);
++	g_assert (connection);
++	g_assert (remote == connection);
+ 	path = g_strdup (nm_connection_get_path (NM_CONNECTION (connection)));
+ 	g_signal_connect (connection, "removed", G_CALLBACK (removed_cb), &done);
+ 
+@@ -329,6 +339,8 @@ test_remove_connection (void)
+ 	} while ((done == FALSE) && (now - start < 5));
+ 	test_assert (done == TRUE);
+ 
++	g_assert (!remote);
++
+ 	/* Ensure NMRemoteSettings no longer has the connection */
+ 	list = nm_remote_settings_list_connections (settings);
+ 	for (iter = list; iter; iter = g_slist_next (iter)) {

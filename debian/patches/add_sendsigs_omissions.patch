@@ -1,0 +1,40 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Move NM's spawns pid files to /run/sendsigs.omit.d.
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/869635
+
+The pidfiles are only used by NM to start and be able to stop the same process,
+their actual location doesn't overly matter. In this case, putting them
+under /run/sendsigs.omit.d allows shutdown to skip over those as handled by
+an upstart job, and in fact they are (although indirectly).
+
+---
+ src/dhcp-manager/nm-dhcp-dhclient.c |    2 +-
+ src/dns-manager/nm-dns-dnsmasq.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+Index: b/src/dhcp-manager/nm-dhcp-dhclient.c
+===================================================================
+--- a/src/dhcp-manager/nm-dhcp-dhclient.c
++++ b/src/dhcp-manager/nm-dhcp-dhclient.c
+@@ -353,7 +353,7 @@ dhclient_start (NMDHCPClient *client,
+ 		return -1;
+ 	}
+ 
+-	pid_file = g_strdup_printf (LOCALSTATEDIR "/run/dhclient%s-%s.pid",
++	pid_file = g_strdup_printf ("/run/sendsigs.omit.d/network-manager.dhclient%s-%s.pid",
+ 		                        ipv6 ? "6" : "",
+ 		                        iface);
+ 
+Index: b/src/dns-manager/nm-dns-dnsmasq.c
+===================================================================
+--- a/src/dns-manager/nm-dns-dnsmasq.c
++++ b/src/dns-manager/nm-dns-dnsmasq.c
+@@ -40,7 +40,7 @@ G_DEFINE_TYPE (NMDnsDnsmasq, nm_dns_dnsm
+ 
+ #define NM_DNS_DNSMASQ_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DNS_DNSMASQ, NMDnsDnsmasqPrivate))
+ 
+-#define PIDFILE NMRUNDIR "/dnsmasq.pid"
++#define PIDFILE "/run/sendsigs.omit.d/network-manager.dnsmasq.pid"
+ #define CONFFILE NMRUNDIR "/dnsmasq.conf"
+ #define CONFDIR NMCONFDIR "/dnsmasq.d"
+ 

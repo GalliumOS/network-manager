@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+import unittest
+import subprocess
+import sys
+import time
+
+import dbus
+
+
+class TestDnsmasq(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(klass):
+        # in tests we need to make sure there are devices not defined in /e/n/i;
+        # to ensure that, run the same script we run at install to migrate (comment out)
+        # the entries from /e/n/i so NM can manage the devices.
+        subprocess.check_call(['/usr/lib/NetworkManager/ifblacklist_migrate.sh'])
+
+        klass.p_nm = subprocess.Popen(['NetworkManager', '--no-daemon'],
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT)
+
+        # wait until we see an ethernet interface in nmcli
+        timeout = 30
+        while timeout > 0:
+            time.sleep(1)
+
+            status, out = subprocess.getstatusoutput('nmcli dev')
+            if status == 0 and 'eth' in out:
+                break
+        else:
+            sys.stderr.write('Timed out waiting for ethernet device to appear in nmcli dev: Exit code %i, output:\n%s\n' % (
+                status, out))
+            sys.exit(1)
+
+        # wait until we see a connection to that eth interface
+        timeout = 30
+        while timeout > 0:
+            time.sleep(1)
+
+            status, out = subprocess.getstatusoutput('nmcli dev')
+            if status == 0 and 'eth' in out and 'connected' in out:
+                break
+        else:
+            sys.stderr.write('Timed out waiting for ethernet device to connect:\n%s\n' % out)
+            sys.exit(1)
+
+        print('Available devices for NetworkManager:')
+        print(out)
+
+    @classmethod
+    def tearDownClass(klass):
+        klass.p_nm.terminate()
+        klass.p_nm.wait()
+
+    def test_start(self):
+        '''dnsmasq gets autostarted for new connection'''
+
+        processes = subprocess.check_output(['ps', '-C', 'dnsmasq', '-f'], universal_newlines=True)
+        self.assertIn('--conf-file=/var/run/NetworkManager/dnsmasq.conf', processes)
+        self.assertIn('--enable-dbus', processes)
+
+    def test_has_dbus(self):
+        '''dnsmasq exports D-BUS interface'''
+
+        bus = dbus.SystemBus()
+        names = bus.list_names()
+        if 'org.freedesktop.Networkmanager.dnsmasq' in names:
+            dnsmasq = bus.get_object('org.freedesktop.NetworkManager.dnsmasq',
+                                     '/uk/org/thekelleys/dnsmasq')
+            dnsmasq_ver = dnsmasq.GetVersion()
+            print('Dnsmasq version is ' + dnsmasq_ver)
+            self.assertIsInstance(dnsmasq_ver, dbus.String)
+
+unittest.main(testRunner=unittest.TextTestRunner(stream=sys.stdout, verbosity=2))

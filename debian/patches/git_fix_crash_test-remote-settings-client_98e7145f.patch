@@ -1,0 +1,30 @@
+From 746a13bdcdbe79e354238d67f90c473ec83f17a4 Mon Sep 17 00:00:00 2001
+From: Thomas Haller <thaller@redhat.com>
+Date: Sun, 27 Jul 2014 04:37:12 +0200
+Subject: libnm-glib/test: fix crash in test-remote-settings-client
+
+test_make_invisible() forgot to disconnect handler invis_removed_cb().
+Later, during test_remove_connection(), the connection will be eventually
+removed and the callback will corrupt the stack by writing to the '&done'
+user data.
+
+Signed-off-by: Thomas Haller <thaller@redhat.com>
+(cherry picked from commit d6b3ef0819dde4e6bc514b815f6259f1eaffa150)
+
+---
+ libnm-glib/tests/test-remote-settings-client.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+Index: b/libnm-glib/tests/test-remote-settings-client.c
+===================================================================
+--- a/libnm-glib/tests/test-remote-settings-client.c
++++ b/libnm-glib/tests/test-remote-settings-client.c
+@@ -185,6 +185,8 @@ test_make_invisible (void)
+ 	} while ((done == FALSE) && (now - start < 5));
+ 	test_assert (done == TRUE);
+ 
++	g_signal_handlers_disconnect_by_func (remote, G_CALLBACK (invis_removed_cb), &done);
++
+ 	/* Ensure NMRemoteSettings no longer has the connection */
+ 	list = nm_remote_settings_list_connections (settings);
+ 	for (iter = list; iter; iter = g_slist_next (iter)) {

@@ -1,0 +1,25 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Don't send a success SCAN_DONE signal when scanning starts.
+
+---
+ src/supplicant-manager/nm-supplicant-interface.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+Index: b/src/supplicant-manager/nm-supplicant-interface.c
+===================================================================
+--- a/src/supplicant-manager/nm-supplicant-interface.c
++++ b/src/supplicant-manager/nm-supplicant-interface.c
+@@ -1177,10 +1177,11 @@ scan_request_cb (DBusGProxy *proxy, DBus
+ 	GError *err = NULL;
+ 
+ 	nm_call_store_remove (priv->other_pcalls, proxy, call_id);
+-	if (!dbus_g_proxy_end_call (proxy, call_id, &err, G_TYPE_INVALID))
++	if (!dbus_g_proxy_end_call (proxy, call_id, &err, G_TYPE_INVALID)) {
+ 		nm_log_warn (LOGD_SUPPLICANT, "Could not get scan request result: %s", err->message);
++		g_signal_emit (self, signals[SCAN_DONE], 0, FALSE);
++	}
+ 
+-	g_signal_emit (self, signals[SCAN_DONE], 0, err ? FALSE : TRUE);
+ 	g_clear_error (&err);
+ }
+ 

@@ -1,0 +1,540 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Delay IP settings provisioning to after we receive the PropertyChanged
+ notification from oFono.
+
+Rather than getting the settings and watching for them when we get to the
+stage 3 (IP config) part of the interface bringup, get the IP config in an
+async way by preparing to receive the PropertyChanged signal on the context
+we care about as we activate the context. That way when the context is
+activated and we transition to stage 3 we already have the IP config
+and we can apply it immediately.
+
+---
+ src/devices/wwan/nm-modem-ofono.c |  377 ++++++++++++++++++++++----------------
+ 1 file changed, 224 insertions(+), 153 deletions(-)
+
+Index: b/src/devices/wwan/nm-modem-ofono.c
+===================================================================
+--- a/src/devices/wwan/nm-modem-ofono.c
++++ b/src/devices/wwan/nm-modem-ofono.c
+@@ -105,6 +105,8 @@ typedef struct {
+ 	gboolean gprs_attached;
+ 	gboolean gprs_powered;
+ 
++	NMIP4Config *ip4_config;
++
+ 	NMModemState state;
+ } NMModemOfonoPrivate;
+ 
+@@ -277,7 +279,9 @@ get_ofono_conn_manager_properties_done (
+ 		nm_log_warn (LOGD_MB, "failed get modem enabled state: unexpected reply type");
+ 	g_value_unset (value);
+ 
+-	update_ofono_enabled (self, priv->gprs_powered && priv->gprs_attached);
++	update_ofono_enabled (self, priv->modem_online
++	                            && priv->gprs_powered
++	                            && priv->gprs_attached);
+ }
+ 
+ static void
+@@ -310,7 +314,9 @@ ofono_conn_properties_changed (DBusGProx
+ 		priv->gprs_attached = g_value_get_boolean (value);
+ 	}
+ 
+-	update_ofono_enabled (self, priv->gprs_powered && priv->gprs_attached);
++	update_ofono_enabled (self, priv->modem_online
++	                            && priv->gprs_powered
++	                            && priv->gprs_attached);
+ }
+ 
+ static void
+@@ -343,7 +349,8 @@ ofono_read_contexts (NMModemOfono *self)
+ 	char *imsi = NULL;
+ 
+ 	nm_log_dbg (LOGD_MB, "in %s", __func__);
+-	nm_log_dbg (LOGD_MB, "trying to read IMSI contexts from oFono files");
++	nm_log_info (LOGD_MB, "(%s): trying to read IMSI contexts from oFono files",
++	             nm_modem_get_path (NM_MODEM (self)));
+ 
+ 	bus = nm_dbus_manager_get_connection (priv->dbus_mgr);
+ 
+@@ -410,10 +417,15 @@ ofono_properties_changed (DBusGProxy *pr
+ 
+ 	if (g_strcmp0 (key, "Online") == 0 && G_VALUE_HOLDS_BOOLEAN (value)) {
+ 		priv->modem_online = g_value_get_boolean (value);
++		nm_log_info (LOGD_MB, "(%s) modem is now %s",
++		             nm_modem_get_path (NM_MODEM (self)),
++		             priv->modem_online ? "Online" : "Offline");
++		update_ofono_enabled (self, priv->modem_online
++		                            && priv->gprs_powered
++		                            && priv->gprs_attached);
+ 	} else if (g_strcmp0 (key, "Interfaces") == 0 && G_VALUE_HOLDS_BOXED (value)) {
+ 		gboolean found_simmanager = FALSE;
+ 		gboolean found_conn_manager = FALSE;
+-		gboolean found_context_manager = FALSE;
+ 		int i;
+ 
+ 		priv->interfaces = (char **) g_value_get_boxed (value);
+@@ -424,58 +436,66 @@ ofono_properties_changed (DBusGProxy *pr
+ 				found_simmanager = TRUE;
+ 			if (g_strrstr (priv->interfaces[i], "ConnectionManager"))
+ 				found_conn_manager = TRUE;
+-			if (g_strrstr (priv->interfaces[i], "ContextManager"))
+-				found_context_manager = TRUE;
+ 		}
+ 
+ 		if (found_simmanager) {
+-			if (!priv->simmanager_proxy)
++			if (!priv->simmanager_proxy) {
++				nm_log_info (LOGD_MB, "(%s): found new SimManager interface",
++				             nm_modem_get_path (NM_MODEM (self)));
+ 				priv->simmanager_proxy = get_ofono_proxy (self,
+ 				                                          nm_modem_get_path (NM_MODEM (self)),
+ 				                                          OFONO_DBUS_INTERFACE_SIM_MANAGER);
++			}
+ 		}
+ 		else {
+ 			if (priv->simmanager_proxy) {
++				nm_log_info (LOGD_MB, "(%s): SimManager interface disappeared",
++				             nm_modem_get_path (NM_MODEM (self)));
+ 				g_object_unref (priv->simmanager_proxy);
+ 				priv->simmanager_proxy = NULL;
+ 			}
+ 		}
+ 
+ 		if (found_conn_manager) {
+-			if (!priv->connman_proxy)
++			if (!priv->connman_proxy) {
++				nm_log_info (LOGD_MB, "(%s): found new ConnectionManager interface",
++				             nm_modem_get_path (NM_MODEM (self)));
+ 				priv->connman_proxy = get_ofono_proxy (self,
+ 				                                       nm_modem_get_path (NM_MODEM (self)),
+ 				                                       OFONO_DBUS_INTERFACE_CONNECTION_MANAGER);
+ 
+-			if (priv->connman_proxy) {
+-				get_ofono_conn_manager_properties (self);
++				if (priv->connman_proxy) {
++					get_ofono_conn_manager_properties (self);
+ 
+-				dbus_g_proxy_add_signal (priv->connman_proxy, "PropertyChanged",
+-				                         G_TYPE_STRING, G_TYPE_VALUE,
+-				                         G_TYPE_INVALID);
+-				dbus_g_proxy_connect_signal (priv->connman_proxy, "PropertyChanged",
+-				                             G_CALLBACK (ofono_conn_properties_changed),
+-				                             self,
+-				                             NULL);
+-
+-				dbus_g_proxy_add_signal (priv->connman_proxy, "ContextAdded",
+-				                         DBUS_TYPE_G_OBJECT_PATH, DBUS_TYPE_G_MAP_OF_VARIANT,
+-				                         G_TYPE_INVALID);
+-				dbus_g_proxy_connect_signal (priv->connman_proxy, "ContextAdded",
+-				                             G_CALLBACK (ofono_context_added),
+-				                             self,
+-				                             NULL);
+-				dbus_g_proxy_add_signal (priv->connman_proxy, "ContextRemoved",
+-				                         DBUS_TYPE_G_OBJECT_PATH,
+-				                         G_TYPE_INVALID);
+-				dbus_g_proxy_connect_signal (priv->connman_proxy, "ContextRemoved",
+-				                             G_CALLBACK (ofono_context_removed),
+-				                             self,
+-				                             NULL);
++					dbus_g_proxy_add_signal (priv->connman_proxy, "PropertyChanged",
++				                         	G_TYPE_STRING, G_TYPE_VALUE,
++				                         	G_TYPE_INVALID);
++					dbus_g_proxy_connect_signal (priv->connman_proxy, "PropertyChanged",
++				                             	G_CALLBACK (ofono_conn_properties_changed),
++				                             	self,
++				                             	NULL);
++
++					dbus_g_proxy_add_signal (priv->connman_proxy, "ContextAdded",
++				                         	DBUS_TYPE_G_OBJECT_PATH, DBUS_TYPE_G_MAP_OF_VARIANT,
++				                         	G_TYPE_INVALID);
++					dbus_g_proxy_connect_signal (priv->connman_proxy, "ContextAdded",
++				                             	G_CALLBACK (ofono_context_added),
++				                             	self,
++				                             	NULL);
++					dbus_g_proxy_add_signal (priv->connman_proxy, "ContextRemoved",
++				                         	DBUS_TYPE_G_OBJECT_PATH,
++				                         	G_TYPE_INVALID);
++					dbus_g_proxy_connect_signal (priv->connman_proxy, "ContextRemoved",
++				                             	G_CALLBACK (ofono_context_removed),
++				                             	self,
++				                             	NULL);
++				}
+ 			}
+ 		}
+ 		else {
+ 			if (priv->connman_proxy) {
++				nm_log_info (LOGD_MB, "(%s): ConnectionManager interface disappeared",
++				             nm_modem_get_path (NM_MODEM (self)));
+ 				g_object_unref (priv->connman_proxy);
+ 				priv->connman_proxy = NULL;
+ 
+@@ -487,16 +507,6 @@ ofono_properties_changed (DBusGProxy *pr
+ 				priv->gprs_attached = FALSE;
+ 			}
+ 		}
+-
+-		/* Clear the context manager if it got dropped from interfaces */
+-		if (found_context_manager) {
+-			ofono_read_contexts (self);
+-		} else {
+-			if (priv->context_proxy) {
+-				g_object_unref (priv->context_proxy);
+-				priv->context_proxy = NULL;
+-			}
+-		}
+ 	}
+ }
+ 
+@@ -533,26 +543,133 @@ stage1_prepare_done (DBusGProxy *proxy,
+ 		priv->connect_properties = NULL;
+ 	}
+ 
+-	if (dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID))
+-		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, TRUE, NM_DEVICE_STATE_REASON_NONE);
+-	else {
+-		//if (dbus_g_error_has_name (error, MM_MODEM_ERROR_SIM_PIN))
+-		//	ask_for_pin (self, FALSE);
+-		//else if (dbus_g_error_has_name (error, MM_MODEM_ERROR_SIM_WRONG))
+-		//	ask_for_pin (self, TRUE);
+-		//else {
+-			nm_log_warn (LOGD_MB, "OFONO connection failed: (%d) %s",
+-			             error ? error->code : -1,
+-			             error && error->message ? error->message : "(unknown)");
++	if (!dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID)) {
++		nm_log_warn (LOGD_MB, "OFONO connection failed: (%d) %s",
++		             error ? error->code : -1,
++		             error && error->message ? error->message : "(unknown)");
+ 
+-			g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE, NM_DEVICE_STATE_REASON_MODEM_NO_CARRIER);
+-		//}
++		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE,
++		                       NM_DEVICE_STATE_REASON_MODEM_BUSY);
+ 
+ 		g_error_free (error);
+ 	}
+ }
+ 
+ static void
++ofono_context_get_ip_properties (NMModemOfono *self)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	NMPlatformIP4Address addr;
++	NMDeviceStateReason reason = NM_DEVICE_STATE_REASON_NONE;
++	GHashTable *properties, *ip_settings;
++	GError *error = NULL;
++	GType prop_dict;
++	const gchar *address_string, *gateway_string, *netmask_string, *iface;
++	const gchar **dns;
++	gpointer settings;
++	gboolean ret = FALSE;
++	guint32 address_network, gateway_network;
++	guint i;
++	guint prefix = 0;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	g_return_if_fail (priv->ip4_config == NULL);
++
++	prop_dict = dbus_g_type_get_map ("GHashTable", G_TYPE_STRING, G_TYPE_VALUE);
++	dbus_g_proxy_call_with_timeout (priv->context_proxy,
++	                                "GetProperties",
++	                                20000, &error,
++	                                G_TYPE_INVALID,
++	                                prop_dict, &properties,
++	                                G_TYPE_INVALID);
++
++	if (!error) {
++		settings = g_hash_table_lookup (properties, "Settings");
++		if (settings) {
++			ip_settings = (GHashTable*) g_value_get_boxed (settings);
++
++			nm_log_info (LOGD_MB, "(%s): IPv4 static configuration:",
++			             nm_modem_get_uid (NM_MODEM (self)));
++
++			iface = g_value_get_string (g_hash_table_lookup (ip_settings, "Interface"));
++			if (iface)
++				g_object_set (self, NM_MODEM_DATA_PORT, iface, NULL);
++
++			priv->ip4_config = nm_ip4_config_new ();
++
++			address_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Address"));
++			if (address_string) {
++				if (ip_string_to_network_address (address_string, &address_network)) {
++					addr.address = address_network;
++					addr.source = NM_PLATFORM_SOURCE_WWAN;
++				}
++			} else
++				goto out;
++
++			/* retrieve netmask and convert to prefix value */
++			netmask_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Netmask"));
++			if (ip_string_to_network_address (netmask_string, &address_network)) {
++				prefix = nm_utils_ip4_netmask_to_prefix (address_network);
++				if (prefix > 0)
++					addr.plen = prefix;
++			} else
++				goto out;
++
++			nm_log_info (LOGD_MB, "  address %s/%d", address_string, prefix);
++			nm_ip4_config_add_address (priv->ip4_config, &addr);
++
++			gateway_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Gateway"));
++			if (gateway_string) {
++				if (ip_string_to_network_address (gateway_string, &gateway_network)) {
++					nm_log_info (LOGD_MB, "  gateway %s", gateway_string);
++					nm_ip4_config_set_gateway (priv->ip4_config, gateway_network);
++				}
++			} else
++				goto out;
++
++			/* DNS servers */
++			dns = (char **) g_value_get_boxed (g_hash_table_lookup (ip_settings, "DomainNameServers"));
++			for (i = 0; dns[i]; i++) {
++				if (   ip_string_to_network_address (dns[i], &address_network)
++			    	&& address_network > 0) {
++					nm_ip4_config_add_nameserver (priv->ip4_config, address_network);
++					nm_log_info (LOGD_MB, "  DNS %s", dns[i]);
++				}
++			}
++
++			ret = TRUE;
++		}
++	}
++
++out:
++	if (!ret) {
++		if (error) {
++			reason = NM_DEVICE_STATE_REASON_CONFIG_FAILED;
++			g_clear_error (&error);
++		} else {
++			reason = NM_DEVICE_STATE_REASON_IP_CONFIG_UNAVAILABLE;
++		}
++	}
++
++	g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, ret, reason);
++}
++
++static void
++context_properties_changed (DBusGProxy *proxy,
++                            const char *key,
++                            GValue *value,
++                            gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	if (g_strcmp0("Settings", key) == 0) {
++		ofono_context_get_ip_properties (self);
++	}
++}
++
++static void
+ do_context_activate (NMModemOfono *self, char *context_path)
+ {
+ 	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
+@@ -586,6 +703,23 @@ do_context_activate (NMModemOfono *self,
+ 		return;
+ 	}
+ 
++	if (priv->ip4_config) {
++		/* We have an old copy of the settings from a previous activation,
++		 * clear it so that we can gate getting the IP config from oFono
++		 * on whether or not we have already received them
++		 */
++		g_object_unref (priv->ip4_config);
++		priv->ip4_config = NULL;
++	}
++
++	dbus_g_proxy_add_signal (priv->context_proxy, "PropertyChanged",
++	                         G_TYPE_STRING, G_TYPE_VALUE,
++	                         G_TYPE_INVALID);
++	dbus_g_proxy_connect_signal (priv->context_proxy, "PropertyChanged",
++	                             G_CALLBACK (context_properties_changed),
++	                             self,
++	                             NULL);
++
+ 	dbus_g_proxy_begin_call_with_timeout (priv->context_proxy,
+ 	                                      "SetProperty", stage1_prepare_done,
+ 	                                      self, NULL, 20000,
+@@ -864,100 +998,20 @@ act_stage1_prepare (NMModem *modem,
+ 		g_hash_table_destroy (priv->connect_properties);
+ 	priv->connect_properties = create_connect_properties (connection);
+ 
+-	if (nm_modem_get_state (modem) == NM_MODEM_STATE_REGISTERED)
+-		do_context_activate (self, priv->context_path);
+-
+-	return NM_ACT_STAGE_RETURN_POSTPONE;
+-}
+-
+-static gboolean
+-static_stage3_done (NMModemOfono *self)
+-{
+-	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
+-	NMIP4Config *config = NULL;
+-	const gchar *address_string, *gateway_string, *netmask_string, *iface;
+-	guint32 address_network, gateway_network;
+-	NMIP4Address *addr;
+-	GError *error = NULL;
+-	const gchar **dns;
+-	GHashTable *properties, *ip_settings;
+-	GType prop_dict;
+-	gpointer settings;
+-	gboolean ret;
+-	guint i;
+-	guint prefix = 0;
+-
+-	nm_log_dbg (LOGD_MB, "in %s", __func__);
+-
+-	prop_dict = dbus_g_type_get_map ("GHashTable", G_TYPE_STRING, G_TYPE_VALUE);
+-	dbus_g_proxy_call_with_timeout (priv->context_proxy,
+-	                                "GetProperties",
+-	                                20000, &error,
+-	                                G_TYPE_INVALID,
+-	                                prop_dict, &properties,
+-	                                G_TYPE_INVALID);
+-
+-	g_assert (properties);
+-
+-	nm_log_info (LOGD_MB, "(%s): IPv4 static configuration:",
+-	             nm_modem_get_uid (NM_MODEM (self)));
+-
+-	if (!error) {
+-		settings = g_hash_table_lookup (properties, "Settings");
+-		ip_settings = (GHashTable*) g_value_get_boxed (settings);
+-
+-		iface = g_value_get_string (g_hash_table_lookup (ip_settings, "Interface"));
+-		if (iface)
+-			g_object_set (self, NM_MODEM_DATA_PORT, iface, NULL);
+-
+-		address_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Address"));
+-		if (!ip_string_to_network_address (address_string, &address_network)) {
+-			error = g_error_new (g_quark_from_static_string ("ofono_failed"),
+-			                     0,
+-			                     "(%s) retrieving IP4 configuration failed: invalid address given '%s'",
+-			                     nm_modem_get_uid (NM_MODEM (self)),
+-			                     address_string);
+-			goto out;
+-		}
+-
+-		config = nm_ip4_config_new ();
+-		addr = nm_ip4_address_new ();
+-		nm_ip4_address_set_address (addr, address_network);
+-
+-		gateway_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Gateway"));
+-		if (gateway_string) {
+-			if (ip_string_to_network_address (gateway_string, &gateway_network)) {
+-				nm_ip4_address_set_gateway (addr, gateway_network);
+-			}
+-		}
+-
+-		/* retrieve netmask and convert to prefix value */
+-		netmask_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Netmask"));
+-		if (ip_string_to_network_address (netmask_string, &address_network)) {
+-			prefix = nm_utils_ip4_netmask_to_prefix (address_network);
+-			if (prefix > 0)
+-				nm_ip4_address_set_prefix (addr, prefix);
+-		}
+-		nm_ip4_config_take_address (config, addr);
++	nm_log_info (LOGD_MB, "(%s): activating context %s",
++	             nm_modem_get_path (modem),
++	             priv->context_path);
+ 
+-		nm_log_info (LOGD_MB, "  address %s/%d", address_string, prefix);
+-
+-		/* DNS servers */
+-		dns = (char **) g_value_get_boxed (g_hash_table_lookup (ip_settings, "DomainNameServers"));
+-		for (i = 0; dns[i]; i++) {
+-			if (   ip_string_to_network_address (dns[i], &address_network)
+-			    && address_network > 0) {
+-				nm_ip4_config_add_nameserver (config, address_network);
+-				nm_log_info (LOGD_MB, "  DNS %s", dns[i]);
+-			}
+-		}
++	if (nm_modem_get_state (modem) == NM_MODEM_STATE_REGISTERED) {
++		do_context_activate (self, priv->context_path);
++	} else {
++		nm_log_warn (LOGD_MB, "(%s): could not activate context, "
++		             "modem is not registered.",
++		             nm_modem_get_path (modem));
++		return NM_ACT_STAGE_RETURN_FAILURE;
+ 	}
+ 
+-out:
+-	g_signal_emit_by_name (self, NM_MODEM_IP4_CONFIG_RESULT, config, error);
+-	g_clear_error (&error);
+-
+-	return FALSE;
++	return NM_ACT_STAGE_RETURN_POSTPONE;
+ }
+ 
+ static NMActStageReturn
+@@ -966,12 +1020,16 @@ static_stage3_ip4_config_start (NMModem
+                                 NMDeviceStateReason *reason)
+ {
+ 	NMModemOfono *self = NM_MODEM_OFONO (_self);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	NMActStageReturn ret = NM_ACT_STAGE_RETURN_FAILURE;
++	GError *error = NULL;
+ 
+-	/* We schedule it in an idle just to follow the same logic as in the
+-	 * generic modem implementation. */
+-	g_idle_add ((GSourceFunc)static_stage3_done, self);
++	if (priv->ip4_config) {
++		g_signal_emit_by_name (self, NM_MODEM_IP4_CONFIG_RESULT, priv->ip4_config, error);
++		ret = NM_ACT_STAGE_RETURN_POSTPONE;
++	}
+ 
+-	return NM_ACT_STAGE_RETURN_POSTPONE;
++	return ret;
+ }
+ 
+ static gboolean
+@@ -1084,8 +1142,16 @@ set_ofono_enabled (NMModem *self, gboole
+ static void
+ set_ofono_enabled (NMModem *self, gboolean enabled)
+ {
+-	nm_log_dbg (LOGD_MB, "in %s: %s", __func__,
+-                    enabled ? "enabled" : "disabled");
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	nm_log_info (LOGD_MB, "(%s): trying to set modem to %s",
++	             nm_modem_get_path (self),
++                     enabled ? "enabled" : "disabled");
++
++	update_ofono_enabled (NM_MODEM_OFONO (self),
++	                      priv->modem_online
++	                      && priv->gprs_powered
++	                      && priv->gprs_attached);
+ }
+ 
+ static void
+@@ -1122,6 +1188,8 @@ nm_modem_ofono_init (NMModemOfono *self)
+ 	priv->modem_online = FALSE;
+ 	priv->gprs_powered = FALSE;
+ 	priv->gprs_attached = FALSE;
++
++	priv->ip4_config = NULL;
+ }
+ 
+ static GObject*
+@@ -1173,6 +1241,9 @@ dispose (GObject *object)
+ 	if (priv->connect_properties)
+ 		g_hash_table_destroy (priv->connect_properties);
+ 
++	if (priv->ip4_config)
++		g_object_unref (priv->ip4_config);
++
+ 	if (priv->modem_proxy)
+ 		g_object_unref (priv->modem_proxy);
+ 	if (priv->connman_proxy)
+@@ -1200,7 +1271,7 @@ nm_modem_ofono_class_init (NMModemOfonoC
+         modem_class->get_capabilities = get_capabilities;
+ 	modem_class->set_mm_enabled = set_ofono_enabled;
+         modem_class->disconnect = disconnect;
+-	//modem_class->deactivate = deactivate;
++	modem_class->deactivate = deactivate;
+ 	//modem_class->get_user_pass = get_user_pass;
+ 	//modem_class->get_setting_name = get_setting_name;
+ 	//modem_class->complete_connection = complete_connection;

@@ -1,0 +1,119 @@
+<!-- ##### SECTION Title ##### -->
+NMObject
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMObjectError ##### -->
+<para>
+
+</para>
+
+@NM_OBJECT_ERROR_UNKNOWN: 
+@NM_OBJECT_ERROR_OBJECT_CREATION_FAILURE: 
+
+<!-- ##### MACRO NM_OBJECT_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_object_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_OBJECT_DBUS_CONNECTION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_OBJECT_DBUS_PATH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMObject ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SIGNAL NMObject::object-creation-failed ##### -->
+<para>
+
+</para>
+
+@nmobject: the object which received the signal.
+@arg1: 
+@arg2: 
+
+<!-- ##### ARG NMObject:dbus-connection ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMObject:dbus-path ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMObjectClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@object_creation_failed: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### FUNCTION nm_object_get_connection ##### -->
+<para>
+
+</para>
+
+@object: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_object_get_path ##### -->
+<para>
+
+</para>
+
+@object: 
+@Returns: 
+
+

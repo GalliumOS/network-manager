@@ -1,0 +1,183 @@
+<!-- ##### SECTION Title ##### -->
+NMVPNPlugin
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_VPN_PLUGIN_DBUS_SERVICE_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_VPN_PLUGIN_STATE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMVPNPluginError ##### -->
+<para>
+
+</para>
+
+@NM_VPN_PLUGIN_ERROR_GENERAL: 
+@NM_VPN_PLUGIN_ERROR_STARTING_IN_PROGRESS: 
+@NM_VPN_PLUGIN_ERROR_ALREADY_STARTED: 
+@NM_VPN_PLUGIN_ERROR_STOPPING_IN_PROGRESS: 
+@NM_VPN_PLUGIN_ERROR_ALREADY_STOPPED: 
+@NM_VPN_PLUGIN_ERROR_WRONG_STATE: 
+@NM_VPN_PLUGIN_ERROR_BAD_ARGUMENTS: 
+@NM_VPN_PLUGIN_ERROR_LAUNCH_FAILED: 
+@NM_VPN_PLUGIN_ERROR_CONNECTION_INVALID: 
+@NM_VPN_PLUGIN_ERROR_INTERACTIVE_NOT_SUPPORTED: 
+
+<!-- ##### STRUCT NMVPNPlugin ##### -->
+<para>
+
+</para>
+
+@parent: 
+
+<!-- ##### STRUCT NMVPNPluginClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@connect: 
+@need_secrets: 
+@disconnect: 
+@state_changed: 
+@ip4_config: 
+@login_banner: 
+@failure: 
+@quit: 
+@config: 
+@ip6_config: 
+@new_secrets: 
+@connect_interactive: 
+@_reserved1: 
+@_reserved2: 
+
+<!-- ##### FUNCTION nm_vpn_plugin_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_get_connection ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_get_state ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_set_state ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@state: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_secrets_required ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@message: 
+@hints: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_set_login_banner ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@banner: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_failure ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@reason: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_set_config ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@config: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_set_ip4_config ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@ip4_config: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_set_ip6_config ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@ip6_config: 
+
+
+<!-- ##### FUNCTION nm_vpn_plugin_disconnect ##### -->
+<para>
+
+</para>
+
+@plugin: 
+@err: 
+@Returns: 
+
+

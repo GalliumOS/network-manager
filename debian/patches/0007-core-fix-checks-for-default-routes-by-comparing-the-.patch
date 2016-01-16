@@ -1,0 +1,106 @@
+From: Thomas Haller <thaller@redhat.com>
+Date: Tue, 29 Jul 2014 19:10:08 +0200
+Subject: core: fix checks for default routes by comparing the prefix length
+
+At some places, we considered a default route to be a route with
+destination network 0.0.0.0 (::). This is wrong because a default route
+is a route with plen==0.
+
+This is for example relevant for OpenVPN which adds two routes
+0.0.0.0/1 and 128.0.0.0/1 to hijack the default route. We should
+not treat 0.0.0.0/1 as default route, instead  NM should treat
+it as any other subnet route (even if it effectively routes large
+parts).
+
+Signed-off-by: Thomas Haller <thaller@redhat.com>
+
+(cherry picked from commit 06703c1670d0f96834b268920b09792e22fdb4c4)
+---
+ src/nm-ip4-config.c              | 5 +++--
+ src/nm-ip6-config.c              | 5 +++--
+ src/platform/nm-linux-platform.c | 4 ++--
+ src/platform/nm-platform.h       | 3 +++
+ 4 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/src/nm-ip4-config.c b/src/nm-ip4-config.c
+index e27c043..3956132 100644
+--- a/src/nm-ip4-config.c
++++ b/src/nm-ip4-config.c
+@@ -198,7 +198,7 @@ nm_ip4_config_capture (int ifindex, gboolean capture_resolv_conf)
+ 	for (i = 0; i < priv->routes->len; i++) {
+ 		const NMPlatformIP4Route *route = &g_array_index (priv->routes, NMPlatformIP4Route, i);
+ 
+-		if (route->network == 0) {
++		if (NM_PLATFORM_IP_ROUTE_IS_DEFAULT (route)) {
+ 			if (route->metric < lowest_metric) {
+ 				priv->gateway = route->gateway;
+ 				lowest_metric = route->metric;
+@@ -276,7 +276,8 @@ nm_ip4_config_commit (const NMIP4Config *config, int ifindex)
+ 			/* Don't add the default route if the connection
+ 			 * is never supposed to be the default connection.
+ 			 */
+-			if (nm_ip4_config_get_never_default (config) && route.network == 0)
++			if (   nm_ip4_config_get_never_default (config)
++			    && NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&route))
+ 				continue;
+ 
+ 			g_array_append_val (routes, route);
+diff --git a/src/nm-ip6-config.c b/src/nm-ip6-config.c
+index aaf5e70..362b8c1 100644
+--- a/src/nm-ip6-config.c
++++ b/src/nm-ip6-config.c
+@@ -308,7 +308,7 @@ nm_ip6_config_capture (int ifindex, gboolean capture_resolv_conf, NMSettingIP6Co
+ 	for (i = 0; i < priv->routes->len; i++) {
+ 		const NMPlatformIP6Route *route = &g_array_index (priv->routes, NMPlatformIP6Route, i);
+ 
+-		if (IN6_IS_ADDR_UNSPECIFIED (&route->network)) {
++		if (NM_PLATFORM_IP_ROUTE_IS_DEFAULT (route)) {
+ 			if (route->metric < lowest_metric) {
+ 				priv->gateway = route->gateway;
+ 				lowest_metric = route->metric;
+@@ -387,7 +387,8 @@ nm_ip6_config_commit (const NMIP6Config *config, int ifindex)
+ 			/* Don't add the default route if the connection
+ 			 * is never supposed to be the default connection.
+ 			 */
+-			if (nm_ip6_config_get_never_default (config) && IN6_IS_ADDR_UNSPECIFIED (&route.network))
++			if (   nm_ip6_config_get_never_default (config)
++			    && NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&route))
+ 				continue;
+ 
+ 			g_array_append_val (routes, route);
+diff --git a/src/platform/nm-linux-platform.c b/src/platform/nm-linux-platform.c
+index f73ff32..e3ec1c5 100644
+--- a/src/platform/nm-linux-platform.c
++++ b/src/platform/nm-linux-platform.c
+@@ -3520,7 +3520,7 @@ ip4_route_get_all (NMPlatform *platform, int ifindex, gboolean include_default)
+ 	for (object = nl_cache_get_first (priv->route_cache); object; object = nl_cache_get_next (object)) {
+ 		if (_route_match ((struct rtnl_route *) object, AF_INET, ifindex)) {
+ 			if (init_ip4_route (&route, (struct rtnl_route *) object)) {
+-				if (route.plen != 0 || include_default)
++				if (!NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&route) || include_default)
+ 					g_array_append_val (routes, route);
+ 			}
+ 		}
+@@ -3542,7 +3542,7 @@ ip6_route_get_all (NMPlatform *platform, int ifindex, gboolean include_default)
+ 	for (object = nl_cache_get_first (priv->route_cache); object; object = nl_cache_get_next (object)) {
+ 		if (_route_match ((struct rtnl_route *) object, AF_INET6, ifindex)) {
+ 			if (init_ip6_route (&route, (struct rtnl_route *) object)) {
+-				if (route.plen != 0 || include_default)
++				if (!NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&route) || include_default)
+ 					g_array_append_val (routes, route);
+ 			}
+ 		}
+diff --git a/src/platform/nm-platform.h b/src/platform/nm-platform.h
+index 96b6cfa..348d1fa 100644
+--- a/src/platform/nm-platform.h
++++ b/src/platform/nm-platform.h
+@@ -248,6 +248,9 @@ typedef struct {
+ 	};
+ } NMPlatformIPRoute;
+ 
++#define NM_PLATFORM_IP_ROUTE_IS_DEFAULT(route) \
++	( ((const NMPlatformIPRoute *) (route))->plen <= 0 )
++
+ typedef struct {
+ 	__NMPlatformIPRoute_COMMON;
+ 	in_addr_t network;

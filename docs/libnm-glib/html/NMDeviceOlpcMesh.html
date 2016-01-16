@@ -1,0 +1,342 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMDeviceOlpcMesh</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="NMDeviceVlan.html" title="NMDeviceVlan">
+<link rel="next" href="NMWimaxNsp.html" title="NMWimaxNsp">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMDeviceVlan.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="NMWimaxNsp.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMDeviceOlpcMesh.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMDeviceOlpcMesh.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMDeviceOlpcMesh.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMDeviceOlpcMesh.implemented-interfaces" class="shortcut">Implemented Interfaces</a>
+                   | 
+                  <a href="#NMDeviceOlpcMesh.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMDeviceOlpcMesh"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMDeviceOlpcMesh.top_of_page"></a>NMDeviceOlpcMesh</span></h2>
+<p>NMDeviceOlpcMesh</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMDeviceOlpcMesh.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">enum                <a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMeshError" title="enum NMDeviceOlpcMeshError">NMDeviceOlpcMeshError</a>;
+#define             <a class="link" href="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-ERROR:CAPS" title="NM_DEVICE_OLPC_MESH_ERROR">NM_DEVICE_OLPC_MESH_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMDeviceOlpcMesh.html#nm-device-olpc-mesh-error-quark" title="nm_device_olpc_mesh_error_quark ()">nm_device_olpc_mesh_error_quark</a>     (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-HW-ADDRESS:CAPS" title="NM_DEVICE_OLPC_MESH_HW_ADDRESS">NM_DEVICE_OLPC_MESH_HW_ADDRESS</a>
+#define             <a class="link" href="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-COMPANION:CAPS" title="NM_DEVICE_OLPC_MESH_COMPANION">NM_DEVICE_OLPC_MESH_COMPANION</a>
+#define             <a class="link" href="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-ACTIVE-CHANNEL:CAPS" title="NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL">NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL</a>
+                    <a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh-struct" title="NMDeviceOlpcMesh">NMDeviceOlpcMesh</a>;
+                    <a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMeshClass" title="NMDeviceOlpcMeshClass">NMDeviceOlpcMeshClass</a>;
+<a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="NMDeviceOlpcMesh.html#nm-device-olpc-mesh-new" title="nm_device_olpc_mesh_new ()">nm_device_olpc_mesh_new</a>             (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMDeviceOlpcMesh.html#nm-device-olpc-mesh-get-hw-address" title="nm_device_olpc_mesh_get_hw_address ()">nm_device_olpc_mesh_get_hw_address</a>  (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);
+<a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="returnvalue">NMDeviceWifi</span></a> *      <a class="link" href="NMDeviceOlpcMesh.html#nm-device-olpc-mesh-get-companion" title="nm_device_olpc_mesh_get_companion ()">nm_device_olpc_mesh_get_companion</a>   (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="NMDeviceOlpcMesh.html#nm-device-olpc-mesh-get-active-channel" title="nm_device_olpc_mesh_get_active_channel ()">nm_device_olpc_mesh_get_active_channel</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceOlpcMesh.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+         +----<a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+               +----NMDeviceOlpcMesh
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceOlpcMesh.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceOlpcMesh implements
+ <a href="http://library.gnome.org/devel/gio/unstable/GInitable.html">GInitable</a> and  <a href="http://library.gnome.org/devel/gio/unstable/GAsyncInitable.html">GAsyncInitable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceOlpcMesh.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--active-channel" title='The "active-channel" property'>active-channel</a>"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+  "<a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--companion" title='The "companion" property'>companion</a>"                <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a>*         : Read
+  "<a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--hw-address" title='The "hw-address" property'>hw-address</a>"               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceOlpcMesh.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceOlpcMesh.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NMDeviceOlpcMeshError"></a><h3>enum NMDeviceOlpcMeshError</h3>
+<pre class="programlisting">typedef enum {
+	NM_DEVICE_OLPC_MESH_ERROR_UNKNOWN = 0,                  /*&lt; nick=UnknownError &gt;*/
+	NM_DEVICE_OLPC_MESH_ERROR_NOT_OLPC_MESH_CONNECTION,     /*&lt; nick=NotOlpcMeshConnection &gt;*/
+	NM_DEVICE_OLPC_MESH_ERROR_INVALID_OLPC_MESH_CONNECTION, /*&lt; nick=InvalidOlpcMeshConnection &gt;*/
+} NMDeviceOlpcMeshError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-DEVICE-OLPC-MESH-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_OLPC_MESH_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-OLPC-MESH-ERROR-NOT-OLPC-MESH-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_OLPC_MESH_ERROR_NOT_OLPC_MESH_CONNECTION</code></span></p></td>
+<td>the connection was not of Olpc Mesh type
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-OLPC-MESH-ERROR-INVALID-OLPC-MESH-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_OLPC_MESH_ERROR_INVALID_OLPC_MESH_CONNECTION</code></span></p></td>
+<td>the Olpc Mesh connection was invalid
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-OLPC-MESH-ERROR:CAPS"></a><h3>NM_DEVICE_OLPC_MESH_ERROR</h3>
+<pre class="programlisting">#define NM_DEVICE_OLPC_MESH_ERROR nm_device_olpc_mesh_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-olpc-mesh-error-quark"></a><h3>nm_device_olpc_mesh_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_device_olpc_mesh_error_quark     (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-OLPC-MESH-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_OLPC_MESH_HW_ADDRESS</h3>
+<pre class="programlisting">#define NM_DEVICE_OLPC_MESH_HW_ADDRESS     "hw-address"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-OLPC-MESH-COMPANION:CAPS"></a><h3>NM_DEVICE_OLPC_MESH_COMPANION</h3>
+<pre class="programlisting">#define NM_DEVICE_OLPC_MESH_COMPANION      "companion"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-OLPC-MESH-ACTIVE-CHANNEL:CAPS"></a><h3>NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL</h3>
+<pre class="programlisting">#define NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL "active-channel"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceOlpcMesh-struct"></a><h3>NMDeviceOlpcMesh</h3>
+<pre class="programlisting">typedef struct _NMDeviceOlpcMesh NMDeviceOlpcMesh;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceOlpcMeshClass"></a><h3>NMDeviceOlpcMeshClass</h3>
+<pre class="programlisting">typedef struct {
+	NMDeviceClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+	void (*_reserved5) (void);
+	void (*_reserved6) (void);
+} NMDeviceOlpcMeshClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-olpc-mesh-new"></a><h3>nm_device_olpc_mesh_new ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           nm_device_olpc_mesh_new             (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>the <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
+<td>the DBus object path of the device</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new OlpcMesh device. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-olpc-mesh-get-hw-address"></a><h3>nm_device_olpc_mesh_get_hw_address ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_device_olpc_mesh_get_hw_address  (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);</pre>
+<p>
+Gets the hardware (MAC) address of the <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a>
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the hardware address. This is the internal string used by the
+device, and must not be modified.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-olpc-mesh-get-companion"></a><h3>nm_device_olpc_mesh_get_companion ()</h3>
+<pre class="programlisting"><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="returnvalue">NMDeviceWifi</span></a> *      nm_device_olpc_mesh_get_companion   (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);</pre>
+<p>
+Gets the companion device of the <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the companion of the device of <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-olpc-mesh-get-active-channel"></a><h3>nm_device_olpc_mesh_get_active_channel ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             nm_device_olpc_mesh_get_active_channel
+                                                        (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);</pre>
+<p>
+Returns the active channel of the <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> device.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>active channel of the device</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceOlpcMesh.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceOlpcMesh--active-channel"></a><h3>The <code class="literal">"active-channel"</code> property</h3>
+<pre class="programlisting">  "active-channel"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The device's active channel.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceOlpcMesh--companion"></a><h3>The <code class="literal">"companion"</code> property</h3>
+<pre class="programlisting">  "companion"                <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a>*         : Read</pre>
+<p>
+The companion device.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceOlpcMesh--hw-address"></a><h3>The <code class="literal">"hw-address"</code> property</h3>
+<pre class="programlisting">  "hw-address"               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read</pre>
+<p>
+The hardware (MAC) address of the device.
+</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

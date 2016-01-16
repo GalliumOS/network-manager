@@ -1,0 +1,28 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Ignore p2p0 wifi devices from android.
+
+---
+ src/nm-manager.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+Index: network-manager-0.9.10.0/src/nm-manager.c
+===================================================================
+--- network-manager-0.9.10.0.orig/src/nm-manager.c
++++ network-manager-0.9.10.0/src/nm-manager.c
+@@ -2060,6 +2060,16 @@ platform_link_added (NMManager *self,
+ 		!strncmp (plink->name, "ccmni", STRLEN ("ccmni")))
+ 		return;
+ 
++	/*
++	 * Ubuntu: Explicitly unmanage p2p Wi-Fi devices exposed by Android JB Wi-Fi drivers.
++	 */
++	NMDeviceType devtype = nm_device_get_device_type (device);
++	if ((plink->type == NM_LINK_TYPE_WIFI)
++	    && !strncmp (plink->name, "p2p0", STRLEN ("p2p0"))) {
++		nm_log_info (LOGD_HW, "(%s): ignoring P2P wireless iface", plink->name);
++		return;
++	}
++
+ 	if (device == NULL) {
+ 		int parent_ifindex = -1;
+ 		NMDevice *parent;

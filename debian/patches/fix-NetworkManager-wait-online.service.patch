@@ -1,0 +1,24 @@
+Description: Fix dependencies of NetworkManager-wait-online.service
+Author: Martin Pitt <martin.pitt@ubuntu.com>
+Bug: https://bugzilla.gnome.org/show_bug.cgi?id=746039
+Bug-Ubuntu: https://launchpad.net/1430280
+
+Index: network-manager-0.9.10.0/data/NetworkManager-wait-online.service.in
+===================================================================
+--- network-manager-0.9.10.0.orig/data/NetworkManager-wait-online.service.in
++++ network-manager-0.9.10.0/data/NetworkManager-wait-online.service.in
+@@ -2,12 +2,11 @@
+ Description=Network Manager Wait Online
+ Requisite=NetworkManager.service
+ After=NetworkManager.service
+-Wants=network.target
+-Before=network.target network-online.target
++Before=network-online.target
+ 
+ [Service]
+ Type=oneshot
+ ExecStart=@bindir@/nm-online -s -q --timeout=30
+ 
+ [Install]
+-WantedBy=multi-user.target
++WantedBy=network-online.target

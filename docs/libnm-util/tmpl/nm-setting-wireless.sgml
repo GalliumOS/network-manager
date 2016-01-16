@@ -1,0 +1,489 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingWireless
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingWirelessError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_WIRELESS_ERROR_UNKNOWN: 
+@NM_SETTING_WIRELESS_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_WIRELESS_ERROR_MISSING_PROPERTY: 
+@NM_SETTING_WIRELESS_ERROR_MISSING_SECURITY_SETTING: 
+@NM_SETTING_WIRELESS_ERROR_CHANNEL_REQUIRES_BAND: 
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_wireless_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SSID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_MODE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_BAND ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_CHANNEL ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_BSSID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_RATE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_TX_POWER ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_MAC_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_MTU ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SEEN_BSSIDS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_HIDDEN ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SEC ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_MODE_ADHOC ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_MODE_AP ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_MODE_INFRA ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingWireless ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingWireless:band ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:bssid ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:channel ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:cloned-mac-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:hidden ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:mac-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:mac-address-blacklist ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:mode ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:mtu ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:rate ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:security ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:seen-bssids ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:ssid ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWireless:tx-power ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingWirelessClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_wireless_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_ssid ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_mode ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_band ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_channel ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_bssid ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_rate ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_tx_power ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_mac_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_cloned_mac_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_mac_address_blacklist ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_num_mac_blacklist_items ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_mac_blacklist_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_add_mac_blacklist_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@mac: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_remove_mac_blacklist_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@idx: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_remove_mac_blacklist_item_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@mac: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_clear_mac_blacklist_items ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_mtu ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_hidden ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_add_seen_bssid ##### -->
+<para>
+
+</para>
+
+@setting: 
+@bssid: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_num_seen_bssids ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_seen_bssid ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_ap_security_compatible ##### -->
+<para>
+
+</para>
+
+@s_wireless: 
+@s_wireless_sec: 
+@ap_flags: 
+@ap_wpa: 
+@ap_rsn: 
+@ap_mode: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_get_security ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

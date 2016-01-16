@@ -1,0 +1,134 @@
+From 66a79413255f5f758921c38f6b9dc18600476db8 Mon Sep 17 00:00:00 2001
+From: Ryan Lortie <desrt@desrt.ca>
+Date: Thu, 23 Oct 2014 13:56:52 -0400
+Subject: core: add PrimaryConnectionType property to NMManager (bgo #739080)
+
+This will provide an extremely easy way for applications to find out
+what type of connection the system is currently using.  They might want
+to do this to avoid using data if a phone is on a 3G connection, for
+example.
+
+Having this as a separate property provides at least two advantages:
+
+ 1) it reduces code complexity for those wanting only this one simple
+    piece of information
+
+ 2) we could allow access to this property (but nothing else) to
+    privilege-separated applications in the future
+
+This patch adds the missing nm_active_connection_get_connection_type()
+which was in the header file but never actually implemented.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=739080
+(cherry picked from commit 07dba25404362fcfd21a5a4f76ee1f09c7422cf2)
+
+diff --git a/introspection/nm-manager.xml b/introspection/nm-manager.xml
+index 6af2be3..706cb05 100644
+--- a/introspection/nm-manager.xml
++++ b/introspection/nm-manager.xml
+@@ -342,6 +342,14 @@
+       </tp:docstring>
+     </property>
+ 
++    <property name="PrimaryConnectionType" type="s" access="read">
++      <tp:docstring>
++        The connection type of the "primary" active connection being
++        used to access the network. This is the same as the Type
++        property on the object indicated by PrimaryConnection.
++      </tp:docstring>
++    </property>
++
+     <property name="ActivatingConnection" type="o" access="read">
+       <tp:docstring>
+         The object path of an active connection that is currently
+diff --git a/src/nm-active-connection.c b/src/nm-active-connection.c
+index 172aa61..1ac67a9 100644
+--- a/src/nm-active-connection.c
++++ b/src/nm-active-connection.c
+@@ -197,6 +197,17 @@ nm_active_connection_get_connection (NMActiveConnection *self)
+ 	return NM_ACTIVE_CONNECTION_GET_PRIVATE (self)->connection;
+ }
+ 
++const char *
++nm_active_connection_get_connection_type (NMActiveConnection *self)
++{
++	NMActiveConnectionPrivate *priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (self);
++
++	if (priv->connection == NULL)
++		return NULL;
++
++	return nm_connection_get_connection_type (priv->connection);
++}
++
+ void
+ nm_active_connection_set_connection (NMActiveConnection *self,
+                                      NMConnection *connection)
+diff --git a/src/nm-manager.c b/src/nm-manager.c
+index 55330ea..de958e4 100644
+--- a/src/nm-manager.c
++++ b/src/nm-manager.c
+@@ -246,6 +246,7 @@ enum {
+ 	PROP_ACTIVE_CONNECTIONS,
+ 	PROP_CONNECTIVITY,
+ 	PROP_PRIMARY_CONNECTION,
++	PROP_PRIMARY_CONNECTION_TYPE,
+ 	PROP_ACTIVATING_CONNECTION,
+ 	PROP_DEVICES,
+ 
+@@ -4294,6 +4295,7 @@ policy_default_device_changed (GObject *object, GParamSpec *pspec, gpointer user
+ 		priv->primary_connection = ac ? g_object_ref (ac) : NULL;
+ 		nm_log_dbg (LOGD_CORE, "PrimaryConnection now %s", ac ? nm_active_connection_get_id (ac) : "(none)");
+ 		g_object_notify (G_OBJECT (self), NM_MANAGER_PRIMARY_CONNECTION);
++		g_object_notify (G_OBJECT (self), NM_MANAGER_PRIMARY_CONNECTION_TYPE);
+ 	}
+ }
+ 
+@@ -4882,6 +4884,7 @@ get_property (GObject *object, guint prop_id,
+ 	GSList *iter;
+ 	GPtrArray *array;
+ 	const char *path;
++	const char *type;
+ 
+ 	switch (prop_id) {
+ 	case PROP_VERSION:
+@@ -4931,6 +4934,10 @@ get_property (GObject *object, guint prop_id,
+ 		path = priv->primary_connection ? nm_active_connection_get_path (priv->primary_connection) : NULL;
+ 		g_value_set_boxed (value, path ? path : "/");
+ 		break;
++	case PROP_PRIMARY_CONNECTION_TYPE:
++		type = priv->primary_connection ? nm_active_connection_get_connection_type (priv->primary_connection) : NULL;
++		g_value_set_string (value, type ? type : "");
++		break;
+ 	case PROP_ACTIVATING_CONNECTION:
+ 		path = priv->activating_connection ? nm_active_connection_get_path (priv->activating_connection) : NULL;
+ 		g_value_set_boxed (value, path ? path : "/");
+@@ -5194,6 +5201,14 @@ nm_manager_class_init (NMManagerClass *manager_class)
+ 		                     G_PARAM_READABLE));
+ 
+ 	g_object_class_install_property
++		(object_class, PROP_PRIMARY_CONNECTION_TYPE,
++		 g_param_spec_string (NM_MANAGER_PRIMARY_CONNECTION_TYPE, "", "",
++		                      NULL,
++		                      G_PARAM_READABLE |
++		                      G_PARAM_STATIC_STRINGS));
++
++
++	g_object_class_install_property
+ 		(object_class, PROP_ACTIVATING_CONNECTION,
+ 		 g_param_spec_boxed (NM_MANAGER_ACTIVATING_CONNECTION,
+ 		                     "Activating connection",
+diff --git a/src/nm-manager.h b/src/nm-manager.h
+index 81eefc7..e9b488c 100644
+--- a/src/nm-manager.h
++++ b/src/nm-manager.h
+@@ -65,6 +65,7 @@ typedef enum {
+ #define NM_MANAGER_ACTIVE_CONNECTIONS "active-connections"
+ #define NM_MANAGER_CONNECTIVITY "connectivity"
+ #define NM_MANAGER_PRIMARY_CONNECTION "primary-connection"
++#define NM_MANAGER_PRIMARY_CONNECTION_TYPE "primary-connection-type"
+ #define NM_MANAGER_ACTIVATING_CONNECTION "activating-connection"
+ #define NM_MANAGER_DEVICES "devices"
+ 
+-- 
+cgit v0.10.2
+

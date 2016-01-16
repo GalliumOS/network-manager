@@ -1,0 +1,50 @@
+From 70dcdf3d721abe8314c3d5c72542acb5caf4d4e2 Mon Sep 17 00:00:00 2001
+From: Dan Williams <dcbw@redhat.com>
+Date: Mon, 17 Nov 2014 09:32:54 -0600
+Subject: [PATCH 5/5] fixup! wifi: set wireless power-save for nl80211 devices
+ when activated
+
+---
+ src/platform/nm-platform.c          |    8 ++++++++
+ src/platform/wifi/wifi-utils-wext.c |    2 +-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+Index: b/src/platform/nm-platform.c
+===================================================================
+--- a/src/platform/nm-platform.c
++++ b/src/platform/nm-platform.c
+@@ -1335,6 +1335,12 @@ nm_platform_wifi_set_mode (int ifindex,
+ 	klass->wifi_set_mode (platform, ifindex, mode);
+ }
+ 
++static void
++wifi_set_powersave (NMPlatform *p, int ifindex, guint32 powersave)
++{
++	/* empty */
++}
++
+ void
+ nm_platform_wifi_set_powersave (int ifindex, guint32 powersave)
+ {
+@@ -2619,6 +2625,8 @@ nm_platform_class_init (NMPlatformClass
+ {
+ 	GObjectClass *object_class = G_OBJECT_CLASS (platform_class);
+ 
++	platform_class->wifi_set_powersave = wifi_set_powersave;
++
+ 	/* Signals */
+ 	SIGNAL (SIGNAL_LINK_CHANGED, log_link)
+ 	SIGNAL (SIGNAL_IP4_ADDRESS_CHANGED, log_ip4_address)
+Index: b/src/platform/wifi/wifi-utils-wext.c
+===================================================================
+--- a/src/platform/wifi/wifi-utils-wext.c
++++ b/src/platform/wifi/wifi-utils-wext.c
+@@ -180,7 +180,7 @@ wifi_wext_set_powersave (WifiData *data,
+ 	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+ 	if (ioctl (wext->fd, SIOCSIWPOWER, &wrq) < 0) {
+ 		if (errno != ENODEV) {
+-			nm_log_err (LOGD_HW | LOGD_WIFI, "(%s): error setting powersave %d",
++			nm_log_err (LOGD_HW | LOGD_WIFI, "(%s): error setting powersave %" G_GUINT32_FORMAT,
+ 			            wext->parent.iface, powersave);
+ 		}
+ 		return FALSE;

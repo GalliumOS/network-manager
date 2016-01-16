@@ -1,0 +1,68 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Don't use connection assumption.
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/963106
+Forwarded: not-needed
+
+Basically, we want dhclient to be killed for now whenever NetworkManager gets
+stopped, because otherwise filesystems may be holding lease files around
+when they get unmounted. NetworkManager gets killed very late in the shutdown
+process, even after sendsigs gets run (Sending TERM to all processes...)
+which means we can't rely on that to kill any dhclient processes. NM must
+do the reaping on its own.
+
+A side effect of this may be slightly slower bringinging up time for devices;
+when they are in a configuration that would match something NM knows about
+in configuration. However, this only applied to IPv4 since IPv6 connection
+assumption isn't implemented either.
+
+Reason for this is that we value more correct behavior and proper shutdown
+without unmounting filesystems in a dirty state, than trying to be clever
+and short-circuiting device configuration for a few ms faster start when
+NM gets restarted.
+
+---
+ src/devices/nm-device.c |    5 ++++-
+ src/nm-manager.c        |   13 +++----------
+ 2 files changed, 7 insertions(+), 11 deletions(-)
+
+Index: b/src/devices/nm-device.c
+===================================================================
+--- a/src/devices/nm-device.c
++++ b/src/devices/nm-device.c
+@@ -7322,7 +7322,10 @@ dispose (GObject *object)
+ 
+ 	dispatcher_cleanup (self);
+ 
+-	_cleanup_generic_pre (self, FALSE);
++	/* Ubuntu: deconfigure the device, as we don't want to have a dhclient
++	 * process sticking around when NM stops.
++	 */
++	_cleanup_generic_pre (self, TRUE);
+ 
+ 	g_warn_if_fail (priv->slaves == NULL);
+ 	g_assert (priv->master_ready_id == 0);
+Index: b/src/nm-manager.c
+===================================================================
+--- a/src/nm-manager.c
++++ b/src/nm-manager.c
+@@ -788,17 +788,10 @@ remove_device (NMManager *manager, NMDev
+ 		NMActRequest *req = nm_device_get_act_request (device);
+ 		gboolean unmanage = FALSE;
+ 
+-		/* Leave activated interfaces up when quitting so their configuration
+-		 * can be taken over when NM restarts.  This ensures connectivity while
+-		 * NM is stopped. Devices which do not support connection assumption
+-		 * cannot be left up.
++		/* Ubuntu: don't use device assumption, so as not to leave
++		 * a dhclient process sticking around on shutdown.
+ 		 */
+-		if (!quitting)  /* Forced removal; device already gone */
+-			unmanage = TRUE;
+-		else if (!nm_device_can_assume_active_connection (device))
+-			unmanage = TRUE;
+-		else if (!req)
+-			unmanage = TRUE;
++		unmanage = TRUE;
+ 
+ 		if (unmanage) {
+ 			if (quitting)

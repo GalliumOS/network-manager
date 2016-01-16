@@ -1,0 +1,84 @@
+<!-- ##### SECTION Title ##### -->
+NMDHCP4Config
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### STRUCT NMDHCP4Config ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMDHCP4Config:options ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMDHCP4ConfigClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### MACRO NM_DHCP4_CONFIG_OPTIONS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_dhcp4_config_new ##### -->
+<para>
+
+</para>
+
+@connection: 
+@object_path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_dhcp4_config_get_options ##### -->
+<para>
+
+</para>
+
+@config: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_dhcp4_config_get_one_option ##### -->
+<para>
+
+</para>
+
+@config: 
+@option: 
+@Returns: 
+
+

@@ -1,0 +1,1388 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Let NetworkManager read oFono settings file and create connections
+
+---
+ configure.ac                                     |    6 
+ src/settings/plugins/Makefile.am                 |    5 
+ src/settings/plugins/ofono/Makefile.am           |   68 ++
+ src/settings/plugins/ofono/nm-ofono-connection.c |  166 +++++
+ src/settings/plugins/ofono/nm-ofono-connection.h |   54 +
+ src/settings/plugins/ofono/nm-ofono.conf         |   18 
+ src/settings/plugins/ofono/nm-ofono.xml          |   16 
+ src/settings/plugins/ofono/parser.c              |  124 +++
+ src/settings/plugins/ofono/parser.h              |   33 +
+ src/settings/plugins/ofono/plugin.c              |  738 +++++++++++++++++++++++
+ src/settings/plugins/ofono/plugin.h              |   53 +
+ 11 files changed, 1281 insertions(+)
+
+Index: b/configure.ac
+===================================================================
+--- a/configure.ac
++++ b/configure.ac
+@@ -97,6 +97,7 @@ AC_ARG_ENABLE(ifcfg-rh, AS_HELP_STRING([
+ AC_ARG_ENABLE(ifcfg-suse, AS_HELP_STRING([--enable-ifcfg-suse], [enable ifcfg-suse configuration plugin (SUSE)]))
+ AC_ARG_ENABLE(ifupdown, AS_HELP_STRING([--enable-ifupdown], [enable ifupdown configuration plugin (Debian/Ubuntu)]))
+ AC_ARG_ENABLE(ifnet, AS_HELP_STRING([--enable-ifnet], [enable ifnet configuration plugin (Gentoo)]))
++AC_ARG_ENABLE(ofono, AS_HELP_STRING([--enable-ofono], [enable ifnet configuration plugin (Gentoo)]))
+ # Default alternative plugins by distribution
+ AS_IF([test -z "$enable_ifcfg_rh"], AC_CHECK_FILE(/etc/redhat-release, enable_ifcfg_rh=yes))
+ AS_IF([test -z "$enable_ifcfg_rh"], AC_CHECK_FILE(/etc/fedora-release, enable_ifcfg_rh=yes))
+@@ -109,11 +110,14 @@ AS_IF([test -z "$enable_ifcfg_rh"], enab
+ AS_IF([test -z "$enable_ifcfg_suse"], enable_ifcfg_suse=no)
+ AS_IF([test -z "$enable_ifupdown"], enable_ifupdown=no)
+ AS_IF([test -z "$enable_ifnet"], enable_ifnet=no)
++# Ofono is always enabled.
++AS_IF([test -z "$enable_ofono"], enable_ofono=yes)
+ # Create automake conditionals
+ AM_CONDITIONAL(CONFIG_PLUGIN_IFCFG_RH, test "$enable_ifcfg_rh" = "yes")
+ AM_CONDITIONAL(CONFIG_PLUGIN_IFCFG_SUSE, test "$enable_ifcfg_suse" = "yes")
+ AM_CONDITIONAL(CONFIG_PLUGIN_IFUPDOWN, test "$enable_ifupdown" = "yes")
+ AM_CONDITIONAL(CONFIG_PLUGIN_IFNET, test "$enable_ifnet" = "yes")
++AM_CONDITIONAL(CONFIG_PLUGIN_OFONO, test "$enable_ofono" = "yes")
+ 
+ if test "$enable_ifcfg_rh" = "yes"; then
+     DISTRO_NETWORK_SERVICE=network.service
+@@ -792,6 +796,7 @@ src/ppp-manager/Makefile
+ src/settings/plugins/Makefile
+ src/settings/plugins/ifupdown/Makefile
+ src/settings/plugins/ifupdown/tests/Makefile
++src/settings/plugins/ofono/Makefile
+ src/settings/plugins/ifnet/Makefile
+ src/settings/plugins/ifnet/tests/Makefile
+ src/settings/plugins/ifcfg-rh/Makefile
+@@ -913,6 +918,7 @@ echo "  ifcfg-rh: ${enable_ifcfg_rh}"
+ echo "  ifcfg-suse: ${enable_ifcfg_suse}"
+ echo "  ifupdown: ${enable_ifupdown}"
+ echo "  ifnet: ${enable_ifnet}"
++echo "  ofono: ${enable_ofono}"
+ echo
+ 
+ echo "Handlers for /etc/resolv.conf:"
+Index: b/src/settings/plugins/Makefile.am
+===================================================================
+--- a/src/settings/plugins/Makefile.am
++++ b/src/settings/plugins/Makefile.am
+@@ -17,3 +17,8 @@ endif
+ if CONFIG_PLUGIN_IFNET
+ SUBDIRS+=ifnet
+ endif
++
++if CONFIG_PLUGIN_OFONO
++SUBDIRS+=ofono
++endif
++
+Index: b/src/settings/plugins/ofono/Makefile.am
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/Makefile.am
+@@ -0,0 +1,68 @@
++SUBDIRS = .
++
++@GNOME_CODE_COVERAGE_RULES@
++
++nm-ofono-glue.h: nm-ofono.xml
++	$(AM_V_GEN) dbus-binding-tool --prefix=nm_ofono --mode=glib-server --output=$@ $<
++
++BUILT_SOURCES = \
++	nm-ofono-glue.h
++
++INCLUDES = \
++	-I$(top_srcdir)/src \
++	-I$(top_srcdir)/src/logging \
++	-I$(top_srcdir)/src/config \
++	-I$(top_srcdir)/src/settings \
++	-I$(top_srcdir)/include \
++	-I$(top_builddir)/include \
++	-I$(top_srcdir)/libnm-glib \
++	-I$(top_srcdir)/libnm-util \
++	-I$(top_builddir)/libnm-util
++
++noinst_LTLIBRARIES = libofono-io.la
++
++libofono_io_la_SOURCES = \
++	parser.c \
++	parser.h
++
++libofono_io_la_CPPFLAGS = \
++	$(GLIB_CFLAGS) \
++	$(DBUS_CFLAGS) \
++	$(POLKIT_CFLAGS) \
++	-DSYSCONFDIR=\"$(sysconfdir)\"
++
++libofono_io_la_LIBADD = \
++	$(top_builddir)/libnm-util/libnm-util.la \
++	$(GLIB_LIBS)
++
++pkglib_LTLIBRARIES = libnm-settings-plugin-ofono.la
++
++libnm_settings_plugin_ofono_la_SOURCES = \
++	$(BUILT_SOURCES) \
++	nm-ofono-connection.c \
++	nm-ofono-connection.h \
++	plugin.c \
++	plugin.h
++
++libnm_settings_plugin_ofono_la_CPPFLAGS = \
++	$(GLIB_CFLAGS) \
++	$(DBUS_CFLAGS) \
++	$(POLKIT_CFLAGS) \
++	$(GUDEV_CFLAGS) \
++	-DSYSCONFDIR=\"$(sysconfdir)\"
++
++libnm_settings_plugin_ofono_la_LDFLAGS = -module -avoid-version
++libnm_settings_plugin_ofono_la_LIBADD = \
++	$(top_builddir)/libnm-util/libnm-util.la \
++	libofono-io.la \
++	$(GLIB_LIBS) \
++	$(GUDEV_LIBS)
++
++dbusservicedir = $(DBUS_SYS_DIR)
++dbusservice_DATA = nm-ofono.conf
++
++EXTRA_DIST = \
++	$(dbusservice_DATA) \
++	nm-ofono.xml
++
++CLEANFILES = $(BUILT_SOURCES)
+Index: b/src/settings/plugins/ofono/nm-ofono-connection.c
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/nm-ofono-connection.c
+@@ -0,0 +1,166 @@
++/* -*- Mode: C; tab-width: 5; indent-tabs-mode: t; c-basic-offset: 5 -*- */
++
++/* NetworkManager system settings service (ofono)
++ *
++ * Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * (C) Copyright 2013 Canonical Ltd.
++ */
++
++#include <string.h>
++#include <glib/gstdio.h>
++#include <NetworkManager.h>
++#include <nm-utils.h>
++#include <nm-setting-wireless-security.h>
++#include <nm-settings-connection.h>
++#include <nm-system-config-interface.h>
++#include <nm-settings-error.h>
++#include "nm-ofono-connection.h"
++#include "parser.h"
++
++G_DEFINE_TYPE (NMOfonoConnection, nm_ofono_connection, NM_TYPE_SETTINGS_CONNECTION)
++
++#define NM_OFONO_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_OFONO_CONNECTION, NMOfonoConnectionPrivate))
++
++typedef struct {
++	GHashTable *context;
++} NMOfonoConnectionPrivate;
++
++enum {
++	PROP_ZERO,
++	PROP_CONTEXT,
++	_PROP_END,
++};
++
++
++NMOfonoConnection*
++nm_ofono_connection_new (GHashTable *context)
++{
++	g_return_val_if_fail (context != NULL, NULL);
++
++	return (NMOfonoConnection *) g_object_new (NM_TYPE_OFONO_CONNECTION,
++	                                           NM_OFONO_CONNECTION_CONTEXT, context,
++	                                           NULL);
++}
++
++static gboolean
++supports_secrets (NMSettingsConnection *connection, const char *setting_name)
++{
++	return FALSE;
++}
++
++static void
++nm_ofono_connection_init (NMOfonoConnection *connection)
++{
++}
++
++static GObject *
++constructor (GType type,
++		   guint n_construct_params,
++		   GObjectConstructParam *construct_params)
++{
++	GObject *object;
++	NMOfonoConnectionPrivate *priv;
++	GError *error = NULL;
++
++	object = G_OBJECT_CLASS (nm_ofono_connection_parent_class)->constructor (type, n_construct_params, construct_params);
++	g_return_val_if_fail (object, NULL);
++
++	priv = NM_OFONO_CONNECTION_GET_PRIVATE (object);
++	if (!priv) {
++		g_warning ("%s.%d - no private instance.", __FILE__, __LINE__);
++		goto err;
++	}
++	if (!priv->context) {
++		g_warning ("(ofono) context not provided to constructor.");
++		goto err;
++	}
++
++	if (!ofono_update_connection_from_context (NM_CONNECTION (object), priv->context, &error)) {
++		g_warning ("%s.%d - invalid connection read from Ofono: (%d) %s",
++		           __FILE__,
++		           __LINE__,
++		           error ? error->code : -1,
++		           error && error->message ? error->message : "(unknown)");
++		goto err;
++	}
++
++	return object;
++
++ err:
++	g_object_unref (object);
++	return NULL;
++}
++
++static void
++set_property (GObject *object, guint prop_id,
++		    const GValue *value, GParamSpec *pspec)
++{
++	NMOfonoConnectionPrivate *priv = NM_OFONO_CONNECTION_GET_PRIVATE (object);
++	g_return_if_fail (priv);
++
++	switch (prop_id) {
++	case PROP_CONTEXT:
++		priv->context = g_value_get_pointer (value);
++		break;
++	default:
++		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
++		break;
++	}
++}
++
++static void
++get_property (GObject *object, guint prop_id,
++		    GValue *value, GParamSpec *pspec)
++{
++	NMOfonoConnectionPrivate *priv = NM_OFONO_CONNECTION_GET_PRIVATE (object);
++	g_return_if_fail (priv);
++
++	switch (prop_id) {
++	case PROP_CONTEXT:
++		g_value_set_pointer (value, priv->context);
++		break;
++	default:
++		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
++		break;
++	}
++}
++
++static void
++nm_ofono_connection_class_init (NMOfonoConnectionClass *ofono_connection_class)
++{
++	GObjectClass *object_class = G_OBJECT_CLASS (ofono_connection_class);
++	NMSettingsConnectionClass *connection_class = NM_SETTINGS_CONNECTION_CLASS (ofono_connection_class);
++
++	g_type_class_add_private (ofono_connection_class, sizeof (NMOfonoConnectionPrivate));
++
++	/* Virtual methods */
++	object_class->constructor  = constructor;
++	object_class->set_property = set_property;
++	object_class->get_property = get_property;
++
++	connection_class->supports_secrets = supports_secrets;
++
++	/* Properties */
++	g_object_class_install_property
++		(object_class, PROP_CONTEXT,
++		 g_param_spec_pointer (NM_OFONO_CONNECTION_CONTEXT,
++						   "context",
++						   "",
++						   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
++}
++
+Index: b/src/settings/plugins/ofono/nm-ofono-connection.h
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/nm-ofono-connection.h
+@@ -0,0 +1,54 @@
++/* -*- Mode: C; tab-width: 5; indent-tabs-mode: t; c-basic-offset: 5 -*- */
++
++/* NetworkManager system settings service (ofono)
++ *
++ * Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * (C) Copyright 2013 Canonical Ltd.
++ */
++
++#ifndef NM_OFONO_CONNECTION_H
++#define NM_OFONO_CONNECTION_H
++
++#include <nm-settings-connection.h>
++
++G_BEGIN_DECLS
++
++#define NM_TYPE_OFONO_CONNECTION            (nm_ofono_connection_get_type ())
++#define NM_OFONO_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_OFONO_CONNECTION, NMOfonoConnection))
++#define NM_OFONO_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_OFONO_CONNECTION, NMOfonoConnectionClass))
++#define NM_IS_OFONO_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_OFONO_CONNECTION))
++#define NM_IS_OFONO_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_OFONO_CONNECTION))
++#define NM_OFONO_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_OFONO_CONNECTION, NMOfonoConnectionClass))
++
++#define NM_OFONO_CONNECTION_CONTEXT "context"
++
++typedef struct {
++	NMSettingsConnection parent;
++} NMOfonoConnection;
++
++typedef struct {
++	NMSettingsConnectionClass parent;
++} NMOfonoConnectionClass;
++
++GType nm_ofono_connection_get_type (void);
++
++NMOfonoConnection *nm_ofono_connection_new (GHashTable *context);
++
++G_END_DECLS
++
++#endif /* NM_OFONO_CONNECTION_H */
+Index: b/src/settings/plugins/ofono/parser.c
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/parser.c
+@@ -0,0 +1,124 @@
++/* -*- Mode: C; tab-width: 5; indent-tabs-mode: t; c-basic-offset: 5 -*- */
++
++/* NetworkManager system settings service (ofono)
++ *
++ * Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * (C) Copyright 2013 Canonical Ltd.
++ */
++
++#include <string.h>
++#include <arpa/inet.h>
++#include <stdlib.h>
++#include <errno.h>
++
++#include <nm-connection.h>
++#include <NetworkManager.h>
++#include <nm-setting-connection.h>
++#include <nm-setting-ip4-config.h>
++#include <nm-setting-ppp.h>
++#include <nm-setting-wired.h>
++#include <nm-setting-wireless.h>
++#include <nm-setting-8021x.h>
++#include <nm-system-config-interface.h>
++#include <nm-utils.h>
++#include <nm-logging.h>
++#include <ctype.h>
++
++#include "parser.h"
++#include "plugin.h"
++
++gboolean
++ofono_update_connection_from_context (NMConnection *connection,
++                                      GHashTable *context,
++                                      GError **error)
++{
++	NMSettingConnection *s_con;
++	NMSettingGsm *s_gsm;
++	gboolean success = FALSE;
++	char *idstr = NULL;
++	char *uuid_base = NULL;
++	char *uuid = NULL;
++	const char *username = NULL;
++	const char *password = NULL;
++
++	s_con = nm_connection_get_setting_connection (connection);
++	if(!s_con) {
++		s_con = NM_SETTING_CONNECTION (nm_setting_connection_new());
++		g_assert (s_con);
++		nm_connection_add_setting (connection, NM_SETTING (s_con));
++	}
++
++	idstr = g_strconcat ("/",
++	                     g_hash_table_lookup (context, "IMSI"),
++	                     "/",
++	                     g_hash_table_lookup (context, "ID"),
++	                     NULL);
++	uuid_base = idstr;
++
++	uuid = nm_utils_uuid_generate_from_string (uuid_base);
++	g_object_set (s_con,
++	              NM_SETTING_CONNECTION_TYPE, NM_SETTING_GSM_SETTING_NAME,
++	              NM_SETTING_CONNECTION_ID, idstr,
++	              NM_SETTING_CONNECTION_UUID, uuid,
++	              NM_SETTING_CONNECTION_READ_ONLY, TRUE,
++	              NM_SETTING_CONNECTION_AUTOCONNECT, TRUE,
++	              NULL);
++	g_free (uuid);
++
++	/* GSM setting */
++	s_gsm = NM_SETTING_GSM (nm_setting_gsm_new ());
++	g_assert (s_gsm);
++	nm_connection_add_setting (connection, NM_SETTING (s_gsm));
++
++	/*
++	 * oFono should already know how to handle placing the call, but NM
++	 * insists on having a number. Pass the usual *99#.
++	 */
++	g_object_set (s_gsm, NM_SETTING_GSM_NUMBER, "*99#", NULL);
++
++	/* Set the APN we got from oFono config. */
++	g_object_set (s_gsm,
++	              NM_SETTING_GSM_APN, g_hash_table_lookup (context, "Apn"),
++	              NULL);
++
++	username = g_hash_table_lookup (context, "Username");
++	if (username && g_strcmp0 (username, "") != 0) {
++        	g_object_set (s_gsm,
++		              NM_SETTING_GSM_USERNAME, username,
++	                      NULL);
++	}
++
++	password = g_hash_table_lookup (context, "Password");
++	if (password && g_strcmp0 (password, "") != 0) {
++        	g_object_set (s_gsm,
++		              NM_SETTING_GSM_PASSWORD, password,
++	                      NULL);
++	}
++
++	nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: "
++	             "update_connection_setting_from_context: name:%s, path:%s, type:%s, id:%s, uuid: %s",
++	             (char *) g_hash_table_lookup (context, "Name"),
++	             (char *) g_hash_table_lookup (context, "ID"),
++	             (char *) g_hash_table_lookup (context, "Type"),
++	             idstr, nm_setting_connection_get_uuid (s_con));
++
++	success = nm_connection_verify (connection, error);
++
++	g_free (idstr);
++	return success;
++}
+Index: b/src/settings/plugins/ofono/parser.h
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/parser.h
+@@ -0,0 +1,33 @@
++/* -*- Mode: C; tab-width: 5; indent-tabs-mode: t; c-basic-offset: 5 -*- */
++
++/* NetworkManager system settings service (ofono)
++ *
++ * Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * (C) Copyright 2013 Canonical Ltd.
++ */
++
++#include <nm-connection.h>
++
++G_BEGIN_DECLS
++
++gboolean
++ofono_update_connection_from_context (NMConnection *connection,
++                                      GHashTable *context,
++                                      GError **error);
++
++G_END_DECLS
+Index: b/src/settings/plugins/ofono/plugin.c
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/plugin.c
+@@ -0,0 +1,738 @@
++/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
++
++/* Ofono modem settings service
++ *
++ * Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * (C) Copyright 2013 Canonical Ltd.
++ */
++
++#include <string.h>
++
++#include <net/ethernet.h>
++#include <netinet/ether.h>
++
++#include <gmodule.h>
++#include <glib-object.h>
++#include <glib/gi18n.h>
++#include <glib.h>
++#include <gio/gio.h>
++#include <nm-setting-connection.h>
++
++#include <dbus/dbus.h>
++#include <dbus/dbus-glib.h>
++#include <dbus/dbus-glib-lowlevel.h>
++
++#include "NetworkManager.h"
++#include "nm-system-config-interface.h"
++#include "nm-setting-ip4-config.h"
++#include "nm-setting-wireless.h"
++#include "nm-setting-wired.h"
++#include "nm-setting-ppp.h"
++#include "nm-utils.h"
++
++#include "nm-ofono-connection.h"
++#include "plugin.h"
++#include "parser.h"
++#include "nm-inotify-helper.h"
++
++#include "nm-logging.h"
++
++#include <arpa/inet.h>
++
++#include <gudev/gudev.h>
++
++#define OFONO_CONFIG_DIR "/var/lib/ofono"
++
++#define OFONO_PLUGIN_NAME "ofono"
++#define OFONO_PLUGIN_INFO "(C) 2013 Canonical Ltd.  To report bugs please use the NetworkManager mailing list."
++
++#define OFONO_KEY_FILE_GROUP "settings"
++
++#define DBUS_SERVICE_NAME "com.canonical.NMOfono"
++#define DBUS_OBJECT_PATH "/com/canonical/NMOfono"
++
++typedef struct {
++	DBusGConnection *bus;
++	GHashTable *connections;  /* NMOfonoConnection */
++
++	GFileMonitor *ofono_dir_monitor;
++	gulong ofono_dir_monitor_id;
++
++	GHashTable *ofono_imsi_monitors;
++	GHashTable *ofono_imsi_monitor_ids;
++} SCPluginOfonoPrivate;
++
++
++static gboolean nm_ofono_read_imsi_contexts (SCPluginOfono *self,
++                                             const char *imsi,
++                                             GError **error);
++
++#include "nm-ofono-glue.h"
++
++static void
++system_config_interface_init (NMSystemConfigInterface *system_config_interface_class);
++
++G_DEFINE_TYPE_EXTENDED (SCPluginOfono, sc_plugin_ofono, G_TYPE_OBJECT, 0,
++                        G_IMPLEMENT_INTERFACE (NM_TYPE_SYSTEM_CONFIG_INTERFACE,
++                                               system_config_interface_init))
++
++#define SC_PLUGIN_OFONO_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SC_TYPE_PLUGIN_OFONO, SCPluginOfonoPrivate))
++
++GQuark
++ofono_plugin_error_quark (void)
++{
++        static GQuark error_quark = 0;
++
++	if (!error_quark) {
++		error_quark = g_quark_from_static_string ("ofono-plugin-error-quark");
++	}
++
++	return error_quark;
++}
++
++static void
++ignore_cb ()
++{
++}
++
++static
++SCPluginOfono_parse_contexts (SCPluginOfono *self, GSList *contexts)
++{
++	SCPluginOfonoPrivate *priv = SC_PLUGIN_OFONO_GET_PRIVATE (self);
++	GSList *list;
++	NMOfonoConnection *exported;
++	NMSettingConnection *setting;
++
++	list = contexts;
++	while (list) {
++		GHashTable *context = (GHashTable *) list->data;
++		const char *id, *type, *name, *imsi;
++		char *idstr, *uuid;
++
++		id = g_hash_table_lookup (context, "ID");
++		imsi = g_hash_table_lookup (context, "IMSI");
++		type = g_hash_table_lookup (context, "Type");
++		name = g_hash_table_lookup (context, "Name");
++
++		idstr = g_strconcat ("/", imsi, "/", id, NULL);
++		uuid = nm_utils_uuid_generate_from_string (idstr);
++		g_free (idstr);
++
++		if(!strcmp ("internet", type)) {
++			nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: found %s context '%s' (%s)",
++			             type, name, id);
++
++			/* Ignore any connection for this block that was previously found */
++			exported = g_hash_table_lookup (priv->connections, uuid);
++			if (exported) {
++				/*
++				PLUGIN_PRINT("SCPlugin-Ofono", "deleting %s from connections", id);
++				nm_settings_connection_delete (NM_SETTINGS_CONNECTION (exported), ignore_cb, NULL);
++				g_hash_table_remove (priv->connections, id);
++				*/
++				goto next;
++			}
++
++			/* add the new connection */
++			exported = nm_ofono_connection_new (context);
++			setting = nm_connection_get_setting_connection (NM_CONNECTION (exported));
++			g_object_set (setting, NM_SETTING_CONNECTION_AUTOCONNECT, TRUE, NULL);
++			if (exported) {
++				nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: adding %s (%s) to connections",
++				             name, uuid);
++				g_hash_table_insert (priv->connections, g_strdup (uuid), exported);
++				g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED, exported);
++			}
++		}
++	next:
++		list = list->next;
++		g_free (uuid);
++	}
++}
++
++static gboolean
++nm_ofono_read_imsi_contexts (SCPluginOfono *self, const char *imsi, GError **error)
++{
++	SCPluginOfonoPrivate *priv = SC_PLUGIN_OFONO_GET_PRIVATE (self);
++	GHashTable *context;
++	GSList *contexts = NULL;
++	GDir *imsi_dir;
++	const char *file;
++	gchar **groups;
++	gchar **keys, *imsi_path, *file_path;
++	gboolean res;
++	GKeyFile *keyfile = NULL;
++	GError *tmp_error = NULL;
++
++	imsi_path = g_strdup_printf (OFONO_CONFIG_DIR "/%s", imsi);
++	imsi_dir = g_dir_open (imsi_path, 0, NULL);
++
++	nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: reading configuration for IMSI %s", imsi);
++	while (imsi_dir && (file = g_dir_read_name (imsi_dir)) != NULL) {
++		int i, j;
++
++		if (tmp_error)
++			g_clear_error (&tmp_error);
++
++		/* Skip files not named "gprs" */
++		if (!!g_strcmp0 (file, "gprs"))
++			continue;
++
++		keyfile = g_key_file_new ();
++		file_path = g_strdup_printf ("%s/%s", imsi_path, file);
++		res = g_key_file_load_from_file (keyfile, file_path, G_KEY_FILE_NONE, &tmp_error);
++		g_free (file_path);
++
++		if (!res) {
++			nm_log_warn (LOGD_SETTINGS, "SCPlugin-Ofono: error reading %s: %s",
++			             imsi,
++			             tmp_error && tmp_error->message ? tmp_error->message : "(unknown)");
++			continue;
++		}
++
++		groups = g_key_file_get_groups (keyfile, NULL);
++		for (i = 0; groups[i]; i++) {
++			if (!g_strrstr (groups[i], "context"))
++				continue;
++
++			g_clear_error (&tmp_error);
++			keys = g_key_file_get_keys (keyfile, groups[i], NULL, &tmp_error);
++			if (tmp_error) {
++				continue;
++			}
++
++			nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: add context for %s", imsi);
++			context = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_free);
++			g_hash_table_insert (context, "ID", g_strdup (groups[i]));
++			g_hash_table_insert (context, "IMSI", g_strdup (imsi));
++
++			for (j = 0; keys[j]; j++) {
++				g_hash_table_insert (context, keys[j],
++			       	                     g_key_file_get_string (keyfile, groups[i], keys[j], NULL));
++				nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: add property '%s': %s",
++				             keys[j],
++				             (char *) g_hash_table_lookup (context, keys[j]));
++			}
++
++			contexts = g_slist_append (contexts, context);
++		}
++
++		g_key_file_free (keyfile);
++	}
++
++	g_free (imsi_path);
++
++	SCPluginOfono_parse_contexts (self, contexts);
++
++	if (contexts) {
++		g_slist_free_full (contexts, (GDestroyNotify) g_hash_table_destroy);
++		contexts = NULL;
++		g_clear_error (&tmp_error);
++		return TRUE;
++	}
++
++	if (tmp_error) {
++		g_propagate_error (error, tmp_error);
++		g_clear_error (&tmp_error);
++	}
++	else {
++		g_set_error (error,
++		             ofono_plugin_error_quark (),
++                             0,
++		             "No contexts were found.");
++	}
++
++	return FALSE;
++}
++
++static gboolean
++SCPluginOfono_should_ignore_imsi (const char *imsi)
++{
++	/* Ignore paths that are not IMSI */
++	if (g_strcmp0 (imsi, "ofono") == 0)
++		return TRUE;
++
++	/* Ignore IMSI paths with dashes */
++	if (g_strrstr (imsi, "-") != NULL)
++		return TRUE;
++
++	return FALSE;
++}
++
++static
++ofono_imsi_changed (GFileMonitor *monitor,
++                   GFile *file,
++                   GFile *other_file,
++                   GFileMonitorEvent event_type,
++                   gpointer user_data)
++{
++	SCPluginOfono *self = SC_PLUGIN_OFONO (user_data);
++	SCPluginOfonoPrivate *priv = SC_PLUGIN_OFONO_GET_PRIVATE (self);
++	GFile *parent;
++	gchar *path, *imsi;
++	GError *error = NULL;
++
++	path = g_file_get_path (file);
++
++	/* If this isn't about a "gprs" file we don't want to know */
++        if (g_strrstr (path, "gprs") == NULL)
++                goto out_imsi;
++
++	switch (event_type) {
++		case G_FILE_MONITOR_EVENT_DELETED:
++			nm_log_info (LOGD_SETTINGS, "SCPluginOfono: %s got removed.", path);
++			break;
++		case G_FILE_MONITOR_EVENT_CREATED:
++		case G_FILE_MONITOR_EVENT_CHANGED:
++		case G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
++			parent = g_file_get_parent (file);
++			imsi = g_file_get_basename (parent);
++
++			if (!nm_ofono_read_imsi_contexts (self, imsi, &error)) {
++				nm_log_warn (LOGD_SETTINGS, "SCPluginOfono: an error occured while reading "
++				             "contexts for IMSI %s", imsi);
++			}
++
++			g_object_unref (parent);
++			g_free (imsi);
++			break;
++		default:
++			break;
++	}
++
++out_imsi:
++	g_free (path);
++
++	return;
++}
++
++static
++ofono_dir_changed (GFileMonitor *monitor,
++                   GFile *file,
++                   GFile *other_file,
++                   GFileMonitorEvent event_type,
++                   gpointer user_data)
++{
++	SCPluginOfono *self = SC_PLUGIN_OFONO (user_data);
++	SCPluginOfonoPrivate *priv = SC_PLUGIN_OFONO_GET_PRIVATE (self);
++	GFileMonitor *imsi_monitor;
++	GFile *config_path;
++	gulong id;
++	gchar *imsi, *path;
++	gboolean res;
++	GError *error = NULL;
++
++	imsi = g_file_get_basename (file);
++        if (SCPluginOfono_should_ignore_imsi (imsi))
++		goto out_ofono;
++
++	switch (event_type) {
++		case G_FILE_MONITOR_EVENT_DELETED:
++			nm_log_info (LOGD_SETTINGS, "SCPluginOfono: removed %s.", imsi);
++
++			/* Disable and remove the monitor, since the directory was deleted */
++			imsi_monitor = g_hash_table_lookup (priv->ofono_imsi_monitors, imsi);
++			id = (gulong) g_hash_table_lookup (priv->ofono_imsi_monitor_ids, imsi);
++
++			if (imsi_monitor) {
++				if (id)
++					g_signal_handler_disconnect (imsi_monitor, id);
++
++				g_file_monitor_cancel (imsi_monitor);
++				g_hash_table_remove (priv->ofono_imsi_monitors, imsi);
++			}
++
++			break;
++		case G_FILE_MONITOR_EVENT_CREATED:
++		case G_FILE_MONITOR_EVENT_CHANGED:
++		case G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
++			/* Add watches for the IMSI directories too */
++			if (g_strrstr (imsi, "gprs") == NULL) {
++				path = g_strdup_printf (OFONO_CONFIG_DIR "/%s", imsi);
++				config_path = g_file_new_for_path (path);
++				imsi_monitor = g_file_monitor_directory (config_path,
++				                                         G_FILE_MONITOR_NONE,
++				                                         NULL, NULL);
++				g_object_unref (config_path);
++				g_free (path);
++
++				if (imsi_monitor) {
++					nm_log_warn (LOGD_SETTINGS, "SCPluginOfono: watching file changes for %s", imsi);
++					id = g_signal_connect (monitor, "changed",
++					                       G_CALLBACK (ofono_imsi_changed),
++					                       self);
++					g_hash_table_insert (priv->ofono_imsi_monitors,
++					                     g_strdup (imsi),
++					                     g_object_ref (imsi_monitor));
++					g_hash_table_insert (priv->ofono_imsi_monitor_ids,
++					                     g_strdup (imsi),
++					                     (gpointer) id);
++					g_object_unref (imsi_monitor);
++				}
++			}
++
++			res = nm_ofono_read_imsi_contexts (self, imsi, &error);
++
++			if (!res) {
++				nm_log_warn (LOGD_SETTINGS, "SCPluginOfono: an error occured while reading "
++				             "contexts for IMSI %s", imsi);
++			}
++			break;
++		default:
++			break;
++	}
++
++out_ofono:
++	g_free (imsi);
++
++	return;
++}
++
++static
++SCPluginOfono_read_context_files (SCPluginOfono *self)
++{
++	SCPluginOfonoPrivate *priv = SC_PLUGIN_OFONO_GET_PRIVATE (self);
++	GDir *config;
++	GFile *config_path;
++	GFileMonitor *monitor;
++	const char *imsi;
++	gboolean res = FALSE;
++	GError *error = NULL;
++
++	config = g_dir_open (OFONO_CONFIG_DIR, 0, NULL);
++	while ((imsi = g_dir_read_name (config)) != NULL) {
++
++		if (SCPluginOfono_should_ignore_imsi (imsi))
++			continue;
++
++		res = nm_ofono_read_imsi_contexts (self, imsi, &error);
++
++		if (error && error->message)
++			nm_log_warn (LOGD_SETTINGS, "SCPlugin-Ofono: %s", error->message);
++	}
++
++	/* Hook up a GFileMonitor to watch for new context directories being created.
++	 * This is in case ofono's provisioning plugin hasn't run when NM and the
++	 * ofono settings plugin are started, and to pick up new created contexts.
++	 */
++	config_path = g_file_new_for_path (OFONO_CONFIG_DIR);
++	if (g_file_query_exists (config_path, NULL)) {
++		monitor = g_file_monitor_directory (config_path, G_FILE_MONITOR_NONE,
++		                                    NULL, NULL);
++
++		if (monitor) {
++			priv->ofono_dir_monitor_id = g_signal_connect (monitor, "changed",
++			                                               G_CALLBACK (ofono_dir_changed), self);
++			priv->ofono_dir_monitor = monitor;
++		}
++	}
++	g_object_unref (config_path);
++}
++
++/* ---------------------------------------------------------------------- */
++
++static void
++sc_plugin_ofono_class_init (SCPluginOfonoClass *req_class);
++
++static void
++SCPluginOfono_init (NMSystemConfigInterface *config);
++
++static GSList *
++SCPluginOfono_get_unmanaged_specs (NMSystemConfigInterface * config);
++
++/* Returns the plugins currently known list of connections.  The returned
++ * list is freed by the system settings service.
++ */
++static GSList*
++SCPluginOfono_get_connections (NMSystemConfigInterface *config);
++
++static void
++GObject__get_property (GObject *object, guint prop_id,
++				   GValue *value, GParamSpec *pspec)
++{
++	NMSystemConfigInterface *self = NM_SYSTEM_CONFIG_INTERFACE (object);
++
++	switch (prop_id) {
++	case NM_SYSTEM_CONFIG_INTERFACE_PROP_NAME:
++		g_value_set_string (value, OFONO_PLUGIN_NAME);
++		break;
++	case NM_SYSTEM_CONFIG_INTERFACE_PROP_INFO:
++		g_value_set_string (value, OFONO_PLUGIN_INFO);
++		break;
++	case NM_SYSTEM_CONFIG_INTERFACE_PROP_CAPABILITIES:
++		g_value_set_uint (value, 0);
++		break;
++	case NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME:
++		g_value_set_string (value, "");
++		break;
++	default:
++		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
++		break;
++	}
++}
++
++static void
++GObject__set_property (GObject *object, guint prop_id,
++				   const GValue *value, GParamSpec *pspec)
++{
++	switch (prop_id) {
++	case NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME:
++		break;
++	default:
++		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
++		break;
++	}
++}
++
++/*  GObject */
++static void
++dispose (GObject *object);
++
++static void
++system_config_interface_init (NMSystemConfigInterface *system_config_interface_class)
++{
++	system_config_interface_class->init = SCPluginOfono_init;
++	system_config_interface_class->get_connections = SCPluginOfono_get_connections;
++	system_config_interface_class->get_unmanaged_specs = SCPluginOfono_get_unmanaged_specs;
++}
++
++static void
++sc_plugin_ofono_class_init (SCPluginOfonoClass *req_class)
++{
++	GObjectClass *object_class = G_OBJECT_CLASS (req_class);
++
++	g_type_class_add_private (req_class, sizeof (SCPluginOfonoPrivate));
++
++	object_class->dispose = dispose;
++	object_class->get_property = GObject__get_property;
++	object_class->set_property = GObject__set_property;
++
++	dbus_g_object_type_install_info (G_TYPE_FROM_CLASS (req_class),
++	                                 &dbus_glib_nm_ofono_object_info);
++
++	g_object_class_override_property (object_class,
++	                                  NM_SYSTEM_CONFIG_INTERFACE_PROP_NAME,
++	                                  NM_SYSTEM_CONFIG_INTERFACE_NAME);
++
++	g_object_class_override_property (object_class,
++	                                  NM_SYSTEM_CONFIG_INTERFACE_PROP_INFO,
++	                                  NM_SYSTEM_CONFIG_INTERFACE_INFO);
++
++	g_object_class_override_property (object_class,
++	                                  NM_SYSTEM_CONFIG_INTERFACE_PROP_CAPABILITIES,
++	                                  NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES);
++
++	g_object_class_override_property (object_class,
++	                                  NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME,
++	                                  NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME);
++}
++
++static void
++SCPluginOfono_init (NMSystemConfigInterface *config)
++{
++	SCPluginOfono *self = SC_PLUGIN_OFONO (config);
++	SCPluginOfonoPrivate *priv = SC_PLUGIN_OFONO_GET_PRIVATE (self);
++	GError *error = NULL;
++	gboolean success = FALSE;
++
++	/* Keep a hash table of GFileMonitors per IMSI for later removal */
++	if (!priv->ofono_imsi_monitors)
++		priv->ofono_imsi_monitors = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
++
++	if (!priv->ofono_imsi_monitor_ids)
++		priv->ofono_imsi_monitor_ids = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
++
++	/* DBus connection for the new context notifications from the ofono modem plugin */
++	priv->bus = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
++        if (!priv->bus) {
++                nm_log_warn (LOGD_SETTINGS, "SCPlugin-Ofono: Couldn't connect to D-Bus: %s",
++                             error->message);
++                g_clear_error (&error);
++        } else {
++                DBusConnection *tmp;
++                DBusGProxy *proxy;
++                int result;
++
++		dbus_g_connection_register_g_object (priv->bus,
++		                                     DBUS_OBJECT_PATH,
++		                                     G_OBJECT (self));
++
++                tmp = dbus_g_connection_get_connection (priv->bus);
++                dbus_connection_set_exit_on_disconnect (tmp, FALSE);
++
++                proxy = dbus_g_proxy_new_for_name (priv->bus,
++                                                   "org.freedesktop.DBus",
++                                                   "/org/freedesktop/DBus",
++                                                   "org.freedesktop.DBus");
++
++                if (!dbus_g_proxy_call (proxy, "RequestName", &error,
++                                        G_TYPE_STRING, DBUS_SERVICE_NAME,
++                                        G_TYPE_UINT, DBUS_NAME_FLAG_DO_NOT_QUEUE,
++                                        G_TYPE_INVALID,
++                                        G_TYPE_UINT, &result,
++                                        G_TYPE_INVALID)) {
++                        nm_log_warn (LOGD_SETTINGS, "SCPlugin-Ofono: Couldn't acquire D-Bus service: %s",
++                                     error->message);
++                        g_clear_error (&error);
++                } else if (result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
++                        nm_log_warn (LOGD_SETTINGS, "SCPlugin-Ofono: Couldn't acquire " DBUS_SERVICE_NAME " D-Bus service (already taken)");
++                } else {
++			nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: Acquired D-Bus service %s", DBUS_SERVICE_NAME);
++                        success = TRUE;
++		}
++        }
++
++        if (!success) {
++                if (priv->bus) {
++                        dbus_g_connection_unref (priv->bus);
++                        priv->bus = NULL;
++                }
++        }
++
++	if(!priv->connections)
++		priv->connections = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
++
++	nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: init!");
++
++	SCPluginOfono_read_context_files (self);
++
++	nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: end _init.");
++}
++
++static GSList *
++SCPluginOfono_get_unmanaged_specs (NMSystemConfigInterface * config)
++{
++	return NULL;
++}
++
++static gint
++sort_by_context_id (gconstpointer a, gconstpointer b)
++{
++	g_return_val_if_fail (a != NULL, 0);
++	g_return_val_if_fail (b != NULL, 0);
++
++	const char *context_a = nm_connection_get_id (NM_CONNECTION (a));
++	const char *context_b = nm_connection_get_id (NM_CONNECTION (b));
++
++	return g_strcmp0 (context_a, context_b);
++}
++
++/* Returns the plugins currently known list of connections.  The returned
++ * list is freed by the system settings service.
++ */
++static GSList*
++SCPluginOfono_get_connections (NMSystemConfigInterface *config)
++{
++	SCPluginOfonoPrivate *priv = SC_PLUGIN_OFONO_GET_PRIVATE (config);
++	GSList *connections = NULL;
++	GHashTableIter iter;
++	gpointer value;
++
++	nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: (%d) ... get_connections.", GPOINTER_TO_UINT(config));
++
++	g_hash_table_iter_init (&iter, priv->connections);
++	while (g_hash_table_iter_next (&iter, NULL, &value))
++		connections = g_slist_prepend (connections, value);
++
++	connections = g_slist_sort (connections, sort_by_context_id);
++
++	nm_log_info (LOGD_SETTINGS, "SCPlugin-Ofono: (%d) connections count: %d", GPOINTER_TO_UINT(config), g_slist_length(connections));
++	return connections;
++}
++
++static void
++sc_plugin_ofono_init (SCPluginOfono *plugin)
++{
++}
++
++static void
++cancel_monitor (gpointer key, gpointer value, gpointer user_data)
++{
++	GHashTable *monitor_ids = user_data;
++	GFileMonitor *monitor = (GFileMonitor *) value;
++	gchar *imsi = (gchar *) key;
++	gulong id;
++
++	if (monitor_ids) {
++		id = (gulong) g_hash_table_lookup (monitor_ids, imsi);
++		g_signal_handler_disconnect (monitor, id);
++	}
++
++	g_file_monitor_cancel (monitor);
++
++	return;
++}
++
++static void
++dispose (GObject *object)
++{
++	SCPluginOfono *plugin = SC_PLUGIN_OFONO (object);
++	SCPluginOfonoPrivate *priv = SC_PLUGIN_OFONO_GET_PRIVATE (plugin);
++
++	if (priv->bus) {
++		dbus_g_connection_unref (priv->bus);
++		priv->bus = NULL;
++	}
++
++	if (priv->ofono_dir_monitor) {
++		if (priv->ofono_dir_monitor_id)
++			g_signal_handler_disconnect (priv->ofono_dir_monitor,
++			                             priv->ofono_dir_monitor_id);
++
++		g_file_monitor_cancel (priv->ofono_dir_monitor);
++		g_object_unref (priv->ofono_dir_monitor);
++		priv->ofono_dir_monitor = NULL;
++	}
++
++	if (priv->ofono_imsi_monitors) {
++		g_hash_table_foreach (priv->ofono_imsi_monitors, cancel_monitor, priv->ofono_imsi_monitor_ids);
++
++		g_hash_table_destroy (priv->ofono_imsi_monitors);
++		priv->ofono_imsi_monitors = NULL;
++
++		if (priv->ofono_imsi_monitor_ids) {
++			g_hash_table_destroy (priv->ofono_imsi_monitor_ids);
++			priv->ofono_imsi_monitor_ids = NULL;
++		}
++	}
++
++	if (priv->connections) {
++		g_hash_table_destroy (priv->connections);
++		priv->connections = NULL;
++	}
++
++	G_OBJECT_CLASS (sc_plugin_ofono_parent_class)->dispose (object);
++}
++
++G_MODULE_EXPORT GObject *
++nm_system_config_factory (void)
++{
++	static SCPluginOfono *singleton = NULL;
++	SCPluginOfonoPrivate *priv;
++
++	if (!singleton) {
++		singleton = SC_PLUGIN_OFONO (g_object_new (SC_TYPE_PLUGIN_OFONO, NULL));
++		if (singleton) {
++			priv = SC_PLUGIN_OFONO_GET_PRIVATE (singleton);
++		}
++	} else
++		g_object_ref (singleton);
++
++	return G_OBJECT (singleton);
++}
++
+Index: b/src/settings/plugins/ofono/plugin.h
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/plugin.h
+@@ -0,0 +1,53 @@
++/* -*- Mode: C; tab-width: 5; indent-tabs-mode: t; c-basic-offset: 5 -*- */
++
++/* NetworkManager system settings service (ofono)
++ *
++ * Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * (C) Copyright 2013 Canonical Ltd.
++ */
++
++#ifndef _PLUGIN_H_
++#define _PLUGIN_H_
++
++#include <glib-object.h>
++
++#define PLUGIN_NAME "ofono"
++
++#define SC_TYPE_PLUGIN_OFONO            (sc_plugin_ofono_get_type ())
++#define SC_PLUGIN_OFONO(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), SC_TYPE_PLUGIN_OFONO, SCPluginOfono))
++#define SC_PLUGIN_OFONO_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), SC_TYPE_PLUGIN_OFONO, SCPluginOfonoClass))
++#define SC_IS_PLUGIN_OFONO(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SC_TYPE_PLUGIN_OFONO))
++#define SC_IS_PLUGIN_OFONO_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SC_TYPE_PLUGIN_OFONO))
++#define SC_PLUGIN_OFONO_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), SC_TYPE_PLUGIN_OFONO, SCPluginOfonoClass))
++
++typedef struct _SCPluginOfono SCPluginOfono;
++typedef struct _SCPluginOfonoClass SCPluginOfonoClass;
++
++struct _SCPluginOfono {
++	GObject parent;
++};
++
++struct _SCPluginOfonoClass {
++	GObjectClass parent;
++};
++
++GType sc_plugin_ofono_get_type (void);
++
++GQuark ofono_plugin_error_quark (void);
++
++#endif	/* _PLUGIN_H_ */
+Index: b/src/settings/plugins/ofono/nm-ofono.xml
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/nm-ofono.xml
+@@ -0,0 +1,16 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<node name="/" xmlns:tp="http://telepathy.freedesktop.org/wiki/DbusSpec#extensions-v0">
++	<interface name="com.canonical.NMOfono">
++		<annotation name="org.freedesktop.DBus.GLib.CSymbol" value="nm_ofono"/>
++		<method name="ReadImsiContexts">
++			<tp:docstring>
++			Read new context for a modem device.
++			</tp:docstring>
++			<arg name="imsi" type="s" direction="in">
++				<tp:docstring>
++				IMSI of the active modem for new context.
++				</tp:docstring>
++			</arg>
++		</method>
++	</interface>
++</node>
+Index: b/src/settings/plugins/ofono/nm-ofono.conf
+===================================================================
+--- /dev/null
++++ b/src/settings/plugins/ofono/nm-ofono.conf
+@@ -0,0 +1,18 @@
++<!DOCTYPE busconfig PUBLIC
++ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
++ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
++<busconfig>
++        <policy user="root">
++                <allow own="com.canonical.NMOfono"/>
++                <allow send_destination="com.canonical.NMOfono"/>
++        </policy>
++        <policy at_console="true">
++                <deny own="com.canonical.NMOfono"/>
++                <allow send_destination="com.canonical.NMOfono"/>
++        </policy>
++        <policy context="default">
++                <deny own="com.canonical.NMOfono"/>
++                <allow send_destination="com.canonical.NMOfono"/>
++        </policy>
++</busconfig>
++

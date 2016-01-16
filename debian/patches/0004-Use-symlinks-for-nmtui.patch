@@ -1,0 +1,36 @@
+From: Michael Biebl <biebl@debian.org>
+Date: Thu, 10 Jul 2014 03:33:18 +0200
+Subject: Use symlinks for nmtui
+
+Make /usr/bin/nmtui-* symbolic links to /usr/bin/nmtui.
+---
+ configure.ac    | 2 ++
+ tui/Makefile.am | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index a77d55a..3c216a2 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -46,6 +46,8 @@ AM_PROG_CC_C_O
+ # C++ only required if --enable-qt=yes
+ AC_PROG_CXX
+ 
++AC_PROG_LN_S
++
+ dnl Initialize libtool
+ LT_PREREQ([2.2])
+ LT_INIT([disable-static])
+diff --git a/tui/Makefile.am b/tui/Makefile.am
+index 755b689..7f4e7d6 100644
+--- a/tui/Makefile.am
++++ b/tui/Makefile.am
+@@ -24,7 +24,7 @@ links = nmtui-edit nmtui-connect nmtui-hostname
+ 
+ install-exec-hook:
+ 	for link in $(links); do \
+-		ln -f $(DESTDIR)$(bindir)/nmtui $(DESTDIR)$(bindir)/$$link; \
++		cd $(DESTDIR)$(bindir) && $(LN_S) -f nmtui $$link; \
+ 	done
+ 
+ uninstall-hook:

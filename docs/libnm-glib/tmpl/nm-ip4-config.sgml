@@ -1,0 +1,200 @@
+<!-- ##### SECTION Title ##### -->
+NMIP4Config
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### STRUCT NMIP4Config ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMIP4Config:addresses ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMIP4Config:domains ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMIP4Config:gateway ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMIP4Config:nameservers ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMIP4Config:routes ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMIP4Config:searches ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMIP4Config:wins-servers ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMIP4ConfigClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### MACRO NM_IP4_CONFIG_GATEWAY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_IP4_CONFIG_ADDRESSES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_IP4_CONFIG_ROUTES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_IP4_CONFIG_NAMESERVERS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_IP4_CONFIG_DOMAINS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_IP4_CONFIG_SEARCHES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_IP4_CONFIG_WINS_SERVERS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_ip4_config_new ##### -->
+<para>
+
+</para>
+
+@connection: 
+@object_path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_config_get_gateway ##### -->
+<para>
+
+</para>
+
+@config: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_config_get_addresses ##### -->
+<para>
+
+</para>
+
+@config: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_config_get_routes ##### -->
+<para>
+
+</para>
+
+@config: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_config_get_nameservers ##### -->
+<para>
+
+</para>
+
+@config: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_config_get_domains ##### -->
+<para>
+
+</para>
+
+@config: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_config_get_searches ##### -->
+<para>
+
+</para>
+
+@config: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_config_get_wins_servers ##### -->
+<para>
+
+</para>
+
+@config: 
+@Returns: 
+
+

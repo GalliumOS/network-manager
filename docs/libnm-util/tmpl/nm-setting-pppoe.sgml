@@ -1,0 +1,167 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingPPPOE
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_PPPOE_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingPPPOEError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_PPPOE_ERROR_UNKNOWN: 
+@NM_SETTING_PPPOE_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_PPPOE_ERROR_MISSING_PROPERTY: 
+@NM_SETTING_PPPOE_ERROR_MISSING_PPP_SETTING: 
+
+<!-- ##### MACRO NM_SETTING_PPPOE_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_pppoe_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_PPPOE_SERVICE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_PPPOE_USERNAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_PPPOE_PASSWORD ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_PPPOE_PASSWORD_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingPPPOE ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingPPPOE:password ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingPPPOE:password-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingPPPOE:service ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingPPPOE:username ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingPPPOEClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_pppoe_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_pppoe_get_service ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_pppoe_get_username ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_pppoe_get_password ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_pppoe_get_password_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

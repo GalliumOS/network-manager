@@ -1,0 +1,679 @@
+<!-- ##### SECTION Title ##### -->
+NMDevice
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMDeviceError ##### -->
+<para>
+
+</para>
+
+@NM_DEVICE_ERROR_UNKNOWN: 
+@NM_DEVICE_ERROR_INTERFACE_MISMATCH: 
+
+<!-- ##### MACRO NM_DEVICE_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_device_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_DEVICE_DEVICE_TYPE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_UDI ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_INTERFACE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_IP_INTERFACE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_DRIVER ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_DRIVER_VERSION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_FIRMWARE_VERSION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_CAPABILITIES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_MANAGED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_AUTOCONNECT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_FIRMWARE_MISSING ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_IP4_CONFIG ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_DHCP4_CONFIG ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_IP6_CONFIG ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_DHCP6_CONFIG ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_STATE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_STATE_REASON ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_ACTIVE_CONNECTION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_AVAILABLE_CONNECTIONS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_VENDOR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_PRODUCT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_PHYSICAL_PORT_ID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_MTU ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMDevice ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SIGNAL NMDevice::state-changed ##### -->
+<para>
+
+</para>
+
+@nmdevice: the object which received the signal.
+@arg1: 
+@arg2: 
+@arg3: 
+
+<!-- ##### ARG NMDevice:active-connection ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:autoconnect ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:available-connections ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:capabilities ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:device-type ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:dhcp4-config ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:dhcp6-config ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:driver ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:driver-version ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:firmware-missing ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:firmware-version ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:interface ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:ip-interface ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:ip4-config ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:ip6-config ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:managed ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:mtu ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:physical-port-id ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:product ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:state ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:state-reason ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:udi ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDevice:vendor ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMDeviceClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@state_changed: 
+@connection_compatible: 
+@get_type_description: 
+@get_hw_address: 
+@get_setting_type: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+
+<!-- ##### FUNCTION nm_device_new ##### -->
+<para>
+
+</para>
+
+@connection: 
+@path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_iface ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_ip_iface ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_device_type ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_udi ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_driver ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_driver_version ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_firmware_version ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_type_description ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_hw_address ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_capabilities ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_managed ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_autoconnect ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_set_autoconnect ##### -->
+<para>
+
+</para>
+
+@device: 
+@autoconnect: 
+
+
+<!-- ##### FUNCTION nm_device_get_firmware_missing ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_ip4_config ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_dhcp4_config ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_ip6_config ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_dhcp6_config ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_state ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_state_reason ##### -->
+<para>
+
+</para>
+
+@device: 
+@reason: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_active_connection ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_available_connections ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_physical_port_id ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_mtu ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_product ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_vendor ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_description ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_disambiguate_names ##### -->
+<para>
+
+</para>
+
+@devices: 
+@num_devices: 
+@Returns: 
+
+
+<!-- ##### USER_FUNCTION NMDeviceDeactivateFn ##### -->
+<para>
+
+</para>
+
+@device: 
+@error: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_device_disconnect ##### -->
+<para>
+
+</para>
+
+@device: 
+@callback: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_device_filter_connections ##### -->
+<para>
+
+</para>
+
+@device: 
+@connections: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_connection_valid ##### -->
+<para>
+
+</para>
+
+@device: 
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_connection_compatible ##### -->
+<para>
+
+</para>
+
+@device: 
+@connection: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_get_setting_type ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+

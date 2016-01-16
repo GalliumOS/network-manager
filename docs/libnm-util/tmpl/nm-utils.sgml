@@ -1,0 +1,537 @@
+<!-- ##### SECTION Title ##### -->
+nm-utils
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### FUNCTION nm_utils_init ##### -->
+<para>
+
+</para>
+
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_deinit ##### -->
+<para>
+
+</para>
+
+@void: 
+
+
+<!-- ##### FUNCTION nm_utils_is_empty_ssid ##### -->
+<para>
+
+</para>
+
+@ssid: 
+@len: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_escape_ssid ##### -->
+<para>
+
+</para>
+
+@ssid: 
+@len: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_same_ssid ##### -->
+<para>
+
+</para>
+
+@ssid1: 
+@ssid2: 
+@ignore_trailing_null: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ssid_to_utf8 ##### -->
+<para>
+
+</para>
+
+@ssid: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_gvalue_hash_dup ##### -->
+<para>
+
+</para>
+
+@hash: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_slist_free ##### -->
+<para>
+
+</para>
+
+@list: 
+@elem_destroy_fn: 
+
+
+<!-- ##### ENUM NMUtilsSecurityType ##### -->
+<para>
+
+</para>
+
+@NMU_SEC_INVALID: 
+@NMU_SEC_NONE: 
+@NMU_SEC_STATIC_WEP: 
+@NMU_SEC_LEAP: 
+@NMU_SEC_DYNAMIC_WEP: 
+@NMU_SEC_WPA_PSK: 
+@NMU_SEC_WPA_ENTERPRISE: 
+@NMU_SEC_WPA2_PSK: 
+@NMU_SEC_WPA2_ENTERPRISE: 
+
+<!-- ##### FUNCTION nm_utils_security_valid ##### -->
+<para>
+
+</para>
+
+@type: 
+@wifi_caps: 
+@have_ap: 
+@adhoc: 
+@ap_flags: 
+@ap_wpa: 
+@ap_rsn: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ap_mode_security_valid ##### -->
+<para>
+
+</para>
+
+@type: 
+@wifi_caps: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_wep_key_valid ##### -->
+<para>
+
+</para>
+
+@key: 
+@wep_type: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_wpa_psk_valid ##### -->
+<para>
+
+</para>
+
+@psk: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip4_addresses_from_gvalue ##### -->
+<para>
+
+</para>
+
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip4_addresses_to_gvalue ##### -->
+<para>
+
+</para>
+
+@list: 
+@value: 
+
+
+<!-- ##### FUNCTION nm_utils_ip4_routes_from_gvalue ##### -->
+<para>
+
+</para>
+
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip4_routes_to_gvalue ##### -->
+<para>
+
+</para>
+
+@list: 
+@value: 
+
+
+<!-- ##### FUNCTION nm_utils_ip4_netmask_to_prefix ##### -->
+<para>
+
+</para>
+
+@netmask: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip4_prefix_to_netmask ##### -->
+<para>
+
+</para>
+
+@prefix: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip4_get_default_prefix ##### -->
+<para>
+
+</para>
+
+@ip: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip6_addresses_from_gvalue ##### -->
+<para>
+
+</para>
+
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip6_addresses_to_gvalue ##### -->
+<para>
+
+</para>
+
+@list: 
+@value: 
+
+
+<!-- ##### FUNCTION nm_utils_ip6_routes_from_gvalue ##### -->
+<para>
+
+</para>
+
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip6_routes_to_gvalue ##### -->
+<para>
+
+</para>
+
+@list: 
+@value: 
+
+
+<!-- ##### FUNCTION nm_utils_ip6_dns_from_gvalue ##### -->
+<para>
+
+</para>
+
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_ip6_dns_to_gvalue ##### -->
+<para>
+
+</para>
+
+@list: 
+@value: 
+
+
+<!-- ##### FUNCTION nm_utils_uuid_generate ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_uuid_generate_from_string ##### -->
+<para>
+
+</para>
+
+@s: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_rsa_key_encrypt ##### -->
+<para>
+
+</para>
+
+@data: 
+@in_password: 
+@out_password: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_rsa_key_encrypt_aes ##### -->
+<para>
+
+</para>
+
+@data: 
+@in_password: 
+@out_password: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_file_is_pkcs12 ##### -->
+<para>
+
+</para>
+
+@filename: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_wifi_freq_to_channel ##### -->
+<para>
+
+</para>
+
+@freq: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_wifi_channel_to_freq ##### -->
+<para>
+
+</para>
+
+@channel: 
+@band: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_wifi_find_next_channel ##### -->
+<para>
+
+</para>
+
+@channel: 
+@direction: 
+@band: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_wifi_is_channel_valid ##### -->
+<para>
+
+</para>
+
+@channel: 
+@band: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_UTILS_HWADDR_LEN_MAX ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_utils_hwaddr_len ##### -->
+<para>
+
+</para>
+
+@type: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hwaddr_type ##### -->
+<para>
+
+</para>
+
+@len: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hwaddr_ntoa ##### -->
+<para>
+
+</para>
+
+@addr: 
+@type: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hwaddr_atoba ##### -->
+<para>
+
+</para>
+
+@asc: 
+@type: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hwaddr_aton ##### -->
+<para>
+
+</para>
+
+@asc: 
+@type: 
+@buffer: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hwaddr_ntoa_len ##### -->
+<para>
+
+</para>
+
+@addr: 
+@length: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hwaddr_aton_len ##### -->
+<para>
+
+</para>
+
+@asc: 
+@buffer: 
+@length: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hwaddr_valid ##### -->
+<para>
+
+</para>
+
+@asc: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_bin2hexstr ##### -->
+<para>
+
+</para>
+
+@bytes: 
+@len: 
+@final_len: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hex2byte ##### -->
+<para>
+
+</para>
+
+@hex: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_hexstr2bin ##### -->
+<para>
+
+</para>
+
+@hex: 
+@len: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_iface_valid_name ##### -->
+<para>
+
+</para>
+
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_is_uuid ##### -->
+<para>
+
+</para>
+
+@str: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_UTILS_INET_ADDRSTRLEN ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_utils_inet4_ntop ##### -->
+<para>
+
+</para>
+
+@inaddr: 
+@dst: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_inet6_ntop ##### -->
+<para>
+
+</para>
+
+@in6addr: 
+@dst: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_utils_check_virtual_device_compatibility ##### -->
+<para>
+
+</para>
+
+@virtual_type: 
+@other_type: 
+@Returns: 
+
+

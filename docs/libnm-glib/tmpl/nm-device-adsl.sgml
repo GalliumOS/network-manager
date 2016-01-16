@@ -1,0 +1,99 @@
+<!-- ##### SECTION Title ##### -->
+NMDeviceAdsl
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMDeviceAdslError ##### -->
+<para>
+
+</para>
+
+@NM_DEVICE_ADSL_ERROR_UNKNOWN: 
+@NM_DEVICE_ADSL_ERROR_NOT_ADSL_CONNECTION: 
+@NM_DEVICE_ADSL_ERROR_INVALID_ADSL_CONNECTION: 
+
+<!-- ##### MACRO NM_DEVICE_ADSL_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_device_adsl_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_DEVICE_ADSL_CARRIER ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMDeviceAdsl ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMDeviceAdsl:carrier ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMDeviceAdslClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### FUNCTION nm_device_adsl_new ##### -->
+<para>
+
+</para>
+
+@connection: 
+@path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_adsl_get_carrier ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+

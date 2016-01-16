@@ -1,0 +1,339 @@
+<!-- ##### SECTION Title ##### -->
+NMSetting
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMSettingError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_ERROR_UNKNOWN: 
+@NM_SETTING_ERROR_PROPERTY_NOT_FOUND: 
+@NM_SETTING_ERROR_PROPERTY_NOT_SECRET: 
+@NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH: 
+
+<!-- ##### MACRO NM_SETTING_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_PARAM_SERIALIZE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_PARAM_REQUIRED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_PARAM_SECRET ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_PARAM_FUZZY_IGNORE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingSecretFlags ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_SECRET_FLAG_NONE: 
+@NM_SETTING_SECRET_FLAG_AGENT_OWNED: 
+@NM_SETTING_SECRET_FLAG_NOT_SAVED: 
+@NM_SETTING_SECRET_FLAG_NOT_REQUIRED: 
+
+<!-- ##### ENUM NMSettingCompareFlags ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_COMPARE_FLAG_EXACT: 
+@NM_SETTING_COMPARE_FLAG_FUZZY: 
+@NM_SETTING_COMPARE_FLAG_IGNORE_ID: 
+@NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS: 
+@NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS: 
+@NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS: 
+
+<!-- ##### STRUCT NMSetting ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSetting:name ##### -->
+<para>
+
+</para>
+
+<!-- ##### USER_FUNCTION NMSettingClearSecretsWithFlagsFn ##### -->
+<para>
+
+</para>
+
+@setting: 
+@secret: 
+@flags: 
+@user_data: 
+@Returns: 
+
+
+<!-- ##### STRUCT NMSettingClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@verify: 
+@need_secrets: 
+@update_one_secret: 
+@get_secret_flags: 
+@set_secret_flags: 
+@compare_property: 
+@clear_secrets_with_flags: 
+@get_virtual_iface_name: 
+@_reserved1: 
+
+<!-- ##### USER_FUNCTION NMSettingValueIterFn ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@value: 
+@flags: 
+@user_data: 
+
+
+<!-- ##### ENUM NMSettingHashFlags ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_HASH_FLAG_ALL: 
+@NM_SETTING_HASH_FLAG_NO_SECRETS: 
+@NM_SETTING_HASH_FLAG_ONLY_SECRETS: 
+
+<!-- ##### FUNCTION nm_setting_to_hash ##### -->
+<para>
+
+</para>
+
+@setting: 
+@flags: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_new_from_hash ##### -->
+<para>
+
+</para>
+
+@setting_type: 
+@hash: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_duplicate ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_get_name ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_verify ##### -->
+<para>
+
+</para>
+
+@setting: 
+@all_settings: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_compare ##### -->
+<para>
+
+</para>
+
+@a: 
+@b: 
+@flags: 
+@Returns: 
+
+
+<!-- ##### ENUM NMSettingDiffResult ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_DIFF_RESULT_UNKNOWN: 
+@NM_SETTING_DIFF_RESULT_IN_A: 
+@NM_SETTING_DIFF_RESULT_IN_B: 
+
+<!-- ##### FUNCTION nm_setting_diff ##### -->
+<para>
+
+</para>
+
+@a: 
+@b: 
+@flags: 
+@invert_results: 
+@results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_enumerate_values ##### -->
+<para>
+
+</para>
+
+@setting: 
+@func: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_setting_to_string ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_clear_secrets ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_clear_secrets_with_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@func: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_setting_need_secrets ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_update_secrets ##### -->
+<para>
+
+</para>
+
+@setting: 
+@secrets: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_get_secret_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@secret_name: 
+@out_flags: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_set_secret_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@secret_name: 
+@flags: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_get_virtual_iface_name ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

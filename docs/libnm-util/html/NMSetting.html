@@ -1,0 +1,1207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSetting</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-util Reference Manual">
+<link rel="up" href="ch01.html" title="libnm-util API Reference">
+<link rel="prev" href="NMConnection.html" title="NMConnection">
+<link rel="next" href="NMSettingConnection.html" title="NMSettingConnection">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMConnection.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-util Reference Manual</th>
+<td><a accesskey="n" href="NMSettingConnection.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMSetting.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMSetting.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMSetting.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMSetting.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMSetting"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSetting.top_of_page"></a>NMSetting</span></h2>
+<p>NMSetting — Describes related configuration information</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMSetting.synopsis"></a><h2>Synopsis</h2>
+<a name="NMSettingError"></a><a name="NMSettingSecretFlags"></a><a name="NMSettingCompareFlags"></a><a name="NMSettingHashFlags"></a><a name="NMSettingDiffResult"></a><pre class="synopsis">
+#include &lt;nm-setting.h&gt;
+
+enum                <a class="link" href="NMSetting.html#NMSettingError-enum" title="enum NMSettingError">NMSettingError</a>;
+#define             <a class="link" href="NMSetting.html#NM-SETTING-ERROR:CAPS" title="NM_SETTING_ERROR">NM_SETTING_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMSetting.html#nm-setting-error-quark" title="nm_setting_error_quark ()">nm_setting_error_quark</a>              (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMSetting.html#NM-SETTING-PARAM-SERIALIZE:CAPS" title="NM_SETTING_PARAM_SERIALIZE">NM_SETTING_PARAM_SERIALIZE</a>
+#define             <a class="link" href="NMSetting.html#NM-SETTING-PARAM-REQUIRED:CAPS" title="NM_SETTING_PARAM_REQUIRED">NM_SETTING_PARAM_REQUIRED</a>
+#define             <a class="link" href="NMSetting.html#NM-SETTING-PARAM-SECRET:CAPS" title="NM_SETTING_PARAM_SECRET">NM_SETTING_PARAM_SECRET</a>
+#define             <a class="link" href="NMSetting.html#NM-SETTING-PARAM-FUZZY-IGNORE:CAPS" title="NM_SETTING_PARAM_FUZZY_IGNORE">NM_SETTING_PARAM_FUZZY_IGNORE</a>
+#define             <a class="link" href="NMSetting.html#NM-SETTING-NAME:CAPS" title="NM_SETTING_NAME">NM_SETTING_NAME</a>
+enum                <a class="link" href="NMSetting.html#NMSettingSecretFlags-enum" title="enum NMSettingSecretFlags">NMSettingSecretFlags</a>;
+enum                <a class="link" href="NMSetting.html#NMSettingCompareFlags-enum" title="enum NMSettingCompareFlags">NMSettingCompareFlags</a>;
+                    <a class="link" href="NMSetting.html#NMSetting-struct" title="NMSetting">NMSetting</a>;
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (<a class="link" href="NMSetting.html#NMSettingClearSecretsWithFlagsFn" title="NMSettingClearSecretsWithFlagsFn ()">*NMSettingClearSecretsWithFlagsFn</a>) (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *secret</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+                    <a class="link" href="NMSetting.html#NMSettingClass" title="NMSettingClass">NMSettingClass</a>;
+<span class="returnvalue">void</span>                (<a class="link" href="NMSetting.html#NMSettingValueIterFn" title="NMSettingValueIterFn ()">*NMSettingValueIterFn</a>)             (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *key</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gobject/unstable/gobject-GParamSpec.html#GParamFlags"><span class="type">GParamFlags</span></a> flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+enum                <a class="link" href="NMSetting.html#NMSettingHashFlags-enum" title="enum NMSettingHashFlags">NMSettingHashFlags</a>;
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="returnvalue">GHashTable</span></a> *        <a class="link" href="NMSetting.html#nm-setting-to-hash" title="nm_setting_to_hash ()">nm_setting_to_hash</a>                  (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingHashFlags"><span class="type">NMSettingHashFlags</span></a> flags</code></em>);
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         <a class="link" href="NMSetting.html#nm-setting-new-from-hash" title="nm_setting_new_from_hash ()">nm_setting_new_from_hash</a>            (<em class="parameter"><code><a href="http://library.gnome.org/devel/gobject/unstable/gobject-Type-Information.html#GType"><span class="type">GType</span></a> setting_type</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *hash</code></em>);
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         <a class="link" href="NMSetting.html#nm-setting-duplicate" title="nm_setting_duplicate ()">nm_setting_duplicate</a>                (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSetting.html#nm-setting-get-name" title="nm_setting_get_name ()">nm_setting_get_name</a>                 (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSetting.html#nm-setting-verify" title="nm_setting_verify ()">nm_setting_verify</a>                   (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *all_settings</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSetting.html#nm-setting-compare" title="nm_setting_compare ()">nm_setting_compare</a>                  (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *a</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *b</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingCompareFlags"><span class="type">NMSettingCompareFlags</span></a> flags</code></em>);
+enum                <a class="link" href="NMSetting.html#NMSettingDiffResult-enum" title="enum NMSettingDiffResult">NMSettingDiffResult</a>;
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSetting.html#nm-setting-diff" title="nm_setting_diff ()">nm_setting_diff</a>                     (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *a</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *b</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingCompareFlags"><span class="type">NMSettingCompareFlags</span></a> flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> invert_results</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> **results</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSetting.html#nm-setting-enumerate-values" title="nm_setting_enumerate_values ()">nm_setting_enumerate_values</a>         (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingValueIterFn" title="NMSettingValueIterFn ()"><span class="type">NMSettingValueIterFn</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<span class="returnvalue">char</span> *              <a class="link" href="NMSetting.html#nm-setting-to-string" title="nm_setting_to_string ()">nm_setting_to_string</a>                (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSetting.html#nm-setting-clear-secrets" title="nm_setting_clear_secrets ()">nm_setting_clear_secrets</a>            (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMSetting.html#nm-setting-clear-secrets-with-flags" title="nm_setting_clear_secrets_with_flags ()">nm_setting_clear_secrets_with_flags</a> (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingClearSecretsWithFlagsFn" title="NMSettingClearSecretsWithFlagsFn ()"><span class="type">NMSettingClearSecretsWithFlagsFn</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *         <a class="link" href="NMSetting.html#nm-setting-need-secrets" title="nm_setting_need_secrets ()">nm_setting_need_secrets</a>             (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSetting.html#nm-setting-update-secrets" title="nm_setting_update_secrets ()">nm_setting_update_secrets</a>           (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *secrets</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSetting.html#nm-setting-get-secret-flags" title="nm_setting_get_secret_flags ()">nm_setting_get_secret_flags</a>         (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *secret_name</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> *out_flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSetting.html#nm-setting-set-secret-flags" title="nm_setting_set_secret_flags ()">nm_setting_set_secret_flags</a>         (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *secret_name</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSetting.html#nm-setting-get-virtual-iface-name" title="nm_setting_get_virtual_iface_name ()">nm_setting_get_virtual_iface_name</a>   (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSetting.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingError
+</pre>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingSecretFlags
+</pre>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingCompareFlags
+</pre>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----NMSetting
+         +----<a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+         +----<a class="link" href="NMSettingAdsl.html" title="NMSettingAdsl">NMSettingAdsl</a>
+         +----<a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth">NMSettingBluetooth</a>
+         +----<a class="link" href="NMSettingBond.html" title="NMSettingBond">NMSettingBond</a>
+         +----<a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+         +----<a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+         +----<a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+         +----<a class="link" href="NMSettingBridgePort.html" title="NMSettingBridgePort">NMSettingBridgePort</a>
+         +----<a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+         +----<a class="link" href="NMSettingDcb.html" title="NMSettingDcb">NMSettingDcb</a>
+         +----<a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband">NMSettingInfiniband</a>
+         +----<a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config">NMSettingIP4Config</a>
+         +----<a class="link" href="NMSettingVlan.html" title="NMSettingVlan">NMSettingVlan</a>
+         +----<a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
+         +----<a class="link" href="NMSettingPPP.html" title="NMSettingPPP">NMSettingPPP</a>
+         +----<a class="link" href="NMSettingPPPOE.html" title="NMSettingPPPOE">NMSettingPPPOE</a>
+         +----<a class="link" href="NMSettingSerial.html" title="NMSettingSerial">NMSettingSerial</a>
+         +----<a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric">NMSettingGeneric</a>
+         +----<a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
+         +----<a class="link" href="NMSettingCdma.html" title="NMSettingCdma">NMSettingCdma</a>
+         +----<a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh">NMSettingOlpcMesh</a>
+         +----<a class="link" href="NMSettingWimax.html" title="NMSettingWimax">NMSettingWimax</a>
+         +----<a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
+         +----<a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
+         +----<a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+         +----<a class="link" href="NMSettingVPN.html" title="NMSettingVPN">NMSettingVPN</a>
+</pre>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingHashFlags
+</pre>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingDiffResult
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSetting.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMSetting.html#NMSetting--name" title='The "name" property'>name</a>"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSetting.description"></a><h2>Description</h2>
+<p>
+Each <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> contains properties that describe configuration that applies
+to a specific network layer (like IPv4 or IPv6 configuration) or device type
+(like Ethernet, or Wi-Fi).  A collection of individual settings together
+make up an <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>. Each property is strongly typed and usually has
+a number of allowed values.  See each <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass for a description
+of properties and allowed values.
+</p>
+</div>
+<div class="refsect1">
+<a name="NMSetting.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NMSettingError-enum"></a><h3>enum NMSettingError</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_ERROR_UNKNOWN = 0,           /*&lt; nick=UnknownError &gt;*/
+	NM_SETTING_ERROR_PROPERTY_NOT_FOUND,    /*&lt; nick=PropertyNotFound &gt;*/
+	NM_SETTING_ERROR_PROPERTY_NOT_SECRET,   /*&lt; nick=PropertyNotSecret &gt;*/
+	NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH /*&lt; nick=PropertyTypeMismatch &gt;*/
+} NMSettingError;
+</pre>
+<p>
+Describes errors that may result from operations involving a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_SETTING_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-ERROR-PROPERTY-NOT-FOUND:CAPS"></a><span class="term"><code class="literal">NM_SETTING_ERROR_PROPERTY_NOT_FOUND</code></span></p></td>
+<td>a property required by the operation
+  was not found; for example, an attempt to update an invalid secret
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-ERROR-PROPERTY-NOT-SECRET:CAPS"></a><span class="term"><code class="literal">NM_SETTING_ERROR_PROPERTY_NOT_SECRET</code></span></p></td>
+<td>an operation which requires a secret
+  was attempted on a non-secret property
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-ERROR-PROPERTY-TYPE-MISMATCH:CAPS"></a><span class="term"><code class="literal">NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH</code></span></p></td>
+<td>the operation requires a property
+  of a specific type, or the value couldn't be transformed to the same type
+  as the property being acted upon
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-ERROR:CAPS"></a><h3>NM_SETTING_ERROR</h3>
+<pre class="programlisting">#define NM_SETTING_ERROR nm_setting_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-error-quark"></a><h3>nm_setting_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_setting_error_quark              (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for NMSetting errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-PARAM-SERIALIZE:CAPS"></a><h3>NM_SETTING_PARAM_SERIALIZE</h3>
+<pre class="programlisting">#define NM_SETTING_PARAM_SERIALIZE    (1 &lt;&lt; (0 + G_PARAM_USER_SHIFT))
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-PARAM-REQUIRED:CAPS"></a><h3>NM_SETTING_PARAM_REQUIRED</h3>
+<pre class="programlisting">#define NM_SETTING_PARAM_REQUIRED     (1 &lt;&lt; (1 + G_PARAM_USER_SHIFT))
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-PARAM-SECRET:CAPS"></a><h3>NM_SETTING_PARAM_SECRET</h3>
+<pre class="programlisting">#define NM_SETTING_PARAM_SECRET       (1 &lt;&lt; (2 + G_PARAM_USER_SHIFT))
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-PARAM-FUZZY-IGNORE:CAPS"></a><h3>NM_SETTING_PARAM_FUZZY_IGNORE</h3>
+<pre class="programlisting">#define NM_SETTING_PARAM_FUZZY_IGNORE (1 &lt;&lt; (3 + G_PARAM_USER_SHIFT))
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-NAME:CAPS"></a><h3>NM_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_NAME "name"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingSecretFlags-enum"></a><h3>enum NMSettingSecretFlags</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_SECRET_FLAG_NONE         = 0x00000000,
+	NM_SETTING_SECRET_FLAG_AGENT_OWNED  = 0x00000001,
+	NM_SETTING_SECRET_FLAG_NOT_SAVED    = 0x00000002,
+	NM_SETTING_SECRET_FLAG_NOT_REQUIRED = 0x00000004
+
+	/* NOTE: if adding flags, update nm-setting-private.h as well */
+} NMSettingSecretFlags;
+</pre>
+<p>
+These flags indicate specific behavior related to handling of a secret.  Each
+secret has a corresponding set of these flags which indicate how the secret
+is to be stored and/or requested when it is needed.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-SECRET-FLAG-NONE:CAPS"></a><span class="term"><code class="literal">NM_SETTING_SECRET_FLAG_NONE</code></span></p></td>
+<td>the system is responsible for providing and
+storing this secret (default)
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-SECRET-FLAG-AGENT-OWNED:CAPS"></a><span class="term"><code class="literal">NM_SETTING_SECRET_FLAG_AGENT_OWNED</code></span></p></td>
+<td>a user secret agent is responsible
+for providing and storing this secret; when it is required agents will be
+asked to retrieve it
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-SECRET-FLAG-NOT-SAVED:CAPS"></a><span class="term"><code class="literal">NM_SETTING_SECRET_FLAG_NOT_SAVED</code></span></p></td>
+<td>this secret should not be saved, but
+should be requested from the user each time it is needed
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-SECRET-FLAG-NOT-REQUIRED:CAPS"></a><span class="term"><code class="literal">NM_SETTING_SECRET_FLAG_NOT_REQUIRED</code></span></p></td>
+<td>in situations where it cannot be
+automatically determined that the secret is required (some VPNs and PPP
+providers dont require all secrets) this flag indicates that the specific
+secret is not required
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingCompareFlags-enum"></a><h3>enum NMSettingCompareFlags</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_COMPARE_FLAG_EXACT = 0x00000000,
+	NM_SETTING_COMPARE_FLAG_FUZZY = 0x00000001,
+	NM_SETTING_COMPARE_FLAG_IGNORE_ID = 0x00000002,
+	NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS = 0x00000004,
+	NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS = 0x00000008,
+	NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS = 0x00000010
+
+	/* 0x80000000 is used for a private flag */
+} NMSettingCompareFlags;
+</pre>
+<p>
+These flags modify the comparison behavior when comparing two settings or
+two connections.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-COMPARE-FLAG-EXACT:CAPS"></a><span class="term"><code class="literal">NM_SETTING_COMPARE_FLAG_EXACT</code></span></p></td>
+<td>match all properties exactly
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-COMPARE-FLAG-FUZZY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_COMPARE_FLAG_FUZZY</code></span></p></td>
+<td>match only important attributes, like SSID,
+  type, security settings, etc.  Does not match, for example, connection ID
+  or UUID.
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-COMPARE-FLAG-IGNORE-ID:CAPS"></a><span class="term"><code class="literal">NM_SETTING_COMPARE_FLAG_IGNORE_ID</code></span></p></td>
+<td>ignore the connection's ID
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-COMPARE-FLAG-IGNORE-SECRETS:CAPS"></a><span class="term"><code class="literal">NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS</code></span></p></td>
+<td>ignore all secrets
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-COMPARE-FLAG-IGNORE-AGENT-OWNED-SECRETS:CAPS"></a><span class="term"><code class="literal">NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS</code></span></p></td>
+<td>ignore secrets for which
+the secret's flags indicate the secret is owned by a user secret agent
+(ie, the secret's flag includes <em class="parameter"><code>NM_SETTING_SECRET_FLAG_AGENT_OWNED</code></em>)
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-COMPARE-FLAG-IGNORE-NOT-SAVED-SECRETS:CAPS"></a><span class="term"><code class="literal">NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS</code></span></p></td>
+<td>ignore secrets for which
+the secret's flags indicate the secret should not be saved to persistent
+storage (ie, the secret's flag includes <em class="parameter"><code>NM_SETTING_SECRET_FLAG_NOT_SAVED</code></em>)
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSetting-struct"></a><h3>NMSetting</h3>
+<pre class="programlisting">typedef struct _NMSetting NMSetting;</pre>
+<p>
+The NMSetting struct contains only private data.
+It should only be accessed through the functions described below.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingClearSecretsWithFlagsFn"></a><h3>NMSettingClearSecretsWithFlagsFn ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (*NMSettingClearSecretsWithFlagsFn) (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *secret</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>The setting for which secrets are being iterated</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>secret</code></em> :</span></p></td>
+<td>The secret's name</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>flags</code></em> :</span></p></td>
+<td>The secret's flags, eg <a class="link" href="NMSetting.html#NM-SETTING-SECRET-FLAG-AGENT-OWNED:CAPS"><code class="literal">NM_SETTING_SECRET_FLAG_AGENT_OWNED</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>User data passed to <a class="link" href="NMConnection.html#nm-connection-clear-secrets-with-flags" title="nm_connection_clear_secrets_with_flags ()"><code class="function">nm_connection_clear_secrets_with_flags()</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to clear the secret, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> to not clear the secret</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingClass"></a><h3>NMSettingClass</h3>
+<pre class="programlisting">typedef struct {
+	GObjectClass parent;
+
+	/* Virtual functions */
+	gboolean    (*verify)            (NMSetting  *setting,
+	                                  GSList     *all_settings,
+	                                  GError     **error);
+
+	GPtrArray  *(*need_secrets)      (NMSetting  *setting);
+
+	int         (*update_one_secret) (NMSetting  *setting,
+	                                  const char *key,
+	                                  GValue     *value,
+	                                  GError    **error);
+
+	gboolean    (*get_secret_flags)  (NMSetting  *setting,
+	                                  const char *secret_name,
+	                                  gboolean verify_secret,
+	                                  NMSettingSecretFlags *out_flags,
+	                                  GError **error);
+
+	gboolean    (*set_secret_flags)  (NMSetting  *setting,
+	                                  const char *secret_name,
+	                                  gboolean verify_secret,
+	                                  NMSettingSecretFlags flags,
+	                                  GError **error);
+
+	/* Returns TRUE if the given property contains the same value in both settings */
+	gboolean    (*compare_property)  (NMSetting *setting,
+	                                  NMSetting *other,
+	                                  const GParamSpec *prop_spec,
+	                                  NMSettingCompareFlags flags);
+
+	gboolean    (*clear_secrets_with_flags) (NMSetting *setting,
+	                                         GParamSpec *pspec,
+	                                         NMSettingClearSecretsWithFlagsFn func,
+	                                         gpointer user_data);
+
+	const char *(*get_virtual_iface_name) (NMSetting *setting);
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+} NMSettingClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingValueIterFn"></a><h3>NMSettingValueIterFn ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                (*NMSettingValueIterFn)             (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *key</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gobject/unstable/gobject-GParamSpec.html#GParamFlags"><span class="type">GParamFlags</span></a> flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>The setting for which properties are being iterated, given to
+<a class="link" href="NMSetting.html#nm-setting-enumerate-values" title="nm_setting_enumerate_values ()"><code class="function">nm_setting_enumerate_values()</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>key</code></em> :</span></p></td>
+<td>The value/property name</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>value</code></em> :</span></p></td>
+<td>The property's value</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>flags</code></em> :</span></p></td>
+<td>The property's flags, like <a class="link" href="NMSetting.html#NM-SETTING-PARAM-SECRET:CAPS" title="NM_SETTING_PARAM_SECRET"><code class="literal">NM_SETTING_PARAM_SECRET</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>User data passed to <a class="link" href="NMSetting.html#nm-setting-enumerate-values" title="nm_setting_enumerate_values ()"><code class="function">nm_setting_enumerate_values()</code></a>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingHashFlags-enum"></a><h3>enum NMSettingHashFlags</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_HASH_FLAG_ALL = 0x00000000,
+	NM_SETTING_HASH_FLAG_NO_SECRETS = 0x00000001,
+	NM_SETTING_HASH_FLAG_ONLY_SECRETS = 0x00000002,
+} NMSettingHashFlags;
+</pre>
+<p>
+These flags determine which properties are added to the resulting hash
+when calling <a class="link" href="NMSetting.html#nm-setting-to-hash" title="nm_setting_to_hash ()"><code class="function">nm_setting_to_hash()</code></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-HASH-FLAG-ALL:CAPS"></a><span class="term"><code class="literal">NM_SETTING_HASH_FLAG_ALL</code></span></p></td>
+<td>hash all properties (including secrets)
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-HASH-FLAG-NO-SECRETS:CAPS"></a><span class="term"><code class="literal">NM_SETTING_HASH_FLAG_NO_SECRETS</code></span></p></td>
+<td>do not include secrets
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-HASH-FLAG-ONLY-SECRETS:CAPS"></a><span class="term"><code class="literal">NM_SETTING_HASH_FLAG_ONLY_SECRETS</code></span></p></td>
+<td>only hash secrets
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-to-hash"></a><h3>nm_setting_to_hash ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="returnvalue">GHashTable</span></a> *        nm_setting_to_hash                  (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingHashFlags"><span class="type">NMSettingHashFlags</span></a> flags</code></em>);</pre>
+<p>
+Converts the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> into a <a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> mapping each setting property
+name to a GValue describing that property, suitable for marshalling over
+D-Bus or serializing.  The mapping is string to GValue.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>flags</code></em> :</span></p></td>
+<td>hash flags, e.g. <a class="link" href="NMSetting.html#NM-SETTING-HASH-FLAG-ALL:CAPS"><code class="literal">NM_SETTING_HASH_FLAG_ALL</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new <a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a>
+describing the setting's properties. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GObject.Value]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-new-from-hash"></a><h3>nm_setting_new_from_hash ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         nm_setting_new_from_hash            (<em class="parameter"><code><a href="http://library.gnome.org/devel/gobject/unstable/gobject-Type-Information.html#GType"><span class="type">GType</span></a> setting_type</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *hash</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object and populates that object with the properties
+contained in the hash table, using each hash key as the property to set,
+and each hash value as the value to set that property to.  Setting properties
+are strongly typed, thus the GValue type of the hash value must be correct.
+See the documentation on each <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object subclass for the correct
+property names and value types.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting_type</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> type which the hash contains properties for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>hash</code></em> :</span></p></td>
+<td>the <a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> containing a
+string to GValue mapping of properties that apply to the setting. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GObject.Value]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object populated with the properties from the
+hash table, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> on failure</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-duplicate"></a><h3>nm_setting_duplicate ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         nm_setting_duplicate                (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);</pre>
+<p>
+Duplicates a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> to duplicate</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> containing the same properties and values as the
+source <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-get-name"></a><h3>nm_setting_get_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_get_name                 (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);</pre>
+<p>
+Returns the type name of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a string containing the type name of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object,
+like 'ppp' or 'wireless' or 'wired'.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-verify"></a><h3>nm_setting_verify ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_verify                   (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *all_settings</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+Validates the setting.  Each setting's properties have allowed values, and
+some are dependent on other values (hence the need for <em class="parameter"><code>all_settings</code></em>).  The
+returned <a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> contains information about which property of the setting
+failed validation, and in what way that property failed validation.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> to verify</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>all_settings</code></em> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of all settings
+in the connection from which <em class="parameter"><code>setting</code></em> came. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMSetting]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>location to store error, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the setting is valid, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it is not</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-compare"></a><h3>nm_setting_compare ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_compare                  (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *a</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *b</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingCompareFlags"><span class="type">NMSettingCompareFlags</span></a> flags</code></em>);</pre>
+<p>
+Compares two <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> objects for similarity, with comparison behavior
+modified by a set of flags.  See the documentation for <a class="link" href="NMSetting.html#NMSettingCompareFlags"><span class="type">NMSettingCompareFlags</span></a>
+for a description of each flag's behavior.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>a</code></em> :</span></p></td>
+<td>a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>b</code></em> :</span></p></td>
+<td>a second <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> to compare with the first</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>flags</code></em> :</span></p></td>
+<td>compare flags, e.g. <a class="link" href="NMSetting.html#NM-SETTING-COMPARE-FLAG-EXACT:CAPS"><code class="literal">NM_SETTING_COMPARE_FLAG_EXACT</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the comparison succeeds, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it does not</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingDiffResult-enum"></a><h3>enum NMSettingDiffResult</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_DIFF_RESULT_UNKNOWN = 0x00000000,
+	NM_SETTING_DIFF_RESULT_IN_A =    0x00000001,
+	NM_SETTING_DIFF_RESULT_IN_B =    0x00000002,
+} NMSettingDiffResult;
+</pre>
+<p>
+These values indicate the result of a setting difference operation.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-DIFF-RESULT-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DIFF_RESULT_UNKNOWN</code></span></p></td>
+<td>unknown result
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-DIFF-RESULT-IN-A:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DIFF_RESULT_IN_A</code></span></p></td>
+<td>the property is present in setting A
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-DIFF-RESULT-IN-B:CAPS"></a><span class="term"><code class="literal">NM_SETTING_DIFF_RESULT_IN_B</code></span></p></td>
+<td>the property is present in setting B
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-diff"></a><h3>nm_setting_diff ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_diff                     (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *a</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *b</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingCompareFlags"><span class="type">NMSettingCompareFlags</span></a> flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> invert_results</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> **results</code></em>);</pre>
+<p>
+Compares two <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> objects for similarity, with comparison behavior
+modified by a set of flags.  See the documentation for <a class="link" href="NMSetting.html#NMSettingCompareFlags"><span class="type">NMSettingCompareFlags</span></a>
+for a description of each flag's behavior.  If the settings differ, the keys
+of each setting that differ from the other are added to <em class="parameter"><code>results</code></em>, mapped to
+one or more <a class="link" href="NMSetting.html#NMSettingDiffResult"><span class="type">NMSettingDiffResult</span></a> values.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>a</code></em> :</span></p></td>
+<td>a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>b</code></em> :</span></p></td>
+<td>a second <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> to compare with the first</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>flags</code></em> :</span></p></td>
+<td>compare flags, e.g. <a class="link" href="NMSetting.html#NM-SETTING-COMPARE-FLAG-EXACT:CAPS"><code class="literal">NM_SETTING_COMPARE_FLAG_EXACT</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>invert_results</code></em> :</span></p></td>
+<td>this parameter is used internally by libnm-util and should
+be set to <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.  If <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> inverts the meaning of the <a class="link" href="NMSetting.html#NMSettingDiffResult"><span class="type">NMSettingDiffResult</span></a>.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>results</code></em> :</span></p></td>
+<td>if the
+settings differ, on return a hash table mapping the differing keys to one or
+more <a class="link" href="NMSetting.html#NMSettingDiffResult"><code class="literal">NMSettingDiffResult</code></a> values OR-ed together.  If the settings do not
+differ, any hash table passed in is unmodified.  If no hash table is passed
+in and the settings differ, a new one is created and returned. <span class="annotation">[<acronym title="Parameter for input and for returning results. Default is transfer full."><span class="acronym">inout</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 guint32]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the settings contain the same values, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if they do not</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-enumerate-values"></a><h3>nm_setting_enumerate_values ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_enumerate_values         (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingValueIterFn" title="NMSettingValueIterFn ()"><span class="type">NMSettingValueIterFn</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>
+Iterates over each property of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object, calling the supplied
+user function for each property.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
+<td>user-supplied function called for each property of the setting. <span class="annotation">[<acronym title="The callback is valid only during the call to the method."><span class="acronym">scope call</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data passed to <em class="parameter"><code>func</code></em> at each invocation</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-to-string"></a><h3>nm_setting_to_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *              nm_setting_to_string                (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);</pre>
+<p>
+Convert the setting into a string.  For debugging purposes ONLY, should NOT
+be used for serialization of the setting, or machine-parsed in any way. The
+output format is not guaranteed to be stable and may change at any time.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>an allocated string containing a textual representation of the
+setting's properties and values (including secrets!), which the caller should
+free with <a href="http://library.gnome.org/devel/glib/unstable/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-clear-secrets"></a><h3>nm_setting_clear_secrets ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_clear_secrets            (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);</pre>
+<p>
+Resets and clears any secrets in the setting.  Secrets should be added to the
+setting only when needed, and cleared immediately after use to prevent
+leakage of information.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-clear-secrets-with-flags"></a><h3>nm_setting_clear_secrets_with_flags ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_setting_clear_secrets_with_flags (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingClearSecretsWithFlagsFn" title="NMSettingClearSecretsWithFlagsFn ()"><span class="type">NMSettingClearSecretsWithFlagsFn</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>
+Clears and frees secrets determined by <em class="parameter"><code>func</code></em>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
+<td>function to be called to determine whether a
+specific secret should be cleared or not. <span class="annotation">[<acronym title="The callback is valid only during the call to the method."><span class="acronym">scope call</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>caller-supplied data passed to <em class="parameter"><code>func</code></em>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-need-secrets"></a><h3>nm_setting_need_secrets ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *         nm_setting_need_secrets             (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);</pre>
+<p>
+Returns an array of property names for each secret which may be required
+to make a successful connection.  The returned hints are only intended as a
+guide to what secrets may be required, because in some circumstances, there
+is no way to conclusively determine exactly which secrets are needed.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing
+the property names of secrets of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> which may be required; the
+caller owns the array and must free it with <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-free"><code class="function">g_ptr_array_free()</code></a>, but must not
+free the elements. <span class="annotation">[<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-update-secrets"></a><h3>nm_setting_update_secrets ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_update_secrets           (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *secrets</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+Update the setting's secrets, given a hash table of secrets intended for that
+setting (deserialized from D-Bus for example).
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>secrets</code></em> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> mapping
+string to <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> of setting property names and secrets. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GObject.Value]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>location to store error, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the secrets were successfully updated, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> on failure to
+update one or more of the secrets.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-get-secret-flags"></a><h3>nm_setting_get_secret_flags ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_get_secret_flags         (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *secret_name</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> *out_flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+For a given secret, retrieves the <a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> describing how to
+handle that secret.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>secret_name</code></em> :</span></p></td>
+<td>the secret key name to get flags for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>out_flags</code></em> :</span></p></td>
+<td>on success, the <a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> for the secret</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>location to store error, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success (if the given secret name was a valid property of
+this setting, and if that property is secret), <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-set-secret-flags"></a><h3>nm_setting_set_secret_flags ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_set_secret_flags         (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *secret_name</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> flags</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+For a given secret, stores the <a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> describing how to
+handle that secret.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>secret_name</code></em> :</span></p></td>
+<td>the secret key name to set flags for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>flags</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> for the secret</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>location to store error, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success (if the given secret name was a valid property of
+this setting, and if that property is secret), <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-get-virtual-iface-name"></a><h3>nm_setting_get_virtual_iface_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_get_virtual_iface_name   (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>);</pre>
+<p>
+Returns the name of the virtual kernel interface which the connection
+needs to use if specified in the settings.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Name of the virtual interface or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> if the setting does not
+support this feature</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSetting.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMSetting--name"></a><h3>The <code class="literal">"name"</code> property</h3>
+<pre class="programlisting">  "name"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write</pre>
+<p>
+The setting's name, which uniquely identifies the setting within the
+connection.  Each setting type has a name unique to that type, for
+example "ppp" or "wireless" or "wired".
+</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

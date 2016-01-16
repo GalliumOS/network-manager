@@ -1,0 +1,277 @@
+<!-- ##### SECTION Title ##### -->
+NMDeviceWifi
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMDeviceWifiError ##### -->
+<para>
+
+</para>
+
+@NM_DEVICE_WIFI_ERROR_UNKNOWN: 
+@NM_DEVICE_WIFI_ERROR_NOT_WIFI_CONNECTION: 
+@NM_DEVICE_WIFI_ERROR_INVALID_WIFI_CONNECTION: 
+@NM_DEVICE_WIFI_ERROR_INVALID_DEVICE_MAC: 
+@NM_DEVICE_WIFI_ERROR_MAC_MISMATCH: 
+@NM_DEVICE_WIFI_ERROR_MISSING_DEVICE_WPA_CAPS: 
+@NM_DEVICE_WIFI_ERROR_MISSING_DEVICE_RSN_CAPS: 
+
+<!-- ##### MACRO NM_DEVICE_WIFI_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_device_wifi_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_DEVICE_WIFI_HW_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_WIFI_PERMANENT_HW_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_WIFI_MODE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_WIFI_BITRATE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_WIFI_ACTIVE_ACCESS_POINT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_WIFI_CAPABILITIES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_WIFI_ACCESS_POINTS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMDeviceWifi ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SIGNAL NMDeviceWifi::access-point-added ##### -->
+<para>
+
+</para>
+
+@nmdevicewifi: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL NMDeviceWifi::access-point-removed ##### -->
+<para>
+
+</para>
+
+@nmdevicewifi: the object which received the signal.
+@arg1: 
+
+<!-- ##### ARG NMDeviceWifi:access-points ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceWifi:active-access-point ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceWifi:bitrate ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceWifi:hw-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceWifi:mode ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceWifi:perm-hw-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceWifi:wireless-capabilities ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMDeviceWifiClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@access_point_added: 
+@access_point_removed: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### FUNCTION nm_device_wifi_new ##### -->
+<para>
+
+</para>
+
+@connection: 
+@path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_get_hw_address ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_get_permanent_hw_address ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_get_mode ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_get_bitrate ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_get_capabilities ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_get_active_access_point ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_get_access_point_by_path ##### -->
+<para>
+
+</para>
+
+@device: 
+@path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_get_access_points ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### USER_FUNCTION NMDeviceWifiRequestScanFn ##### -->
+<para>
+
+</para>
+
+@device: 
+@error: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_device_wifi_request_scan_simple ##### -->
+<para>
+
+</para>
+
+@device: 
+@callback: 
+@user_data: 
+
+

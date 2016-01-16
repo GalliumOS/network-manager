@@ -1,0 +1,48 @@
+#!/bin/sh
+
+make -f debian/tests/Makefile fake-rfkill
+insmod debian/tests/fake-rfkill.ko
+
+fake_id=$(rfkill list | grep fake | awk -F: '{ print $1; }')
+
+service network-manager start
+sleep 30
+
+# test blocking the device
+rfkill block $fake_id
+rfkill list $fake_id | grep 'Soft' | awk '{ print $3; }' | grep -qc yes
+if [ $? = 1 ]; then
+	echo "ERROR: could not block fake device"
+	rmmod fake-rfkill || true
+	exit 1
+fi
+
+LC_MESSAGES=C nmcli radio wifi | grep -qc disabled
+if [ $? = 1 ]; then
+	echo "ERROR: NM could not track device state."
+	rmmod fake-rfkill || true
+	exit 1
+fi
+
+
+# test unblocking the device
+rfkill unblock $fake_id
+rfkill list $fake_id | grep 'Soft' | awk '{ print $3; }' | grep -qc no
+if [ $? = 1 ]; then
+	echo "ERROR: could not unblock fake device"
+	rmmod fake-rfkill || true
+	exit 1
+fi
+
+LC_MESSAGES=C nmcli radio wifi | grep -qc enabled
+if [ $? = 1 ]; then
+	echo "ERROR: NM could not track device state to enabled."
+	rmmod fake-rfkill || true
+	exit 1
+fi
+
+rmmod fake-rfkill
+make -f debian/tests/Makefile clean-rfkill
+
+echo OK
+exit 0

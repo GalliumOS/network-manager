@@ -1,0 +1,679 @@
+<!-- ##### SECTION Title ##### -->
+NMClient
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_CLIENT_VERSION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_STATE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_STARTUP ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_MANAGER_RUNNING ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_NETWORKING_ENABLED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_WIRELESS_ENABLED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_WIRELESS_HARDWARE_ENABLED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_WWAN_ENABLED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_WWAN_HARDWARE_ENABLED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_WIMAX_ENABLED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_WIMAX_HARDWARE_ENABLED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_ACTIVE_CONNECTIONS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_CONNECTIVITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_PRIMARY_CONNECTION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_ACTIVATING_CONNECTION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CLIENT_DEVICES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMClientPermission ##### -->
+<para>
+
+</para>
+
+@NM_CLIENT_PERMISSION_NONE: 
+@NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK: 
+@NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI: 
+@NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN: 
+@NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX: 
+@NM_CLIENT_PERMISSION_SLEEP_WAKE: 
+@NM_CLIENT_PERMISSION_NETWORK_CONTROL: 
+@NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED: 
+@NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN: 
+@NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM: 
+@NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN: 
+@NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME: 
+@NM_CLIENT_PERMISSION_LAST: 
+
+<!-- ##### ENUM NMClientPermissionResult ##### -->
+<para>
+
+</para>
+
+@NM_CLIENT_PERMISSION_RESULT_UNKNOWN: 
+@NM_CLIENT_PERMISSION_RESULT_YES: 
+@NM_CLIENT_PERMISSION_RESULT_AUTH: 
+@NM_CLIENT_PERMISSION_RESULT_NO: 
+
+<!-- ##### ENUM NMClientError ##### -->
+<para>
+
+</para>
+
+@NM_CLIENT_ERROR_UNKNOWN: 
+@NM_CLIENT_ERROR_MANAGER_NOT_RUNNING: 
+
+<!-- ##### MACRO NM_CLIENT_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_client_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### STRUCT NMClient ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SIGNAL NMClient::device-added ##### -->
+<para>
+
+</para>
+
+@nmclient: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL NMClient::device-removed ##### -->
+<para>
+
+</para>
+
+@nmclient: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL NMClient::permission-changed ##### -->
+<para>
+
+</para>
+
+@nmclient: the object which received the signal.
+@arg1: 
+@arg2: 
+
+<!-- ##### ARG NMClient:activating-connection ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:active-connections ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:connectivity ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:devices ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:manager-running ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:networking-enabled ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:primary-connection ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:startup ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:state ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:version ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:wimax-enabled ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:wimax-hardware-enabled ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:wireless-enabled ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:wireless-hardware-enabled ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:wwan-enabled ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMClient:wwan-hardware-enabled ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMClientClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@device_added: 
+@device_removed: 
+@permission_changed: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### FUNCTION nm_client_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_new_async ##### -->
+<para>
+
+</para>
+
+@cancellable: 
+@callback: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_client_new_finish ##### -->
+<para>
+
+</para>
+
+@result: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_devices ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_device_by_path ##### -->
+<para>
+
+</para>
+
+@client: 
+@object_path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_device_by_iface ##### -->
+<para>
+
+</para>
+
+@client: 
+@iface: 
+@Returns: 
+
+
+<!-- ##### USER_FUNCTION NMClientActivateFn ##### -->
+<para>
+
+</para>
+
+@client: 
+@active_connection: 
+@error: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_client_activate_connection ##### -->
+<para>
+
+</para>
+
+@client: 
+@connection: 
+@device: 
+@specific_object: 
+@callback: 
+@user_data: 
+
+
+<!-- ##### USER_FUNCTION NMClientAddActivateFn ##### -->
+<para>
+
+</para>
+
+@client: 
+@connection: 
+@new_connection_path: 
+@error: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_client_add_and_activate_connection ##### -->
+<para>
+
+</para>
+
+@client: 
+@partial: 
+@device: 
+@specific_object: 
+@callback: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_client_deactivate_connection ##### -->
+<para>
+
+</para>
+
+@client: 
+@active: 
+
+
+<!-- ##### FUNCTION nm_client_networking_get_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_networking_set_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@enabled: 
+
+
+<!-- ##### FUNCTION nm_client_wireless_get_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_wireless_set_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@enabled: 
+
+
+<!-- ##### FUNCTION nm_client_wireless_hardware_get_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_wwan_get_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_wwan_set_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@enabled: 
+
+
+<!-- ##### FUNCTION nm_client_wwan_hardware_get_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_wimax_get_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_wimax_set_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@enabled: 
+
+
+<!-- ##### FUNCTION nm_client_wimax_hardware_get_enabled ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_version ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_state ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_startup ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_manager_running ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_active_connections ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_sleep ##### -->
+<para>
+
+</para>
+
+@client: 
+@sleep_: 
+
+
+<!-- ##### FUNCTION nm_client_get_permission_result ##### -->
+<para>
+
+</para>
+
+@client: 
+@permission: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_logging ##### -->
+<para>
+
+</para>
+
+@client: 
+@level: 
+@domains: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_set_logging ##### -->
+<para>
+
+</para>
+
+@client: 
+@level: 
+@domains: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_connectivity ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_check_connectivity ##### -->
+<para>
+
+</para>
+
+@client: 
+@cancellable: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_check_connectivity_async ##### -->
+<para>
+
+</para>
+
+@client: 
+@cancellable: 
+@callback: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_client_check_connectivity_finish ##### -->
+<para>
+
+</para>
+
+@client: 
+@result: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_primary_connection ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_client_get_activating_connection ##### -->
+<para>
+
+</para>
+
+@client: 
+@Returns: 
+
+

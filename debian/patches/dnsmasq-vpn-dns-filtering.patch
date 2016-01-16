@@ -1,0 +1,79 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Filter DNS servers to add to dnsmasq based on availability and VPN status
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/898224
+
+---
+ src/dns-manager/nm-dns-dnsmasq.c |   47 ++++++++++++++++++++++++++++++++-------
+ 1 file changed, 39 insertions(+), 8 deletions(-)
+
+Index: b/src/dns-manager/nm-dns-dnsmasq.c
+===================================================================
+--- a/src/dns-manager/nm-dns-dnsmasq.c
++++ b/src/dns-manager/nm-dns-dnsmasq.c
+@@ -323,6 +323,8 @@ update (NMDnsPlugin *plugin,
+ 	gboolean have_dnsmasq = FALSE;
+ 	gboolean ret = FALSE;
+ 	dbus_bool_t result;
++	gboolean might_default = FALSE;
++	GSList *vpn_configs_copy;
+ 
+ 	have_dnsmasq = start_dnsmasq (self);
+ 	if (!have_dnsmasq)
+@@ -337,20 +339,49 @@ update (NMDnsPlugin *plugin,
+ 	message = dbus_message_new_method_call (DNSMASQ_DBUS_SERVICE, DNSMASQ_DBUS_PATH,
+ 	                                        DNSMASQ_DBUS_INTERFACE, "SetServers");
+ 
+-	/* Use split DNS for VPN configs */
+-	for (iter = (GSList *) vpn_configs; iter; iter = g_slist_next (iter)) {
++	/* Work on a copy of the vpn_configs list because we might want to remove
++	 * some items from it, yet not affect other DNS plugins that might run
++	 */
++	vpn_configs_copy = g_slist_copy (vpn_configs);
++
++	/* Look for a VPN config that is set to get a default route, and if
++	 * there is one, install it *without* splitting into per-domain servers.
++	 */
++	for (iter = (GSList *) vpn_configs_copy; iter; iter = g_slist_next (iter)) {
+ 		if (NM_IS_IP4_CONFIG (iter->data))
+-			add_ip4_config (message, NM_IP4_CONFIG (iter->data), TRUE);
++			might_default = !nm_ip4_config_get_never_default (iter->data);
+ 		else if (NM_IS_IP6_CONFIG (iter->data))
+-			add_ip6_config (message, NM_IP6_CONFIG (iter->data), TRUE);
++			might_default = !nm_ip6_config_get_never_default (iter->data);
++		if (might_default) {
++			if (NM_IS_IP4_CONFIG (iter->data))
++				add_ip4_config (message, NM_IP4_CONFIG (iter->data), FALSE);
++			else if (NM_IS_IP6_CONFIG (iter->data))
++				add_ip6_config (message, NM_IP6_CONFIG (iter->data), FALSE);
++			vpn_configs_copy = g_slist_remove (vpn_configs_copy, iter->data);
++			break;
++		}
+ 	}
+ 
+-	/* Now add interface configs without split DNS */
+-	for (iter = (GSList *) dev_configs; iter; iter = g_slist_next (iter)) {
++	/* Use split DNS for remaining VPN configs */
++	for (iter = (GSList *) vpn_configs_copy; iter; iter = g_slist_next (iter)) {
+ 		if (NM_IS_IP4_CONFIG (iter->data))
+-			add_ip4_config (message, NM_IP4_CONFIG (iter->data), FALSE);
++			add_ip4_config (message, NM_IP4_CONFIG (iter->data), TRUE);
+ 		else if (NM_IS_IP6_CONFIG (iter->data))
+-			add_ip6_config (message, NM_IP6_CONFIG (iter->data), FALSE);
++			add_ip6_config (message, NM_IP6_CONFIG (iter->data), TRUE);
++	}
++
++	/* Now add interface configs without split DNS, unless some VPN
++	 * grabs the default route (in which case we should not install them
++	 * at all, since even split DNS may fail, if the local subnet defines
++	 * its domain as being the same domain as what the "default" VPN provides.
++	 */
++	if (!might_default) {
++		for (iter = (GSList *) dev_configs; iter; iter = g_slist_next (iter)) {
++			if (NM_IS_IP4_CONFIG (iter->data))
++				add_ip4_config (message, NM_IP4_CONFIG (iter->data), FALSE);
++			else if (NM_IS_IP6_CONFIG (iter->data))
++				add_ip6_config (message, NM_IP6_CONFIG (iter->data), FALSE);
++		}
+ 	}
+ 
+ 	/* And any other random configs */

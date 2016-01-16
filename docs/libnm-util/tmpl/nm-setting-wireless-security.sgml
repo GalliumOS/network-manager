@@ -1,0 +1,578 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingWirelessSecurity
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingWirelessSecurityError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_WIRELESS_SECURITY_ERROR_UNKNOWN: 
+@NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_WIRELESS_SECURITY_ERROR_MISSING_PROPERTY: 
+@NM_SETTING_WIRELESS_SECURITY_ERROR_MISSING_802_1X_SETTING: 
+@NM_SETTING_WIRELESS_SECURITY_ERROR_LEAP_REQUIRES_802_1X: 
+@NM_SETTING_WIRELESS_SECURITY_ERROR_LEAP_REQUIRES_USERNAME: 
+@NM_SETTING_WIRELESS_SECURITY_ERROR_SHARED_KEY_REQUIRES_WEP: 
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### ENUM NMWepKeyType ##### -->
+<para>
+
+</para>
+
+@NM_WEP_KEY_TYPE_UNKNOWN: 
+@NM_WEP_KEY_TYPE_KEY: 
+@NM_WEP_KEY_TYPE_PASSPHRASE: 
+@NM_WEP_KEY_TYPE_LAST: 
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_KEY_MGMT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_WEP_TX_KEYIDX ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_AUTH_ALG ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_PROTO ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_PAIRWISE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_GROUP ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_WEP_KEY0 ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_WEP_KEY1 ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_WEP_KEY2 ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_WEP_KEY3 ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_WEP_KEY_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_WEP_KEY_TYPE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_PSK ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_PSK_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingWirelessSecurity ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingWirelessSecurity:auth-alg ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:group ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:key-mgmt ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:leap-password ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:leap-password-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:leap-username ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:pairwise ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:proto ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:psk ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:psk-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:wep-key-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:wep-key-type ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:wep-key0 ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:wep-key1 ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:wep-key2 ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:wep-key3 ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWirelessSecurity:wep-tx-keyidx ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingWirelessSecurityClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_wireless_security_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_key_mgmt ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_num_protos ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_proto ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_add_proto ##### -->
+<para>
+
+</para>
+
+@setting: 
+@proto: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_remove_proto ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_remove_proto_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@proto: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_clear_protos ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_num_pairwise ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_pairwise ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_add_pairwise ##### -->
+<para>
+
+</para>
+
+@setting: 
+@pairwise: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_remove_pairwise ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_remove_pairwise_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@pairwise: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_clear_pairwise ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_num_groups ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_group ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_add_group ##### -->
+<para>
+
+</para>
+
+@setting: 
+@group: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_remove_group ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_remove_group_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@group: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_clear_groups ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_psk ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_psk_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_leap_username ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_leap_password ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_leap_password_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_wep_key ##### -->
+<para>
+
+</para>
+
+@setting: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_set_wep_key ##### -->
+<para>
+
+</para>
+
+@setting: 
+@idx: 
+@key: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_wep_tx_keyidx ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_auth_alg ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_wep_key_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wireless_security_get_wep_key_type ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

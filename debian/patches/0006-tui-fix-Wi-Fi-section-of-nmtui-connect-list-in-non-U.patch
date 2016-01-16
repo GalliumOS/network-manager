@@ -1,0 +1,125 @@
+From: Dan Winship <danw@gnome.org>
+Date: Thu, 10 Jul 2014 15:33:06 -0400
+Subject: tui: fix Wi-Fi section of "nmtui connect" list in non-UTF-8 locales
+
+In locales where the Wi-Fi signal-strength characters couldn't be
+represented (eg, LANG=C), the entire Wi-Fi SSID + signal strength
+string would fail to convert, causing the Wi-Fi section of the
+connection list to show up as a series of blank lines.
+
+Fix this by testing beforehand whether the characters can convert, and
+falling back to plain ASCII if not. (And also, fix the similar code in
+nmt-newt-section.c, which got broken when nmt_newt_locale_from_utf8()
+was changed to never return NULL.)
+
+Also, for paranoia, represent the signal-strength strings via \nnn
+escapes rather than actual UTF-8 data, to guarantee that they get
+compiled to the expected values even if the source files get
+re-encoded.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=733007
+
+(cherry picked from commit dd2e751b071edda8dc2ee7d60a53fda329f95dde)
+---
+ tui/newt/nmt-newt-section.c       | 10 +++++-----
+ tui/nmt-connect-connection-list.c | 37 +++++++++++++++++++++++++++++--------
+ 2 files changed, 34 insertions(+), 13 deletions(-)
+
+diff --git a/tui/newt/nmt-newt-section.c b/tui/newt/nmt-newt-section.c
+index 094b41b..40c996d 100644
+--- a/tui/newt/nmt-newt-section.c
++++ b/tui/newt/nmt-newt-section.c
+@@ -394,11 +394,11 @@ nmt_newt_section_class_init (NmtNewtSectionClass *section_class)
+ 	open_glyph   = nmt_newt_locale_from_utf8 ("\342\225\244"); /* ╤ */
+ 	line_glyph   = nmt_newt_locale_from_utf8 ("\342\224\202"); /* │ */
+ 	end_glyph    = nmt_newt_locale_from_utf8 ("\342\224\224"); /* └ */
+-	if (!closed_glyph || !open_glyph || !line_glyph || !end_glyph) {
+-		g_clear_pointer (&closed_glyph, g_free);
+-		g_clear_pointer (&open_glyph, g_free);
+-		g_clear_pointer (&line_glyph, g_free);
+-		g_clear_pointer (&end_glyph, g_free);
++	if (!*closed_glyph || !*open_glyph || !*line_glyph || !*end_glyph) {
++		g_free (closed_glyph);
++		g_free (open_glyph);
++		g_free (line_glyph);
++		g_free (end_glyph);
+ 
+ 		closed_glyph = g_strdup ("-");
+ 		open_glyph   = g_strdup ("+");
+diff --git a/tui/nmt-connect-connection-list.c b/tui/nmt-connect-connection-list.c
+index 54923ea..fffdc8e 100644
+--- a/tui/nmt-connect-connection-list.c
++++ b/tui/nmt-connect-connection-list.c
+@@ -63,6 +63,8 @@ typedef struct {
+ 	GSList *nmt_devices;
+ } NmtConnectConnectionListPrivate;
+ 
++static const char *strength_full, *strength_high, *strength_med, *strength_low, *strength_none;
++
+ /**
+  * nmt_connect_connection_list_new:
+  *
+@@ -524,23 +526,24 @@ nmt_connect_connection_list_rebuild (NmtConnectConnectionList *list)
+ 				guint8 strength = nm_access_point_get_strength (nmtconn->ap);
+ 
+ 				if (strength > 80)
+-					strength_col = " ▂▄▆█";
++					strength_col = strength_full;
+ 				else if (strength > 55)
+-					strength_col = " ▂▄▆_";
++					strength_col = strength_high;
+ 				else if (strength > 30)
+-					strength_col = " ▂▄__";
++					strength_col = strength_med;
+ 				else if (strength > 5)
+-					strength_col = " ▂___";
++					strength_col = strength_low;
+ 				else
+-					strength_col = " ____";
++					strength_col = strength_none;
+ 			} else
+-				strength_col = "";
++				strength_col = NULL;
+ 
+-			row = g_strdup_printf ("%c %s%-*s%s",
++			row = g_strdup_printf ("%c %s%-*s%s%s",
+ 			                       active_col,
+ 			                       nmtconn->name,
+ 			                       (int)(max_width - nmt_newt_text_width (nmtconn->name)), "",
+-			                       strength_col);
++			                       strength_col ? " " : "",
++			                       strength_col ? strength_col : "");
+ 
+ 			nmt_newt_listbox_append (listbox, row, nmtconn);
+ 			g_free (row);
+@@ -603,12 +606,30 @@ static void
+ nmt_connect_connection_list_class_init (NmtConnectConnectionListClass *list_class)
+ {
+ 	GObjectClass *object_class = G_OBJECT_CLASS (list_class);
++	char *tmp;
+ 
+ 	g_type_class_add_private (list_class, sizeof (NmtConnectConnectionListPrivate));
+ 
+ 	/* virtual methods */
+ 	object_class->constructed  = nmt_connect_connection_list_constructed;
+ 	object_class->finalize     = nmt_connect_connection_list_finalize;
++
++	/* globals */
++	tmp = nmt_newt_locale_from_utf8 ("\342\226\202\342\226\204\342\226\206\342\226\210");
++	if (*tmp) {
++		strength_full = /* ▂▄▆█ */ "\342\226\202\342\226\204\342\226\206\342\226\210";
++		strength_high = /* ▂▄▆_ */ "\342\226\202\342\226\204\342\226\206_";
++		strength_med  = /* ▂▄__ */ "\342\226\202\342\226\204__";
++		strength_low  = /* ▂___ */ "\342\226\202___";
++		strength_none = /* ____ */ "____";
++	} else {
++		strength_full = "****";
++		strength_high = "*** ";
++		strength_med  = "**  ";
++		strength_low  = "*   ";
++		strength_none = "    ";
++	}
++	g_free (tmp);
+ }
+ 
+ /**

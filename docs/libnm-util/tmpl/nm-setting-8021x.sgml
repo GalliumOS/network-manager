@@ -1,0 +1,1120 @@
+<!-- ##### SECTION Title ##### -->
+NMSetting8021x
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMSetting8021xCKFormat ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_802_1X_CK_FORMAT_UNKNOWN: 
+@NM_SETTING_802_1X_CK_FORMAT_X509: 
+@NM_SETTING_802_1X_CK_FORMAT_RAW_KEY: 
+@NM_SETTING_802_1X_CK_FORMAT_PKCS12: 
+
+<!-- ##### ENUM NMSetting8021xCKScheme ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_802_1X_CK_SCHEME_UNKNOWN: 
+@NM_SETTING_802_1X_CK_SCHEME_BLOB: 
+@NM_SETTING_802_1X_CK_SCHEME_PATH: 
+
+<!-- ##### MACRO NM_SETTING_802_1X_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSetting8021xError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_802_1X_ERROR_UNKNOWN: 
+@NM_SETTING_802_1X_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_802_1X_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_802_1X_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_EAP ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_IDENTITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_ANONYMOUS_IDENTITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PAC_FILE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_CA_CERT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_CA_PATH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_SUBJECT_MATCH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_ALTSUBJECT_MATCHES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_CLIENT_CERT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE1_PEAPVER ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE1_PEAPLABEL ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE1_FAST_PROVISIONING ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_AUTH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_AUTHEAP ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_CA_CERT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_CA_PATH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_SUBJECT_MATCH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_ALTSUBJECT_MATCHES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_CLIENT_CERT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PASSWORD ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PASSWORD_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PASSWORD_RAW ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PASSWORD_RAW_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PRIVATE_KEY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PRIVATE_KEY_PASSWORD ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PRIVATE_KEY_PASSWORD_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_PRIVATE_KEY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_PRIVATE_KEY_PASSWORD ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PHASE2_PRIVATE_KEY_PASSWORD_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PIN ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_PIN_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_802_1X_SYSTEM_CA_CERTS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSetting8021x ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSetting8021x:altsubject-matches ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:anonymous-identity ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:ca-cert ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:ca-path ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:client-cert ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:eap ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:identity ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:pac-file ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:password ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:password-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:password-raw ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:password-raw-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase1-fast-provisioning ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase1-peaplabel ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase1-peapver ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-altsubject-matches ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-auth ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-autheap ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-ca-cert ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-ca-path ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-client-cert ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-private-key ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-private-key-password ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-private-key-password-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:phase2-subject-match ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:pin ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:pin-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:private-key ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:private-key-password ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:private-key-password-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:subject-match ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSetting8021x:system-ca-certs ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSetting8021xClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_802_1x_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_num_eap_methods ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_eap_method ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_add_eap_method ##### -->
+<para>
+
+</para>
+
+@setting: 
+@eap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_remove_eap_method ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_remove_eap_method_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@eap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_clear_eap_methods ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_identity ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_anonymous_identity ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_pac_file ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_system_ca_certs ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_ca_path ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_ca_path ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_ca_cert_scheme ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_ca_cert_blob ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_ca_cert_path ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_set_ca_cert ##### -->
+<para>
+
+</para>
+
+@setting: 
+@cert_path: 
+@scheme: 
+@out_format: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_subject_match ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_num_altsubject_matches ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_altsubject_match ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_add_altsubject_match ##### -->
+<para>
+
+</para>
+
+@setting: 
+@altsubject_match: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_remove_altsubject_match ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_remove_altsubject_match_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@altsubject_match: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_clear_altsubject_matches ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_client_cert_scheme ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_client_cert_blob ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_client_cert_path ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_set_client_cert ##### -->
+<para>
+
+</para>
+
+@setting: 
+@cert_path: 
+@scheme: 
+@out_format: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase1_peapver ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase1_peaplabel ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase1_fast_provisioning ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_auth ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_autheap ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_ca_cert_scheme ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_ca_cert_blob ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_ca_cert_path ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_set_phase2_ca_cert ##### -->
+<para>
+
+</para>
+
+@setting: 
+@cert_path: 
+@scheme: 
+@out_format: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_subject_match ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_num_phase2_altsubject_matches ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_altsubject_match ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_add_phase2_altsubject_match ##### -->
+<para>
+
+</para>
+
+@setting: 
+@phase2_altsubject_match: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_remove_phase2_altsubject_match ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_remove_phase2_altsubject_match_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@phase2_altsubject_match: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_clear_phase2_altsubject_matches ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_client_cert_scheme ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_client_cert_blob ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_client_cert_path ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_set_phase2_client_cert ##### -->
+<para>
+
+</para>
+
+@setting: 
+@cert_path: 
+@scheme: 
+@out_format: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_password ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_password_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_password_raw ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_password_raw_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_pin ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_pin_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_private_key_scheme ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_private_key_blob ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_private_key_path ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_set_private_key ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key_path: 
+@password: 
+@scheme: 
+@out_format: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_private_key_password ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_private_key_password_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_private_key_format ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_private_key_scheme ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_private_key_blob ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_private_key_path ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_set_phase2_private_key ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key_path: 
+@password: 
+@scheme: 
+@out_format: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_private_key_password ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_private_key_password_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_802_1x_get_phase2_private_key_format ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

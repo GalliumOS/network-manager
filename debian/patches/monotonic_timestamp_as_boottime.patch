@@ -1,0 +1,107 @@
+From: Thomas Haller <thaller@redhat.com>
+Subject: [PATCH 1/1] core: add nm_utils_monotonic_timestamp_as_boottime() function
+
+---
+ src/NetworkManagerUtils.c |   51 +++++++++++++++++++++++++++++++++++++++++++---
+ src/NetworkManagerUtils.h |    1 
+ 2 files changed, 49 insertions(+), 3 deletions(-)
+
+Index: b/src/NetworkManagerUtils.c
+===================================================================
+--- a/src/NetworkManagerUtils.c
++++ b/src/NetworkManagerUtils.c
+@@ -1010,11 +1010,11 @@ nm_utils_ascii_str_to_int64 (const char
+ 
+ 
+ static gint64 monotonic_timestamp_offset_sec;
++static gboolean monotonic_timestamp_initialized = FALSE;
+ 
+ static void
+ monotonic_timestamp_get (struct timespec *tp)
+ {
+-	static gboolean initialized = FALSE;
+ 	int err;
+ 
+ 	err = clock_gettime (CLOCK_BOOTTIME, tp);
+@@ -1022,7 +1022,7 @@ monotonic_timestamp_get (struct timespec
+ 	g_assert (err == 0); (void)err;
+ 	g_assert (tp->tv_nsec >= 0 && tp->tv_nsec < NM_UTILS_NS_PER_SECOND);
+ 
+-	if (G_LIKELY (initialized))
++	if (G_LIKELY (monotonic_timestamp_initialized))
+ 		return;
+ 
+ 	/* Calculate an offset for the time stamp.
+@@ -1039,7 +1039,7 @@ monotonic_timestamp_get (struct timespec
+ 	 * wraps (~68 years).
+ 	 **/
+ 	monotonic_timestamp_offset_sec = (- ((gint64) tp->tv_sec)) + 1;
+-	initialized = TRUE;
++	monotonic_timestamp_initialized = TRUE;
+ 
+ 	if (nm_logging_enabled (LOGL_DEBUG, LOGD_CORE)) {
+ 		time_t now = time (NULL);
+@@ -1155,6 +1155,51 @@ nm_utils_get_monotonic_timestamp_s (void
+ 	return (((gint64) tp.tv_sec) + monotonic_timestamp_offset_sec);
+ }
+ 
++/**
++ * nm_utils_monotonic_timestamp_as_boottime:
++ * @timestamp: the monotonic-timestamp that should be converted into CLOCK_BOOTTIME.
++ * @timestamp_ns_per_tick: How many nano seconds make one unit of @timestamp? E.g. if
++ * @timestamp is in unit seconds, pass %NM_UTILS_NS_PER_SECOND; @timestamp in nano
++ * seconds, pass 1; @timestamp in milli seconds, pass %NM_UTILS_NS_PER_SECOND/1000; etc.
++ *
++ * Returns: the monotonic-timestamp as CLOCK_BOOTTIME, as returned by clock_gettime().
++ * The unit is the same as the passed in @timestamp basd on @timestamp_ns_per_tick.
++ * E.g. if you passed @timestamp in as seconds, it will return boottime in seconds.
++ * If @timestamp is a non-positive, it returns -1. Note that a (valid) monotonic-timestamp
++ * is always positive.
++ **/
++gint64
++nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ns_per_tick)
++{
++	gint64 offset;
++
++	/* only support ns-per-tick being a multiple of 10. */
++	g_return_val_if_fail (timestamp_ns_per_tick == 1
++	                      || (timestamp_ns_per_tick > 0 &&
++	                          timestamp_ns_per_tick <= NM_UTILS_NS_PER_SECOND &&
++	                          timestamp_ns_per_tick % 10 == 0),
++	                      -1);
++
++	/* Check that the timestamp is in a valid range. */
++	g_return_val_if_fail (timestamp >= 0, -1);
++
++	/* timestamp == 0 is not a valid timestamp. Treat it special and return -1. */
++	if (timestamp <= 0)
++		return -1;
++
++	/* if the caller didn't yet ever fetch a monotonic-timestamp, he cannot pass any meaningful
++	 * value (because he has no idea what these timestamps would be). That would be a bug. */
++	g_return_val_if_fail (G_LIKELY (monotonic_timestamp_initialized), -1);
++
++	/* calculate the offset of monotonic-timestamp to boottime. offset_s is <= 1. */
++	offset = monotonic_timestamp_offset_sec * (NM_UTILS_NS_PER_SECOND / timestamp_ns_per_tick);
++
++	/* check for overflow. */
++	g_return_val_if_fail (offset>0 || timestamp < G_MAXINT64 + offset, G_MAXINT64);
++
++	return timestamp - offset;
++}
++
+ 
+ /**
+  * nm_utils_ip6_property_path:
+Index: b/src/NetworkManagerUtils.h
+===================================================================
+--- a/src/NetworkManagerUtils.h
++++ b/src/NetworkManagerUtils.h
+@@ -108,6 +108,7 @@ gint64 nm_utils_get_monotonic_timestamp_
+ gint64 nm_utils_get_monotonic_timestamp_us (void);
+ gint64 nm_utils_get_monotonic_timestamp_ms (void);
+ gint32 nm_utils_get_monotonic_timestamp_s (void);
++gint64 nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ticks_per_ns);
+ 
+ const char *ASSERT_VALID_PATH_COMPONENT (const char *name) G_GNUC_WARN_UNUSED_RESULT;
+ const char *nm_utils_ip6_property_path (const char *ifname, const char *property);

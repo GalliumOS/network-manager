@@ -1,0 +1,66 @@
+From: Stéphane Graber <stephane.graber@canonical.com>
+Subject: Add support for veth virtual ethernet devices.
+
+---
+ src/nm-device-ethernet.c |    2 +-
+ src/nm-system.c          |    2 ++
+ src/nm-system.h          |    3 ++-
+ src/nm-udev-manager.c    |    5 +++++
+ 4 files changed, 10 insertions(+), 2 deletions(-)
+
+Index: b/src/nm-udev-manager.c
+===================================================================
+--- a/src/nm-udev-manager.c
++++ b/src/nm-udev-manager.c
+@@ -407,6 +407,11 @@ dev_get_attrs (GUdevDevice *udev_device,
+ 		case NM_IFACE_TYPE_VLAN:
+ 			driver = "8021q";
+ 			break;
++		case NM_IFACE_TYPE_VETH:
++			// In a veth pair, the host side is called veth*. Don't try to manage these.
++			if (!g_str_has_prefix (ifname, "veth"))
++				driver = "veth";
++			break;
+ 		default:
+ 			if (g_str_has_prefix (ifname, "easytether"))
+ 				driver = "easytether";
+Index: b/src/nm-system.c
+===================================================================
+--- a/src/nm-system.c
++++ b/src/nm-system.c
+@@ -1882,6 +1882,8 @@ nm_system_get_iface_type (int ifindex, c
+ 		res = NM_IFACE_TYPE_BRIDGE;
+ 	else if (!g_strcmp0 (type, "dummy"))
+ 		res = NM_IFACE_TYPE_DUMMY;
++	else if (!g_strcmp0 (type, "veth"))
++		res = NM_IFACE_TYPE_VETH;
+ 
+ 	rtnl_link_put (result);
+ out:
+Index: b/src/nm-system.h
+===================================================================
+--- a/src/nm-system.h
++++ b/src/nm-system.h
+@@ -114,7 +114,8 @@ enum {
+ 		NM_IFACE_TYPE_BOND,
+ 		NM_IFACE_TYPE_VLAN,
+ 		NM_IFACE_TYPE_BRIDGE,
+-		NM_IFACE_TYPE_DUMMY
++		NM_IFACE_TYPE_DUMMY,
++		NM_IFACE_TYPE_VETH
+ };
+ 
+ int             nm_system_get_iface_type      (int ifindex, const char *name);
+Index: b/src/nm-device-ethernet.c
+===================================================================
+--- a/src/nm-device-ethernet.c
++++ b/src/nm-device-ethernet.c
+@@ -252,7 +252,7 @@ constructor (GType type,
+ 		// FIXME: Convert this into a no-export property so type can be specified
+ 		//        when the device is created.
+ 		itype = nm_system_get_iface_type (nm_device_get_ifindex (self), nm_device_get_iface (self));
+-		g_assert (itype == NM_IFACE_TYPE_UNSPEC);
++		g_assert (itype == NM_IFACE_TYPE_UNSPEC || itype == NM_IFACE_TYPE_VETH);
+ 
+ 		nm_log_dbg (LOGD_HW | LOGD_ETHER, "(%s): kernel ifindex %d",
+ 			        nm_device_get_iface (NM_DEVICE (self)),

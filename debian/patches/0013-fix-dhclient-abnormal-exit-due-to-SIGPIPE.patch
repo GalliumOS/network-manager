@@ -1,0 +1,80 @@
+From 151058b870970b2c0488e37047c86c0e599731d4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ji=C5=99=C3=AD=20Klime=C5=A1?= <jklimes@redhat.com>
+Date: Tue, 9 Sep 2014 13:32:46 +0200
+Subject: [PATCH 1/2] dhcp: fix dhclient abnormal exit due to SIGPIPE (bgo
+ #735962)
+
+DHCP client may be killed by SIGPIPE when attempting to write to a broken pipe.
+This can be observed, for example, when journald is restarted.
+
+Fix that by redirecting both stdout and stderr to /dev/null. The client logs
+into syslog anyway. When NetworkManager is run with '--debug' we duplicate
+syslog to stderr, so the messages goes to terminal as well.
+
+Testcase:
+- start a NetworkManager service by systemd
+- activate an DHCP ethernet connection
+- sudo systemctl restart systemd-journald.service
+- reactive the ethernet connection (nmcli con up <my-eth>)
+- DHCP client is killed by SIGPIPE right after its startup:
+    <info> (enp0s25): DHCPv4 client pid 13959 exited with status -1
+    <warn> DHCP client died abnormally
+
+Another possible fix would be ignoring SIGPIPE in the DHCP client as it is not
+useful in most cases. E.g. systemd ignores SIGPIPE for its services, by
+default:
+http://cgit.freedesktop.org/systemd/systemd/commit/?id=353e12c2f4a9e96a47eb80b80d2ffb7bc1d44a1b
+
+https://bugzilla.gnome.org/show_bug.cgi?id=735962
+
+Conflicts:
+	src/dhcp-manager/nm-dhcp-dhclient.c
+	src/dhcp-manager/nm-dhcp-dhcpcd.c
+---
+ src/dhcp-manager/nm-dhcp-dhclient.c | 8 +++++++-
+ src/dhcp-manager/nm-dhcp-dhcpcd.c   | 3 ++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/src/dhcp-manager/nm-dhcp-dhclient.c b/src/dhcp-manager/nm-dhcp-dhclient.c
+index 4232ee0..595a0ac 100644
+--- a/src/dhcp-manager/nm-dhcp-dhclient.c
++++ b/src/dhcp-manager/nm-dhcp-dhclient.c
+@@ -413,6 +413,11 @@ dhclient_start (NMDHCPClient *client,
+ 
+ 	g_ptr_array_add (argv, (gpointer) "-d");
+ 
++	/* Be quiet. dhclient logs to syslog anyway. And we duplicate the syslog
++	 * to stderr in case of NM running with --debug.
++	 */
++	g_ptr_array_add (argv, (gpointer) "-q");
++
+ 	if (release)
+ 		g_ptr_array_add (argv, (gpointer) "-r");
+ 
+@@ -456,7 +461,8 @@ dhclient_start (NMDHCPClient *client,
+ 	nm_log_dbg (log_domain, "running: %s", cmd_str);
+ 	g_free (cmd_str);
+ 
+-	if (!g_spawn_async (NULL, (char **) argv->pdata, NULL, G_SPAWN_DO_NOT_REAP_CHILD,
++	if (!g_spawn_async (NULL, (char **) argv->pdata, NULL,
++	                    G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_STDERR_TO_DEV_NULL,
+ 	                    &dhclient_child_setup, NULL, &pid, &error)) {
+ 		nm_log_warn (log_domain, "dhclient failed to start: '%s'", error->message);
+ 		g_error_free (error);
+diff --git a/src/dhcp-manager/nm-dhcp-dhcpcd.c b/src/dhcp-manager/nm-dhcp-dhcpcd.c
+index c0877a6..b295ae9 100644
+--- a/src/dhcp-manager/nm-dhcp-dhcpcd.c
++++ b/src/dhcp-manager/nm-dhcp-dhcpcd.c
+@@ -155,7 +155,8 @@ ip4_start (NMDHCPClient *client,
+ 	nm_log_dbg (LOGD_DHCP4, "running: %s", cmd_str);
+ 	g_free (cmd_str);
+ 
+-	if (!g_spawn_async (NULL, (char **) argv->pdata, NULL, G_SPAWN_DO_NOT_REAP_CHILD,
++	if (!g_spawn_async (NULL, (char **) argv->pdata, NULL,
++	                    G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_STDERR_TO_DEV_NULL,
+ 	                    &dhcpcd_child_setup, NULL, &pid, &error)) {
+ 		nm_log_warn (LOGD_DHCP4, "dhcpcd failed to start.  error: '%s'", error->message);
+ 		g_error_free (error);
+-- 
+2.1.3
+

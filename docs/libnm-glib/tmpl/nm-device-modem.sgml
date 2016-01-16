@@ -1,0 +1,111 @@
+<!-- ##### SECTION Title ##### -->
+NMDeviceModem
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMDeviceModemError ##### -->
+<para>
+
+</para>
+
+@NM_DEVICE_MODEM_ERROR_UNKNOWN: 
+@NM_DEVICE_MODEM_ERROR_NOT_MODEM_CONNECTION: 
+@NM_DEVICE_MODEM_ERROR_INVALID_MODEM_CONNECTION: 
+@NM_DEVICE_MODEM_ERROR_MISSING_DEVICE_CAPS: 
+
+<!-- ##### MACRO NM_DEVICE_MODEM_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_device_modem_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_DEVICE_MODEM_MODEM_CAPABILITIES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_MODEM_CURRENT_CAPABILITIES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMDeviceModem ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMDeviceModem:current-capabilities ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceModem:modem-capabilities ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMDeviceModemClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### FUNCTION nm_device_modem_get_modem_capabilities ##### -->
+<para>
+
+</para>
+
+@self: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_modem_get_current_capabilities ##### -->
+<para>
+
+</para>
+
+@self: 
+@Returns: 
+
+

@@ -1,0 +1,64 @@
+#!/bin/sh
+
+set -e
+
+# This script can be called in the following ways:
+#
+# After the package was installed:
+#	<postinst> configure <old-version>
+#
+#
+# If prerm fails during upgrade or fails on failed upgrade:
+#	<old-postinst> abort-upgrade <new-version>
+#
+# If prerm fails during deconfiguration of a package:
+#	<postinst> abort-deconfigure in-favour <new-package> <version>
+#	           removing <old-package> <version>
+#
+# If prerm fails during replacement due to conflict:
+#	<postinst> abort-remove in-favour <new-package> <version>
+
+case "$1" in
+    configure)
+        # request a reboot (NM tears down interfaces on restart
+        # which is not the way we want to go)
+        [ -x /usr/share/update-notifier/notify-reboot-required ] && \
+            /usr/share/update-notifier/notify-reboot-required
+
+        update-rc.d -f NetworkManager remove >/dev/null
+
+        if [ -x "/etc/init.d/dbus" ]; then
+            invoke-rc.d dbus force-reload || true
+        fi
+
+        NIF=/etc/network/interfaces
+        if [ -z "$2" ] && [ -f $NIF ]; then
+            ifaces=`grep -v '^#' $NIF | awk '/iface/ {print $2}' | sort -u | sed -e 's/lo//' -e '/^$/d' -e 's/^/- /'`
+            if [ -n "$ifaces" ]; then
+                echo "" 1>&2
+                echo "The following network interfaces were found in $NIF" 1>&2
+                echo "which means they are currently configured by ifupdown:" 1>&2
+                echo "$ifaces" 1>&2
+                echo "If you want to manage those interfaces with NetworkManager instead" 1>&2
+                echo "remove their configuration from $NIF." 1>&2
+                echo "" 1>&2
+            fi
+        fi
+
+        # enable NM-wait-online on upgrades
+        if dpkg --compare-versions "$2" lt-nl "0.9.10.0-4ubuntu10"; then
+            deb-systemd-helper purge NetworkManager-wait-online.service
+        fi
+        ;;
+
+    abort-upgrade|abort-deconfigure|abort-remove)
+        ;;
+
+    *)
+        echo "$0 called with unknown argument \`$1'" 1>&2
+        exit 1
+        ;;
+esac
+
+#DEBHELPER#
+

@@ -1,0 +1,188 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingSerial
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_SERIAL_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingSerialError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_SERIAL_ERROR_UNKNOWN: 
+@NM_SETTING_SERIAL_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_SERIAL_ERROR_MISSING_PROPERTY: 
+@NM_SETTING_SERIAL_ERROR_MISSING_PPP_SETTING: 
+
+<!-- ##### MACRO NM_SETTING_SERIAL_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_serial_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_SERIAL_BAUD ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_SERIAL_BITS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_SERIAL_PARITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_SERIAL_STOPBITS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_SERIAL_SEND_DELAY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingSerial ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingSerial:baud ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingSerial:bits ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingSerial:parity ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingSerial:send-delay ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingSerial:stopbits ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingSerialClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_serial_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_serial_get_baud ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_serial_get_bits ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_serial_get_parity ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_serial_get_stopbits ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_serial_get_send_delay ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

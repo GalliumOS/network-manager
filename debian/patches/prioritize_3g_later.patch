@@ -1,0 +1,51 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Prioritize Wifi over 3G, if only because it's cheaper.
+
+---
+ src/devices/nm-device.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+Index: b/src/devices/nm-device.c
+===================================================================
+--- a/src/devices/nm-device.c
++++ b/src/devices/nm-device.c
+@@ -626,6 +626,10 @@ nm_device_get_priority (NMDevice *dev)
+ 	 *     it's using that connection.
+ 	 */
+ 
++	/* Ubuntu change:
++	 * Adjust priorities to de-prioritize bluetooth, wimax and modem
++	 * to lower; BT is just slow, WiMAX and "MODEM" because they cost
++	 * money. */
+ 	switch (nm_device_get_device_type (dev)) {
+ 	case NM_DEVICE_TYPE_ETHERNET:
+ 		return 1;
+@@ -633,22 +637,22 @@ nm_device_get_priority (NMDevice *dev)
+ 		return 2;
+ 	case NM_DEVICE_TYPE_ADSL:
+ 		return 3;
+-	case NM_DEVICE_TYPE_WIMAX:
+-		return 4;
+ 	case NM_DEVICE_TYPE_BOND:
+ 		return 5;
+ 	case NM_DEVICE_TYPE_TEAM:
+ 		return 6;
+ 	case NM_DEVICE_TYPE_VLAN:
+ 		return 7;
+-	case NM_DEVICE_TYPE_MODEM:
+-		return 8;
+-	case NM_DEVICE_TYPE_BT:
+-		return 9;
+ 	case NM_DEVICE_TYPE_WIFI:
+ 		return 10;
+ 	case NM_DEVICE_TYPE_OLPC_MESH:
+ 		return 11;
++	case NM_DEVICE_TYPE_BT:
++		return 12;
++	case NM_DEVICE_TYPE_WIMAX:
++		return 13;
++	case NM_DEVICE_TYPE_MODEM:
++		return 14;
+ 	default:
+ 		return 20;
+ 	}

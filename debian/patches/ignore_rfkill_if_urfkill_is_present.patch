@@ -1,0 +1,614 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Track killswitch change signals from urfkill
+
+... Also do that rather than resetting the killswitch to the NM saved
+WirelessEnabled state if urfkill support is enabled.
+---
+ config.h.in              |    3 
+ configure.ac             |   12 +
+ src/Makefile.am          |    7 +
+ src/nm-manager.c         |  124 +++++++++++++++++++
+ src/nm-urfkill-manager.c |  296 +++++++++++++++++++++++++++++++++++++++++++++++
+ src/nm-urfkill-manager.h |   49 +++++++
+ 6 files changed, 489 insertions(+), 2 deletions(-)
+
+Index: b/src/nm-manager.c
+===================================================================
+--- a/src/nm-manager.c
++++ b/src/nm-manager.c
+@@ -58,6 +58,7 @@
+ #include "nm-dbus-glib-types.h"
+ #include "nm-platform.h"
+ #include "nm-rfkill-manager.h"
++#include "nm-urfkill-manager.h"
+ #include "nm-dhcp-manager.h"
+ #include "nm-settings.h"
+ #include "nm-settings-connection.h"
+@@ -189,6 +190,9 @@ typedef struct {
+ 	NMDBusManager *dbus_mgr;
+ 	gboolean       prop_filter_added;
+ 	NMRfkillManager *rfkill_mgr;
++#if WITH_URFKILL
++	NMUrfkillManager *urfkill_mgr;
++#endif
+ 
+ 	/* List of NMDeviceFactoryFunc pointers sorted in priority order */
+ 	GSList *factories;
+@@ -217,6 +221,7 @@ typedef struct {
+ 	gboolean ifstate_force_online;
+ 
+ 	guint timestamp_update_id;
++	guint rfkill_initial_id;
+ 
+ 	gboolean startup;
+ } NMManagerPrivate;
+@@ -670,7 +675,20 @@ find_unmanaged_state (NMManager *manager
+ 		if (state == NM_DEVICE_STATE_UNMANAGED) {
+ 			const char *iface = nm_device_get_ip_iface (dev);
+ 			if (priv->ifstate_force_online) {
++#if WITH_URFKILL
++				if (nm_device_get_device_type (dev) == NM_DEVICE_TYPE_WIFI
++				    && !nm_urfkill_get_wlan_state (priv->urfkill_mgr))
++					/* WiFi is disabled, should not count unmanaged devices as connected */
++					continue;
++				else if (nm_device_get_device_type (dev) == NM_DEVICE_TYPE_MODEM
++				         && !nm_urfkill_get_wwan_state (priv->urfkill_mgr))
++					/* WWAN is disabled, should not count unmanaged devices as connected */
++					continue;
++				else
++					new_state = NM_STATE_CONNECTED_GLOBAL;
++#else
+ 				new_state = NM_STATE_CONNECTED_GLOBAL;
++#endif
+ 				nm_log_dbg (LOGD_CORE, "Unmanaged device found: %s; state CONNECTED forced.", iface);
+ 			}
+ 		}
+@@ -4669,6 +4687,49 @@ dbus_connection_changed_cb (NMDBusManage
+ 
+ /**********************************************************************/
+ 
++#if WITH_URFKILL
++static void
++urfkill_wlan_state_changed_cb (NMUrfkillManager *mgr,
++                               gboolean enabled,
++                               gpointer user_data)
++{
++	NMManager *self = NM_MANAGER (user_data);
++	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
++	GError *error = NULL;
++
++	nm_log_dbg (LOGD_RFKILL, "urfkill wlan state changed to %s",
++	            enabled ? "enabled" : "disabled");
++
++	if (priv->rfkill_initial_id) {
++		g_source_remove (priv->rfkill_initial_id);
++		priv->rfkill_initial_id = 0;
++	}
++
++	manager_update_radio_enabled (self,
++	                              &priv->radio_states[RFKILL_TYPE_WLAN],
++	                              enabled);
++	nm_manager_update_state (self);
++}
++
++static void
++urfkill_wwan_state_changed_cb (NMUrfkillManager *mgr,
++                               gboolean enabled,
++                               gpointer user_data)
++{
++	NMManager *self = NM_MANAGER (user_data);
++	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
++	GError *error = NULL;
++
++	nm_log_dbg (LOGD_RFKILL, "urfkill wwan state changed to %s",
++	            enabled ? "enabled" : "disabled");
++
++	manager_update_radio_enabled (self,
++	                              &priv->radio_states[RFKILL_TYPE_WWAN],
++	                              enabled);
++	nm_manager_update_state (self);
++}
++#endif /* WITH_URFKILL */
++
+ static NMManager *singleton = NULL;
+ 
+ NMManager *
+@@ -4686,6 +4747,43 @@ nm_connection_provider_get (void)
+ 	return NM_CONNECTION_PROVIDER (NM_MANAGER_GET_PRIVATE (singleton)->settings);
+ }
+ 
++typedef struct KillState KillState;
++struct KillState {
++	NMManager *manager;
++	gboolean wlan_enabled;
++	gboolean wwan_enabled;
++};
++
++static gboolean
++rfkill_change_timeout (gpointer user_data)
++{
++	KillState *state = (KillState *) user_data;
++	NMManager *mgr = state->manager;
++	NMManagerPrivate *priv;
++
++	g_return_val_if_fail (NM_IS_MANAGER (mgr), G_SOURCE_REMOVE);
++
++	priv = NM_MANAGER_GET_PRIVATE (mgr);
++
++	rfkill_change (priv->radio_states[RFKILL_TYPE_WLAN].desc, RFKILL_TYPE_WLAN, state->wlan_enabled);
++	rfkill_change (priv->radio_states[RFKILL_TYPE_WWAN].desc, RFKILL_TYPE_WWAN, state->wwan_enabled);
++
++	return G_SOURCE_REMOVE;
++}
++
++static void
++kill_state_free (gpointer user_data)
++{
++	KillState *state = (KillState *) user_data;
++
++	if (state->manager) {
++		g_object_unref (state->manager);
++		state->manager = NULL;
++	}
++
++	g_slice_free (KillState, (KillState *)user_data);
++}
++
+ NMManager *
+ nm_manager_new (NMSettings *settings,
+                 const char *state_file,
+@@ -4777,13 +4875,35 @@ nm_manager_new (NMSettings *settings,
+ 	                  G_CALLBACK (rfkill_manager_rfkill_changed_cb),
+ 	                  singleton);
+ 
++#if WITH_URFKILL
++	priv->urfkill_mgr = nm_urfkill_manager_new ();
++
++	g_signal_connect (priv->urfkill_mgr,
++	                  "wlan-state-changed",
++	                  G_CALLBACK (urfkill_wlan_state_changed_cb),
++	                  singleton);
++	g_signal_connect (priv->urfkill_mgr,
++	                  "wwan-state-changed",
++	                  G_CALLBACK (urfkill_wwan_state_changed_cb),
++	                  singleton);
++	urfkill_wlan_state_changed_cb (priv->urfkill_mgr, TRUE, singleton);
++	urfkill_wwan_state_changed_cb (priv->urfkill_mgr, TRUE, singleton);
++#endif
++
+ 	/* Force kernel WiFi/WWAN rfkill state to follow NM saved WiFi/WWAN state
+ 	 * in case the BIOS doesn't save rfkill state, and to be consistent with user
+ 	 * changes to the WirelessEnabled/WWANEnabled properties which toggle kernel
+ 	 * rfkill.
+ 	 */
+-	rfkill_change (priv->radio_states[RFKILL_TYPE_WLAN].desc, RFKILL_TYPE_WLAN, initial_wifi_enabled);
+-	rfkill_change (priv->radio_states[RFKILL_TYPE_WWAN].desc, RFKILL_TYPE_WWAN, initial_wwan_enabled);
++	KillState *kill_state = g_slice_new0 (KillState);
++	kill_state->manager = g_object_ref (singleton);
++	kill_state->wlan_enabled = initial_wifi_enabled;
++	kill_state->wwan_enabled = initial_wwan_enabled;
++
++	priv->rfkill_initial_id = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT, 10,
++	                                                      rfkill_change_timeout,
++	                                                      kill_state,
++	                                                      kill_state_free);
+ 
+ 	load_device_factories (singleton);
+ 
+Index: b/src/nm-urfkill-manager.c
+===================================================================
+--- /dev/null
++++ b/src/nm-urfkill-manager.c
+@@ -0,0 +1,296 @@
++/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
++/* NetworkManager -- Network link manager
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * Copyright (C) 2006 - 2010 Red Hat, Inc.
++ * Copyright (C) 2006 - 2008 Novell, Inc.
++ */
++
++#include "config.h"
++#include "NetworkManager.h"
++#include "nm-urfkill-manager.h"
++#include "nm-glib-compat.h"
++
++#include <gio/gio.h>
++#include <dbus/dbus.h>
++#include <dbus/dbus-glib.h>
++#include <dbus/dbus-glib-lowlevel.h>
++#include <string.h>
++#include "nm-logging.h"
++
++enum {
++	WLAN_STATE_CHANGED,
++	WWAN_STATE_CHANGED,
++	NUMBER_OF_SIGNALS
++};
++
++static guint signals[NUMBER_OF_SIGNALS];
++
++struct _NMUrfkillManager {
++	GObject parent_instance;
++
++	guint urfkill_watch;
++
++	GDBusProxy *wlan_proxy;
++	GDBusProxy *wwan_proxy;
++
++	GCancellable *watch_cancellable;
++	GCancellable *wlan_proxy_cancellable;
++	GCancellable *wwan_proxy_cancellable;
++};
++
++typedef GObjectClass NMUrfkillManagerClass;
++
++G_DEFINE_TYPE(NMUrfkillManager, nm_urfkill_manager, G_TYPE_OBJECT)
++
++static void
++wlan_state_changed (GDBusProxy *proxy,
++                    GVariant            *changed_properties,
++                    const gchar* const  *invalidated_properties,
++                    gpointer             user_data)
++{
++	NMUrfkillManager *self = NM_URFKILL_MANAGER (user_data);
++	GVariant *state;
++	gboolean enabled;
++
++	enabled = nm_urfkill_get_wlan_state (self);
++
++	nm_log_dbg (LOGD_RFKILL, "received state change for WLAN: %s",
++	            enabled ? "unblocked" : "blocked");
++
++	g_signal_emit (self, signals[WLAN_STATE_CHANGED], 0, enabled);
++}
++
++static void
++wwan_state_changed (GDBusProxy *proxy,
++                    GVariant            *changed_properties,
++                    const gchar* const  *invalidated_properties,
++                    gpointer             user_data)
++{
++	NMUrfkillManager *self = NM_URFKILL_MANAGER (user_data);
++	GVariant *state = NULL;
++	gboolean enabled;
++
++	enabled = nm_urfkill_get_wwan_state (self);
++
++	nm_log_dbg (LOGD_RFKILL, "received state change for WWAN: %s",
++	            enabled ? "unblocked" : "blocked");
++
++	g_signal_emit (self, signals[WWAN_STATE_CHANGED], 0, enabled);
++}
++
++static void
++wlan_proxy_created (GObject *source_object,
++                    GAsyncResult *res,
++                    gpointer user_data)
++{
++	NMUrfkillManager *self = NM_URFKILL_MANAGER (user_data);
++	GDBusProxy *wlan_proxy;
++	GError *error;
++
++	wlan_proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
++
++	if (wlan_proxy) {
++		self->wlan_proxy = wlan_proxy;
++
++		g_signal_connect (self->wlan_proxy, "g-properties-changed",
++		                  G_CALLBACK (wlan_state_changed), self);
++		g_signal_emit (self, signals[WLAN_STATE_CHANGED], 0,
++		               nm_urfkill_get_wlan_state (self));
++	} else {
++		nm_log_warn (LOGD_RFKILL, "could not create URfkill WLAN device proxy");
++	}
++}
++
++static void
++wwan_proxy_created (GObject *source_object,
++                    GAsyncResult *res,
++                    gpointer user_data)
++{
++	NMUrfkillManager *self = NM_URFKILL_MANAGER (user_data);
++	GDBusProxy *wwan_proxy;
++	GError *error;
++
++	wwan_proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
++
++	if (wwan_proxy) {
++		self->wwan_proxy = wwan_proxy;
++
++		g_signal_connect (self->wwan_proxy, "g-properties-changed",
++		                  G_CALLBACK (wwan_state_changed), self);
++		g_signal_emit (self, signals[WWAN_STATE_CHANGED], 0,
++		               nm_urfkill_get_wwan_state (self));
++	} else {
++		nm_log_warn (LOGD_RFKILL, "could not create URfkill WWAN device proxy");
++	}
++}
++
++gboolean
++nm_urfkill_get_wlan_state (NMUrfkillManager *self)
++{
++	GVariant *state;
++	gboolean enabled = TRUE;
++
++	g_return_val_if_fail (self->wlan_proxy != NULL, enabled);
++
++	state = g_dbus_proxy_get_cached_property (self->wlan_proxy, "state");
++
++	if (state) {
++		nm_log_dbg (LOGD_RFKILL, "wlan state from urfkill: %d",
++		            g_variant_get_int32 (state));
++		enabled = (g_variant_get_int32 (state) <= 0);
++		g_variant_unref (state);
++	} else {
++		nm_log_warn (LOGD_RFKILL, "invalid wlan state from urfkill cached properties");
++	}
++
++	return enabled;
++}
++
++gboolean
++nm_urfkill_get_wwan_state (NMUrfkillManager *self)
++{
++	GVariant *state;
++	gboolean enabled = TRUE;
++
++	g_return_val_if_fail (self->wwan_proxy != NULL, enabled);
++
++	state = g_dbus_proxy_get_cached_property (self->wwan_proxy, "state");
++
++	if (state) {
++		nm_log_dbg (LOGD_RFKILL, "wwan state from urfkill: %d",
++		            g_variant_get_int32 (state));
++		enabled = (g_variant_get_int32 (state) <= 0);
++		g_variant_unref (state);
++	} else {
++		nm_log_warn (LOGD_RFKILL, "invalid wwan state from urfkill cached properties");
++	}
++
++	return enabled;
++}
++
++static void
++on_urfkill_appeared (GDBusConnection *connection,
++                     const gchar     *name,
++                     const gchar     *name_owner,
++                     gpointer         user_data)
++{
++	NMUrfkillManager *self = NM_URFKILL_MANAGER (user_data);
++
++	nm_log_info (LOGD_RFKILL, "urfkill appeared on the bus");
++
++	self->wlan_proxy_cancellable = g_cancellable_new ();
++	self->wwan_proxy_cancellable = g_cancellable_new ();
++
++	g_dbus_proxy_new (connection,
++	                  G_DBUS_PROXY_FLAGS_NONE,
++	                  NULL,
++	                  "org.freedesktop.URfkill",
++	                  "/org/freedesktop/URfkill/WLAN",
++	                  "org.freedesktop.URfkill.Killswitch",
++	                  self->wlan_proxy_cancellable,
++	                  wlan_proxy_created,
++	                  self);
++
++	g_dbus_proxy_new (connection,
++	                  G_DBUS_PROXY_FLAGS_NONE,
++	                  NULL,
++	                  "org.freedesktop.URfkill",
++	                  "/org/freedesktop/URfkill/WWAN",
++	                  "org.freedesktop.URfkill.Killswitch",
++	                  self->wwan_proxy_cancellable,
++	                  wwan_proxy_created,
++	                  self);
++}
++
++static void
++on_urfkill_vanished (GDBusConnection *connection,
++                     const gchar     *name,
++                     gpointer         user_data)
++{
++	NMUrfkillManager *self = NM_URFKILL_MANAGER (user_data);
++
++	nm_log_info (LOGD_RFKILL, "urfkill disappeared from the bus");
++
++	if (self->wlan_proxy)
++		g_object_unref (self->wlan_proxy);
++	if (self->wwan_proxy)
++		g_object_unref (self->wwan_proxy);
++}
++
++static void
++nm_urfkill_manager_init (NMUrfkillManager *self)
++{
++	DBusGConnection *bus;
++
++	self->urfkill_watch = g_bus_watch_name (G_BUS_TYPE_SYSTEM,
++	                                        "org.freedesktop.URfkill",
++	                                        0,
++	                                        on_urfkill_appeared,
++	                                        on_urfkill_vanished,
++	                                        self,
++	                                        NULL);
++}
++
++NMUrfkillManager *
++nm_urfkill_manager_new (void)
++{
++        return NM_URFKILL_MANAGER (g_object_new (NM_TYPE_URFKILL_MANAGER, NULL));
++}
++
++static void
++nm_urfkill_manager_finalize (GObject *object)
++{
++	NMUrfkillManager *mgr = NM_URFKILL_MANAGER (object);
++
++	if (mgr->wlan_proxy_cancellable)
++		g_cancellable_cancel (mgr->wlan_proxy_cancellable);
++	if (mgr->wwan_proxy_cancellable)
++		g_cancellable_cancel (mgr->wwan_proxy_cancellable);
++
++	if (mgr->urfkill_watch) {
++		g_bus_unwatch_name (mgr->urfkill_watch);
++		mgr->urfkill_watch = 0;
++	}
++
++	if (mgr->wlan_proxy)
++		g_object_unref (mgr->wlan_proxy);
++	if (mgr->wwan_proxy)
++		g_object_unref (mgr->wwan_proxy);
++
++	G_OBJECT_CLASS (nm_urfkill_manager_parent_class)->finalize (object);
++}
++
++static void
++nm_urfkill_manager_class_init (NMUrfkillManagerClass *class)
++{
++	class->finalize = nm_urfkill_manager_finalize;
++
++	signals[WLAN_STATE_CHANGED] =
++		g_signal_new (NM_URFKILL_MANAGER_WLAN_STATE_CHANGED,
++		              G_OBJECT_CLASS_TYPE (class),
++		              G_SIGNAL_RUN_LAST, 0,
++		              NULL, NULL, g_cclosure_marshal_VOID__BOOLEAN,
++		              G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
++
++	signals[WWAN_STATE_CHANGED] =
++		g_signal_new (NM_URFKILL_MANAGER_WWAN_STATE_CHANGED,
++		              G_OBJECT_CLASS_TYPE (class),
++		              G_SIGNAL_RUN_LAST, 0,
++		              NULL, NULL, g_cclosure_marshal_VOID__BOOLEAN,
++		              G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
++}
++
+Index: b/src/nm-urfkill-manager.h
+===================================================================
+--- /dev/null
++++ b/src/nm-urfkill-manager.h
+@@ -0,0 +1,49 @@
++/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
++/* NetworkManager -- Network link manager
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * Copyright (C) 2006 - 2008 Red Hat, Inc.
++ * Copyright (C) 2006 - 2008 Novell, Inc.
++ */
++
++#ifndef __NM_URFKILL_MANAGER_H__
++#define __NM_URFKILL_MANAGER_H__
++
++#include <glib-object.h>
++#include <dbus/dbus.h>
++#include <dbus/dbus-glib.h>
++
++G_BEGIN_DECLS
++
++#define NM_TYPE_URFKILL_MANAGER (nm_urfkill_manager_get_type ())
++#define NM_URFKILL_MANAGER(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), NM_TYPE_URFKILL_MANAGER, NMUrfkillManager))
++#define NM_IS_URFKILL_MANAGER(o) (G_TYPE_CHECK_INSTANCE_TYPE ((o), NM_TYPE_URFKILL_MANAGER))
++
++#define NM_URFKILL_MANAGER_WLAN_STATE_CHANGED "wlan-state-changed"
++#define NM_URFKILL_MANAGER_WWAN_STATE_CHANGED "wwan-state-changed"
++
++typedef struct _NMUrfkillManager NMUrfkillManager;
++
++GType nm_urfkill_manager_get_type (void);
++
++NMUrfkillManager *nm_urfkill_manager_new ();
++
++gboolean nm_urfkill_get_wlan_state (NMUrfkillManager *self);
++gboolean nm_urfkill_get_wwan_state (NMUrfkillManager *self);
++
++G_END_DECLS
++
++#endif /* __NM_URFKILL_MANAGER_H__ */
+Index: b/src/Makefile.am
+===================================================================
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -243,6 +243,13 @@ nm_sources = \
+ 	NetworkManagerUtils.c \
+ 	NetworkManagerUtils.h
+ 
++if WITH_URFKILL
++NetworkManager_SOURCES += \
++		nm-urfkill-manager.c \
++		nm-urfkill-manager.h \
++		$(NULL)
++endif
++
+ if SESSION_TRACKING_SYSTEMD
+ nm_sources += nm-session-monitor-systemd.c
+ else
+Index: b/configure.ac
+===================================================================
+--- a/configure.ac
++++ b/configure.ac
+@@ -226,6 +226,17 @@ else
+ fi
+ 
+ dnl
++dnl Default to using WEXT but allow it to be disabled
++dnl
++AC_ARG_WITH(urfkill, AS_HELP_STRING([--with-urfkill=yes], [Enable or disable support for urfkill]), ac_with_urfkill=$withval, ac_with_urfkill="yes")
++if test x"$ac_with_urfkill" = x"yes"; then
++	AC_DEFINE(WITH_URFKILL, 1, [Define if you want to build with support for the urfkill daemon])
++else
++	AC_DEFINE(WITH_URFKILL, 0, [Define if you want to build with support for the urfkill daemon])
++fi
++AM_CONDITIONAL(WITH_URFKILL, test x"${ac_with_urfkill}" = x"yes")
++
++dnl
+ dnl Checks for libm - needed for pow()
+ dnl
+ LT_LIB_M
+@@ -920,6 +931,7 @@ echo "  modemmanager-1: $with_modem_mana
+ echo "  concheck: $enable_concheck"
+ echo "  libteamdctl: $enable_teamdctl"
+ echo "  nmtui: $build_nmtui"
++echo "  urfkill: $ac_with_urfkill"
+ echo
+ 
+ echo "Configuration plugins"
+Index: b/config.h.in
+===================================================================
+--- a/config.h.in
++++ b/config.h.in
+@@ -110,6 +110,9 @@
+ /* Define if you have Linux Wireless Extensions support */
+ #undef HAVE_WEXT
+ 
++/* Define if you want to build with support for the urfkill daemon */
++#undef HAVE_URFKILL
++
+ /* Define to path of iptables binary */
+ #undef IPTABLES_PATH
+ 

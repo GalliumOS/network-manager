@@ -1,0 +1,88 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Fix eth0 defaulting to 2 for the value of the use_tempaddr sysctl.
+
+This goes in line with what's being done right now for user-created wired
+connections and any connections for wifi. The issue with eth0 is that it's
+often an automatically created connection by NM, which bypasses a bunch of
+tests since it's just DHCP for both IPv4 and IPv6...
+
+So let's make sure we keep track of the system-wide default value as being
+"2" rather than "0", which isn't quite automatically found by NM since in
+Ubuntu we ship these values in /etc/sysctl.d/10-ipv6-privacy.conf, which
+then gets put together with the other files to make up a complete sysctl
+configuration. We really should have NM check the value directly from
+sysctl instead of trying to read these files, but this will do for now ;)
+
+---
+ src/devices/nm-device.c |   33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
+
+Index: b/src/devices/nm-device.c
+===================================================================
+--- a/src/devices/nm-device.c
++++ b/src/devices/nm-device.c
+@@ -3761,6 +3761,12 @@ use_tempaddr_clamp (NMSettingIP6ConfigPr
+ 	}
+ }
+ 
++static const char *sysctl_conf_paths[] = {
++	"/etc/sysctl.d/10-ipv6-privacy.conf",
++	"/etc/sysctl.conf",
++	NULL
++};
++
+ /* Get net.ipv6.conf.default.use_tempaddr value from /etc/sysctl.conf or
+  * /lib/sysctl.d/sysctl.conf
+  */
+@@ -3769,22 +3775,28 @@ ip6_use_tempaddr (void)
+ {
+ 	char *contents = NULL;
+ 	const char *group_name = "[forged_group]\n";
+-	char *sysctl_data = NULL;
++	const char **sysctl_conf_path;
++	GString *sysctl_data = NULL;
+ 	GKeyFile *keyfile;
+ 	GError *error = NULL;
+ 	gint tmp;
+ 	NMSettingIP6ConfigPrivacy ret = NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN;
+ 
+-	/* Read file contents to a string. */
+-	if (!g_file_get_contents ("/etc/sysctl.conf", &contents, NULL, NULL))
+-		if (!g_file_get_contents ("/lib/sysctl.d/sysctl.conf", &contents, NULL, NULL))
+-			return NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN;
+-
+ 	/* Prepend a group so that we can use GKeyFile parser. */
+-	sysctl_data = g_strdup_printf ("%s%s", group_name, contents);
++	sysctl_data = g_string_new (group_name);
++
++	/* Read file contents to a string. */
++	sysctl_conf_path = sysctl_conf_paths;
++	while (*sysctl_conf_path) {
++		if (g_file_get_contents (*sysctl_conf_path, &contents, NULL, NULL)) {
++			sysctl_data = g_string_append (sysctl_data, contents);
++			g_free (contents);
++		}
++		sysctl_conf_path++;
++	}
+ 
+ 	keyfile = g_key_file_new ();
+-	if (!g_key_file_load_from_data (keyfile, sysctl_data, -1, G_KEY_FILE_NONE, NULL))
++	if (!g_key_file_load_from_data (keyfile, sysctl_data->str, -1, G_KEY_FILE_NONE, NULL))
+ 		goto done;
+ 
+ 	tmp = g_key_file_get_integer (keyfile, "forged_group", "net.ipv6.conf.default.use_tempaddr", &error);
+@@ -3792,11 +3804,12 @@ ip6_use_tempaddr (void)
+ 		ret = use_tempaddr_clamp (tmp);
+ 
+ done:
+-	g_free (contents);
+-	g_free (sysctl_data);
++	sysctl_data = g_string_free (sysctl_data, TRUE);
+ 	g_clear_error (&error);
+ 	g_key_file_free (keyfile);
+ 
++	nm_log_dbg (LOGD_CORE, "use_tempaddr set globally as %d", ret);
++
+ 	return ret;
+ }
+ 

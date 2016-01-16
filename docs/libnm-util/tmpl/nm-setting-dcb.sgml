@@ -1,0 +1,487 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingDcb
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_DCB_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingDcbError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_DCB_ERROR_UNKNOWN: 
+@NM_SETTING_DCB_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_DCB_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_DCB_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_dcb_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### ENUM NMSettingDcbFlags ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_DCB_FLAG_NONE: 
+@NM_SETTING_DCB_FLAG_ENABLE: 
+@NM_SETTING_DCB_FLAG_ADVERTISE: 
+@NM_SETTING_DCB_FLAG_WILLING: 
+
+<!-- ##### MACRO NM_SETTING_DCB_FCOE_MODE_FABRIC ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_FCOE_MODE_VN2VN ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_APP_FCOE_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_APP_FCOE_PRIORITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_APP_FCOE_MODE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_APP_ISCSI_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_APP_ISCSI_PRIORITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_APP_FIP_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_APP_FIP_PRIORITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_PRIORITY_FLOW_CONTROL_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_PRIORITY_FLOW_CONTROL ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_PRIORITY_GROUP_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_PRIORITY_GROUP_ID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_PRIORITY_GROUP_BANDWIDTH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_PRIORITY_BANDWIDTH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_PRIORITY_STRICT_BANDWIDTH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_DCB_PRIORITY_TRAFFIC_CLASS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingDcb ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingDcb:app-fcoe-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:app-fcoe-mode ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:app-fcoe-priority ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:app-fip-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:app-fip-priority ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:app-iscsi-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:app-iscsi-priority ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:priority-bandwidth ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:priority-flow-control ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:priority-flow-control-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:priority-group-bandwidth ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:priority-group-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:priority-group-id ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:priority-strict-bandwidth ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingDcb:priority-traffic-class ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingDcbClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_dcb_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_app_fcoe_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_app_fcoe_priority ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_app_fcoe_mode ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_app_iscsi_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_app_iscsi_priority ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_app_fip_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_app_fip_priority ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_priority_flow_control_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_priority_flow_control ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_set_priority_flow_control ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@enabled: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_priority_group_flags ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_priority_group_id ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_set_priority_group_id ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@group_id: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_priority_group_bandwidth ##### -->
+<para>
+
+</para>
+
+@setting: 
+@group_id: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_set_priority_group_bandwidth ##### -->
+<para>
+
+</para>
+
+@setting: 
+@group_id: 
+@bandwidth_percent: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_priority_bandwidth ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_set_priority_bandwidth ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@bandwidth_percent: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_priority_strict_bandwidth ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_set_priority_strict_bandwidth ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@strict: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_get_priority_traffic_class ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_dcb_set_priority_traffic_class ##### -->
+<para>
+
+</para>
+
+@setting: 
+@user_priority: 
+@traffic_class: 
+
+

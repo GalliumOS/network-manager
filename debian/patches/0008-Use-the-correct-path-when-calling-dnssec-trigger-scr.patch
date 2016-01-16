@@ -1,0 +1,23 @@
+From: Arto Jantunen <viiru@debian.org>
+Date: Sat, 27 Sep 2014 11:13:32 +0300
+Subject: Use the correct path when calling dnssec-trigger-script
+
+Debian systems don't have /usr/libexec, so the script is installed in
+a different path.
+---
+ src/dns-manager/nm-dns-unbound.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/dns-manager/nm-dns-unbound.c b/src/dns-manager/nm-dns-unbound.c
+index 137fd20..439a36d 100644
+--- a/src/dns-manager/nm-dns-unbound.c
++++ b/src/dns-manager/nm-dns-unbound.c
+@@ -40,7 +40,7 @@ update (NMDnsPlugin *plugin,
+ 	 * without calling custom scripts. The dnssec-trigger functionality
+ 	 * may be eventually merged into NetworkManager.
+ 	 */
+-	return nm_spawn_process ("/usr/libexec/dnssec-trigger-script --async --update") == 0;
++	return nm_spawn_process ("/usr/lib/dnssec-trigger/dnssec-trigger-script --async --update") == 0;
+ }
+ 
+ static gboolean

@@ -1,0 +1,100 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Track changes in context IP settings.
+
+---
+ src/devices/wwan/nm-modem-ofono.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
+
+Index: b/src/devices/wwan/nm-modem-ofono.c
+===================================================================
+--- a/src/devices/wwan/nm-modem-ofono.c
++++ b/src/devices/wwan/nm-modem-ofono.c
+@@ -166,6 +166,8 @@ disconnect_done (DBusGProxy *proxy, DBus
+ 	}
+ 
+         simple_disconnect_context_free (ctx);
++
++	g_object_set (NM_MODEM (self), NM_MODEM_STATE, NM_MODEM_STATE_REGISTERED, NULL);
+ }
+ 
+ static void
+@@ -230,6 +232,7 @@ update_ofono_enabled (NMModemOfono *self
+ 	if (new_enabled) {
+ 		new_state = NM_MODEM_STATE_REGISTERED;
+ 		reason = NM_DEVICE_STATE_REASON_NONE;
++		ofono_read_contexts (self);
+ 	} else {
+ 		new_state = NM_MODEM_STATE_SEARCHING;
+ 		reason = NM_DEVICE_STATE_REASON_MODEM_NO_CARRIER;
+@@ -346,7 +349,7 @@ ofono_read_contexts (NMModemOfono *self)
+ 	DBusGProxy *settings_proxy;
+ 	GHashTable *properties;
+ 	GError *error = NULL;
+-	char *imsi = NULL;
++	const char *imsi;
+ 
+ 	nm_log_dbg (LOGD_MB, "in %s", __func__);
+ 	nm_log_info (LOGD_MB, "(%s): trying to read IMSI contexts from oFono files",
+@@ -565,7 +568,7 @@ ofono_context_get_ip_properties (NMModem
+ 	GError *error = NULL;
+ 	GType prop_dict;
+ 	const gchar *address_string, *gateway_string, *netmask_string, *iface;
+-	const gchar **dns;
++	gchar **dns;
+ 	gpointer settings;
+ 	gboolean ret = FALSE;
+ 	guint32 address_network, gateway_network;
+@@ -574,8 +577,6 @@ ofono_context_get_ip_properties (NMModem
+ 
+ 	nm_log_dbg (LOGD_MB, "in %s", __func__);
+ 
+-	g_return_if_fail (priv->ip4_config == NULL);
+-
+ 	prop_dict = dbus_g_type_get_map ("GHashTable", G_TYPE_STRING, G_TYPE_VALUE);
+ 	dbus_g_proxy_call_with_timeout (priv->context_proxy,
+ 	                                "GetProperties",
+@@ -586,9 +587,15 @@ ofono_context_get_ip_properties (NMModem
+ 
+ 	if (!error) {
+ 		settings = g_hash_table_lookup (properties, "Settings");
+-		if (settings) {
++		if (settings && G_VALUE_HOLDS_BOXED (settings)) {
+ 			ip_settings = (GHashTable*) g_value_get_boxed (settings);
+ 
++			if (nm_modem_get_state (NM_MODEM (self)) == NM_MODEM_STATE_CONNECTED
++			    && g_hash_table_size(ip_settings) <= 0) {
++				g_signal_emit_by_name (self, NM_MODEM_PPP_FAILED, NM_DEVICE_STATE_REASON_PPP_FAILED);
++				return;
++			}
++
+ 			nm_log_info (LOGD_MB, "(%s): IPv4 static configuration:",
+ 			             nm_modem_get_uid (NM_MODEM (self)));
+ 
+@@ -596,6 +603,8 @@ ofono_context_get_ip_properties (NMModem
+ 			if (iface)
+ 				g_object_set (self, NM_MODEM_DATA_PORT, iface, NULL);
+ 
++			if (priv->ip4_config)
++				g_object_unref (priv->ip4_config);
+ 			priv->ip4_config = nm_ip4_config_new ();
+ 
+ 			address_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Address"));
+@@ -652,7 +661,8 @@ out:
+ 		}
+ 	}
+ 
+-	g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, ret, reason);
++	if (nm_modem_get_state (NM_MODEM (self)) != NM_MODEM_STATE_CONNECTED)
++		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, ret, reason);
+ }
+ 
+ static void
+@@ -1026,6 +1036,8 @@ static_stage3_ip4_config_start (NMModem
+ 
+ 	if (priv->ip4_config) {
+ 		g_signal_emit_by_name (self, NM_MODEM_IP4_CONFIG_RESULT, priv->ip4_config, error);
++		priv->ip4_config = NULL;
++		g_object_set (self, NM_MODEM_STATE, NM_MODEM_STATE_CONNECTED, NULL);
+ 		ret = NM_ACT_STAGE_RETURN_POSTPONE;
+ 	}
+ 

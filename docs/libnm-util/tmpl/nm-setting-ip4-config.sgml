@@ -1,0 +1,789 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingIP4Config
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingIP4ConfigError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_IP4_CONFIG_ERROR_UNKNOWN: 
+@NM_SETTING_IP4_CONFIG_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_IP4_CONFIG_ERROR_MISSING_PROPERTY: 
+@NM_SETTING_IP4_CONFIG_ERROR_NOT_ALLOWED_FOR_METHOD: 
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_METHOD ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_DNS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_DNS_SEARCH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_ADDRESSES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_ROUTES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_IGNORE_AUTO_ROUTES ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_IGNORE_AUTO_DNS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_DHCP_SEND_HOSTNAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_DHCP_HOSTNAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_NEVER_DEFAULT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_MAY_FAIL ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_METHOD_AUTO ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_METHOD_MANUAL ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_METHOD_SHARED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_IP4_CONFIG_METHOD_DISABLED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### TYPEDEF NMIP4Address ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION nm_ip4_address_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_dup ##### -->
+<para>
+
+</para>
+
+@source: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_ref ##### -->
+<para>
+
+</para>
+
+@address: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_unref ##### -->
+<para>
+
+</para>
+
+@address: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_compare ##### -->
+<para>
+
+</para>
+
+@address: 
+@other: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_get_address ##### -->
+<para>
+
+</para>
+
+@address: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_set_address ##### -->
+<para>
+
+</para>
+
+@address: 
+@addr: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_get_prefix ##### -->
+<para>
+
+</para>
+
+@address: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_set_prefix ##### -->
+<para>
+
+</para>
+
+@address: 
+@prefix: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_get_gateway ##### -->
+<para>
+
+</para>
+
+@address: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_address_set_gateway ##### -->
+<para>
+
+</para>
+
+@address: 
+@gateway: 
+
+
+<!-- ##### TYPEDEF NMIP4Route ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION nm_ip4_route_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_dup ##### -->
+<para>
+
+</para>
+
+@source: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_ref ##### -->
+<para>
+
+</para>
+
+@route: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_unref ##### -->
+<para>
+
+</para>
+
+@route: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_compare ##### -->
+<para>
+
+</para>
+
+@route: 
+@other: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_get_dest ##### -->
+<para>
+
+</para>
+
+@route: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_set_dest ##### -->
+<para>
+
+</para>
+
+@route: 
+@dest: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_get_prefix ##### -->
+<para>
+
+</para>
+
+@route: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_set_prefix ##### -->
+<para>
+
+</para>
+
+@route: 
+@prefix: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_get_next_hop ##### -->
+<para>
+
+</para>
+
+@route: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_set_next_hop ##### -->
+<para>
+
+</para>
+
+@route: 
+@next_hop: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_get_metric ##### -->
+<para>
+
+</para>
+
+@route: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_ip4_route_set_metric ##### -->
+<para>
+
+</para>
+
+@route: 
+@metric: 
+
+
+<!-- ##### STRUCT NMSettingIP4Config ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingIP4Config:address-labels ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:addresses ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:dhcp-client-id ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:dhcp-hostname ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:dhcp-send-hostname ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:dns ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:dns-search ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:ignore-auto-dns ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:ignore-auto-routes ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:may-fail ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:method ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:never-default ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingIP4Config:routes ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingIP4ConfigClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_ip4_config_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_method ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_num_dns ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_dns ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_add_dns ##### -->
+<para>
+
+</para>
+
+@setting: 
+@dns: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_remove_dns ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_remove_dns_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@dns: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_clear_dns ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_num_dns_searches ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_dns_search ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_add_dns_search ##### -->
+<para>
+
+</para>
+
+@setting: 
+@dns_search: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_remove_dns_search ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_remove_dns_search_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@dns_search: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_clear_dns_searches ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_num_addresses ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_add_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@address: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_remove_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_remove_address_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@address: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_clear_addresses ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_num_routes ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_route ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_add_route ##### -->
+<para>
+
+</para>
+
+@setting: 
+@route: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_remove_route ##### -->
+<para>
+
+</para>
+
+@setting: 
+@i: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_remove_route_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@route: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_clear_routes ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_ignore_auto_routes ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_ignore_auto_dns ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_dhcp_client_id ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_dhcp_send_hostname ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_dhcp_hostname ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_never_default ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_ip4_config_get_may_fail ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

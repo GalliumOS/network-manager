@@ -1,0 +1,599 @@
+From 4519b226df05cc2ae1779ca2f2314109b6a33d84 Mon Sep 17 00:00:00 2001
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Date: Tue, 11 Nov 2014 11:09:18 -0500
+Subject: [PATCH] dns: use DBus to make dnsmasq nameserver changes
+
+Use DBus to make nameserver updates rather than restarting the dnsmasq binary
+again and again.
+
+Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+---
+ src/dns-manager/nm-dns-dnsmasq.c        |  312 ++++++++++++++++++++++----------
+ src/dns-manager/nm-dns-manager.c        |   22 ++
+ src/dns-manager/nm-dns-plugin.c         |   16 +
+ src/dns-manager/nm-dns-plugin.h         |    1 
+ src/org.freedesktop.NetworkManager.conf |   10 +
+ 5 files changed, 272 insertions(+), 89 deletions(-)
+
+Index: b/src/dns-manager/nm-dns-dnsmasq.c
+===================================================================
+--- a/src/dns-manager/nm-dns-dnsmasq.c
++++ b/src/dns-manager/nm-dns-dnsmasq.c
+@@ -29,12 +29,17 @@
+ #include <glib.h>
+ #include <glib/gi18n.h>
+ 
++#include <dbus/dbus.h>
++#include <dbus/dbus-glib-lowlevel.h>
++#include <dbus/dbus-glib.h>
++
+ #include "nm-dns-dnsmasq.h"
+ #include "nm-utils.h"
+ #include "nm-logging.h"
+ #include "nm-ip4-config.h"
+ #include "nm-ip6-config.h"
+ #include "nm-dns-utils.h"
++#include "nm-dbus-manager.h"
+ 
+ G_DEFINE_TYPE (NMDnsDnsmasq, nm_dns_dnsmasq, NM_TYPE_DNS_PLUGIN)
+ 
+@@ -44,8 +49,13 @@ G_DEFINE_TYPE (NMDnsDnsmasq, nm_dns_dnsm
+ #define CONFFILE NMRUNDIR "/dnsmasq.conf"
+ #define CONFDIR NMCONFDIR "/dnsmasq.d"
+ 
++#define DNSMASQ_DBUS_SERVICE "org.freedesktop.NetworkManager.dnsmasq"
++#define DNSMASQ_DBUS_PATH "/uk/org/thekelleys/dnsmasq"
++#define DNSMASQ_DBUS_INTERFACE "uk.org.thekelleys.dnsmasq"
++
+ typedef struct {
+-	guint32 foo;
++	NMDBusManager *dbus_mgr;
++	guint name_owner_id;
+ } NMDnsDnsmasqPrivate;
+ 
+ /*******************************************/
+@@ -71,7 +81,7 @@ find_dnsmasq (void)
+ }
+ 
+ static gboolean
+-add_ip4_config (GString *str, NMIP4Config *ip4, gboolean split)
++add_ip4_config (DBusMessage *message, NMIP4Config *ip4, gboolean split)
+ {
+ 	char buf[INET_ADDRSTRLEN];
+ 	in_addr_t addr;
+@@ -87,15 +97,18 @@ add_ip4_config (GString *str, NMIP4Confi
+ 			return FALSE;
+ 
+ 		for (i_nameserver = 0; i_nameserver < nnameservers; i_nameserver++) {
+-			addr = nm_ip4_config_get_nameserver (ip4, i_nameserver);
+-			nm_utils_inet4_ntop (addr, buf);
++			addr = g_htonl(nm_ip4_config_get_nameserver (ip4, i_nameserver));
++			dbus_message_append_args (message,
++			                          DBUS_TYPE_UINT32, &addr,
++			                          DBUS_TYPE_INVALID);
+ 
+ 			/* searches are preferred over domains */
+ 			n = nm_ip4_config_get_num_searches (ip4);
+ 			for (i = 0; i < n; i++) {
+-				g_string_append_printf (str, "server=/%s/%s\n",
+-				                        nm_ip4_config_get_search (ip4, i),
+-				                        buf);
++				char *search = nm_ip4_config_get_search (ip4, i);
++				dbus_message_append_args (message,
++				                          DBUS_TYPE_STRING, &search,
++				                          DBUS_TYPE_INVALID);
+ 				added = TRUE;
+ 			}
+ 
+@@ -103,9 +116,10 @@ add_ip4_config (GString *str, NMIP4Confi
+ 				/* If not searches, use any domains */
+ 				n = nm_ip4_config_get_num_domains (ip4);
+ 				for (i = 0; i < n; i++) {
+-					g_string_append_printf (str, "server=/%s/%s\n",
+-					                        nm_ip4_config_get_domain (ip4, i),
+-					                        buf);
++					char *domain = nm_ip4_config_get_domain (ip4, i);
++					dbus_message_append_args (message,
++					                          DBUS_TYPE_STRING, &domain,
++					                          DBUS_TYPE_INVALID);
+ 					added = TRUE;
+ 				}
+ 			}
+@@ -116,7 +130,9 @@ add_ip4_config (GString *str, NMIP4Confi
+ 			domains = nm_dns_utils_get_ip4_rdns_domains (ip4);
+ 			if (domains) {
+ 				for (iter = domains; iter && *iter; iter++)
+-					g_string_append_printf (str, "server=/%s/%s\n", *iter, buf);
++					dbus_message_append_args (message,
++					                          DBUS_TYPE_STRING, &(*iter),
++					                          DBUS_TYPE_INVALID);
+ 				g_strfreev (domains);
+ 				added = TRUE;
+ 			}
+@@ -126,41 +142,20 @@ add_ip4_config (GString *str, NMIP4Confi
+ 	/* If no searches or domains, just add the namservers */
+ 	if (!added) {
+ 		for (i = 0; i < nnameservers; i++) {
+-			addr = nm_ip4_config_get_nameserver (ip4, i);
+-			g_string_append_printf (str, "server=%s\n", nm_utils_inet4_ntop (addr, NULL));
++			addr = g_htonl (nm_ip4_config_get_nameserver (ip4, i));
++			dbus_message_append_args (message,
++			                          DBUS_TYPE_UINT32, &addr,
++			                          DBUS_TYPE_INVALID);
+ 		}
+ 	}
+ 
+ 	return TRUE;
+ }
+ 
+-static char *
+-ip6_addr_to_string (const struct in6_addr *addr, const char *iface)
+-{
+-	char *buf;
+-
+-	if (IN6_IS_ADDR_V4MAPPED (addr)) {
+-		/* inet_ntop is probably supposed to do this for us, but it doesn't */
+-		buf = g_malloc (INET_ADDRSTRLEN);
+-		nm_utils_inet4_ntop (addr->s6_addr32[3], buf);
+-	} else if (!iface || !iface[0] || !IN6_IS_ADDR_LINKLOCAL (addr)) {
+-		buf = g_malloc (INET6_ADDRSTRLEN);
+-		nm_utils_inet6_ntop (addr, buf);
+-	} else {
+-		/* If we got a scope identifier, we need use '%' instead of
+-		 * '@', since dnsmasq supports '%' in server= addresses
+-		 * only since version 2.58 and up
+-		 */
+-		buf = g_strconcat (nm_utils_inet6_ntop (addr, NULL), "@", iface, NULL);
+-	}
+-	return buf;
+-}
+-
+ static gboolean
+-add_ip6_config (GString *str, NMIP6Config *ip6, gboolean split)
++add_ip6_config (DBusMessage *message, NMIP6Config *ip6, gboolean split)
+ {
+ 	const struct in6_addr *addr;
+-	char *buf = NULL;
+ 	int nnameservers, i_nameserver, n, i;
+ 	gboolean added = FALSE;
+ 	const char *iface;
+@@ -176,14 +171,32 @@ add_ip6_config (GString *str, NMIP6Confi
+ 
+ 		for (i_nameserver = 0; i_nameserver < nnameservers; i_nameserver++) {
+ 			addr = nm_ip6_config_get_nameserver (ip6, i_nameserver);
+-			buf = ip6_addr_to_string (addr, iface);
++			dbus_message_append_args (message,
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[0],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[1],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[2],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[3],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[4],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[5],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[6],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[7],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[8],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[9],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[10],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[11],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[12],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[13],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[14],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[15],
++			                          DBUS_TYPE_INVALID);
+ 
+ 			/* searches are preferred over domains */
+ 			n = nm_ip6_config_get_num_searches (ip6);
+ 			for (i = 0; i < n; i++) {
+-				g_string_append_printf (str, "server=/%s/%s\n",
+-				                        nm_ip6_config_get_search (ip6, i),
+-				                        buf);
++				char *search = nm_ip6_config_get_search (ip6, i);
++				dbus_message_append_args (message,
++				                          DBUS_TYPE_STRING, &search,
++				                          DBUS_TYPE_INVALID);
+ 				added = TRUE;
+ 			}
+ 
+@@ -191,14 +204,13 @@ add_ip6_config (GString *str, NMIP6Confi
+ 				/* If not searches, use any domains */
+ 				n = nm_ip6_config_get_num_domains (ip6);
+ 				for (i = 0; i < n; i++) {
+-					g_string_append_printf (str, "server=/%s/%s\n",
+-					                        nm_ip6_config_get_domain (ip6, i),
+-					                        buf);
++					char *domain = nm_ip6_config_get_domain (ip6, i);
++					dbus_message_append_args (message,
++					                          DBUS_TYPE_STRING, &domain,
++					                          DBUS_TYPE_INVALID);
+ 					added = TRUE;
+ 				}
+ 			}
+-
+-			g_free (buf);
+ 		}
+ 	}
+ 
+@@ -206,11 +218,24 @@ add_ip6_config (GString *str, NMIP6Confi
+ 	if (!added) {
+ 		for (i = 0; i < nnameservers; i++) {
+ 			addr = nm_ip6_config_get_nameserver (ip6, i);
+-			buf = ip6_addr_to_string (addr, iface);
+-			if (buf) {
+-				g_string_append_printf (str, "server=%s\n", buf);
+-				g_free (buf);
+-			}
++			dbus_message_append_args (message,
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[0],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[1],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[2],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[3],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[4],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[5],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[6],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[7],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[8],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[9],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[10],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[11],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[12],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[13],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[14],
++			                          DBUS_TYPE_BYTE, &addr->s6_addr[15],
++			                          DBUS_TYPE_INVALID);
+ 		}
+ 	}
+ 
+@@ -218,55 +243,29 @@ add_ip6_config (GString *str, NMIP6Confi
+ }
+ 
+ static gboolean
+-update (NMDnsPlugin *plugin,
+-        const GSList *vpn_configs,
+-        const GSList *dev_configs,
+-        const GSList *other_configs,
+-        const char *hostname)
++start_dnsmasq (NMDnsDnsmasq *self)
+ {
+-	NMDnsDnsmasq *self = NM_DNS_DNSMASQ (plugin);
+-	GString *conf;
+-	GSList *iter;
++	NMDnsDnsmasqPrivate *priv = NM_DNS_DNSMASQ_GET_PRIVATE (self);
+ 	const char *argv[15];
++	char *dnsmasq_owner;
+ 	GError *error = NULL;
+ 	int ignored;
++	GString *conf;
+ 	GPid pid = 0;
+ 	guint idx = 0;
+ 
+-	/* Kill the old dnsmasq; there doesn't appear to be a way to get dnsmasq
+-	 * to reread the config file using SIGHUP or similar.  This is a small race
+-	 * here when restarting dnsmasq when DNS requests could go to the upstream
+-	 * servers instead of to dnsmasq.
+-	 */
+-	nm_dns_plugin_child_kill (plugin);
++	/* dnsmasq is probably already started; if it's the case, don't do
++	 * anything more.
++ 	 */
++	dnsmasq_owner = nm_dbus_manager_get_name_owner (priv->dbus_mgr, DNSMASQ_DBUS_SERVICE, NULL);
++	if (dnsmasq_owner != NULL)
++		return TRUE;
++
++	/* Start dnsmasq */
+ 
+ 	/* Build up the new dnsmasq config file */
+ 	conf = g_string_sized_new (150);
+ 
+-	/* Use split DNS for VPN configs */
+-	for (iter = (GSList *) vpn_configs; iter; iter = g_slist_next (iter)) {
+-		if (NM_IS_IP4_CONFIG (iter->data))
+-			add_ip4_config (conf, NM_IP4_CONFIG (iter->data), TRUE);
+-		else if (NM_IS_IP6_CONFIG (iter->data))
+-			add_ip6_config (conf, NM_IP6_CONFIG (iter->data), TRUE);
+-	}
+-
+-	/* Now add interface configs without split DNS */
+-	for (iter = (GSList *) dev_configs; iter; iter = g_slist_next (iter)) {
+-		if (NM_IS_IP4_CONFIG (iter->data))
+-			add_ip4_config (conf, NM_IP4_CONFIG (iter->data), FALSE);
+-		else if (NM_IS_IP6_CONFIG (iter->data))
+-			add_ip6_config (conf, NM_IP6_CONFIG (iter->data), FALSE);
+-	}
+-
+-	/* And any other random configs */
+-	for (iter = (GSList *) other_configs; iter; iter = g_slist_next (iter)) {
+-		if (NM_IS_IP4_CONFIG (iter->data))
+-			add_ip4_config (conf, NM_IP4_CONFIG (iter->data), FALSE);
+-		else if (NM_IS_IP6_CONFIG (iter->data))
+-			add_ip6_config (conf, NM_IP6_CONFIG (iter->data), FALSE);
+-	}
+-
+ 	/* Write out the config file */
+ 	if (!g_file_set_contents (CONFFILE, conf->str, -1, &error)) {
+ 		nm_log_warn (LOGD_DNS, "Failed to write dnsmasq config file %s: (%d) %s",
+@@ -291,6 +290,7 @@ update (NMDnsPlugin *plugin,
+ 	argv[idx++] = "--conf-file=" CONFFILE;
+ 	argv[idx++] = "--cache-size=400";
+ 	argv[idx++] = "--proxy-dnssec"; /* Allow DNSSEC to pass through */
++	argv[idx++] = "--enable-dbus=" DNSMASQ_DBUS_SERVICE;
+ 
+ 	/* dnsmasq exits if the conf dir is not present */
+ 	if (g_file_test (CONFDIR, G_FILE_TEST_IS_DIR))
+@@ -307,8 +307,124 @@ out:
+ 	return pid ? TRUE : FALSE;
+ }
+ 
++static gboolean
++update (NMDnsPlugin *plugin,
++        const GSList *vpn_configs,
++        const GSList *dev_configs,
++        const GSList *other_configs,
++        const char *hostname)
++{
++	NMDnsDnsmasq *self = NM_DNS_DNSMASQ (plugin);
++	NMDnsDnsmasqPrivate *priv = NM_DNS_DNSMASQ_GET_PRIVATE (self);
++	DBusConnection *connection;
++	DBusMessage *message;
++	GSList *iter;
++	GError *error = NULL;
++	gboolean have_dnsmasq = FALSE;
++	gboolean ret = FALSE;
++	dbus_bool_t result;
++
++	have_dnsmasq = start_dnsmasq (self);
++	if (!have_dnsmasq)
++		goto out;
++
++	connection = nm_dbus_manager_get_dbus_connection (priv->dbus_mgr);
++	if (!connection) {
++		nm_log_warn (LOGD_DNS, "Could not get the system bus to speak to dnsmasq.");
++		goto out;
++	}
++
++	message = dbus_message_new_method_call (DNSMASQ_DBUS_SERVICE, DNSMASQ_DBUS_PATH,
++	                                        DNSMASQ_DBUS_INTERFACE, "SetServers");
++
++	/* Use split DNS for VPN configs */
++	for (iter = (GSList *) vpn_configs; iter; iter = g_slist_next (iter)) {
++		if (NM_IS_IP4_CONFIG (iter->data))
++			add_ip4_config (message, NM_IP4_CONFIG (iter->data), TRUE);
++		else if (NM_IS_IP6_CONFIG (iter->data))
++			add_ip6_config (message, NM_IP6_CONFIG (iter->data), TRUE);
++	}
++
++	/* Now add interface configs without split DNS */
++	for (iter = (GSList *) dev_configs; iter; iter = g_slist_next (iter)) {
++		if (NM_IS_IP4_CONFIG (iter->data))
++			add_ip4_config (message, NM_IP4_CONFIG (iter->data), FALSE);
++		else if (NM_IS_IP6_CONFIG (iter->data))
++			add_ip6_config (message, NM_IP6_CONFIG (iter->data), FALSE);
++	}
++
++	/* And any other random configs */
++	for (iter = (GSList *) other_configs; iter; iter = g_slist_next (iter)) {
++		if (NM_IS_IP4_CONFIG (iter->data))
++			add_ip4_config (message, NM_IP4_CONFIG (iter->data), FALSE);
++		else if (NM_IS_IP6_CONFIG (iter->data))
++			add_ip6_config (message, NM_IP6_CONFIG (iter->data), FALSE);
++	}
++
++	if (!nm_dbus_manager_get_name_owner (priv->dbus_mgr, DNSMASQ_DBUS_SERVICE, &error)) {
++		nm_log_warn (LOGD_DNS, "dnsmasq not available on the bus, can't update servers.");
++		if (error)
++			nm_log_err (LOGD_DNS, "dnsmasq owner not found on bus: %s", error->message);
++		goto out;
++	}
++
++	dbus_message_set_no_reply (message, TRUE);
++
++	result = dbus_connection_send (connection, message, NULL);
++	if (!result) {
++		nm_log_err (LOGD_DNS, "Could not send dnsmasq SetServers method.");
++		goto out;
++	}
++
++	ret = TRUE;
++
++	/* If all the configs lists are empty, there is just nothing to be caching --
++	 * we cleared up the dnsmasq cache; but we should also fail the update, so
++	 * that we don't write 127.0.0.1 to resolv.conf.
++	 */
++	if (((vpn_configs && g_slist_length (vpn_configs) < 1) || !vpn_configs) &&
++	    ((dev_configs && g_slist_length (dev_configs) < 1) || !dev_configs) &&
++	    ((other_configs && g_slist_length (other_configs) < 1) || !other_configs))
++		ret = FALSE;
++
++out:
++	if (message)
++		dbus_message_unref (message);
++
++	return ret;
++}
++
+ /****************************************************************/
+ 
++static void
++name_owner_changed_cb (NMDBusManager *dbus_mgr,
++                       const char *name,
++                       const char *old_owner,
++                       const char *new_owner,
++                       gpointer user_data)
++{
++	NMDnsDnsmasq *self = NM_DNS_DNSMASQ (user_data);
++	gboolean old_owner_good = (old_owner && strlen (old_owner));
++	gboolean new_owner_good = (new_owner && strlen (new_owner));
++
++	/* Can't handle the signal if its not from dnsmasq */
++	if (strcmp (DNSMASQ_DBUS_SERVICE, name))
++		return;
++
++	if (!old_owner_good && new_owner_good) {
++		nm_log_warn (LOGD_DNS, "dnsmasq appeared on DBus: %s",
++		             new_owner);
++		g_signal_emit_by_name (self, NM_DNS_PLUGIN_APPEARED);
++	} else if (old_owner_good && new_owner_good) {
++		nm_log_dbg (LOGD_DNS, "DBus name owner for dnsmasq changed: %s -> %s",
++		             old_owner, new_owner);
++		g_signal_emit_by_name (self, NM_DNS_PLUGIN_APPEARED);
++	} else {
++		nm_log_warn (LOGD_DNS, "dnsmasq disappeared from the bus.");
++		g_signal_emit_by_name (self, NM_DNS_PLUGIN_FAILED);
++	}
++}
++
+ static const char *
+ dm_exit_code_to_msg (int status)
+ {
+@@ -380,13 +496,31 @@ nm_dns_dnsmasq_new (void)
+ static void
+ nm_dns_dnsmasq_init (NMDnsDnsmasq *self)
+ {
++	NMDnsDnsmasqPrivate *priv = NM_DNS_DNSMASQ_GET_PRIVATE (self);
++
++	priv->dbus_mgr = nm_dbus_manager_get ();
++
++	g_assert (priv->dbus_mgr);
++
++	priv->name_owner_id = g_signal_connect (priv->dbus_mgr,
++	                                        NM_DBUS_MANAGER_NAME_OWNER_CHANGED,
++	                                        G_CALLBACK (name_owner_changed_cb),
++	                                        self);
+ }
+ 
+ static void
+ dispose (GObject *object)
+ {
++	NMDnsDnsmasqPrivate *priv = NM_DNS_DNSMASQ_GET_PRIVATE (object);
++
+ 	unlink (CONFFILE);
+ 
++	if (priv->dbus_mgr) {
++		if (priv->name_owner_id)
++			g_signal_handler_disconnect (priv->dbus_mgr, priv->name_owner_id);
++		g_object_unref (priv->dbus_mgr);
++	}
++
+ 	G_OBJECT_CLASS (nm_dns_dnsmasq_parent_class)->dispose (object);
+ }
+ 
+Index: b/src/dns-manager/nm-dns-manager.c
+===================================================================
+--- a/src/dns-manager/nm-dns-manager.c
++++ b/src/dns-manager/nm-dns-manager.c
+@@ -781,6 +781,27 @@ update_dns (NMDnsManager *self,
+ }
+ 
+ static void
++plugin_appeared (NMDnsPlugin *plugin, gpointer user_data)
++{
++	NMDnsManager *self = NM_DNS_MANAGER (user_data);
++	NMDnsManagerPrivate *priv = NM_DNS_MANAGER_GET_PRIVATE (self);
++	GError *error = NULL;
++
++	/* Not applicable to non-caching plugins */
++	if (!nm_dns_plugin_is_caching (plugin))
++		return;
++
++	/* Try to update DNS again; since it's now available on the bus this
++	 * might work. */
++	if (!update_dns (self, FALSE, &error)) {
++		nm_log_warn (LOGD_DNS, "could not commit DNS changes: (%d) %s",
++		             error ? error->code : -1,
++		             error && error->message ? error->message : "(unknown)");
++		g_clear_error (&error);
++	}
++}
++
++static void
+ plugin_failed (NMDnsPlugin *plugin, gpointer user_data)
+ {
+ 	NMDnsManager *self = NM_DNS_MANAGER (user_data);
+@@ -1127,6 +1148,7 @@ nm_dns_manager_init (NMDnsManager *self)
+ 	if (priv->plugin) {
+ 		nm_log_info (LOGD_DNS, "DNS: loaded plugin %s", nm_dns_plugin_get_name (priv->plugin));
+ 		g_signal_connect (priv->plugin, NM_DNS_PLUGIN_FAILED, G_CALLBACK (plugin_failed), self);
++		g_signal_connect (priv->plugin, NM_DNS_PLUGIN_APPEARED, G_CALLBACK (plugin_appeared), self);
+ 	}
+ }
+ 
+Index: b/src/dns-manager/nm-dns-plugin.c
+===================================================================
+--- a/src/dns-manager/nm-dns-plugin.c
++++ b/src/dns-manager/nm-dns-plugin.c
+@@ -44,6 +44,7 @@ G_DEFINE_TYPE_EXTENDED (NMDnsPlugin, nm_
+ 
+ enum {
+ 	FAILED,
++	APPEARED,
+ 	CHILD_QUIT,
+ 	LAST_SIGNAL
+ };
+@@ -131,6 +132,12 @@ watch_cb (GPid pid, gint status, gpointe
+ 	g_free (priv->progname);
+ 	priv->progname = NULL;
+ 
++	if (priv->pidfile) {
++		unlink (priv->pidfile);
++		g_free (priv->pidfile);
++		priv->pidfile = NULL;
++	}
++
+ 	g_signal_emit (self, signals[CHILD_QUIT], 0, status);
+ }
+ 
+@@ -310,6 +317,15 @@ nm_dns_plugin_class_init (NMDnsPluginCla
+ 					  G_OBJECT_CLASS_TYPE (object_class),
+ 					  G_SIGNAL_RUN_FIRST,
+ 					  G_STRUCT_OFFSET (NMDnsPluginClass, failed),
++					  NULL, NULL,
++					  g_cclosure_marshal_VOID__VOID,
++					  G_TYPE_NONE, 0);
++
++	signals[APPEARED] =
++		g_signal_new (NM_DNS_PLUGIN_APPEARED,
++					  G_OBJECT_CLASS_TYPE (object_class),
++					  G_SIGNAL_RUN_FIRST,
++					  G_STRUCT_OFFSET (NMDnsPluginClass, failed),
+ 					  NULL, NULL,
+ 					  g_cclosure_marshal_VOID__VOID,
+ 					  G_TYPE_NONE, 0);
+Index: b/src/dns-manager/nm-dns-plugin.h
+===================================================================
+--- a/src/dns-manager/nm-dns-plugin.h
++++ b/src/dns-manager/nm-dns-plugin.h
+@@ -30,6 +30,7 @@
+ #define NM_DNS_PLUGIN_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_DNS_PLUGIN, NMDnsPluginClass))
+ 
+ #define NM_DNS_PLUGIN_FAILED "failed"
++#define NM_DNS_PLUGIN_APPEARED "appeared"
+ #define NM_DNS_PLUGIN_CHILD_QUIT "child-quit"
+ 
+ #define IP_CONFIG_IFACE_TAG "dns-manager-iface"
+Index: b/src/org.freedesktop.NetworkManager.conf
+===================================================================
+--- a/src/org.freedesktop.NetworkManager.conf
++++ b/src/org.freedesktop.NetworkManager.conf
+@@ -25,6 +25,13 @@
+                 <allow send_destination="org.freedesktop.NetworkManager.vpnc"/>
+                 <allow send_destination="org.freedesktop.NetworkManager.ssh"/>
+                 <allow send_destination="org.freedesktop.NetworkManager.iodine"/>
++
++                <!-- Allow the custom name for the dnsmasq instance spawned by NM
++                     from the dns dnsmasq plugin to own it's dbus name, and for
++                     messages to be sent to it.
++                 -->
++                <allow own="org.freedesktop.NetworkManager.dnsmasq"/>
++                <allow send_destination="org.freedesktop.NetworkManager.dnsmasq"/>
+         </policy>
+         <policy user="whoopsie">
+                 <allow send_destination="org.freedesktop.NetworkManager"/>
+@@ -137,6 +144,9 @@
+                 <deny send_interface="org.freedesktop.NetworkManager.Settings" send_member="ReloadConnections"/>
+                 <deny send_interface="org.freedesktop.NetworkManager.VPN.Plugin"/>
+                 <deny send_interface="org.freedesktop.NetworkManager.PPP"/>
++
++                <deny own="org.freedesktop.NetworkManager.dnsmasq"/>
++                <deny send_destination="org.freedesktop.NetworkManager.dnsmasq"/>
+         </policy>
+ </busconfig>
+ 

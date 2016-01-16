@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>nm-vpn-plugin-utils</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="libnm-glib-NMVpnPluginUi.html" title="NMVpnPluginUi">
+<link rel="next" href="object-tree.html" title="Object Hierarchy">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="libnm-glib-NMVpnPluginUi.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="object-tree.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#libnm-glib-nm-vpn-plugin-utils.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#libnm-glib-nm-vpn-plugin-utils.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="libnm-glib-nm-vpn-plugin-utils"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libnm-glib-nm-vpn-plugin-utils.top_of_page"></a>nm-vpn-plugin-utils</span></h2>
+<p>nm-vpn-plugin-utils</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="libnm-glib-nm-vpn-plugin-utils.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="libnm-glib-nm-vpn-plugin-utils.html#nm-vpn-plugin-utils-read-vpn-details" title="nm_vpn_plugin_utils_read_vpn_details ()">nm_vpn_plugin_utils_read_vpn_details</a>
+                                                        (<em class="parameter"><code><span class="type">int</span> fd</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> **out_data</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> **out_secrets</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="libnm-glib-nm-vpn-plugin-utils.html#nm-vpn-plugin-utils-get-secret-flags" title="nm_vpn_plugin_utils_get_secret_flags ()">nm_vpn_plugin_utils_get_secret_flags</a>
+                                                        (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *data</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *secret_name</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> *out_flags</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="libnm-glib-nm-vpn-plugin-utils.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="libnm-glib-nm-vpn-plugin-utils.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="nm-vpn-plugin-utils-read-vpn-details"></a><h3>nm_vpn_plugin_utils_read_vpn_details ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_vpn_plugin_utils_read_vpn_details
+                                                        (<em class="parameter"><code><span class="type">int</span> fd</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> **out_data</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> **out_secrets</code></em>);</pre>
+<p>
+Parses key/value pairs from a file descriptor (normally stdin) passed by
+an applet when the applet calls the authentication dialog of the VPN plugin.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fd</code></em> :</span></p></td>
+<td>file descriptor to read from, usually stdin (0)</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>out_data</code></em> :</span></p></td>
+<td>on successful return, a hash table
+(mapping char*:char*) containing the key/value pairs of VPN data items. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>out_secrets</code></em> :</span></p></td>
+<td>on successful return, a hash table
+(mapping char*:char*) containing the key/value pairsof VPN secrets. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if reading values was successful, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-vpn-plugin-utils-get-secret-flags"></a><h3>nm_vpn_plugin_utils_get_secret_flags ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_vpn_plugin_utils_get_secret_flags
+                                                        (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *data</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *secret_name</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> *out_flags</code></em>);</pre>
+<p>
+Given a VPN secret key name, attempts to find the corresponding flags data
+item in <em class="parameter"><code>data</code></em>.  If found, converts the flags data item to
+<a href="https://developer.gnome.org/libnm-util/0.9/NMSetting.html#NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> and returns it.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
+<td>hash table containing VPN key/value pair data items</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>secret_name</code></em> :</span></p></td>
+<td>VPN secret key name for which to retrieve flags for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>out_flags</code></em> :</span></p></td>
+<td>on success, the flags associated with <em class="parameter"><code>secret_name</code></em>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the flag data item was found and successfully converted
+to flags, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

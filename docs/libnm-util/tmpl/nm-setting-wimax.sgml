@@ -1,0 +1,120 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingWimax
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_WIMAX_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingWimaxError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_WIMAX_ERROR_UNKNOWN: 
+@NM_SETTING_WIMAX_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_WIMAX_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_WIMAX_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_wimax_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_WIMAX_NETWORK_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIMAX_MAC_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingWimax ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingWimax:mac-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWimax:network-name ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingWimaxClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+
+<!-- ##### FUNCTION nm_setting_wimax_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wimax_get_network_name ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wimax_get_mac_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

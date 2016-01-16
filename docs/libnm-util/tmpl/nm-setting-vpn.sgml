@@ -1,0 +1,256 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingVPN
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_VPN_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingVpnError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_VPN_ERROR_UNKNOWN: 
+@NM_SETTING_VPN_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_VPN_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_VPN_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_vpn_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_VPN_SERVICE_TYPE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_VPN_USER_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_VPN_DATA ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_VPN_SECRETS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingVPN ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingVPN:data ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingVPN:secrets ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingVPN:service-type ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingVPN:user-name ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingVPNClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### USER_FUNCTION NMVPNIterFunc ##### -->
+<para>
+
+</para>
+
+@key: 
+@value: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_get_service_type ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_get_user_name ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_get_num_data_items ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_add_data_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@item: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_get_data_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_remove_data_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_foreach_data_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@func: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_get_num_secrets ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_add_secret ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@secret: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_get_secret ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_remove_secret ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_vpn_foreach_secret ##### -->
+<para>
+
+</para>
+
+@setting: 
+@func: 
+@user_data: 
+
+

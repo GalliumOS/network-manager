@@ -1,0 +1,25 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Bump last seen for remaining APs after a scan
+
+When considering APs to cull from the scan list, also bump the last seen
+timestamp for the APs we keep.
+---
+ src/devices/wifi/nm-device-wifi.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+Index: b/src/devices/wifi/nm-device-wifi.c
+===================================================================
+--- a/src/devices/wifi/nm-device-wifi.c
++++ b/src/devices/wifi/nm-device-wifi.c
+@@ -1833,8 +1833,10 @@ cull_scan_list (NMDeviceWifi *self)
+ 		 * supplicant in the last scan.
+ 		 */
+ 		if (   nm_ap_get_supplicant_path (ap)
+-		    && g_object_get_data (G_OBJECT (ap), WPAS_REMOVED_TAG) == NULL)
++		    && g_object_get_data (G_OBJECT (ap), WPAS_REMOVED_TAG) == NULL) {
++			nm_ap_set_last_seen (ap, (guint32) time (NULL));
+ 			continue;
++		}
+ 
+ 		last_seen = nm_ap_get_last_seen (ap);
+ 		if (!last_seen || last_seen + prune_interval_s < now)

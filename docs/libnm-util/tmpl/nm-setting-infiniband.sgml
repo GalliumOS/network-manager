@@ -1,0 +1,187 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingInfiniband
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_INFINIBAND_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingInfinibandError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_INFINIBAND_ERROR_UNKNOWN: 
+@NM_SETTING_INFINIBAND_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_INFINIBAND_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_INFINIBAND_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_infiniband_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_INFINIBAND_MAC_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_INFINIBAND_MTU ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_INFINIBAND_TRANSPORT_MODE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_INFINIBAND_P_KEY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_INFINIBAND_PARENT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingInfiniband ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingInfiniband:mac-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingInfiniband:mtu ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingInfiniband:p-key ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingInfiniband:parent ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingInfiniband:transport-mode ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingInfinibandClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_infiniband_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_infiniband_get_mac_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_infiniband_get_mtu ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_infiniband_get_transport_mode ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_infiniband_get_p_key ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_infiniband_get_parent ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

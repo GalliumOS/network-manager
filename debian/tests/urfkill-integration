@@ -1,0 +1,100 @@
+#!/bin/sh
+
+set -e
+
+echo "+++ Building / adding fake-rfkill.ko"
+make -f debian/tests/Makefile fake-rfkill
+insmod debian/tests/fake-rfkill.ko
+
+fake_id=$(rfkill list | grep fake | awk -F: '{ print $1; }')
+echo "+++ fake-rfkill.ko is device $fake_id"
+echo
+
+
+echo "--- Testing killswitch bringup to match NM state: when URFKILL doesn't run"
+echo "+++ stopping urfkill"
+# ignore failure, only here, because urfkill probably isn't running yet.
+service urfkill stop || true
+echo "+++ unblocking device $fake_id"
+rfkill unblock $fake_id
+echo "+++ stopping network-manager"
+service network-manager stop || true
+echo "+++ blocking device $fake_id"
+rfkill block $fake_id
+echo "+++ starting network-manager"
+service network-manager start
+
+echo "+++ Waiting for the devices to settle"
+sleep 30
+
+echo -n "=== NetworkManager state should now be \"enabled\": "
+LC_MESSAGES=C nmcli radio wifi
+LC_MESSAGES=C nmcli radio wifi | grep -qc enabled
+echo
+
+echo -n "=== NM saved state: "
+grep WirelessEnabled /var/lib/NetworkManager/NetworkManager.state
+grep -qc WirelessEnabled=true /var/lib/NetworkManager/NetworkManager.state
+echo
+echo
+
+echo "--- Testing killswitch bringup when URFKILL is running: follow URfkill signals"
+echo "+++ stopping network-manager"
+service network-manager stop
+echo "+++ starting urfkill"
+service urfkill start
+sleep 15
+echo "+++ blocking device $fake_id"
+rfkill block $fake_id
+rfkill list
+sleep 5
+echo "+++ starting network-manager"
+service network-manager start
+
+echo "+++ Waiting for the devices to settle"
+sleep 30
+
+echo -n "=== NetworkManager state should now be \"disabled\": "
+LC_MESSAGES=C nmcli radio wifi
+LC_MESSAGES=C nmcli radio wifi | grep -qc disabled
+echo
+
+echo -n "=== NM saved state: "
+grep WirelessEnabled /var/lib/NetworkManager/NetworkManager.state
+#grep -qc WirelessEnabled=false /var/lib/NetworkManager/NetworkManager.state
+echo
+echo
+
+echo "+++ Asking urfkill to unblock device $fake_id"
+dbus-send --print-reply --system --dest=org.freedesktop.URfkill /org/freedesktop/URfkill org.freedesktop.URfkill.BlockIdx uint32:$fake_id boolean:false
+sleep 5
+echo -n "=== NetworkManager state should now be \"enabled\": "
+LC_MESSAGES=C nmcli radio wifi
+LC_MESSAGES=C nmcli radio wifi | grep -qc enabled
+echo
+
+echo "+++ Asking urfkill to block device $fake_id again"
+dbus-send --print-reply --system --dest=org.freedesktop.URfkill /org/freedesktop/URfkill org.freedesktop.URfkill.BlockIdx uint32:$fake_id boolean:true
+sleep 5
+echo -n "=== NetworkManager state should now be \"disabled\": "
+LC_MESSAGES=C nmcli radio wifi
+LC_MESSAGES=C nmcli radio wifi | grep -qc disabled
+echo
+echo
+
+echo "--- Removing fake-rfkill, aggregate state should get back to enabled"
+rmmod fake-rfkill
+sleep 5
+echo -n "=== Checking that the fake device $fake_id has disappeared: "
+rfkill list | ( ! grep -qc fake || exit 1 ) && echo yes || echo no
+
+echo -n "=== NetworkManager state should now be \"enabled\": "
+LC_MESSAGES=C nmcli radio wifi
+LC_MESSAGES=C nmcli radio wifi | grep -qc enabled
+echo
+
+#cleanup
+make -f debian/tests/Makefile clean-rfkill
+
+echo OK
+exit 0

@@ -1,0 +1,702 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMDeviceWimax</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="NMDeviceBt.html" title="NMDeviceBt">
+<link rel="next" href="NMDeviceAdsl.html" title="NMDeviceAdsl">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMDeviceBt.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="NMDeviceAdsl.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMDeviceWimax.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMDeviceWimax.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMDeviceWimax.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMDeviceWimax.implemented-interfaces" class="shortcut">Implemented Interfaces</a>
+                   | 
+                  <a href="#NMDeviceWimax.properties" class="shortcut">Properties</a>
+                   | 
+                  <a href="#NMDeviceWimax.signals" class="shortcut">Signals</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMDeviceWimax"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMDeviceWimax.top_of_page"></a>NMDeviceWimax</span></h2>
+<p>NMDeviceWimax</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMDeviceWimax.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">enum                <a class="link" href="NMDeviceWimax.html#NMDeviceWimaxError" title="enum NMDeviceWimaxError">NMDeviceWimaxError</a>;
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-ERROR:CAPS" title="NM_DEVICE_WIMAX_ERROR">NM_DEVICE_WIMAX_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMDeviceWimax.html#nm-device-wimax-error-quark" title="nm_device_wimax_error_quark ()">nm_device_wimax_error_quark</a>         (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-HW-ADDRESS:CAPS" title="NM_DEVICE_WIMAX_HW_ADDRESS">NM_DEVICE_WIMAX_HW_ADDRESS</a>
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-ACTIVE-NSP:CAPS" title="NM_DEVICE_WIMAX_ACTIVE_NSP">NM_DEVICE_WIMAX_ACTIVE_NSP</a>
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-CENTER-FREQUENCY:CAPS" title="NM_DEVICE_WIMAX_CENTER_FREQUENCY">NM_DEVICE_WIMAX_CENTER_FREQUENCY</a>
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-RSSI:CAPS" title="NM_DEVICE_WIMAX_RSSI">NM_DEVICE_WIMAX_RSSI</a>
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-CINR:CAPS" title="NM_DEVICE_WIMAX_CINR">NM_DEVICE_WIMAX_CINR</a>
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-TX-POWER:CAPS" title="NM_DEVICE_WIMAX_TX_POWER">NM_DEVICE_WIMAX_TX_POWER</a>
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-BSID:CAPS" title="NM_DEVICE_WIMAX_BSID">NM_DEVICE_WIMAX_BSID</a>
+#define             <a class="link" href="NMDeviceWimax.html#NM-DEVICE-WIMAX-NSPS:CAPS" title="NM_DEVICE_WIMAX_NSPS">NM_DEVICE_WIMAX_NSPS</a>
+                    <a class="link" href="NMDeviceWimax.html#NMDeviceWimax-struct" title="NMDeviceWimax">NMDeviceWimax</a>;
+                    <a class="link" href="NMDeviceWimax.html#NMDeviceWimaxClass" title="NMDeviceWimaxClass">NMDeviceWimaxClass</a>;
+<a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="NMDeviceWimax.html#nm-device-wimax-new" title="nm_device_wimax_new ()">nm_device_wimax_new</a>                 (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-hw-address" title="nm_device_wimax_get_hw_address ()">nm_device_wimax_get_hw_address</a>      (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);
+<a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="returnvalue">NMWimaxNsp</span></a> *        <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-active-nsp" title="nm_device_wimax_get_active_nsp ()">nm_device_wimax_get_active_nsp</a>      (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);
+<a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="returnvalue">NMWimaxNsp</span></a> *        <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-nsp-by-path" title="nm_device_wimax_get_nsp_by_path ()">nm_device_wimax_get_nsp_by_path</a>     (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-nsps" title="nm_device_wimax_get_nsps ()">nm_device_wimax_get_nsps</a>            (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-center-frequency" title="nm_device_wimax_get_center_frequency ()">nm_device_wimax_get_center_frequency</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-rssi" title="nm_device_wimax_get_rssi ()">nm_device_wimax_get_rssi</a>            (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-cinr" title="nm_device_wimax_get_cinr ()">nm_device_wimax_get_cinr</a>            (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-tx-power" title="nm_device_wimax_get_tx_power ()">nm_device_wimax_get_tx_power</a>        (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMDeviceWimax.html#nm-device-wimax-get-bsid" title="nm_device_wimax_get_bsid ()">nm_device_wimax_get_bsid</a>            (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWimax.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+         +----<a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+               +----NMDeviceWimax
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWimax.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceWimax implements
+ <a href="http://library.gnome.org/devel/gio/unstable/GInitable.html">GInitable</a> and  <a href="http://library.gnome.org/devel/gio/unstable/GAsyncInitable.html">GAsyncInitable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWimax.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax--active-nsp" title='The "active-nsp" property'>active-nsp</a>"               <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>*           : Read
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax--bsid" title='The "bsid" property'>bsid</a>"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax--center-frequency" title='The "center-frequency" property'>center-frequency</a>"         <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax--cinr" title='The "cinr" property'>cinr</a>"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax--hw-address" title='The "hw-address" property'>hw-address</a>"               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax--nsps" title='The "nsps" property'>nsps</a>"                     <span class="type">NMObjectArray</span>*        : Read
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax--rssi" title='The "rssi" property'>rssi</a>"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax--tx-power" title='The "tx-power" property'>tx-power</a>"                 <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWimax.signals"></a><h2>Signals</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax-nsp-added" title='The "nsp-added" signal'>nsp-added</a>"                                      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a>
+  "<a class="link" href="NMDeviceWimax.html#NMDeviceWimax-nsp-removed" title='The "nsp-removed" signal'>nsp-removed</a>"                                    : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWimax.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWimax.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NMDeviceWimaxError"></a><h3>enum NMDeviceWimaxError</h3>
+<pre class="programlisting">typedef enum {
+	NM_DEVICE_WIMAX_ERROR_UNKNOWN = 0,              /*&lt; nick=UnknownError &gt;*/
+	NM_DEVICE_WIMAX_ERROR_NOT_WIMAX_CONNECTION,     /*&lt; nick=NotWimaxConnection &gt;*/
+	NM_DEVICE_WIMAX_ERROR_INVALID_WIMAX_CONNECTION, /*&lt; nick=InvalidWimaxConnection &gt;*/
+	NM_DEVICE_WIMAX_ERROR_INVALID_DEVICE_MAC,       /*&lt; nick=InvalidDeviceMac &gt;*/
+	NM_DEVICE_WIMAX_ERROR_MAC_MISMATCH,             /*&lt; nick=MacMismatch &gt;*/
+} NMDeviceWimaxError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-DEVICE-WIMAX-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_WIMAX_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-WIMAX-ERROR-NOT-WIMAX-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_WIMAX_ERROR_NOT_WIMAX_CONNECTION</code></span></p></td>
+<td>the connection was not of WiMax type
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-WIMAX-ERROR-INVALID-WIMAX-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_WIMAX_ERROR_INVALID_WIMAX_CONNECTION</code></span></p></td>
+<td>the WiMax connection was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-WIMAX-ERROR-INVALID-DEVICE-MAC:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_WIMAX_ERROR_INVALID_DEVICE_MAC</code></span></p></td>
+<td>the device's MAC was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-WIMAX-ERROR-MAC-MISMATCH:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_WIMAX_ERROR_MAC_MISMATCH</code></span></p></td>
+<td>the MACs of the connection and the device mismatched
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-ERROR:CAPS"></a><h3>NM_DEVICE_WIMAX_ERROR</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_ERROR nm_device_wimax_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-error-quark"></a><h3>nm_device_wimax_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_device_wimax_error_quark         (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_WIMAX_HW_ADDRESS</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_HW_ADDRESS       "hw-address"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-ACTIVE-NSP:CAPS"></a><h3>NM_DEVICE_WIMAX_ACTIVE_NSP</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_ACTIVE_NSP       "active-nsp"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-CENTER-FREQUENCY:CAPS"></a><h3>NM_DEVICE_WIMAX_CENTER_FREQUENCY</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_CENTER_FREQUENCY "center-frequency"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-RSSI:CAPS"></a><h3>NM_DEVICE_WIMAX_RSSI</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_RSSI             "rssi"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-CINR:CAPS"></a><h3>NM_DEVICE_WIMAX_CINR</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_CINR             "cinr"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-TX-POWER:CAPS"></a><h3>NM_DEVICE_WIMAX_TX_POWER</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_TX_POWER         "tx-power"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-BSID:CAPS"></a><h3>NM_DEVICE_WIMAX_BSID</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_BSID             "bsid"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-WIMAX-NSPS:CAPS"></a><h3>NM_DEVICE_WIMAX_NSPS</h3>
+<pre class="programlisting">#define NM_DEVICE_WIMAX_NSPS             "nsps"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax-struct"></a><h3>NMDeviceWimax</h3>
+<pre class="programlisting">typedef struct _NMDeviceWimax NMDeviceWimax;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimaxClass"></a><h3>NMDeviceWimaxClass</h3>
+<pre class="programlisting">typedef struct {
+	NMDeviceClass parent;
+
+	/* Signals */
+	void (*nsp_added)   (NMDeviceWimax *self, NMWimaxNsp *nsp);
+	void (*nsp_removed) (NMDeviceWimax *self, NMWimaxNsp *nsp);
+} NMDeviceWimaxClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-new"></a><h3>nm_device_wimax_new ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           nm_device_wimax_new                 (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>the <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
+<td>the D-Bus object path of the WiMAX device</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new WiMAX device. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-hw-address"></a><h3>nm_device_wimax_get_hw_address ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_device_wimax_get_hw_address      (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);</pre>
+<p>
+Gets the hardware (MAC) address of the <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>wimax</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the hardware address. This is the internal string used by the
+device, and must not be modified.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-active-nsp"></a><h3>nm_device_wimax_get_active_nsp ()</h3>
+<pre class="programlisting"><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="returnvalue">NMWimaxNsp</span></a> *        nm_device_wimax_get_active_nsp      (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);</pre>
+<p>
+Gets the active <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>wimax</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the access point or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is active. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-nsp-by-path"></a><h3>nm_device_wimax_get_nsp_by_path ()</h3>
+<pre class="programlisting"><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="returnvalue">NMWimaxNsp</span></a> *        nm_device_wimax_get_nsp_by_path     (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<p>
+Gets a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> by path.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>wimax</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
+<td>the object path of the NSP</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the access point or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is found. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-nsps"></a><h3>nm_device_wimax_get_nsps ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   nm_device_wimax_get_nsps            (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);</pre>
+<p>
+Gets all the scanned NSPs of the <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>wimax</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing
+all the scanned <a href="NMWimaxNsp.html"><span class="type">NMWimaxNsps</span></a>.
+The returned array is owned by the client and should not be modified. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMClient.WimaxNsp]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-center-frequency"></a><h3>nm_device_wimax_get_center_frequency ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               nm_device_wimax_get_center_frequency
+                                                        (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<p>
+Gets the center frequency (in KHz) of the radio channel the device is using
+to communicate with the network when connected.  Has no meaning when the
+device is not connected.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the center frequency in KHz, or 0</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-rssi"></a><h3>nm_device_wimax_get_rssi ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                nm_device_wimax_get_rssi            (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<p>
+Gets the RSSI of the current radio link in dBm.  This value indicates how
+strong the raw received RF signal from the base station is, but does not
+indicate the overall quality of the radio link.  Has no meaning when the
+device is not connected.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the RSSI in dBm, or 0</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-cinr"></a><h3>nm_device_wimax_get_cinr ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                nm_device_wimax_get_cinr            (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<p>
+Gets the CINR (Carrier to Interference + Noise Ratio) of the current radio
+link in dB.  CINR is a more accurate measure of radio link quality.  Has no
+meaning when the device is not connected.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the CINR in dB, or 0</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-tx-power"></a><h3>nm_device_wimax_get_tx_power ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                nm_device_wimax_get_tx_power        (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<p>
+Average power of the last burst transmitted by the device, in units of
+0.5 dBm.  i.e. a TxPower of -11 represents an actual device TX power of
+-5.5 dBm.  Has no meaning when the device is not connected.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the TX power in dBm, or 0</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wimax-get-bsid"></a><h3>nm_device_wimax_get_bsid ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_device_wimax_get_bsid            (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<p>
+Gets the ID of the serving Base Station when the device is connected.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the ID of the serving Base Station, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWimax.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceWimax--active-nsp"></a><h3>The <code class="literal">"active-nsp"</code> property</h3>
+<pre class="programlisting">  "active-nsp"               <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>*           : Read</pre>
+<p>
+The active <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> of the device.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax--bsid"></a><h3>The <code class="literal">"bsid"</code> property</h3>
+<pre class="programlisting">  "bsid"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read</pre>
+<p>
+The ID of the serving base station as received from the network.  Has
+no meaning when the device is not connected.
+</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax--center-frequency"></a><h3>The <code class="literal">"center-frequency"</code> property</h3>
+<pre class="programlisting">  "center-frequency"         <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The center frequency (in KHz) of the radio channel the device is using to
+communicate with the network when connected.  Has no meaning when the
+device is not connected.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax--cinr"></a><h3>The <code class="literal">"cinr"</code> property</h3>
+<pre class="programlisting">  "cinr"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read</pre>
+<p>
+CINR (Carrier to Interference + Noise Ratio) of the current radio link
+in dB.  CINR is a more accurate measure of radio link quality.  Has no
+meaning when the device is not connected.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax--hw-address"></a><h3>The <code class="literal">"hw-address"</code> property</h3>
+<pre class="programlisting">  "hw-address"               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read</pre>
+<p>
+The hardware (MAC) address of the device.
+</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax--nsps"></a><h3>The <code class="literal">"nsps"</code> property</h3>
+<pre class="programlisting">  "nsps"                     <span class="type">NMObjectArray</span>*        : Read</pre>
+<p>
+List of all WiMAX Network Service Providers the device can see.
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax--rssi"></a><h3>The <code class="literal">"rssi"</code> property</h3>
+<pre class="programlisting">  "rssi"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read</pre>
+<p>
+RSSI of the current radio link in dBm.  This value indicates how strong
+the raw received RF signal from the base station is, but does not
+indicate the overall quality of the radio link.  Has no meaning when the
+device is not connected.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax--tx-power"></a><h3>The <code class="literal">"tx-power"</code> property</h3>
+<pre class="programlisting">  "tx-power"                 <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read</pre>
+<p>
+Average power of the last burst transmitted by the device, in units of
+0.5 dBm.  i.e. a TxPower of -11 represents an actual device TX power of
+-5.5 dBm.  Has no meaning when the device is not connected.
+</p>
+<p>Default value: 0</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceWimax.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="NMDeviceWimax-nsp-added"></a><h3>The <code class="literal">"nsp-added"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self,
+                                                        <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>       *nsp,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>       user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a></pre>
+<p>
+Notifies that a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> is added to the wimax device.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>the wimax device that received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nsp</code></em> :</span></p></td>
+<td>the new NSP</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWimax-nsp-removed"></a><h3>The <code class="literal">"nsp-removed"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self,
+                                                        <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>       *nsp,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>       user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a></pre>
+<p>
+Notifies that a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> is removed from the wimax device.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>the wimax device that received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nsp</code></em> :</span></p></td>
+<td>the removed NSP</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

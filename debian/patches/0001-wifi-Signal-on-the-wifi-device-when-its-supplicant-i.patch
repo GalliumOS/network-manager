@@ -1,0 +1,101 @@
+From dfb178d6597099fc0c85e70e727601a1c5542c79 Mon Sep 17 00:00:00 2001
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Date: Tue, 11 Nov 2014 12:00:48 -0500
+Subject: [PATCH 1/2] wifi: Signal on the wifi device when its supplicant is
+ done scanning.
+
+This makes it possible for applications outside NetworkManager to listen for
+that signal, and use it along with RequestScan to get very up-to-date scan
+results.
+
+Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+---
+ introspection/nm-device-wifi.xml                 |    6 ++++++
+ src/devices/wifi/nm-device-wifi.c                |   11 +++++++++++
+ src/devices/wifi/nm-device-wifi.h                |    1 +
+ src/supplicant-manager/nm-supplicant-interface.c |    5 +++--
+ 4 files changed, 21 insertions(+), 2 deletions(-)
+
+Index: b/introspection/nm-device-wifi.xml
+===================================================================
+--- a/introspection/nm-device-wifi.xml
++++ b/introspection/nm-device-wifi.xml
+@@ -118,6 +118,12 @@
+         </tp:docstring>
+     </signal>
+ 
++    <signal name="ScanDone">
++        <tp:docstring>
++            Emitted when the device has finished scanning for new APs.
++        </tp:docstring>
++    </signal>
++
+     <tp:flags name="NM_802_11_DEVICE_CAP" type="u">
+       <tp:docstring>
+         Flags describing the capabilities of a wireless device.
+Index: b/src/devices/wifi/nm-device-wifi.c
+===================================================================
+--- a/src/devices/wifi/nm-device-wifi.c
++++ b/src/devices/wifi/nm-device-wifi.c
+@@ -106,6 +106,7 @@ enum {
+ 	ACCESS_POINT_ADDED,
+ 	ACCESS_POINT_REMOVED,
+ 	SCANNING_ALLOWED,
++	SCAN_DONE,
+ 
+ 	LAST_SIGNAL
+ };
+@@ -1608,6 +1609,8 @@ supplicant_iface_scan_done_cb (NMSupplic
+ 	            nm_device_get_iface (NM_DEVICE (self)),
+ 	            success ? "successful" : "failed");
+ 
++	g_signal_emit (self, signals[SCAN_DONE], 0, NULL);
++
+ 	schedule_scan (self, success);
+ 
+ 	/* Ensure that old APs get removed, which otherwise only
+@@ -3437,6 +3440,14 @@ nm_device_wifi_class_init (NMDeviceWifiC
+ 		              scanning_allowed_accumulator, NULL, NULL,
+ 		              G_TYPE_BOOLEAN, 0);
+ 
++	signals[SCAN_DONE] =
++		g_signal_new ("scan-done",
++		              G_OBJECT_CLASS_TYPE (object_class),
++		              G_SIGNAL_RUN_FIRST,
++		              G_STRUCT_OFFSET (NMDeviceWifiClass, scan_done),
++		              NULL, NULL, NULL,
++		              G_TYPE_NONE, 0);
++
+ 	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
+ 	                                        G_TYPE_FROM_CLASS (klass),
+ 	                                        &dbus_glib_nm_device_wifi_object_info);
+Index: b/src/devices/wifi/nm-device-wifi.h
+===================================================================
+--- a/src/devices/wifi/nm-device-wifi.h
++++ b/src/devices/wifi/nm-device-wifi.h
+@@ -82,6 +82,7 @@ struct _NMDeviceWifiClass
+ 	void (*access_point_added)   (NMDeviceWifi *device, NMAccessPoint *ap);
+ 	void (*access_point_removed) (NMDeviceWifi *device, NMAccessPoint *ap);
+ 	gboolean (*scanning_allowed) (NMDeviceWifi *device);
++	void (*scan_done) (NMDeviceWifi *device);
+ };
+ 
+ 
+Index: b/src/supplicant-manager/nm-supplicant-interface.c
+===================================================================
+--- a/src/supplicant-manager/nm-supplicant-interface.c
++++ b/src/supplicant-manager/nm-supplicant-interface.c
+@@ -1177,10 +1177,11 @@ scan_request_cb (DBusGProxy *proxy, DBus
+ 	GError *err = NULL;
+ 
+ 	nm_call_store_remove (priv->other_pcalls, proxy, call_id);
+-	if (!dbus_g_proxy_end_call (proxy, call_id, &err, G_TYPE_INVALID))
++	if (!dbus_g_proxy_end_call (proxy, call_id, &err, G_TYPE_INVALID)) {
+ 		nm_log_warn (LOGD_SUPPLICANT, "Could not get scan request result: %s", err->message);
++		g_signal_emit (self, signals[SCAN_DONE], 0, FALSE);
++	}
+ 
+-	g_signal_emit (self, signals[SCAN_DONE], 0, err ? FALSE : TRUE);
+ 	g_clear_error (&err);
+ }
+ 

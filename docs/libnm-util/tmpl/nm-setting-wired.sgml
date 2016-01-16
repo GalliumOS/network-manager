@@ -1,0 +1,421 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingWired
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingWiredError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_WIRED_ERROR_UNKNOWN: 
+@NM_SETTING_WIRED_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_WIRED_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_WIRED_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_wired_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_PORT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_SPEED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_DUPLEX ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_AUTO_NEGOTIATE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_MAC_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_CLONED_MAC_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_MAC_ADDRESS_BLACKLIST ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_MTU ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_S390_SUBCHANNELS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_S390_NETTYPE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_WIRED_S390_OPTIONS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingWired ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingWired:auto-negotiate ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:cloned-mac-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:duplex ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:mac-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:mac-address-blacklist ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:mtu ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:port ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:s390-nettype ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:s390-options ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:s390-subchannels ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingWired:speed ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingWiredClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_wired_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_port ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_speed ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_duplex ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_auto_negotiate ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_mac_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_cloned_mac_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_mac_address_blacklist ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_num_mac_blacklist_items ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_mac_blacklist_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_add_mac_blacklist_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@mac: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_remove_mac_blacklist_item ##### -->
+<para>
+
+</para>
+
+@setting: 
+@idx: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_remove_mac_blacklist_item_by_value ##### -->
+<para>
+
+</para>
+
+@setting: 
+@mac: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_clear_mac_blacklist_items ##### -->
+<para>
+
+</para>
+
+@setting: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_mtu ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_s390_subchannels ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_s390_nettype ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_num_s390_options ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_s390_option ##### -->
+<para>
+
+</para>
+
+@setting: 
+@idx: 
+@out_key: 
+@out_value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_s390_option_by_key ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_add_s390_option ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_remove_s390_option ##### -->
+<para>
+
+</para>
+
+@setting: 
+@key: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_wired_get_valid_s390_options ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

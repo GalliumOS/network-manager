@@ -1,0 +1,40 @@
+From: Michael Biebl <biebl@debian.org>
+Date: Sun, 29 Mar 2015 22:57:50 +0200
+Subject: Don't make NetworkManager D-Bus activatable
+
+If the NetworkManager daemon has been stopped manually we don't want it
+to be autostarted by a client request.
+---
+ data/Makefile.am               | 7 -------
+ data/NetworkManager.service.in | 1 -
+ 2 files changed, 8 deletions(-)
+
+diff --git a/data/Makefile.am b/data/Makefile.am
+index e91361a..a7c8070 100644
+--- a/data/Makefile.am
++++ b/data/Makefile.am
+@@ -19,13 +19,6 @@ endif
+ NetworkManager-dispatcher.service: NetworkManager-dispatcher.service.in
+ 	$(edit) $< >$@
+ 
+-servicedir = $(datadir)/dbus-1/system-services
+-service_in_files = org.freedesktop.NetworkManager.service.in
+-service_DATA = $(service_in_files:.service.in=.service)
+-
+-$(service_DATA): $(service_in_files) Makefile
+-	$(edit) $< >$@
+-
+ install-exec-local:
+ 	install -d $(DESTDIR)$(systemdsystemunitdir)/network-online.target.wants
+ 	ln -sf $(systemdsystemunitdir)/NetworkManager-wait-online.service $(DESTDIR)$(systemdsystemunitdir)/network-online.target.wants
+diff --git a/data/NetworkManager.service.in b/data/NetworkManager.service.in
+index 1883b40..5282e5b 100644
+--- a/data/NetworkManager.service.in
++++ b/data/NetworkManager.service.in
+@@ -11,6 +11,5 @@ KillMode=process
+ 
+ [Install]
+ WantedBy=multi-user.target
+-Alias=dbus-org.freedesktop.NetworkManager.service
+ Also=NetworkManager-dispatcher.service
+ 

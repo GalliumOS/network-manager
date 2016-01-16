@@ -1,0 +1,642 @@
+Subject: [PATCH 2/3 v3] Replace Ad-Hoc WPA-None support with IBSS RSN-PSK.
+From: Nicolas Cavallari <cavallar@lri.fr>
+
+This completely removes Ad-Hoc WPA-None support, as it is
+not supported by the linux kernel since a long time,
+have never been standardized and other vendors already
+removed support for it since a long time.  The security
+of the protocol is also comparable to WEP, especially
+when used with TKIP.
+
+Instead, the standard-compliant WPA2/RSN protocol
+is used for IBSS/Ad-Hoc mode.  Compared to WPA-None,
+this protocol uses the classical Four Way Handshake
+for security association and features replay protection.
+
+IBSS RSN-PSK requires wpa_supplicant 1.0 and a recent enough
+kernel (best with >= 3.2, 3.0 is still fine)
+wpa_supplicant only supports the CCMP cipher when
+operating in Ad-Hoc mode; if another cipher is requested,
+wpa_supplicant will use CCMP anyway).
+
+IBSS RSN will only be used when mode=adhoc and key_mgmt=wpa-psk
+and only if the device claims support for it via nl80211.
+---
+ include/NetworkManager.h                               |    4 -
+ libnm-glib/nm-device-wifi.c                            |    3 
+ libnm-util/nm-setting-wireless-security.c              |   53 +++--------------
+ libnm-util/nm-setting-wireless.c                       |   12 ++-
+ libnm-util/nm-utils.c                                  |   29 +++------
+ src/devices/wifi/nm-wifi-ap-utils.c                    |   47 +++++----------
+ src/devices/wifi/nm-wifi-ap.c                          |   43 +++++--------
+ src/platform/wifi/wifi-utils-nl80211.c                 |    3 
+ src/settings/plugins/ifcfg-rh/reader.c                 |   14 +---
+ src/settings/plugins/ifcfg-rh/writer.c                 |    2 
+ src/settings/plugins/ifnet/connection_parser.c         |   47 ++++++---------
+ src/settings/plugins/ifnet/tests/wpa_supplicant.conf   |   12 +++
+ src/supplicant-manager/nm-supplicant-config.c          |    3 
+ src/supplicant-manager/nm-supplicant-settings-verify.c |    2 
+ 14 files changed, 109 insertions(+), 165 deletions(-)
+
+Index: b/include/NetworkManager.h
+===================================================================
+--- a/include/NetworkManager.h
++++ b/include/NetworkManager.h
+@@ -191,6 +191,7 @@ typedef enum {
+  * @NM_WIFI_DEVICE_CAP_RSN: device supports WPA2/RSN authentication
+  * @NM_WIFI_DEVICE_CAP_AP: device supports Access Point mode
+  * @NM_WIFI_DEVICE_CAP_ADHOC: device supports Ad-Hoc mode
++ * @NM_WIFI_DEVICE_CAP_IBSS_RSN: device supports WPA2/RSN in an IBSS network.
+  *
+  * 802.11 specific device encryption and authentication capabilities.
+  **/
+@@ -203,7 +204,8 @@ typedef enum {
+ 	NM_WIFI_DEVICE_CAP_WPA           = 0x00000010,
+ 	NM_WIFI_DEVICE_CAP_RSN           = 0x00000020,
+ 	NM_WIFI_DEVICE_CAP_AP            = 0x00000040,
+-	NM_WIFI_DEVICE_CAP_ADHOC         = 0x00000080
++	NM_WIFI_DEVICE_CAP_ADHOC         = 0x00000080,
++	NM_WIFI_DEVICE_CAP_IBSS_RSN      = 0x00000100
+ } NMDeviceWifiCapabilities;
+ 
+ 
+Index: b/libnm-glib/nm-device-wifi.c
+===================================================================
+--- a/libnm-glib/nm-device-wifi.c
++++ b/libnm-glib/nm-device-wifi.c
+@@ -500,8 +500,7 @@ connection_compatible (NMDevice *device,
+ 	if (s_wsec) {
+ 		/* Connection has security, verify it against the device's capabilities */
+ 		key_mgmt = nm_setting_wireless_security_get_key_mgmt (s_wsec);
+-		if (   !g_strcmp0 (key_mgmt, "wpa-none")
+-		    || !g_strcmp0 (key_mgmt, "wpa-psk")
++		if (   !g_strcmp0 (key_mgmt, "wpa-psk")
+ 		    || !g_strcmp0 (key_mgmt, "wpa-eap")) {
+ 
+ 			/* Is device only WEP capable? */
+Index: b/libnm-util/nm-setting-wireless-security.c
+===================================================================
+--- a/libnm-util/nm-setting-wireless-security.c
++++ b/libnm-util/nm-setting-wireless-security.c
+@@ -841,8 +841,7 @@ need_secrets (NMSetting *setting)
+ 	}
+ 
+ 	/* WPA-PSK infrastructure and adhoc */
+-	if (   (strcmp (priv->key_mgmt, "wpa-none") == 0)
+-	    || (strcmp (priv->key_mgmt, "wpa-psk") == 0)) {
++	if (strcmp (priv->key_mgmt, "wpa-psk") == 0) {
+ 		if (!nm_utils_wpa_psk_valid (priv->psk)) {
+ 			g_ptr_array_add (secrets, NM_SETTING_WIRELESS_SECURITY_PSK);
+ 			return secrets;
+@@ -881,7 +880,7 @@ verify (NMSetting *setting, GSList *all_
+ {
+ 	NMSettingWirelessSecurity *self = NM_SETTING_WIRELESS_SECURITY (setting);
+ 	NMSettingWirelessSecurityPrivate *priv = NM_SETTING_WIRELESS_SECURITY_GET_PRIVATE (self);
+-	const char *valid_key_mgmt[] = { "none", "ieee8021x", "wpa-none", "wpa-psk", "wpa-eap", NULL };
++	const char *valid_key_mgmt[] = { "none", "ieee8021x", "wpa-psk", "wpa-eap", NULL };
+ 	const char *valid_auth_algs[] = { "open", "shared", "leap", NULL };
+ 	const char *valid_protos[] = { "wpa", "rsn", NULL };
+ 	const char *valid_pairwise[] = { "tkip", "ccmp", NULL };
+@@ -1037,41 +1036,13 @@ verify (NMSetting *setting, GSList *all_
+ 		return FALSE;
+ 	}
+ 
+-	if (priv->pairwise) {
+-		const char *wpa_none[] = { "wpa-none", NULL };
+-
+-		/* For ad-hoc connections, pairwise must be "none" */
+-		if (_nm_utils_string_in_list (priv->key_mgmt, wpa_none)) {
+-			GSList *iter;
+-			gboolean found = FALSE;
+-
+-			for (iter = priv->pairwise; iter; iter = g_slist_next (iter)) {
+-				if (!strcmp ((char *) iter->data, "none")) {
+-					found = TRUE;
+-					break;
+-				}
+-			}
+-
+-			/* pairwise cipher list didn't contain "none", which is invalid
+-			 * for WPA adhoc connections.
+-			 */
+-			if (!found) {
+-				g_set_error (error,
+-				             NM_SETTING_WIRELESS_SECURITY_ERROR,
+-				             NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
+-				             _("'%s' connections require '%s' in this property"),
+-				             NM_SETTING_WIRELESS_MODE_ADHOC, "none");
+-				g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME, NM_SETTING_WIRELESS_SECURITY_PAIRWISE);
+-				return FALSE;
+-			}
+-		} else if (!_nm_utils_string_slist_validate (priv->pairwise, valid_pairwise)) {
+-			g_set_error_literal (error,
+-			                     NM_SETTING_WIRELESS_SECURITY_ERROR,
+-			                     NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
+-			                    _("property is invalid"));
+-			g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME, NM_SETTING_WIRELESS_SECURITY_PAIRWISE);
+-			return FALSE;
+-		}
++	if (priv->pairwise && !_nm_utils_string_slist_validate (priv->pairwise, valid_pairwise)) {
++		g_set_error (error,
++		             NM_SETTING_WIRELESS_SECURITY_ERROR,
++		             NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
++		             NM_SETTING_WIRELESS_SECURITY_PAIRWISE);
++		g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME, NM_SETTING_WIRELESS_SECURITY_PAIRWISE);
++		return FALSE;
+ 	}
+ 
+ 	if (priv->group && !_nm_utils_string_slist_validate (priv->group, valid_groups)) {
+@@ -1349,7 +1320,7 @@ nm_setting_wireless_security_class_init
+ 	 * NMSettingWirelessSecurity:key-mgmt:
+ 	 *
+ 	 * Key management used for the connection.  One of "none" (WEP), "ieee8021x"
+-	 * (Dynamic WEP), "wpa-none" (Ad-Hoc WPA-PSK), "wpa-psk" (infrastructure
++	 * (Dynamic WEP), "wpa-psk" (infrastructure or Ad-Hoc
+ 	 * WPA-PSK), or "wpa-eap" (WPA-Enterprise).  This property must be set for
+ 	 * any Wi-Fi connection that uses security.
+ 	 **/
+@@ -1358,8 +1329,8 @@ nm_setting_wireless_security_class_init
+ 		 g_param_spec_string (NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
+ 						  "Key management",
+ 						  "Key management used for the connection.  One of "
+-						  "'none' (WEP), 'ieee8021x' (Dynamic WEP), 'wpa-none' "
+-						  "(WPA-PSK Ad-Hoc), 'wpa-psk' (infrastructure WPA-PSK), "
++						  "'none' (WEP), 'ieee8021x' (Dynamic WEP), 'wpa-psk' "
++						  "(infrastructure or Ad-Hoc WPA-PSK), "
+ 						  "or 'wpa-eap' (WPA-Enterprise).  This property must "
+ 						  "be set for any Wi-Fi connection that uses security.",
+ 						  NULL,
+Index: b/libnm-util/nm-setting-wireless.c
+===================================================================
+--- a/libnm-util/nm-setting-wireless.c
++++ b/libnm-util/nm-setting-wireless.c
+@@ -183,11 +183,13 @@ nm_setting_wireless_ap_security_compatib
+ 	}
+ 
+ 	/* Adhoc WPA */
+-	if (!strcmp (key_mgmt, "wpa-none")) {
+-		if (ap_mode != NM_802_11_MODE_ADHOC)
+-			return FALSE;
+-		/* FIXME: validate ciphers if they're in the beacon */
+-		return TRUE;
++	if (ap_mode == NM_802_11_MODE_ADHOC) {
++		if (!strcmp (key_mgmt, "wpa-psk")) {
++			// FIXME: validate ciphers if the BSSID actually puts WPA/RSN IE in
++			// it's beacon
++			return TRUE;
++		}
++		return FALSE;
+ 	}
+ 
+ 	/* Adhoc WPA2 (ie, RSN IBSS) */
+Index: b/libnm-util/nm-utils.c
+===================================================================
+--- a/libnm-util/nm-utils.c
++++ b/libnm-util/nm-utils.c
+@@ -719,26 +719,17 @@ nm_utils_security_valid (NMUtilsSecurity
+ 	case NMU_SEC_WPA_PSK:
+ 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_WPA))
+ 			return FALSE;
++		if (adhoc)
++			return FALSE;
+ 		if (have_ap) {
+-			/* Ad-Hoc WPA APs won't necessarily have the PSK flag set, and
+-			 * they don't have any pairwise ciphers. */
+-			if (adhoc) {
++			if (ap_wpa & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
+ 				/* coverity[dead_error_line] */
+-				if (   (ap_wpa & NM_802_11_AP_SEC_GROUP_TKIP)
++				if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_TKIP)
+ 				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
+ 					return TRUE;
+-				if (   (ap_wpa & NM_802_11_AP_SEC_GROUP_CCMP)
++				if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_CCMP)
+ 				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
+ 					return TRUE;
+-			} else {
+-				if (ap_wpa & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
+-					if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_TKIP)
+-					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
+-						return TRUE;
+-					if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_CCMP)
+-					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
+-						return TRUE;
+-				}
+ 			}
+ 			return FALSE;
+ 		}
+@@ -747,13 +738,13 @@ nm_utils_security_valid (NMUtilsSecurity
+ 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_RSN))
+ 			return FALSE;
+ 		if (have_ap) {
+-			/* Ad-Hoc WPA APs won't necessarily have the PSK flag set, and
+-			 * they don't have any pairwise ciphers, nor any RSA flags yet. */
+ 			if (adhoc) {
+ 				/* coverity[dead_error_line] */
+-				if (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP)
+-					return TRUE;
+-				if (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP)
++				if (!(wifi_caps & NM_WIFI_DEVICE_CAP_IBSS_RSN))
++					return FALSE;
++				/* Ad-Hoc RSN peers may support TKIP, but we don't. */
++				if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
++				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
+ 					return TRUE;
+ 			} else {
+ 				if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
+Index: b/src/devices/wifi/nm-wifi-ap-utils.c
+===================================================================
+--- a/src/devices/wifi/nm-wifi-ap-utils.c
++++ b/src/devices/wifi/nm-wifi-ap-utils.c
+@@ -271,7 +271,7 @@ verify_wpa_psk (NMSettingWirelessSecurit
+ 	auth_alg = nm_setting_wireless_security_get_auth_alg (s_wsec);
+ 
+ 	if (key_mgmt) {
+-		if (!strcmp (key_mgmt, "wpa-psk") || !strcmp (key_mgmt, "wpa-none")) {
++		if (!strcmp (key_mgmt, "wpa-psk")) {
+ 			if (s_8021x) {
+ 				g_set_error_literal (error,
+ 				                     NM_SETTING_WIRELESS_SECURITY_ERROR,
+@@ -290,43 +290,36 @@ verify_wpa_psk (NMSettingWirelessSecurit
+ 			}
+ 		}
+ 
+-		if (!strcmp (key_mgmt, "wpa-none")) {
+-			if (!adhoc) {
+-				g_set_error_literal (error,
+-				                     NM_SETTING_WIRELESS_SECURITY_ERROR,
+-				                     NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
+-				                     "WPA Ad-Hoc requires an Ad-Hoc mode AP");
+-				return FALSE;
+-			}
++		if (adhoc && !strcmp(key_mgmt, "wpa-psk")) {
+ 
+-			/* Ad-Hoc WPA requires 'wpa' proto, 'none' pairwise, and 'tkip' group */
++			/* Ad-Hoc RSN requires 'rsn' proto, 'ccmp' pairwise, and 'ccmp' group */
+ 			n = nm_setting_wireless_security_get_num_protos (s_wsec);
+ 			tmp = (n > 0) ? nm_setting_wireless_security_get_proto (s_wsec, 0) : NULL;
+-			if (n > 1 || !tmp || strcmp (tmp, "wpa")) {
++			if (n > 1 || !tmp || strcmp (tmp, "rsn")) {
+ 				g_set_error_literal (error,
+ 				                     NM_SETTING_WIRELESS_SECURITY_ERROR,
+ 				                     NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
+-				                     "WPA Ad-Hoc requires 'wpa' proto");
++				                     "WPA Ad-Hoc requires 'rsn' proto");
+ 				return FALSE;
+ 			}
+ 
+ 			n = nm_setting_wireless_security_get_num_pairwise (s_wsec);
+ 			tmp = (n > 0) ? nm_setting_wireless_security_get_pairwise (s_wsec, 0) : NULL;
+-			if (n > 1 || g_strcmp0 (tmp, "none")) {
++			if (n > 1 || g_strcmp0 (tmp, "ccmp")) {
+ 				g_set_error_literal (error,
+ 				                     NM_SETTING_WIRELESS_SECURITY_ERROR,
+ 				                     NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
+-				                     "WPA Ad-Hoc requires 'none' pairwise cipher");
++				                     "WPA Ad-Hoc requires 'ccmp' pairwise cipher");
+ 				return FALSE;
+ 			}
+ 
+ 			n = nm_setting_wireless_security_get_num_groups (s_wsec);
+ 			tmp = (n > 0) ? nm_setting_wireless_security_get_group (s_wsec, 0) : NULL;
+-			if (n > 1 || !tmp || strcmp (tmp, "tkip")) {
++			if (n > 1 || !tmp || strcmp (tmp, "ccmp")) {
+ 				g_set_error_literal (error,
+ 				                     NM_SETTING_WIRELESS_SECURITY_ERROR,
+ 				                     NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
+-				                     "WPA Ad-Hoc requires 'tkip' group cipher");
++				                     "WPA Ad-Hoc requires 'ccmp' group cipher");
+ 				return FALSE;
+ 			}
+ 		}
+@@ -419,7 +412,7 @@ verify_adhoc (NMSettingWirelessSecurity
+ 	}
+ 
+ 	if (adhoc) {
+-		if (key_mgmt && strcmp (key_mgmt, "wpa-none") && strcmp (key_mgmt, "none")) {
++		if (key_mgmt && strcmp (key_mgmt, "wpa-psk") && strcmp (key_mgmt, "none")) {
+ 			g_set_error_literal (error,
+ 			                     NM_SETTING_WIRELESS_SECURITY_ERROR,
+ 			                     NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
+@@ -450,14 +443,6 @@ verify_adhoc (NMSettingWirelessSecurity
+ 			                     "Ad-Hoc mode requires 'open' authentication");
+ 			return FALSE;
+ 		}
+-	} else {
+-		if (key_mgmt && !strcmp (key_mgmt, "wpa-none")) {
+-			g_set_error_literal (error,
+-			                     NM_SETTING_WIRELESS_SECURITY_ERROR,
+-			                     NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
+-			                     "AP mode is Infrastructure but setting requires Ad-Hoc security");
+-			return FALSE;
+-		}
+ 	}
+ 
+ 	return TRUE;
+@@ -659,11 +644,13 @@ nm_ap_utils_complete_connection (const G
+ 		return FALSE;
+ 
+ 	if (adhoc) {
+-		g_object_set (s_wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-none", NULL);
+-		/* Ad-Hoc does not support RSN/WPA2 */
+-		nm_setting_wireless_security_add_proto (s_wsec, "wpa");
+-		nm_setting_wireless_security_add_pairwise (s_wsec, "none");
+-		nm_setting_wireless_security_add_group (s_wsec, "tkip");
++		g_object_set (s_wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-psk",
++		              NM_SETTING_WIRELESS_SECURITY_AUTH_ALG, "open",
++		              NULL);
++		/* Ad-Hoc does not support WPA-none anymore */
++		nm_setting_wireless_security_add_proto (s_wsec, "rsn");
++		nm_setting_wireless_security_add_pairwise (s_wsec, "ccmp");
++		nm_setting_wireless_security_add_group (s_wsec, "ccmp");
+ 	} else if (s_8021x) {
+ 		g_object_set (s_wsec,
+ 		              NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-eap",
+Index: b/src/devices/wifi/nm-wifi-ap.c
+===================================================================
+--- a/src/devices/wifi/nm-wifi-ap.c
++++ b/src/devices/wifi/nm-wifi-ap.c
+@@ -602,6 +602,7 @@ nm_ap_new_fake_from_connection (NMConnec
+ 	guint32 channel;
+ 	NM80211ApSecurityFlags flags;
+ 	gboolean psk = FALSE, eap = FALSE;
++	gboolean adhoc = FALSE;
+ 
+ 	g_return_val_if_fail (connection != NULL, NULL);
+ 
+@@ -622,9 +623,10 @@ nm_ap_new_fake_from_connection (NMConnec
+ 	if (mode) {
+ 		if (!strcmp (mode, "infrastructure"))
+ 			nm_ap_set_mode (ap, NM_802_11_MODE_INFRA);
+-		else if (!strcmp (mode, "adhoc"))
++		else if (!strcmp (mode, "adhoc")) {
+ 			nm_ap_set_mode (ap, NM_802_11_MODE_ADHOC);
+-		else if (!strcmp (mode, "ap")) {
++			adhoc = TRUE;
++		} else if (!strcmp (mode, "ap")) {
+ 			nm_ap_set_mode (ap, NM_802_11_MODE_INFRA);
+ 			NM_AP_GET_PRIVATE (ap)->hotspot = TRUE;
+ 		} else
+@@ -661,7 +663,7 @@ nm_ap_new_fake_from_connection (NMConnec
+ 
+ 	psk = !strcmp (key_mgmt, "wpa-psk");
+ 	eap = !strcmp (key_mgmt, "wpa-eap");
+-	if (psk || eap) {
++	if (!adhoc && (psk || eap)) {
+ 		if (has_proto (s_wireless_sec, PROTO_WPA)) {
+ 			flags = nm_ap_get_wpa_flags (ap);
+ 			flags |= eap ? NM_802_11_AP_SEC_KEY_MGMT_802_1X : NM_802_11_AP_SEC_KEY_MGMT_PSK;
+@@ -675,42 +677,31 @@ nm_ap_new_fake_from_connection (NMConnec
+ 
+ 		add_pair_ciphers (ap, s_wireless_sec);
+ 		add_group_ciphers (ap, s_wireless_sec);
+-	} else if (!strcmp (key_mgmt, "wpa-none")) {
+-		guint32 i;
+-
+-		/* Ad-Hoc has special requirements: proto=WPA, pairwise=(none), and
+-		 * group=TKIP/CCMP (but not both).
++	} else if (adhoc && psk) {
++		/* Ad-Hoc has special requirements: proto=RSN, pairwise=CCMP, and
++		 * group=CCMP.
+ 		 */
+ 
+ 		flags = nm_ap_get_wpa_flags (ap);
+ 		flags |= NM_802_11_AP_SEC_KEY_MGMT_PSK;
+ 
+-		/* Clear ciphers; pairwise must be unset anyway, and group gets set below */
++		/* Clear ciphers; only ccmp is supported anyway */
+ 		flags &= ~(  NM_802_11_AP_SEC_PAIR_WEP40
+ 		           | NM_802_11_AP_SEC_PAIR_WEP104
+ 		           | NM_802_11_AP_SEC_PAIR_TKIP
+-		           | NM_802_11_AP_SEC_PAIR_CCMP
+ 		           | NM_802_11_AP_SEC_GROUP_WEP40
+ 		           | NM_802_11_AP_SEC_GROUP_WEP104
+-		           | NM_802_11_AP_SEC_GROUP_TKIP
+-		           | NM_802_11_AP_SEC_GROUP_CCMP);
+-
+-		for (i = 0; i < nm_setting_wireless_security_get_num_groups (s_wireless_sec); i++) {
+-			if (!strcmp (nm_setting_wireless_security_get_group (s_wireless_sec, i), "ccmp")) {
+-				flags |= NM_802_11_AP_SEC_GROUP_CCMP;
+-				break;
+-			}
+-		}
++		           | NM_802_11_AP_SEC_GROUP_TKIP);
+ 
+-		/* Default to TKIP since not all WPA-capable cards can do CCMP */
+-		if (!(flags & NM_802_11_AP_SEC_GROUP_CCMP))
+-			flags |= NM_802_11_AP_SEC_GROUP_TKIP;
++		flags |= NM_802_11_AP_SEC_GROUP_CCMP;
++		flags |= NM_802_11_AP_SEC_PAIR_CCMP;
+ 
+-		nm_ap_set_wpa_flags (ap, flags);
++		nm_ap_set_rsn_flags (ap, flags);
+ 
+-		/* Don't use Ad-Hoc RSN yet */
+-		nm_ap_set_rsn_flags (ap, NM_802_11_AP_SEC_NONE);
+-	}
++		/* Don't use Ad-Hoc WPA anymore */
++		nm_ap_set_wpa_flags (ap, NM_802_11_AP_SEC_NONE);
++	} else
++		goto error;
+ 
+ done:
+ 	return ap;
+Index: b/src/settings/plugins/ifcfg-rh/reader.c
+===================================================================
+--- a/src/settings/plugins/ifcfg-rh/reader.c
++++ b/src/settings/plugins/ifcfg-rh/reader.c
+@@ -2531,9 +2531,8 @@ fill_wpa_ciphers (shvarFile *ifcfg,
+ 				PARSE_WARNING ("ignoring group cipher '%s' (only one group cipher allowed "
+ 				               "in Ad-Hoc mode)", *iter);
+ 				continue;
+-			} else if (!group) {
+-				PARSE_WARNING ("ignoring pairwise cipher '%s' (pairwise not used "
+-				               "in Ad-Hoc mode)", *iter);
++			} else if (!group && (i > 0)) {
++				PARSE_WARNING ("ignoring pairwise cipher '%s' (only one pairwise cipher allowed in Ad-Hoc mode)", *iter);
+ 				continue;
+ 			}
+ 		}
+@@ -3360,8 +3359,8 @@ make_wpa_setting (shvarFile *ifcfg,
+ 
+ 	/* WPA and/or RSN */
+ 	if (adhoc) {
+-		/* Ad-Hoc mode only supports WPA proto for now */
+-		nm_setting_wireless_security_add_proto (wsec, "wpa");
++		/* Ad-Hoc mode only supports RSN proto */
++		nm_setting_wireless_security_add_proto (wsec, "rsn");
+ 	} else {
+ 		char *allow_wpa, *allow_rsn;
+ 
+@@ -3401,10 +3400,7 @@ make_wpa_setting (shvarFile *ifcfg,
+ 			}
+ 		}
+ 
+-		if (adhoc)
+-			g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-none", NULL);
+-		else
+-			g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-psk", NULL);
++		g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-psk", NULL);
+ 	} else if (!strcmp (value, "WPA-EAP") || !strcmp (value, "IEEE8021X")) {
+ 		/* Adhoc mode is mutually exclusive with any 802.1x-based authentication */
+ 		if (adhoc) {
+Index: b/src/settings/plugins/ifcfg-rh/writer.c
+===================================================================
+--- a/src/settings/plugins/ifcfg-rh/writer.c
++++ b/src/settings/plugins/ifcfg-rh/writer.c
+@@ -630,7 +630,7 @@ write_wireless_security_setting (NMConne
+ 		svSetValue (ifcfg, "KEY_MGMT", NULL, FALSE);
+ 		wep = TRUE;
+ 		*no_8021x = TRUE;
+-	} else if (!strcmp (key_mgmt, "wpa-none") || !strcmp (key_mgmt, "wpa-psk")) {
++	} else if (!strcmp (key_mgmt, "wpa-psk")) {
+ 		svSetValue (ifcfg, "KEY_MGMT", "WPA-PSK", FALSE);
+ 		wpa = TRUE;
+ 		*no_8021x = TRUE;
+Index: b/src/settings/plugins/ifnet/connection_parser.c
+===================================================================
+--- a/src/settings/plugins/ifnet/connection_parser.c
++++ b/src/settings/plugins/ifnet/connection_parser.c
+@@ -1308,22 +1308,6 @@ fill_wpa_ciphers (const char *ssid,
+ 
+ 	list = g_strsplit_set (value, " ", 0);
+ 	for (iter = list; iter && *iter; iter++, i++) {
+-		/* Ad-Hoc configurations cannot have pairwise ciphers, and can only
+-		 * have one group cipher.  Ignore any additional group ciphers and
+-		 * any pairwise ciphers specified.
+-		 */
+-		if (adhoc) {
+-			if (group && (i > 0)) {
+-				nm_log_warn (LOGD_SETTINGS, "    ignoring group cipher '%s' (only one group cipher allowed in Ad-Hoc mode)",
+-				             *iter);
+-				continue;
+-			} else if (!group) {
+-				nm_log_warn (LOGD_SETTINGS, "    ignoring pairwise cipher '%s' (pairwise not used in Ad-Hoc mode)",
+-				             *iter);
+-				continue;
+-			}
+-		}
+-
+ 		if (!strcmp (*iter, "CCMP")) {
+ 			if (group)
+ 				nm_setting_wireless_security_add_group (wsec,
+@@ -1331,6 +1315,19 @@ fill_wpa_ciphers (const char *ssid,
+ 			else
+ 				nm_setting_wireless_security_add_pairwise (wsec,
+ 									   "ccmp");
++		} else if (adhoc) {
++			/* Ad-Hoc configurations only support CCMP cipher for
++			 * pairwise and group.
++			 * Ignore any other group or pairwise ciphers specified.
++			 */
++			if (group)
++				PLUGIN_WARN (IFNET_PLUGIN_NAME,
++					     "    warning: ignoring group cipher '%s' (only ccmp cipher allowed in Ad-Hoc mode)",
++					     eiter);
++			else if (!group)
++				PLUGIN_WARN (IFNET_PLUGIN_NAME,
++					     "    warning: ignoring pairwise cipher '%s' (only ccmp cipher allowed in Ad-Hoc mode)",
++					     *iter);
+ 		} else if (!strcmp (*iter, "TKIP")) {
+ 			if (group)
+ 				nm_setting_wireless_security_add_group (wsec,
+@@ -1466,8 +1463,8 @@ make_wpa_setting (const char *ssid,
+ 
+ 	/* WPA and/or RSN */
+ 	if (adhoc) {
+-		/* Ad-Hoc mode only supports WPA proto for now */
+-		nm_setting_wireless_security_add_proto (wsec, "wpa");
++		/* Ad-Hoc mode only supports RSN proto */
++		nm_setting_wireless_security_add_proto (wsec, "rsn");
+ 	} else {
+ 		nm_setting_wireless_security_add_proto (wsec, "wpa");
+ 		nm_setting_wireless_security_add_proto (wsec, "rsn");
+@@ -1483,14 +1480,9 @@ make_wpa_setting (const char *ssid,
+ 			      NULL);
+ 		g_free (psk);
+ 
+-		if (adhoc)
+-			g_object_set (wsec,
+-				      NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
+-				      "wpa-none", NULL);
+-		else
+-			g_object_set (wsec,
+-				      NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
+-				      "wpa-psk", NULL);
++		g_object_set (wsec,
++			      NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
++			      "wpa-psk", NULL);
+ 	} else if (!strcmp (value, "WPA-EAP") || !strcmp (value, "IEEE8021X")) {
+ 		if (adhoc) {
+ 			g_set_error (error, ifnet_plugin_error_quark (), 0,
+@@ -2088,8 +2080,7 @@ write_wireless_security_setting (NMConne
+ 		wpa_set_data (conn_name, "key_mgmt", "NONE");
+ 		wep = TRUE;
+ 		*no_8021x = TRUE;
+-	} else if (!strcmp (key_mgmt, "wpa-none")
+-		   || !strcmp (key_mgmt, "wpa-psk")) {
++	} else if (!strcmp (key_mgmt, "wpa-psk")) {
+ 		wpa_set_data (conn_name, "key_mgmt", "WPA-PSK");
+ 		wpa = TRUE;
+ 		*no_8021x = TRUE;
+Index: b/src/settings/plugins/ifnet/tests/wpa_supplicant.conf
+===================================================================
+--- a/src/settings/plugins/ifnet/tests/wpa_supplicant.conf
++++ b/src/settings/plugins/ifnet/tests/wpa_supplicant.conf
+@@ -68,3 +68,15 @@ network={
+   psk="xjtudlc3731###asdfasdfasdf"
+ }
+ 
++# IBSS/ad-hoc network with IBSS RSN.
++network={
++        ssid="test adhoc"
++        mode=1
++        frequency=2412
++	proto=RSN
++	key_mgmt=WPA-PSK
++	pairwise=CCMP
++	group=CCMP
++        psk="secret passphrase"
++}
++
+Index: b/src/supplicant-manager/nm-supplicant-config.c
+===================================================================
+--- a/src/supplicant-manager/nm-supplicant-config.c
++++ b/src/supplicant-manager/nm-supplicant-config.c
+@@ -639,8 +639,7 @@ nm_supplicant_config_add_setting_wireles
+ 	}
+ 
+ 	/* Only WPA-specific things when using WPA */
+-	if (   !strcmp (key_mgmt, "wpa-none")
+-	    || !strcmp (key_mgmt, "wpa-psk")
++	if (   !strcmp (key_mgmt, "wpa-psk")
+ 	    || !strcmp (key_mgmt, "wpa-eap")) {
+ 		ADD_STRING_LIST_VAL (setting, wireless_security, proto, protos, "proto", ' ', TRUE, FALSE);
+ 		ADD_STRING_LIST_VAL (setting, wireless_security, pairwise, pairwise, "pairwise", ' ', TRUE, FALSE);
+Index: b/src/supplicant-manager/nm-supplicant-settings-verify.c
+===================================================================
+--- a/src/supplicant-manager/nm-supplicant-settings-verify.c
++++ b/src/supplicant-manager/nm-supplicant-settings-verify.c
+@@ -70,7 +70,7 @@ static const struct validate_entry valid
+ const char * pairwise_allowed[] = { "CCMP", "TKIP", "NONE", NULL };
+ const char * group_allowed[] =    { "CCMP", "TKIP", "WEP104", "WEP40", NULL };
+ const char * proto_allowed[] =    { "WPA", "RSN", NULL };
+-const char * key_mgmt_allowed[] = { "WPA-PSK", "WPA-EAP", "IEEE8021X", "WPA-NONE",
++const char * key_mgmt_allowed[] = { "WPA-PSK", "WPA-EAP", "IEEE8021X",
+                                     "NONE", NULL };
+ const char * auth_alg_allowed[] = { "OPEN", "SHARED", "LEAP", NULL };
+ const char * eap_allowed[] =      { "LEAP", "MD5", "TLS", "PEAP", "TTLS", "SIM",
+Index: b/src/platform/wifi/wifi-utils-nl80211.c
+===================================================================
+--- a/src/platform/wifi/wifi-utils-nl80211.c
++++ b/src/platform/wifi/wifi-utils-nl80211.c
+@@ -817,6 +817,9 @@ static int nl80211_wiphy_info_handler (s
+ 	if (tb[NL80211_ATTR_WOWLAN_TRIGGERS_SUPPORTED])
+ 		info->can_wowlan = TRUE;
+ 
++	if (tb[NL80211_ATTR_SUPPORT_IBSS_RSN])
++		info->caps |= NM_WIFI_DEVICE_CAP_IBSS_RSN;
++
+ 	info->success = TRUE;
+ 
+ 	return NL_SKIP;

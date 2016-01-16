@@ -1,0 +1,82 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingGeneric
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_GENERIC_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingGenericError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_GENERIC_ERROR_UNKNOWN: 
+@NM_SETTING_GENERIC_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_GENERIC_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_GENERIC_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_generic_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### STRUCT NMSettingGeneric ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### STRUCT NMSettingGenericClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_generic_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+

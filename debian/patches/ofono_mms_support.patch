@@ -1,0 +1,51 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Handle MMS with a host route for the MessageProxy.
+
+---
+ src/devices/wwan/nm-modem-ofono.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+Index: b/src/devices/wwan/nm-modem-ofono.c
+===================================================================
+--- a/src/devices/wwan/nm-modem-ofono.c
++++ b/src/devices/wwan/nm-modem-ofono.c
+@@ -566,6 +566,7 @@ ofono_context_get_ip_properties (NMModem
+ 	GType prop_dict;
+ 	const gchar *address_string, *gateway_string, *netmask_string, *iface;
+ 	gchar **dns;
++	const gchar *mms_proxy;
+ 	gpointer settings;
+ 	gboolean ret = FALSE;
+ 	guint32 address_network, gateway_network;
+@@ -643,6 +644,31 @@ ofono_context_get_ip_properties (NMModem
+ 				}
+ 			}
+ 
++			/* Handle the case for a shared internet and MMS context */
++			mms_proxy = g_value_get_string (g_hash_table_lookup (properties, "MessageProxy"));
++			if (mms_proxy) {
++				nm_log_info (LOGD_MB, "  mms proxy: %s", mms_proxy);
++
++				/* If the value can't be mapped to a guint32, it's probably not
++				 * an IP address; so we could access it via *any* internet
++				 * connection anyway, no need for a specific host route.
++				 */
++				if (ip_string_to_network_address (mms_proxy, &address_network)) {
++					NMPlatformIP4Route mms_route;
++
++					mms_route.network = address_network;
++					mms_route.plen = 32;
++					mms_route.gateway = gateway_network;
++
++					/* Setting a very low metric as MMS should go through
++					 * the 3G connection...
++					 */
++					mms_route.metric = 1;
++
++					nm_ip4_config_add_route (priv->ip4_config, &mms_route);
++				}
++			}
++
+ 			ret = TRUE;
+ 		}
+ 	}

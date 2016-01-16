@@ -1,0 +1,70 @@
+From: Stéphane Graber <stephane.graber@canonical.com>
+Subject: Update dnsmasq parameters
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/903854
+
+Disable caching since it's a potential security issue (local dns cache poisoning).
+
+See also: https://blueprints.launchpad.net/ubuntu/+spec/foundations-p-dns-resolving
+
+=== modified file 'src/dns-manager/nm-dns-dnsmasq.c'
+---
+ src/dns-manager/nm-dns-dnsmasq.c |    6 +++---
+ src/dns-manager/nm-dns-manager.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+Index: b/src/dns-manager/nm-dns-dnsmasq.c
+===================================================================
+--- a/src/dns-manager/nm-dns-dnsmasq.c
++++ b/src/dns-manager/nm-dns-dnsmasq.c
+@@ -286,9 +286,9 @@ start_dnsmasq (NMDnsDnsmasq *self)
+ 	argv[idx++] = "--no-hosts"; /* don't use /etc/hosts to resolve */
+ 	argv[idx++] = "--bind-interfaces";
+ 	argv[idx++] = "--pid-file=" PIDFILE;
+-	argv[idx++] = "--listen-address=127.0.0.1"; /* Should work for both 4 and 6 */
++	argv[idx++] = "--listen-address=127.0.1.1"; /* Should work for both 4 and 6 */
+ 	argv[idx++] = "--conf-file=" CONFFILE;
+-	argv[idx++] = "--cache-size=400";
++	argv[idx++] = "--cache-size=0";
+ 	argv[idx++] = "--proxy-dnssec"; /* Allow DNSSEC to pass through */
+ 	argv[idx++] = "--enable-dbus=" DNSMASQ_DBUS_SERVICE;
+ 
+@@ -380,7 +380,7 @@ update (NMDnsPlugin *plugin,
+ 
+ 	/* If all the configs lists are empty, there is just nothing to be caching --
+ 	 * we cleared up the dnsmasq cache; but we should also fail the update, so
+-	 * that we don't write 127.0.0.1 to resolv.conf.
++	 * that we don't write 127.0.1.1 to resolv.conf.
+ 	 */
+ 	if (((vpn_configs && g_slist_length (vpn_configs) < 1) || !vpn_configs) &&
+ 	    ((dev_configs && g_slist_length (dev_configs) < 1) || !dev_configs) &&
+Index: b/src/dns-manager/nm-dns-manager.c
+===================================================================
+--- a/src/dns-manager/nm-dns-manager.c
++++ b/src/dns-manager/nm-dns-manager.c
+@@ -741,7 +741,7 @@ update_dns (NMDnsManager *self,
+ 	g_slist_free (dev_configs);
+ 	g_slist_free (other_configs);
+ 
+-	/* If caching was successful, we only send 127.0.0.1 to /etc/resolv.conf
++	/* If caching was successful, we only send 127.0.1.1 to /etc/resolv.conf
+ 	 * to ensure that the glibc resolver doesn't try to round-robin nameservers,
+ 	 * but only uses the local caching nameserver.
+ 	 */
+@@ -749,7 +749,7 @@ update_dns (NMDnsManager *self,
+ 		if (nameservers)
+ 			g_strfreev (nameservers);
+ 		nameservers = g_new0 (char*, 2);
+-		nameservers[0] = g_strdup ("127.0.0.1");
++		nameservers[0] = g_strdup ("127.0.1.1");
+ 	}
+ 
+ #ifdef RESOLVCONF_PATH
+@@ -1162,7 +1162,7 @@ dispose (GObject *object)
+ 	g_clear_object (&priv->plugin);
+ 
+ 	/* If we're quitting, leave a valid resolv.conf in place, not one
+-	 * pointing to 127.0.0.1 if any plugins were active.  Thus update
++	 * pointing to 127.0.1.1 if any plugins were active.  Thus update
+ 	 * DNS after disposing of all plugins.  But if we haven't done any
+ 	 * DNS updates yet, there's no reason to touch resolv.conf on shutdown.
+ 	 */

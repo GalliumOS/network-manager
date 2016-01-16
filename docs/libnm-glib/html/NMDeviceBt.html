@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMDeviceBt</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="NMDeviceModem.html" title="NMDeviceModem">
+<link rel="next" href="NMDeviceWimax.html" title="NMDeviceWimax">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMDeviceModem.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="NMDeviceWimax.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMDeviceBt.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMDeviceBt.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMDeviceBt.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMDeviceBt.implemented-interfaces" class="shortcut">Implemented Interfaces</a>
+                   | 
+                  <a href="#NMDeviceBt.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMDeviceBt"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMDeviceBt.top_of_page"></a>NMDeviceBt</span></h2>
+<p>NMDeviceBt</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMDeviceBt.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">enum                <a class="link" href="NMDeviceBt.html#NMDeviceBtError" title="enum NMDeviceBtError">NMDeviceBtError</a>;
+#define             <a class="link" href="NMDeviceBt.html#NM-DEVICE-BT-ERROR:CAPS" title="NM_DEVICE_BT_ERROR">NM_DEVICE_BT_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMDeviceBt.html#nm-device-bt-error-quark" title="nm_device_bt_error_quark ()">nm_device_bt_error_quark</a>            (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMDeviceBt.html#NM-DEVICE-BT-HW-ADDRESS:CAPS" title="NM_DEVICE_BT_HW_ADDRESS">NM_DEVICE_BT_HW_ADDRESS</a>
+#define             <a class="link" href="NMDeviceBt.html#NM-DEVICE-BT-NAME:CAPS" title="NM_DEVICE_BT_NAME">NM_DEVICE_BT_NAME</a>
+#define             <a class="link" href="NMDeviceBt.html#NM-DEVICE-BT-CAPABILITIES:CAPS" title="NM_DEVICE_BT_CAPABILITIES">NM_DEVICE_BT_CAPABILITIES</a>
+                    <a class="link" href="NMDeviceBt.html#NMDeviceBt-struct" title="NMDeviceBt">NMDeviceBt</a>;
+                    <a class="link" href="NMDeviceBt.html#NMDeviceBtClass" title="NMDeviceBtClass">NMDeviceBtClass</a>;
+<a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="NMDeviceBt.html#nm-device-bt-new" title="nm_device_bt_new ()">nm_device_bt_new</a>                    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMDeviceBt.html#nm-device-bt-get-hw-address" title="nm_device_bt_get_hw_address ()">nm_device_bt_get_hw_address</a>         (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMDeviceBt.html#nm-device-bt-get-name" title="nm_device_bt_get_name ()">nm_device_bt_get_name</a>               (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);
+<span class="returnvalue">NMBluetoothCapabilities</span> <a class="link" href="NMDeviceBt.html#nm-device-bt-get-capabilities" title="nm_device_bt_get_capabilities ()">nm_device_bt_get_capabilities</a>   (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceBt.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+         +----<a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+               +----NMDeviceBt
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceBt.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceBt implements
+ <a href="http://library.gnome.org/devel/gio/unstable/GInitable.html">GInitable</a> and  <a href="http://library.gnome.org/devel/gio/unstable/GAsyncInitable.html">GAsyncInitable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceBt.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMDeviceBt.html#NMDeviceBt--bt-capabilities" title='The "bt-capabilities" property'>bt-capabilities</a>"          <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+  "<a class="link" href="NMDeviceBt.html#NMDeviceBt--hw-address" title='The "hw-address" property'>hw-address</a>"               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read
+  "<a class="link" href="NMDeviceBt.html#NMDeviceBt--name" title='The "name" property'>name</a>"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceBt.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceBt.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NMDeviceBtError"></a><h3>enum NMDeviceBtError</h3>
+<pre class="programlisting">typedef enum {
+	NM_DEVICE_BT_ERROR_UNKNOWN = 0,           /*&lt; nick=UnknownError &gt;*/
+	NM_DEVICE_BT_ERROR_NOT_BT_CONNECTION,     /*&lt; nick=NotBtConnection &gt;*/
+	NM_DEVICE_BT_ERROR_INVALID_BT_CONNECTION, /*&lt; nick=InvalidBtConnection &gt;*/
+	NM_DEVICE_BT_ERROR_INVALID_DEVICE_MAC,    /*&lt; nick=InvalidDeviceMac &gt;*/
+	NM_DEVICE_BT_ERROR_MAC_MISMATCH,          /*&lt; nick=MacMismatch &gt;*/
+	NM_DEVICE_BT_ERROR_MISSING_DEVICE_CAPS,   /*&lt; nick=MissingDeviceCaps &gt;*/
+} NMDeviceBtError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-DEVICE-BT-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_BT_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-BT-ERROR-NOT-BT-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_BT_ERROR_NOT_BT_CONNECTION</code></span></p></td>
+<td>the connection was not of bluetooth type
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-BT-ERROR-INVALID-BT-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_BT_ERROR_INVALID_BT_CONNECTION</code></span></p></td>
+<td>the bluetooth connection was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-BT-ERROR-INVALID-DEVICE-MAC:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_BT_ERROR_INVALID_DEVICE_MAC</code></span></p></td>
+<td>the device's MAC was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-BT-ERROR-MAC-MISMATCH:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_BT_ERROR_MAC_MISMATCH</code></span></p></td>
+<td>the MACs of the connection and the device mismatched
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-BT-ERROR-MISSING-DEVICE-CAPS"></a><span class="term"><code class="literal">NM_DEVICE_BT_ERROR_MISSING_DEVICE_CAPS</code></span></p></td>
+<td>the device missed required capabilities
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-BT-ERROR:CAPS"></a><h3>NM_DEVICE_BT_ERROR</h3>
+<pre class="programlisting">#define NM_DEVICE_BT_ERROR nm_device_bt_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-bt-error-quark"></a><h3>nm_device_bt_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_device_bt_error_quark            (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-BT-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_BT_HW_ADDRESS</h3>
+<pre class="programlisting">#define NM_DEVICE_BT_HW_ADDRESS   "hw-address"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-BT-NAME:CAPS"></a><h3>NM_DEVICE_BT_NAME</h3>
+<pre class="programlisting">#define NM_DEVICE_BT_NAME         "name"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-BT-CAPABILITIES:CAPS"></a><h3>NM_DEVICE_BT_CAPABILITIES</h3>
+<pre class="programlisting">#define NM_DEVICE_BT_CAPABILITIES "bt-capabilities"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceBt-struct"></a><h3>NMDeviceBt</h3>
+<pre class="programlisting">typedef struct _NMDeviceBt NMDeviceBt;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceBtClass"></a><h3>NMDeviceBtClass</h3>
+<pre class="programlisting">typedef struct {
+	NMDeviceClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+	void (*_reserved5) (void);
+	void (*_reserved6) (void);
+} NMDeviceBtClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-bt-new"></a><h3>nm_device_bt_new ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           nm_device_bt_new                    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>the <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
+<td>the DBus object path of the device</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new device. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-bt-get-hw-address"></a><h3>nm_device_bt_get_hw_address ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_device_bt_get_hw_address         (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
+<p>
+Gets the hardware (MAC) address of the <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a>
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the hardware address. This is the internal string used by the
+device, and must not be modified.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-bt-get-name"></a><h3>nm_device_bt_get_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_device_bt_get_name               (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
+<p>
+Gets the name of the <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the name of the device</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-bt-get-capabilities"></a><h3>nm_device_bt_get_capabilities ()</h3>
+<pre class="programlisting"><span class="returnvalue">NMBluetoothCapabilities</span> nm_device_bt_get_capabilities   (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
+<p>
+Returns the Bluetooth device's usable capabilities.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a combination of <span class="type">NMBluetoothCapabilities</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceBt.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceBt--bt-capabilities"></a><h3>The <code class="literal">"bt-capabilities"</code> property</h3>
+<pre class="programlisting">  "bt-capabilities"          <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The device's bluetooth capabilities, a combination of <span class="type">NMBluetoothCapabilities</span>.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceBt--hw-address"></a><h3>The <code class="literal">"hw-address"</code> property</h3>
+<pre class="programlisting">  "hw-address"               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read</pre>
+<p>
+The hardware (MAC) address of the device.
+</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceBt--name"></a><h3>The <code class="literal">"name"</code> property</h3>
+<pre class="programlisting">  "name"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read</pre>
+<p>
+The name of the bluetooth device.
+</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

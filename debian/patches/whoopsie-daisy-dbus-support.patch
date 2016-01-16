@@ -1,0 +1,40 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Provide access to some of NM's interfaces to whoopsie.
+
+Whoopsie is the crash database reporting daemon. It needs access to some of
+the information NM keeps about devices to avoid sending data over the network
+when connected to 3G or other systems that are potentially billable.
+
+---
+ src/org.freedesktop.NetworkManager.conf |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+Index: b/src/org.freedesktop.NetworkManager.conf
+===================================================================
+--- a/src/org.freedesktop.NetworkManager.conf
++++ b/src/org.freedesktop.NetworkManager.conf
+@@ -26,6 +26,24 @@
+                 <allow send_destination="org.freedesktop.NetworkManager.ssh"/>
+                 <allow send_destination="org.freedesktop.NetworkManager.iodine"/>
+         </policy>
++        <policy user="whoopsie">
++                <allow send_destination="org.freedesktop.NetworkManager"/>
++
++                <allow send_destination="org.freedesktop.NetworkManager"
++                       send_interface="org.freedesktop.DBus.Introspectable"/>
++
++                <allow send_destination="org.freedesktop.NetworkManager"
++                       send_interface="org.freedesktop.DBus.Properties"/>
++
++                <allow send_destination="org.freedesktop.NetworkManager"
++                       send_interface="org.freedesktop.NetworkManager"/>
++
++                <allow send_destination="org.freedesktop.NetworkManager"
++                       send_interface="org.freedesktop.NetworkManager.Connection.Active"/>
++
++                <allow send_destination="org.freedesktop.NetworkManager"
++                       send_interface="org.freedesktop.NetworkManager.Device"/>
++        </policy>
+         <policy context="default">
+                 <deny own="org.freedesktop.NetworkManager"/>
+ 

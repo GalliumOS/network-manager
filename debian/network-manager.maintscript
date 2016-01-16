@@ -1,0 +1,4 @@
+mv_conffile /etc/dbus-1/system.d/NetworkManager.conf /etc/dbus-1/system.d/org.freedesktop.NetworkManager.conf 0.9.4.0-1~ network-manager
+rm_conffile /etc/polkit-1/localauthority/10-vendor.d/org.freedesktop.NetworkManager.pkla 0.9.8.8-4~ network-manager
+rm_conffile /etc/polkit-1/rules.d/60-network-manager.rules 0.9.8.8-4~ network-manager
+rm_conffile /etc/dbus-1/system.d/nm-dhcp-client.conf 0.9.10.0-1~ network-manager

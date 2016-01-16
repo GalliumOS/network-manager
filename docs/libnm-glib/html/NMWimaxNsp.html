@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMWimaxNsp</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh">
+<link rel="next" href="NMAccessPoint.html" title="NMAccessPoint">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMDeviceOlpcMesh.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="NMAccessPoint.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMWimaxNsp.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMWimaxNsp.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMWimaxNsp.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMWimaxNsp.implemented-interfaces" class="shortcut">Implemented Interfaces</a>
+                   | 
+                  <a href="#NMWimaxNsp.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMWimaxNsp"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMWimaxNsp.top_of_page"></a>NMWimaxNsp</span></h2>
+<p>NMWimaxNsp</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMWimaxNsp.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">#define             <a class="link" href="NMWimaxNsp.html#NM-WIMAX-NSP-NAME:CAPS" title="NM_WIMAX_NSP_NAME">NM_WIMAX_NSP_NAME</a>
+#define             <a class="link" href="NMWimaxNsp.html#NM-WIMAX-NSP-SIGNAL-QUALITY:CAPS" title="NM_WIMAX_NSP_SIGNAL_QUALITY">NM_WIMAX_NSP_SIGNAL_QUALITY</a>
+#define             <a class="link" href="NMWimaxNsp.html#NM-WIMAX-NSP-NETWORK-TYPE:CAPS" title="NM_WIMAX_NSP_NETWORK_TYPE">NM_WIMAX_NSP_NETWORK_TYPE</a>
+enum                <a class="link" href="NMWimaxNsp.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType">NMWimaxNspNetworkType</a>;
+                    <a class="link" href="NMWimaxNsp.html#NMWimaxNsp-struct" title="NMWimaxNsp">NMWimaxNsp</a>;
+                    <a class="link" href="NMWimaxNsp.html#NMWimaxNspClass" title="NMWimaxNspClass">NMWimaxNspClass</a>;
+<a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-new" title="nm_wimax_nsp_new ()">nm_wimax_nsp_new</a>                    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-get-name" title="nm_wimax_nsp_get_name ()">nm_wimax_nsp_get_name</a>               (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-get-signal-quality" title="nm_wimax_nsp_get_signal_quality ()">nm_wimax_nsp_get_signal_quality</a>     (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);
+<a class="link" href="NMWimaxNsp.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType"><span class="returnvalue">NMWimaxNspNetworkType</span></a> <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-get-network-type" title="nm_wimax_nsp_get_network_type ()">nm_wimax_nsp_get_network_type</a>     (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *            <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-filter-connections" title="nm_wimax_nsp_filter_connections ()">nm_wimax_nsp_filter_connections</a>     (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *connections</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMWimaxNsp.html#nm-wimax-nsp-connection-valid" title="nm_wimax_nsp_connection_valid ()">nm_wimax_nsp_connection_valid</a>       (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMWimaxNsp.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+         +----NMWimaxNsp
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMWimaxNsp.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMWimaxNsp implements
+ <a href="http://library.gnome.org/devel/gio/unstable/GInitable.html">GInitable</a> and  <a href="http://library.gnome.org/devel/gio/unstable/GAsyncInitable.html">GAsyncInitable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="NMWimaxNsp.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMWimaxNsp.html#NMWimaxNsp--name" title='The "name" property'>name</a>"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read
+  "<a class="link" href="NMWimaxNsp.html#NMWimaxNsp--network-type" title='The "network-type" property'>network-type</a>"             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+  "<a class="link" href="NMWimaxNsp.html#NMWimaxNsp--signal-quality" title='The "signal-quality" property'>signal-quality</a>"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMWimaxNsp.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMWimaxNsp.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NM-WIMAX-NSP-NAME:CAPS"></a><h3>NM_WIMAX_NSP_NAME</h3>
+<pre class="programlisting">#define NM_WIMAX_NSP_NAME           "name"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-WIMAX-NSP-SIGNAL-QUALITY:CAPS"></a><h3>NM_WIMAX_NSP_SIGNAL_QUALITY</h3>
+<pre class="programlisting">#define NM_WIMAX_NSP_SIGNAL_QUALITY "signal-quality"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-WIMAX-NSP-NETWORK-TYPE:CAPS"></a><h3>NM_WIMAX_NSP_NETWORK_TYPE</h3>
+<pre class="programlisting">#define NM_WIMAX_NSP_NETWORK_TYPE   "network-type"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWimaxNspNetworkType"></a><h3>enum NMWimaxNspNetworkType</h3>
+<pre class="programlisting">typedef enum {
+	NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN         = 0,
+	NM_WIMAX_NSP_NETWORK_TYPE_HOME            = 1,
+	NM_WIMAX_NSP_NETWORK_TYPE_PARTNER         = 2,
+	NM_WIMAX_NSP_NETWORK_TYPE_ROAMING_PARTNER = 3
+} NMWimaxNspNetworkType;
+</pre>
+<p>
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-WIMAX-NSP-NETWORK-TYPE-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN</code></span></p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-WIMAX-NSP-NETWORK-TYPE-HOME:CAPS"></a><span class="term"><code class="literal">NM_WIMAX_NSP_NETWORK_TYPE_HOME</code></span></p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-WIMAX-NSP-NETWORK-TYPE-PARTNER:CAPS"></a><span class="term"><code class="literal">NM_WIMAX_NSP_NETWORK_TYPE_PARTNER</code></span></p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-WIMAX-NSP-NETWORK-TYPE-ROAMING-PARTNER:CAPS"></a><span class="term"><code class="literal">NM_WIMAX_NSP_NETWORK_TYPE_ROAMING_PARTNER</code></span></p></td>
+<td>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWimaxNsp-struct"></a><h3>NMWimaxNsp</h3>
+<pre class="programlisting">typedef struct _NMWimaxNsp NMWimaxNsp;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWimaxNspClass"></a><h3>NMWimaxNspClass</h3>
+<pre class="programlisting">typedef struct {
+	NMObjectClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+	void (*_reserved5) (void);
+	void (*_reserved6) (void);
+} NMWimaxNspClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-wimax-nsp-new"></a><h3>nm_wimax_nsp_new ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           nm_wimax_nsp_new                    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>the <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
+<td>the D-Bus object path of the WiMAX NSP</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new WiMAX NSP. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-wimax-nsp-get-name"></a><h3>nm_wimax_nsp_get_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_wimax_nsp_get_name               (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
+<p>
+Gets the name of the wimax NSP
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nsp</code></em> :</span></p></td>
+<td>a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the name</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-wimax-nsp-get-signal-quality"></a><h3>nm_wimax_nsp_get_signal_quality ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             nm_wimax_nsp_get_signal_quality     (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
+<p>
+Gets the WPA signal quality of the wimax NSP.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nsp</code></em> :</span></p></td>
+<td>a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the signal quality</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-wimax-nsp-get-network-type"></a><h3>nm_wimax_nsp_get_network_type ()</h3>
+<pre class="programlisting"><a class="link" href="NMWimaxNsp.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType"><span class="returnvalue">NMWimaxNspNetworkType</span></a> nm_wimax_nsp_get_network_type     (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
+<p>
+Gets the network type of the wimax NSP.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nsp</code></em> :</span></p></td>
+<td>a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the network type</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-wimax-nsp-filter-connections"></a><h3>nm_wimax_nsp_filter_connections ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *            nm_wimax_nsp_filter_connections     (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
+                                                         <em class="parameter"><code>const <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *connections</code></em>);</pre>
+<p>
+Filters a given list of connections for a given <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> object and
+return connections which may be activated with the access point.  Any
+returned connections will match the <em class="parameter"><code>nsp</code></em>'s network name and other attributes.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nsp</code></em> :</span></p></td>
+<td>an <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> to filter connections for</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connections</code></em> :</span></p></td>
+<td>a list of
+<a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> objects to filter. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NetworkManager.Connection]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a
+list of <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> objects that could be activated with the given <em class="parameter"><code>nsp</code></em>.
+The elements of the list are owned by their creator and should not be freed
+by the caller, but the returned list itself is owned by the caller and should
+be freed with <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#g-slist-free"><code class="function">g_slist_free()</code></a> when it is no longer required. <span class="annotation">[<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NetworkManager.Connection]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-wimax-nsp-connection-valid"></a><h3>nm_wimax_nsp_connection_valid ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_wimax_nsp_connection_valid       (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>
+Validates a given connection against a given WiMAX NSP to ensure that the
+connection may be activated with that NSP.  The connection must match the
+<em class="parameter"><code>nsp</code></em>'s network name and other attributes.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>nsp</code></em> :</span></p></td>
+<td>an <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> to validate <em class="parameter"><code>connection</code></em> against</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>an <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>nsp</code></em>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the connection may be activated with this WiMAX NSP,
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it cannot be.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMWimaxNsp.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMWimaxNsp--name"></a><h3>The <code class="literal">"name"</code> property</h3>
+<pre class="programlisting">  "name"                     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read</pre>
+<p>
+The name of the WiMAX NSP.
+</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWimaxNsp--network-type"></a><h3>The <code class="literal">"network-type"</code> property</h3>
+<pre class="programlisting">  "network-type"             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The network type of the WiMAX NSP.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWimaxNsp--signal-quality"></a><h3>The <code class="literal">"signal-quality"</code> property</h3>
+<pre class="programlisting">  "signal-quality"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The signal quality of the WiMAX NSP.
+</p>
+<p>Allowed values: &lt;= 100</p>
+<p>Default value: 0</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!-- ##### SECTION Title ##### -->
+NMRemoteSettings
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMRemoteSettingsError ##### -->
+<para>
+
+</para>
+
+@NM_REMOTE_SETTINGS_ERROR_UNKNOWN: 
+@NM_REMOTE_SETTINGS_ERROR_CONNECTION_REMOVED: 
+@NM_REMOTE_SETTINGS_ERROR_CONNECTION_UNAVAILABLE: 
+@NM_REMOTE_SETTINGS_ERROR_SERVICE_UNAVAILABLE: 
+
+<!-- ##### MACRO NM_REMOTE_SETTINGS_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_remote_settings_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_REMOTE_SETTINGS_BUS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_REMOTE_SETTINGS_SERVICE_RUNNING ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_REMOTE_SETTINGS_HOSTNAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_REMOTE_SETTINGS_CAN_MODIFY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_REMOTE_SETTINGS_NEW_CONNECTION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_REMOTE_SETTINGS_CONNECTIONS_READ ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### USER_FUNCTION NMRemoteSettingsAddConnectionFunc ##### -->
+<para>
+
+</para>
+
+@settings: 
+@connection: 
+@error: 
+@user_data: 
+
+
+<!-- ##### USER_FUNCTION NMRemoteSettingsLoadConnectionsFunc ##### -->
+<para>
+
+</para>
+
+@settings: 
+@failures: 
+@error: 
+@user_data: 
+
+
+<!-- ##### USER_FUNCTION NMRemoteSettingsSaveHostnameFunc ##### -->
+<para>
+
+</para>
+
+@settings: 
+@error: 
+@user_data: 
+
+
+<!-- ##### STRUCT NMRemoteSettings ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SIGNAL NMRemoteSettings::connections-read ##### -->
+<para>
+
+</para>
+
+@nmremotesettings: the object which received the signal.
+
+<!-- ##### SIGNAL NMRemoteSettings::new-connection ##### -->
+<para>
+
+</para>
+
+@nmremotesettings: the object which received the signal.
+@arg1: 
+
+<!-- ##### ARG NMRemoteSettings:bus ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMRemoteSettings:can-modify ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMRemoteSettings:hostname ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMRemoteSettings:service-running ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMRemoteSettingsClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@new_connection: 
+@connections_read: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### FUNCTION nm_remote_settings_new ##### -->
+<para>
+
+</para>
+
+@bus: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_new_async ##### -->
+<para>
+
+</para>
+
+@bus: 
+@cancellable: 
+@callback: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_new_finish ##### -->
+<para>
+
+</para>
+
+@result: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_list_connections ##### -->
+<para>
+
+</para>
+
+@settings: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_get_connection_by_id ##### -->
+<para>
+
+</para>
+
+@settings: 
+@id: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_get_connection_by_path ##### -->
+<para>
+
+</para>
+
+@settings: 
+@path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_get_connection_by_uuid ##### -->
+<para>
+
+</para>
+
+@settings: 
+@uuid: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_add_connection ##### -->
+<para>
+
+</para>
+
+@settings: 
+@connection: 
+@callback: 
+@user_data: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_add_connection_unsaved ##### -->
+<para>
+
+</para>
+
+@settings: 
+@connection: 
+@callback: 
+@user_data: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_load_connections ##### -->
+<para>
+
+</para>
+
+@settings: 
+@filenames: 
+@failures: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_reload_connections ##### -->
+<para>
+
+</para>
+
+@settings: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_remote_settings_save_hostname ##### -->
+<para>
+
+</para>
+
+@settings: 
+@hostname: 
+@callback: 
+@user_data: 
+@Returns: 
+
+

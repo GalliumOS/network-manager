@@ -1,0 +1,145 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingOlpcMesh
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_OLPC_MESH_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingOlpcMeshError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_OLPC_MESH_ERROR_UNKNOWN: 
+@NM_SETTING_OLPC_MESH_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_OLPC_MESH_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_OLPC_MESH_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_olpc_mesh_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_OLPC_MESH_SSID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_OLPC_MESH_CHANNEL ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingOlpcMesh ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingOlpcMesh:channel ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingOlpcMesh:dhcp-anycast-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingOlpcMesh:ssid ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingOlpcMeshClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_olpc_mesh_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_olpc_mesh_get_ssid ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_olpc_mesh_get_channel ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_olpc_mesh_get_dhcp_anycast_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

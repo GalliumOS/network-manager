@@ -1,0 +1,237 @@
+#!/usr/bin/python3
+# Test wpa_supplicant and dhclient in various modes
+
+__author__ = 'Martin Pitt <martin.pitt@ubuntu.com>'
+__copyright__ = '(C) 2013 Canonical Ltd.'
+__license__ = 'GPL v2 or later'
+
+import sys
+import os
+import os.path
+import time
+import subprocess
+import unittest
+
+sys.path.append(os.path.dirname(__file__))
+import network_test_base
+
+SSID = 'fake net'
+
+
+class T(network_test_base.NetworkTestBase):
+    def test_open_a_ip4(self):
+        '''Open network, 802.11a, IPv4'''
+
+        # channel 36 ought to work everywhere
+        self.do_test('hw_mode=a\nchannel=36\n\nssid=' + SSID,
+                     'ssid="%s"\nkey_mgmt=NONE' % SSID,
+                     None,
+                     ['54.0'])
+
+    def test_open_a_ip6(self):
+        '''Open network, 802.11a, IPv6'''
+
+        self.do_test('hw_mode=a\nchannel=36\n\nssid=' + SSID,
+                     'ssid="%s"\nkey_mgmt=NONE' % SSID,
+                     '',
+                     ['54.0'])
+
+    def test_open_b_ip4(self):
+        '''Open network, 802.11b, IPv4'''
+
+        self.do_test('hw_mode=b\nchannel=1\nssid=' + SSID,
+                     'ssid="%s"\nkey_mgmt=NONE' % SSID,
+                     None,
+                     ['11.0'])
+
+    def test_open_b_ip6_dhcp(self):
+        '''Open network, 802.11b, IPv6 with DHCP'''
+
+        self.do_test('hw_mode=b\nchannel=1\nssid=' + SSID,
+                     'ssid="%s"\nkey_mgmt=NONE' % SSID,
+                     '',
+                     ['11.0'])
+
+    def test_open_b_ip6_raonly(self):
+        '''Open network, 802.11b, IPv6 with only RA'''
+
+        self.do_test('hw_mode=b\nchannel=1\nssid=' + SSID,
+                     'ssid="%s"\nkey_mgmt=NONE' % SSID,
+                     'ra-only',
+                     ['11.0'])
+
+    def test_open_g_ip4(self):
+        '''Open network, 802.11g, IPv4'''
+
+        self.do_test('hw_mode=g\nchannel=1\nssid=' + SSID,
+                     'ssid="%s"\nkey_mgmt=NONE' % SSID,
+                     None,
+                     ['54.0'])
+
+    def test_wpa1_ip4(self):
+        '''WPA1, 802.11g, IPv4'''
+
+        self.do_test('''hw_mode=g
+channel=1
+ssid=%s
+wpa=1
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+wpa_passphrase=12345678
+''' % SSID,
+                     '''ssid="%s"
+psk="12345678"
+key_mgmt=WPA-PSK
+proto=WPA
+pairwise=TKIP
+group=TKIP''' % SSID,
+                     None,
+                     ['54.0',
+                      'Pairwise ciphers: TKIP',
+                      'Authentication suites: PSK'])
+
+    def test_wpa2_ip4(self):
+        '''WPA2, 802.11g, IPv4'''
+
+        self.do_test('''hw_mode=g
+channel=1
+ssid=%s
+wpa=2
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=CCMP
+wpa_passphrase=12345678
+''' % SSID,
+                     '''ssid="%s"
+psk="12345678"
+key_mgmt=WPA-PSK
+proto=WPA2
+pairwise=CCMP
+group=CCMP''' % SSID,
+                     None,
+                     ['54.0',
+                      'Pairwise ciphers: CCMP',
+                      'Authentication suites: PSK'])
+
+    def test_wpa2_ip6(self):
+        '''WPA2, 802.11g, IPv6'''
+
+        self.do_test('''hw_mode=g
+channel=1
+ssid=%s
+wpa=2
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=CCMP
+wpa_passphrase=12345678
+''' % SSID,
+                     '''ssid="%s"
+psk="12345678"
+key_mgmt=WPA-PSK
+proto=WPA2
+pairwise=CCMP
+group=CCMP''' % SSID,
+                     '',
+                     ['54.0',
+                      'Pairwise ciphers: CCMP',
+                      'Authentication suites: PSK'])
+
+    #
+    # Common for all tests
+    #
+
+    def do_test(self, hostapd_conf, wpa_conf, ipv6, exp_iw_scan):
+        self.setup_ap(hostapd_conf, ipv6)
+        self.check_ssid_avail(exp_iw_scan)
+        self.start_wpasupp(wpa_conf)
+        self.check_iw_link()
+        self.check_communication(ipv6)
+        self.check_address(ipv6)
+
+    def check_ssid_avail(self, expected_strings):
+        subprocess.check_call(['ip', 'link', 'set', self.dev_w_client, 'up'])
+        out = subprocess.check_output(['iw', 'dev', self.dev_w_client, 'scan'],
+                                      universal_newlines=True)
+        # down it again, wpa_supplicant is supposed to up it by itself
+        subprocess.check_call(['ip', 'link', 'set', self.dev_w_client, 'down'])
+
+        self.assertRegex(out, 'SSID: ' + SSID)
+        for s in expected_strings:
+            self.assertRegex(out, s)
+
+    def check_iw_link(self):
+        tries = 10
+        while tries > 0:
+            out = subprocess.check_output(['iw', 'dev', self.dev_w_client, 'link'],
+                                          universal_newlines=True)
+            if 'SSID' in out:
+                break
+            tries -= 1
+            time.sleep(1)
+        else:
+            self.fail('timed out on iwconfig showing connected status')
+
+        self.assertRegex(out, 'Connected to ' + self.mac_w_ap)
+        self.assertRegex(out, 'SSID: ' + SSID)
+
+    def check_communication(self, ipv6_mode):
+        '''Verify that communication works between AP and client
+
+        This proves that wpa_supplicant set up a working link. We use a DHCP
+        request for IPv4 and IPv6 in DHCP mode. For IPv6 in other (i.
+        e. ra-only/slaac) modes, check that dnsmasq received a router solicit
+        and sends a router advertisement.
+        '''
+        if ipv6_mode is not None:
+            self.poll_text(self.dnsmasq_log, 'RTR-SOLICIT(%s)' % self.dev_w_ap, timeout=50)
+            self.poll_text(self.dnsmasq_log, 'RTR-ADVERT(%s)' % self.dev_w_ap, timeout=5)
+
+        # stop here for non-DHCP modes in IPv6
+        if ipv6_mode not in (None, '', 'slaac'):
+            return
+
+        # FIXME: sometimes takes more than 5 s in IPv6 mode
+        if ipv6_mode is not None:
+            mode = '-6'
+            timeout = 10
+        else:
+            mode = '-4'
+            timeout = 5
+
+        # run DHCP client on client
+        out = subprocess.check_output(['dhclient', mode, '-1', '-v',
+                                       '-lf', '/dev/null', self.dev_w_client],
+                                      universal_newlines=True, timeout=timeout,
+                                      stderr=subprocess.STDOUT)
+        # stop DHCP client
+        subprocess.call(['dhclient', '-x', mode, self.dev_w_client],
+                        stderr=subprocess.STDOUT)
+
+        if ipv6_mode is not None:
+            self.assertRegex(out, 'status code Success')
+            self.assertRegex(out, 'IAADDR 2600::')
+        else:
+            self.assertRegex(out, 'DHCPACK of')
+            self.assertRegex(out, 'bound to')
+
+    def check_address(self, ipv6_mode):
+        '''Verify that the interface got an appropriate address assigned'''
+
+        out = subprocess.check_output(['ip', 'a', 'show', 'dev', self.dev_w_client],
+                                      universal_newlines=True)
+        self.assertRegex(out, 'state UP')
+        if ipv6_mode is None:
+            self.assertRegex(out, 'inet 192.168.5.\d+/24')
+        else:
+            if not ipv6_mode:
+                # has global address from our DHCP server
+                self.assertRegex(out, 'inet6 2600::[0-9a-z]+/64')
+            else:
+                # has address with our prefix and MAC
+                self.assertRegex(out, 'inet6 2600::ff:fe00:[0-9a-z]+/64 scope global (?:tentative )?(?:mngtmpaddr )?dynamic')
+
+            # has a link-local address
+            self.assertRegex(out, 'inet6 fe80::ff:fe00:[0-9a-z:]+/64 scope link')
+
+
+# write to stdout, not stderr
+runner = unittest.TextTestRunner(stream=sys.stdout, verbosity=2)
+unittest.main(testRunner=runner)

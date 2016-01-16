@@ -1,0 +1,43 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Order IPv6 nameservers before IPv4 for dns plugins (dnsmasq, bind)
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/936712
+
+IPv6 nameservers are usually ordered last because there's some chance of broken
+routers dropping the AAAA requests before they reach the nameservers, but when
+using dnsmasq, this is mitigated by how dnsmasq handles sending requests to the
+nameservers. Since ordering IPv4 nameservers before IPv6 defeats the purpose of
+enabling IPv6 and trying to prefer it whenever possible, make sure the IPv6
+nameservers are actually showing up first in dns plugin configuration.
+
+This is a very simple implementation of such re-ordering, just add the IPv6
+nameservers first when building the list of IP configurations (which will
+include nameservers, search domains, etc.), the IPv4 data will be appended
+right after.
+
+---
+ src/dns-manager/nm-dns-manager.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+Index: b/src/dns-manager/nm-dns-manager.c
+===================================================================
+--- a/src/dns-manager/nm-dns-manager.c
++++ b/src/dns-manager/nm-dns-manager.c
+@@ -688,14 +688,14 @@ update_dns (NMDnsManager *self,
+ 	 * still use the domain information in each config to provide split DNS if
+ 	 * they want to.
+ 	 */
+-	if (priv->ip4_vpn_config)
+-		vpn_configs = g_slist_append (vpn_configs, priv->ip4_vpn_config);
+ 	if (priv->ip6_vpn_config)
+ 		vpn_configs = g_slist_append (vpn_configs, priv->ip6_vpn_config);
+-	if (priv->ip4_device_config)
+-		dev_configs = g_slist_append (dev_configs, priv->ip4_device_config);
++	if (priv->ip4_vpn_config)
++		vpn_configs = g_slist_append (vpn_configs, priv->ip4_vpn_config);
+ 	if (priv->ip6_device_config)
+ 		dev_configs = g_slist_append (dev_configs, priv->ip6_device_config);
++	if (priv->ip4_device_config)
++		dev_configs = g_slist_append (dev_configs, priv->ip4_device_config);
+ 
+ 	for (iter = priv->configs; iter; iter = g_slist_next (iter)) {
+ 		if (   (iter->data != priv->ip4_vpn_config)

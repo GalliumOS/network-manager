@@ -1,0 +1,691 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSettingBond</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-util Reference Manual">
+<link rel="up" href="ch01.html" title="libnm-util API Reference">
+<link rel="prev" href="NMSettingWimax.html" title="NMSettingWimax">
+<link rel="next" href="NMSettingBridge.html" title="NMSettingBridge">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMSettingWimax.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-util Reference Manual</th>
+<td><a accesskey="n" href="NMSettingBridge.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMSettingBond.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMSettingBond.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMSettingBond.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMSettingBond.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMSettingBond"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingBond.top_of_page"></a>NMSettingBond</span></h2>
+<p>NMSettingBond — Describes connection properties for bonds</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMSettingBond.synopsis"></a><h2>Synopsis</h2>
+<a name="NMSettingBondError"></a><pre class="synopsis">
+#include &lt;nm-setting-bond.h&gt;
+
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-SETTING-NAME:CAPS" title="NM_SETTING_BOND_SETTING_NAME">NM_SETTING_BOND_SETTING_NAME</a>
+enum                <a class="link" href="NMSettingBond.html#NMSettingBondError-enum" title="enum NMSettingBondError">NMSettingBondError</a>;
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-ERROR:CAPS" title="NM_SETTING_BOND_ERROR">NM_SETTING_BOND_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMSettingBond.html#nm-setting-bond-error-quark" title="nm_setting_bond_error_quark ()">nm_setting_bond_error_quark</a>         (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-INTERFACE-NAME:CAPS" title="NM_SETTING_BOND_INTERFACE_NAME">NM_SETTING_BOND_INTERFACE_NAME</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTIONS:CAPS" title="NM_SETTING_BOND_OPTIONS">NM_SETTING_BOND_OPTIONS</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-MODE:CAPS" title="NM_SETTING_BOND_OPTION_MODE">NM_SETTING_BOND_OPTION_MODE</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-MIIMON:CAPS" title="NM_SETTING_BOND_OPTION_MIIMON">NM_SETTING_BOND_OPTION_MIIMON</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-DOWNDELAY:CAPS" title="NM_SETTING_BOND_OPTION_DOWNDELAY">NM_SETTING_BOND_OPTION_DOWNDELAY</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-UPDELAY:CAPS" title="NM_SETTING_BOND_OPTION_UPDELAY">NM_SETTING_BOND_OPTION_UPDELAY</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-ARP-INTERVAL:CAPS" title="NM_SETTING_BOND_OPTION_ARP_INTERVAL">NM_SETTING_BOND_OPTION_ARP_INTERVAL</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-ARP-IP-TARGET:CAPS" title="NM_SETTING_BOND_OPTION_ARP_IP_TARGET">NM_SETTING_BOND_OPTION_ARP_IP_TARGET</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-ARP-VALIDATE:CAPS" title="NM_SETTING_BOND_OPTION_ARP_VALIDATE">NM_SETTING_BOND_OPTION_ARP_VALIDATE</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-PRIMARY:CAPS" title="NM_SETTING_BOND_OPTION_PRIMARY">NM_SETTING_BOND_OPTION_PRIMARY</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-PRIMARY-RESELECT:CAPS" title="NM_SETTING_BOND_OPTION_PRIMARY_RESELECT">NM_SETTING_BOND_OPTION_PRIMARY_RESELECT</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-FAIL-OVER-MAC:CAPS" title="NM_SETTING_BOND_OPTION_FAIL_OVER_MAC">NM_SETTING_BOND_OPTION_FAIL_OVER_MAC</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-USE-CARRIER:CAPS" title="NM_SETTING_BOND_OPTION_USE_CARRIER">NM_SETTING_BOND_OPTION_USE_CARRIER</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-AD-SELECT:CAPS" title="NM_SETTING_BOND_OPTION_AD_SELECT">NM_SETTING_BOND_OPTION_AD_SELECT</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-XMIT-HASH-POLICY:CAPS" title="NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY">NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY</a>
+#define             <a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-RESEND-IGMP:CAPS" title="NM_SETTING_BOND_OPTION_RESEND_IGMP">NM_SETTING_BOND_OPTION_RESEND_IGMP</a>
+                    <a class="link" href="NMSettingBond.html#NMSettingBond-struct" title="NMSettingBond">NMSettingBond</a>;
+                    <a class="link" href="NMSettingBond.html#NMSettingBondClass" title="NMSettingBondClass">NMSettingBondClass</a>;
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         <a class="link" href="NMSettingBond.html#nm-setting-bond-new" title="nm_setting_bond_new ()">nm_setting_bond_new</a>                 (<em class="parameter"><code><span class="type">void</span></code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSettingBond.html#nm-setting-bond-get-interface-name" title="nm_setting_bond_get_interface_name ()">nm_setting_bond_get_interface_name</a>  (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="NMSettingBond.html#nm-setting-bond-get-num-options" title="nm_setting_bond_get_num_options ()">nm_setting_bond_get_num_options</a>     (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSettingBond.html#nm-setting-bond-get-option" title="nm_setting_bond_get_option ()">nm_setting_bond_get_option</a>          (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> idx</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **out_name</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **out_value</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSettingBond.html#nm-setting-bond-get-option-by-name" title="nm_setting_bond_get_option_by_name ()">nm_setting_bond_get_option_by_name</a>  (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSettingBond.html#nm-setting-bond-add-option" title="nm_setting_bond_add_option ()">nm_setting_bond_add_option</a>          (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *value</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSettingBond.html#nm-setting-bond-remove-option" title="nm_setting_bond_remove_option ()">nm_setting_bond_remove_option</a>       (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMSettingBond.html#nm-setting-bond-validate-option" title="nm_setting_bond_validate_option ()">nm_setting_bond_validate_option</a>     (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *value</code></em>);
+const <span class="returnvalue">char</span> **       <a class="link" href="NMSettingBond.html#nm-setting-bond-get-valid-options" title="nm_setting_bond_get_valid_options ()">nm_setting_bond_get_valid_options</a>   (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSettingBond.html#nm-setting-bond-get-option-default" title="nm_setting_bond_get_option_default ()">nm_setting_bond_get_option_default</a>  (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingBond.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingBondError
+</pre>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
+         +----NMSettingBond
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingBond.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMSettingBond.html#NMSettingBond--interface-name" title='The "interface-name" property'>interface-name</a>"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write
+  "<a class="link" href="NMSettingBond.html#NMSettingBond--options" title='The "options" property'>options</a>"                  <span class="type">GHashTable_gchararray+gchararray_*</span>  : Read / Write
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingBond.description"></a><h2>Description</h2>
+<p>
+The <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes properties
+necessary for bond connections.
+</p>
+</div>
+<div class="refsect1">
+<a name="NMSettingBond.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-SETTING-NAME:CAPS"></a><h3>NM_SETTING_BOND_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_SETTING_NAME "bond"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingBondError-enum"></a><h3>enum NMSettingBondError</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_BOND_ERROR_UNKNOWN = 0,      /*&lt; nick=UnknownError &gt;*/
+	NM_SETTING_BOND_ERROR_INVALID_PROPERTY, /*&lt; nick=InvalidProperty &gt;*/
+	NM_SETTING_BOND_ERROR_MISSING_PROPERTY, /*&lt; nick=MissingProperty &gt;*/
+	NM_SETTING_BOND_ERROR_INVALID_OPTION,   /*&lt; nick=InvalidOption &gt;*/
+	NM_SETTING_BOND_ERROR_MISSING_OPTION,   /*&lt; nick=MissingOption &gt;*/
+} NMSettingBondError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-BOND-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_SETTING_BOND_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-BOND-ERROR-INVALID-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_BOND_ERROR_INVALID_PROPERTY</code></span></p></td>
+<td>the property was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-BOND-ERROR-MISSING-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_BOND_ERROR_MISSING_PROPERTY</code></span></p></td>
+<td>the property was missing and is
+required
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-BOND-ERROR-INVALID-OPTION:CAPS"></a><span class="term"><code class="literal">NM_SETTING_BOND_ERROR_INVALID_OPTION</code></span></p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-BOND-ERROR-MISSING-OPTION:CAPS"></a><span class="term"><code class="literal">NM_SETTING_BOND_ERROR_MISSING_OPTION</code></span></p></td>
+<td>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-ERROR:CAPS"></a><h3>NM_SETTING_BOND_ERROR</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_ERROR nm_setting_bond_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-error-quark"></a><h3>nm_setting_bond_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_setting_bond_error_quark         (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-INTERFACE-NAME:CAPS"></a><h3>NM_SETTING_BOND_INTERFACE_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_INTERFACE_NAME "interface-name"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTIONS:CAPS"></a><h3>NM_SETTING_BOND_OPTIONS</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTIONS "options"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-MODE:CAPS"></a><h3>NM_SETTING_BOND_OPTION_MODE</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_MODE             "mode"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-MIIMON:CAPS"></a><h3>NM_SETTING_BOND_OPTION_MIIMON</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_MIIMON           "miimon"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-DOWNDELAY:CAPS"></a><h3>NM_SETTING_BOND_OPTION_DOWNDELAY</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_DOWNDELAY        "downdelay"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-UPDELAY:CAPS"></a><h3>NM_SETTING_BOND_OPTION_UPDELAY</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_UPDELAY          "updelay"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-ARP-INTERVAL:CAPS"></a><h3>NM_SETTING_BOND_OPTION_ARP_INTERVAL</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_ARP_INTERVAL     "arp_interval"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-ARP-IP-TARGET:CAPS"></a><h3>NM_SETTING_BOND_OPTION_ARP_IP_TARGET</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_ARP_IP_TARGET    "arp_ip_target"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-ARP-VALIDATE:CAPS"></a><h3>NM_SETTING_BOND_OPTION_ARP_VALIDATE</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_ARP_VALIDATE     "arp_validate"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-PRIMARY:CAPS"></a><h3>NM_SETTING_BOND_OPTION_PRIMARY</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_PRIMARY          "primary"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-PRIMARY-RESELECT:CAPS"></a><h3>NM_SETTING_BOND_OPTION_PRIMARY_RESELECT</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_PRIMARY_RESELECT "primary_reselect"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-FAIL-OVER-MAC:CAPS"></a><h3>NM_SETTING_BOND_OPTION_FAIL_OVER_MAC</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_FAIL_OVER_MAC    "fail_over_mac"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-USE-CARRIER:CAPS"></a><h3>NM_SETTING_BOND_OPTION_USE_CARRIER</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_USE_CARRIER      "use_carrier"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-AD-SELECT:CAPS"></a><h3>NM_SETTING_BOND_OPTION_AD_SELECT</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_AD_SELECT        "ad_select"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-XMIT-HASH-POLICY:CAPS"></a><h3>NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY "xmit_hash_policy"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-BOND-OPTION-RESEND-IGMP:CAPS"></a><h3>NM_SETTING_BOND_OPTION_RESEND_IGMP</h3>
+<pre class="programlisting">#define NM_SETTING_BOND_OPTION_RESEND_IGMP      "resend_igmp"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingBond-struct"></a><h3>NMSettingBond</h3>
+<pre class="programlisting">typedef struct _NMSettingBond NMSettingBond;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingBondClass"></a><h3>NMSettingBondClass</h3>
+<pre class="programlisting">typedef struct {
+	NMSettingClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+} NMSettingBondClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-new"></a><h3>nm_setting_bond_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         nm_setting_bond_new                 (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> object with default values.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the new empty <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> object. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-get-interface-name"></a><h3>nm_setting_bond_get_interface_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_bond_get_interface_name  (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html#NMSettingBond--interface-name" title='The "interface-name" property'><span class="type">"interface-name"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-get-num-options"></a><h3>nm_setting_bond_get_num_options ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             nm_setting_bond_get_num_options     (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>);</pre>
+<p>
+Returns the number of options that should be set for this bond when it
+is activated. This can be used to retrieve each option individually
+using <a class="link" href="NMSettingBond.html#nm-setting-bond-get-option" title="nm_setting_bond_get_option ()"><code class="function">nm_setting_bond_get_option()</code></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the number of bonding options</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-get-option"></a><h3>nm_setting_bond_get_option ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_bond_get_option          (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> idx</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **out_name</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> **out_value</code></em>);</pre>
+<p>
+Given an index, return the value of the bonding option at that index.  Indexes
+are *not* guaranteed to be static across modifications to options done by
+<a class="link" href="NMSettingBond.html#nm-setting-bond-add-option" title="nm_setting_bond_add_option ()"><code class="function">nm_setting_bond_add_option()</code></a> and <a class="link" href="NMSettingBond.html#nm-setting-bond-remove-option" title="nm_setting_bond_remove_option ()"><code class="function">nm_setting_bond_remove_option()</code></a>,
+and should not be used to refer to options except for short periods of time
+such as during option iteration.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>idx</code></em> :</span></p></td>
+<td>index of the desired option, from 0 to
+<a class="link" href="NMSettingBond.html#nm-setting-bond-get-num-options" title="nm_setting_bond_get_num_options ()"><code class="function">nm_setting_bond_get_num_options()</code></a> - 1</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>out_name</code></em> :</span></p></td>
+<td>on return, the name of the bonding option; this
+value is owned by the setting and should not be modified. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>out_value</code></em> :</span></p></td>
+<td>on return, the value of the name of the bonding
+option; this value is owned by the setting and should not be modified. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success if the index was valid and an option was found,
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the index was invalid (ie, greater than the number of options
+currently held by the setting)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-get-option-by-name"></a><h3>nm_setting_bond_get_option_by_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_bond_get_option_by_name  (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<p>
+Returns the value associated with the bonding option specified by
+<em class="parameter"><code>name</code></em>, if it exists.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>name</code></em> :</span></p></td>
+<td>the option name for which to retrieve the value</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the value, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> if the key/value pair was never added to the
+setting; the value is owned by the setting and must not be modified</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-add-option"></a><h3>nm_setting_bond_add_option ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_bond_add_option          (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *value</code></em>);</pre>
+<p>
+Add an option to the table.  The option is compared to an internal list
+of allowed options.  Option names may contain only alphanumeric characters
+(ie [a-zA-Z0-9]).  Adding a new name replaces any existing name/value pair
+that may already exist.
+</p>
+<p>
+The order of how to set several options is relevant because there are options
+that conflict with each other.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>name</code></em> :</span></p></td>
+<td>name for the option</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>value</code></em> :</span></p></td>
+<td>value for the option</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the option was valid and was added to the internal option
+list, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-remove-option"></a><h3>nm_setting_bond_remove_option ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_bond_remove_option       (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<p>
+Remove the bonding option referenced by <em class="parameter"><code>name</code></em> from the internal option
+list.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>name</code></em> :</span></p></td>
+<td>name of the option to remove</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the option was found and removed from the internal option
+list, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-validate-option"></a><h3>nm_setting_bond_validate_option ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_setting_bond_validate_option     (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *value</code></em>);</pre>
+<p>
+Checks whether <em class="parameter"><code>name</code></em> is a valid bond option and <em class="parameter"><code>value</code></em> is a valid value for
+the <em class="parameter"><code>name</code></em>. If <em class="parameter"><code>value</code></em> is <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>, the function only validates the option name.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>name</code></em> :</span></p></td>
+<td>the name of the option to validate</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>value</code></em> :</span></p></td>
+<td>the value of the option to validate</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, if the <em class="parameter"><code>value</code></em> is valid for the given name.
+If the <em class="parameter"><code>name</code></em> is not a valid option, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-get-valid-options"></a><h3>nm_setting_bond_get_valid_options ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> **       nm_setting_bond_get_valid_options   (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>);</pre>
+<p>
+Returns a list of valid bond options.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of strings of valid bond options. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-bond-get-option-default"></a><h3>nm_setting_bond_get_option_default ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_bond_get_option_default  (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>name</code></em> :</span></p></td>
+<td>the name of the option</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the value of the bond option if not overridden by an entry in
+the <a class="link" href="NMSettingBond.html#NMSettingBond--options" title='The "options" property'><span class="type">"options"</span></a> property.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingBond.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMSettingBond--interface-name"></a><h3>The <code class="literal">"interface-name"</code> property</h3>
+<pre class="programlisting">  "interface-name"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write</pre>
+<p>
+The name of the virtual in-kernel bonding network interface
+</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingBond--options"></a><h3>The <code class="literal">"options"</code> property</h3>
+<pre class="programlisting">  "options"                  <span class="type">GHashTable_gchararray+gchararray_*</span>  : Read / Write</pre>
+<p>
+Dictionary of key/value pairs of bonding options.  Both keys and values
+must be strings. Option names must contain only alphanumeric characters
+(ie, [a-zA-Z0-9]).
+</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

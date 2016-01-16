@@ -1,0 +1,29 @@
+From 1e96e68e36ad0fb158e3a91e00c7fdc1d109f69d Mon Sep 17 00:00:00 2001
+From: Dan Williams <dcbw@redhat.com>
+Date: Fri, 11 Jul 2014 14:51:12 -0500
+Subject: platform: ignore RTM_F_CLONED (eg, cache) routes
+
+The kernel adds these for various operations; they are short-lived,
+added often, and not useful to NetworkManager.  Ignore them.  This
+prevents NetworkManager from continuously updating the IPv6 config
+and emitting state changes to clients via D-Bus for useless changes.
+
+(cherry picked from commit 66d1f2f53c59f8eb875609c858629854232ed57c)
+
+diff --git a/src/platform/nm-linux-platform.c b/src/platform/nm-linux-platform.c
+index f73ff32..9bfbabd 100644
+--- a/src/platform/nm-linux-platform.c
++++ b/src/platform/nm-linux-platform.c
+@@ -3500,7 +3500,8 @@ _route_match (struct rtnl_route *rtnlroute, int family, int ifindex)
+ 	    rtnl_route_get_table (rtnlroute) != RT_TABLE_MAIN ||
+ 	    rtnl_route_get_protocol (rtnlroute) == RTPROT_KERNEL ||
+ 	    rtnl_route_get_family (rtnlroute) != family ||
+-	    rtnl_route_get_nnexthops (rtnlroute) != 1)
++	    rtnl_route_get_nnexthops (rtnlroute) != 1 ||
++	    rtnl_route_get_flags (rtnlroute) & RTM_F_CLONED)
+ 		return FALSE;
+ 
+ 	nexthop = rtnl_route_nexthop_n (rtnlroute, 0);
+-- 
+cgit v0.10.2
+

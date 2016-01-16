@@ -1,0 +1,173 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Fix routing issues when multiple devices live on the same subnet.
+Bug: https://bugzilla.gnome.org/show_bug.cgi?id=723178
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1436330
+Last-Update: 2015-04-29
+Forwarded: not-needed
+
+Take a few bits and pieces from other patches upstream:
+ - change device priority values to larger values, with gaps
+   so that we have room to add or change things as necessary.
+   (4bf04700)
+ - hard-code 50 for VPN metrics (used as NM_VPN_ROUTE_METRIC_DEFAULT
+   upstream, we'll get it in 1.0). (4bf04700, 3210bb93)
+ - pass device priority value which used to be use as the metric for
+   a device type back to nm_platform_ip4_route_add, so that we get
+   "proper" metrics and priorities for default routes again
+   (adapting e8824f6a to NM 0.9.10.0)
+
+Net effect of this would be that you should now be able to have wired and
+wifi connected on the same subnet and not have packet loss (wired will have
+priority, and switch to wifi as soon as it's seen to be disconnected).
+
+Default routes from VPNs will be taking priority over any other default route
+(as they are expected to, anyway), they will remain at a static priority of
+ 50 rather than assuming the metric of its parent device when available.
+
+This patch can (and should be) dropped when migrating to >1.0.0 
+
+---
+ src/devices/nm-device.c             |   24 ++++++++++++------------
+ src/nm-policy.c                     |   24 ++++++++++++------------
+ src/vpn-manager/nm-vpn-connection.c |   10 +---------
+ 3 files changed, 25 insertions(+), 33 deletions(-)
+
+Index: b/src/devices/nm-device.c
+===================================================================
+--- a/src/devices/nm-device.c
++++ b/src/devices/nm-device.c
+@@ -632,29 +632,29 @@ nm_device_get_priority (NMDevice *dev)
+ 	 * money. */
+ 	switch (nm_device_get_device_type (dev)) {
+ 	case NM_DEVICE_TYPE_ETHERNET:
+-		return 1;
++		return 100;
+ 	case NM_DEVICE_TYPE_INFINIBAND:
+-		return 2;
++		return 150;
+ 	case NM_DEVICE_TYPE_ADSL:
+-		return 3;
++		return 200;
+ 	case NM_DEVICE_TYPE_BOND:
+-		return 5;
++		return 250;
+ 	case NM_DEVICE_TYPE_TEAM:
+-		return 6;
++		return 300;
+ 	case NM_DEVICE_TYPE_VLAN:
+-		return 7;
++		return 350;
+ 	case NM_DEVICE_TYPE_WIFI:
+-		return 10;
++		return 400;
+ 	case NM_DEVICE_TYPE_OLPC_MESH:
+-		return 11;
++		return 450;
+ 	case NM_DEVICE_TYPE_BT:
+-		return 12;
++		return 500;
+ 	case NM_DEVICE_TYPE_WIMAX:
+-		return 13;
++		return 550;
+ 	case NM_DEVICE_TYPE_MODEM:
+-		return 14;
++		return 600;
+ 	default:
+-		return 20;
++		return 950;
+ 	}
+ }
+ 
+Index: b/src/nm-policy.c
+===================================================================
+--- a/src/nm-policy.c
++++ b/src/nm-policy.c
+@@ -666,13 +666,13 @@ update_ip4_routing (NMPolicy *policy, gb
+ 
+ 		if (!nm_platform_ip4_route_add (ip_ifindex, NM_PLATFORM_SOURCE_VPN,
+ 		                                0, 0, int_gw,
+-		                                NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss)) {
++		                                50, mss)) {
+ 			(void) nm_platform_ip4_route_add (parent_ifindex, NM_PLATFORM_SOURCE_VPN,
+ 			                                  gw_addr, 32, 0,
+-			                                  NM_PLATFORM_ROUTE_METRIC_DEFAULT, parent_mss);
++			                                  50, parent_mss);
+ 			if (!nm_platform_ip4_route_add (ip_ifindex, NM_PLATFORM_SOURCE_VPN,
+ 			                                0, 0, int_gw,
+-			                                NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss))
++			                                50, mss))
+ 				nm_log_err (LOGD_IP4 | LOGD_VPN, "Failed to set default route.");
+ 		}
+ 
+@@ -683,13 +683,13 @@ update_ip4_routing (NMPolicy *policy, gb
+ 		g_assert (ip_iface);
+ 		if (!nm_platform_ip4_route_add (ip_ifindex, NM_PLATFORM_SOURCE_USER,
+ 		                                0, 0, gw_addr,
+-		                                NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss)) {
++		                                nm_device_get_priority (best), mss)) {
+ 			(void) nm_platform_ip4_route_add (ip_ifindex, NM_PLATFORM_SOURCE_USER,
+ 			                                  gw_addr, 32, 0,
+-			                                  NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss);
++			                                  nm_device_get_priority (best), mss);
+ 			if (!nm_platform_ip4_route_add (ip_ifindex, NM_PLATFORM_SOURCE_USER,
+ 			                                0, 0, gw_addr,
+-			                                NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss)) {
++			                                nm_device_get_priority (best), mss)) {
+ 				nm_log_err (LOGD_IP4, "Failed to set default route.");
+ 			}
+ 		}
+@@ -872,13 +872,13 @@ update_ip6_routing (NMPolicy *policy, gb
+ 
+ 		if (!nm_platform_ip6_route_add (ip_ifindex, NM_PLATFORM_SOURCE_VPN,
+ 		                                in6addr_any, 0, *int_gw,
+-		                                NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss)) {
++		                                50, mss)) {
+ 			(void) nm_platform_ip6_route_add (parent_ifindex, NM_PLATFORM_SOURCE_VPN,
+ 			                                  *gw_addr, 128, in6addr_any,
+-			                                  NM_PLATFORM_ROUTE_METRIC_DEFAULT, parent_mss);
++			                                  50, parent_mss);
+ 			if (!nm_platform_ip6_route_add (ip_ifindex, NM_PLATFORM_SOURCE_VPN,
+ 			                                in6addr_any, 0, *int_gw,
+-			                                NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss)) {
++			                                50, mss)) {
+ 				nm_log_err (LOGD_IP6 | LOGD_VPN, "Failed to set default route.");
+ 			}
+ 		}
+@@ -889,13 +889,13 @@ update_ip6_routing (NMPolicy *policy, gb
+ 
+ 		if (!nm_platform_ip6_route_add (ip_ifindex, NM_PLATFORM_SOURCE_USER,
+ 		                                in6addr_any, 0, *gw_addr,
+-		                                NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss)) {
++		                                nm_device_get_priority (best), mss)) {
+ 			(void) nm_platform_ip6_route_add (ip_ifindex, NM_PLATFORM_SOURCE_USER,
+ 			                                  *gw_addr, 128, in6addr_any,
+-			                                  NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss);
++			                                  nm_device_get_priority (best), mss);
+ 			if (!nm_platform_ip6_route_add (ip_ifindex, NM_PLATFORM_SOURCE_USER,
+ 			                                in6addr_any, 0, *gw_addr,
+-			                                NM_PLATFORM_ROUTE_METRIC_DEFAULT, mss))
++			                                nm_device_get_priority (best), mss))
+ 				nm_log_err (LOGD_IP6, "Failed to set default route.");
+ 		}
+ 
+Index: b/src/vpn-manager/nm-vpn-connection.c
+===================================================================
+--- a/src/vpn-manager/nm-vpn-connection.c
++++ b/src/vpn-manager/nm-vpn-connection.c
+@@ -1052,15 +1052,7 @@ nm_vpn_connection_config_get (DBusGProxy
+ static guint
+ vpn_routing_metric (NMVPNConnection *connection)
+ {
+-	NMVPNConnectionPrivate *priv = NM_VPN_CONNECTION_GET_PRIVATE (connection);
+-
+-	if (priv->ip_ifindex)
+-		return NM_PLATFORM_ROUTE_METRIC_DEFAULT;
+-	else {
+-		NMDevice *parent_dev = nm_active_connection_get_device (NM_ACTIVE_CONNECTION (connection));
+-
+-		return nm_device_get_priority (parent_dev);
+-	}
++	return 50;
+ }
+ 
+ static void

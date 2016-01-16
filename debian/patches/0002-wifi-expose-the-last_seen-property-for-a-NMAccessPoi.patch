@@ -1,0 +1,337 @@
+From 3c9a463eef6ed777734461e2a98c6d8e620acb39 Mon Sep 17 00:00:00 2001
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Date: Tue, 11 Nov 2014 12:37:04 -0500
+Subject: [PATCH 2/2] wifi: expose the last_seen property for a NMAccessPoint
+ over DBus
+
+Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+---
+ introspection/nm-access-point.xml |    3 ++
+ libnm-glib/libnm-glib.ver         |    1 
+ libnm-glib/nm-access-point.c      |   36 +++++++++++++++++++++++++
+ libnm-glib/nm-access-point.h      |    2 +
+ src/devices/wifi/nm-device-wifi.c |    8 +++--
+ src/devices/wifi/nm-wifi-ap.c     |   53 ++++++++++++++++++++++++++++++++------
+ src/devices/wifi/nm-wifi-ap.h     |    6 ++--
+ 7 files changed, 97 insertions(+), 12 deletions(-)
+
+Index: b/introspection/nm-access-point.xml
+===================================================================
+--- a/introspection/nm-access-point.xml
++++ b/introspection/nm-access-point.xml
+@@ -30,6 +30,9 @@
+     <property name="Strength" type="y" access="read">
+       <tp:docstring>The current signal quality of the access point, in percent.</tp:docstring>
+     </property>
++    <property name="LastSeen" type="u" access="read">
++      <tp:docstring>The timestamp for the last time the access point was found in scan results.</tp:docstring>
++    </property>
+ 
+     <signal name="PropertiesChanged">
+         <arg name="properties" type="a{sv}" tp:type="String_Variant_Map">
+Index: b/libnm-glib/libnm-glib.ver
+===================================================================
+--- a/libnm-glib/libnm-glib.ver
++++ b/libnm-glib/libnm-glib.ver
+@@ -11,6 +11,7 @@ global:
+ 	nm_access_point_get_flags;
+ 	nm_access_point_get_frequency;
+ 	nm_access_point_get_hw_address;
++	nm_access_point_get_last_seen;
+ 	nm_access_point_get_max_bitrate;
+ 	nm_access_point_get_mode;
+ 	nm_access_point_get_rsn_flags;
+Index: b/libnm-glib/nm-access-point.c
+===================================================================
+--- a/libnm-glib/nm-access-point.c
++++ b/libnm-glib/nm-access-point.c
+@@ -54,6 +54,7 @@ typedef struct {
+ 	NM80211Mode mode;
+ 	guint32 max_bitrate;
+ 	guint8 strength;
++	guint32 last_seen;
+ } NMAccessPointPrivate;
+ 
+ enum {
+@@ -68,6 +69,7 @@ enum {
+ 	PROP_MAX_BITRATE,
+ 	PROP_STRENGTH,
+ 	PROP_BSSID,
++	PROP_LAST_SEEN,
+ 
+ 	LAST_PROP
+ };
+@@ -267,6 +269,23 @@ nm_access_point_get_strength (NMAccessPo
+ }
+ 
+ /**
++ * nm_access_point_get_last_seen:
++ * @ap: a #NMAccessPoint
++ *
++ * Gets the last seen timestamp for the access point.
++ *
++ * Returns: the last seen time in seconds
++ **/
++guint32
++nm_access_point_get_last_seen (NMAccessPoint *ap)
++{
++	g_return_val_if_fail (NM_IS_ACCESS_POINT (ap), 0);
++
++	_nm_object_ensure_inited (NM_OBJECT (ap));
++	return NM_ACCESS_POINT_GET_PRIVATE (ap)->last_seen;
++}
++
++/**
+  * nm_access_point_connection_valid:
+  * @ap: an #NMAccessPoint to validate @connection against
+  * @connection: an #NMConnection to validate against @ap
+@@ -483,6 +502,9 @@ get_property (GObject *object,
+ 	case PROP_STRENGTH:
+ 		g_value_set_uchar (value, nm_access_point_get_strength (ap));
+ 		break;
++	case PROP_LAST_SEEN:
++		g_value_set_uint (value, nm_access_point_get_last_seen (ap));
++		break;
+ 	default:
+ 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+ 		break;
+@@ -513,6 +535,7 @@ register_properties (NMAccessPoint *ap)
+ 		{ NM_ACCESS_POINT_MODE,        &priv->mode },
+ 		{ NM_ACCESS_POINT_MAX_BITRATE, &priv->max_bitrate },
+ 		{ NM_ACCESS_POINT_STRENGTH,    &priv->strength },
++		{ NM_ACCESS_POINT_LAST_SEEN,   &priv->last_seen },
+ 		{ NULL },
+ 	};
+ 
+@@ -682,4 +705,17 @@ nm_access_point_class_init (NMAccessPoin
+ 						"Strength",
+ 						0, G_MAXUINT8, 0,
+ 						G_PARAM_READABLE));
++
++	/**
++	 * NMAccessPoint:last-seen:
++	 *
++	 * The last seen timestamp of the access point.
++	 **/
++	g_object_class_install_property
++		(object_class, PROP_LAST_SEEN,
++		 g_param_spec_uint (NM_ACCESS_POINT_LAST_SEEN,
++						"Last Seen",
++						"Last Seen",
++						0, G_MAXUINT32, 0,
++						G_PARAM_READABLE));
+ }
+Index: b/libnm-glib/nm-access-point.h
+===================================================================
+--- a/libnm-glib/nm-access-point.h
++++ b/libnm-glib/nm-access-point.h
+@@ -48,6 +48,7 @@ G_BEGIN_DECLS
+ #define NM_ACCESS_POINT_MODE        "mode"
+ #define NM_ACCESS_POINT_MAX_BITRATE "max-bitrate"
+ #define NM_ACCESS_POINT_STRENGTH    "strength"
++#define NM_ACCESS_POINT_LAST_SEEN   "last-seen"
+ 
+ /* DEPRECATED */
+ #define NM_ACCESS_POINT_HW_ADDRESS  "hw-address"
+@@ -82,6 +83,7 @@ guint32                nm_access_point_g
+ NM80211Mode            nm_access_point_get_mode         (NMAccessPoint *ap);
+ guint32                nm_access_point_get_max_bitrate  (NMAccessPoint *ap);
+ guint8                 nm_access_point_get_strength     (NMAccessPoint *ap);
++guint32                nm_access_point_get_last_seen    (NMAccessPoint *ap);
+ 
+ GSList *               nm_access_point_filter_connections (NMAccessPoint *ap,
+                                                            const GSList *connections);
+Index: b/src/devices/wifi/nm-device-wifi.c
+===================================================================
+--- a/src/devices/wifi/nm-device-wifi.c
++++ b/src/devices/wifi/nm-device-wifi.c
+@@ -1758,6 +1758,8 @@ cull_scan_list (NMDeviceWifi *self)
+ {
+ 	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
+ 	gint32 now = nm_utils_get_monotonic_timestamp_s ();
++	guint32 boottime_now = nm_utils_monotonic_timestamp_as_boottime (now,
++	                                                                 NM_UTILS_NS_PER_SECOND);
+ 	GSList *outdated_list = NULL;
+ 	GSList *elt;
+ 	guint32 removed = 0, total = 0;
+@@ -1773,7 +1775,7 @@ cull_scan_list (NMDeviceWifi *self)
+ 	for (elt = priv->ap_list; elt; elt = g_slist_next (elt), total++) {
+ 		NMAccessPoint *ap = elt->data;
+ 		const guint prune_interval_s = SCAN_INTERVAL_MAX * 3;
+-		gint32 last_seen;
++		guint32 last_seen;
+ 
+ 		/* Don't cull the associated AP or manually created APs */
+ 		if (ap == priv->current_ap)
+@@ -1792,7 +1794,7 @@ cull_scan_list (NMDeviceWifi *self)
+ 			continue;
+ 
+ 		last_seen = nm_ap_get_last_seen (ap);
+-		if (!last_seen || last_seen + prune_interval_s < now)
++		if (!last_seen || last_seen + prune_interval_s < boottime_now)
+ 			outdated_list = g_slist_prepend (outdated_list, ap);
+ 	}
+ 
+@@ -1898,7 +1900,7 @@ supplicant_iface_bss_updated_cb (NMSuppl
+ 	/* Update the AP's last-seen property */
+ 	ap = get_ap_by_supplicant_path (self, object_path);
+ 	if (ap)
+-		nm_ap_set_last_seen (ap, nm_utils_get_monotonic_timestamp_s ());
++		nm_ap_update_last_seen (ap);
+ 
+ 	/* Remove outdated access points */
+ 	schedule_scanlist_cull (self);
+Index: b/src/devices/wifi/nm-wifi-ap.c
+===================================================================
+--- a/src/devices/wifi/nm-wifi-ap.c
++++ b/src/devices/wifi/nm-wifi-ap.c
+@@ -59,7 +59,7 @@ typedef struct
+ 	gboolean			fake;	/* Whether or not the AP is from a scan */
+ 	gboolean            hotspot;    /* Whether the AP is a local device's hotspot network */
+ 	gboolean			broadcast;	/* Whether or not the AP is broadcasting (hidden) */
+-	gint32              last_seen;  /* Timestamp when the AP was seen lastly (obtained via nm_utils_get_monotonic_timestamp_s()) */
++	guint32			last_seen;  /* Timestamp when the AP was seen lastly (obtained via nm_utils_get_monotonic_timestamp_s()) */
+ } NMAccessPointPrivate;
+ 
+ #define NM_AP_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_AP, NMAccessPointPrivate))
+@@ -77,6 +77,7 @@ enum {
+ 	PROP_MODE,
+ 	PROP_MAX_BITRATE,
+ 	PROP_STRENGTH,
++	PROP_LAST_SEEN,
+ 	LAST_PROP
+ };
+ 
+@@ -90,6 +91,7 @@ nm_ap_init (NMAccessPoint *ap)
+ 	priv->flags = NM_802_11_AP_FLAGS_NONE;
+ 	priv->wpa_flags = NM_802_11_AP_SEC_NONE;
+ 	priv->rsn_flags = NM_802_11_AP_SEC_NONE;
++	priv->last_seen = 0;
+ 	priv->broadcast = TRUE;
+ }
+ 
+@@ -139,6 +141,9 @@ set_property (GObject *object, guint pro
+ 		break;
+ 	case PROP_HW_ADDRESS:
+ 		break;
++	case PROP_LAST_SEEN:
++		nm_ap_set_last_seen (ap, g_value_get_uint (value));
++		break;
+ 	default:
+ 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+ 		break;
+@@ -187,6 +192,9 @@ get_property (GObject *object, guint pro
+ 	case PROP_STRENGTH:
+ 		g_value_set_schar (value, priv->strength);
+ 		break;
++	case PROP_LAST_SEEN:
++		g_value_set_uint (value, priv->last_seen);
++		break;
+ 	default:
+ 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+ 		break;
+@@ -295,6 +303,14 @@ nm_ap_class_init (NMAccessPointClass *ap
+ 							G_MININT8, G_MAXINT8, 0,
+ 							G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+ 
++	g_object_class_install_property
++		(object_class, PROP_LAST_SEEN,
++		 g_param_spec_uint (NM_AP_LAST_SEEN,
++							"Last Seen",
++							"Last Seen",
++							0, G_MAXUINT32, 0,
++							G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
++
+ 	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
+ 	                                        G_TYPE_FROM_CLASS (ap_class),
+ 	                                        &dbus_glib_nm_access_point_object_info);
+@@ -504,7 +520,7 @@ nm_ap_new_from_properties (const char *s
+ 		return NULL;
+ 	}
+ 
+-	nm_ap_set_last_seen (ap, nm_utils_get_monotonic_timestamp_s ());
++	nm_ap_update_last_seen (ap);
+ 
+ 	if (!nm_ap_get_ssid (ap))
+ 		nm_ap_set_broadcast (ap, FALSE);
+@@ -736,7 +752,7 @@ nm_ap_dump (NMAccessPoint *ap, const cha
+ 	nm_log_dbg (LOGD_WIFI_SCAN, "    quality   %d", priv->strength);
+ 	nm_log_dbg (LOGD_WIFI_SCAN, "    frequency %d", priv->freq);
+ 	nm_log_dbg (LOGD_WIFI_SCAN, "    max rate  %d", priv->max_bitrate);
+-	nm_log_dbg (LOGD_WIFI_SCAN, "    last-seen %d", (int) priv->last_seen);
++	nm_log_dbg (LOGD_WIFI_SCAN, "    last-seen %d", priv->last_seen);
+ }
+ 
+ const char *
+@@ -1086,20 +1102,43 @@ void nm_ap_set_broadcast (NMAccessPoint
+  * APs older than a certain date are dropped from the list.
+  *
+  */
+-gint32
++guint32
+ nm_ap_get_last_seen (const NMAccessPoint *ap)
+ {
+-	g_return_val_if_fail (NM_IS_AP (ap), FALSE);
++	g_return_val_if_fail (NM_IS_AP (ap), 0);
+ 
+ 	return NM_AP_GET_PRIVATE (ap)->last_seen;
+ }
+ 
+ void
+-nm_ap_set_last_seen (NMAccessPoint *ap, gint32 last_seen)
++nm_ap_set_last_seen (NMAccessPoint *ap, guint32 last_seen)
+ {
++	NMAccessPointPrivate *priv;
++
+ 	g_return_if_fail (NM_IS_AP (ap));
+ 
+-	NM_AP_GET_PRIVATE (ap)->last_seen = last_seen;
++	priv = NM_AP_GET_PRIVATE (ap);
++
++	if (priv->last_seen != last_seen) {
++		priv->last_seen = last_seen;
++		g_object_notify (G_OBJECT (ap), NM_AP_LAST_SEEN);
++	}
++}
++
++void
++nm_ap_update_last_seen (NMAccessPoint *ap)
++{
++	gint64 timestamp;
++
++	g_return_if_fail (NM_IS_AP (ap));
++
++	timestamp = nm_utils_get_monotonic_timestamp_s();
++	timestamp = nm_utils_monotonic_timestamp_as_boottime (timestamp,
++	                                                      NM_UTILS_NS_PER_SECOND);
++	g_return_if_fail (timestamp >= 0);
++	g_return_if_fail (timestamp <= G_MAXUINT32);
++
++	nm_ap_set_last_seen (ap, (guint32) timestamp);
+ }
+ 
+ gboolean
+Index: b/src/devices/wifi/nm-wifi-ap.h
+===================================================================
+--- a/src/devices/wifi/nm-wifi-ap.h
++++ b/src/devices/wifi/nm-wifi-ap.h
+@@ -43,6 +43,7 @@
+ #define NM_AP_MODE "mode"
+ #define NM_AP_MAX_BITRATE "max-bitrate"
+ #define NM_AP_STRENGTH "strength"
++#define NM_AP_LAST_SEEN "last-seen"
+ 
+ typedef struct {
+ 	GObject parent;
+@@ -101,8 +102,9 @@ void				nm_ap_set_fake	(NMAccessPoint *a
+ gboolean			nm_ap_get_broadcast		(NMAccessPoint *ap);
+ void				nm_ap_set_broadcast		(NMAccessPoint *ap, gboolean broadcast);
+ 
+-gint32                  nm_ap_get_last_seen     (const NMAccessPoint *ap);
+-void                    nm_ap_set_last_seen     (NMAccessPoint *ap, gint32 last_seen);
++guint32	nm_ap_get_last_seen	(const NMAccessPoint *ap);
++void	nm_ap_set_last_seen	(NMAccessPoint *ap, guint32 last_seen);
++void	nm_ap_update_last_seen	(NMAccessPoint *ap);
+ 
+ gboolean			nm_ap_check_compatible (NMAccessPoint *self,
+                                             NMConnection *connection);

@@ -1,0 +1,164 @@
+<!-- ##### SECTION Title ##### -->
+NMDeviceEthernet
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### ENUM NMDeviceEthernetError ##### -->
+<para>
+
+</para>
+
+@NM_DEVICE_ETHERNET_ERROR_UNKNOWN: 
+@NM_DEVICE_ETHERNET_ERROR_NOT_ETHERNET_CONNECTION: 
+@NM_DEVICE_ETHERNET_ERROR_INVALID_ETHERNET_CONNECTION: 
+@NM_DEVICE_ETHERNET_ERROR_INVALID_DEVICE_MAC: 
+@NM_DEVICE_ETHERNET_ERROR_MAC_MISMATCH: 
+
+<!-- ##### MACRO NM_DEVICE_ETHERNET_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_device_ethernet_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_DEVICE_ETHERNET_HW_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_ETHERNET_PERMANENT_HW_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_ETHERNET_SPEED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_DEVICE_ETHERNET_CARRIER ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMDeviceEthernet ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMDeviceEthernet:carrier ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceEthernet:hw-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceEthernet:perm-hw-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMDeviceEthernet:speed ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMDeviceEthernetClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### FUNCTION nm_device_ethernet_new ##### -->
+<para>
+
+</para>
+
+@connection: 
+@path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_ethernet_get_hw_address ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_ethernet_get_permanent_hw_address ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_ethernet_get_speed ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_device_ethernet_get_carrier ##### -->
+<para>
+
+</para>
+
+@device: 
+@Returns: 
+
+

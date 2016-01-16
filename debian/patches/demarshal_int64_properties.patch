@@ -1,0 +1,23 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Properly handle demarshalling 64-bit integers.
+
+You can't use g_value_get_(u)int for gint64/guint64.
+---
+ libnm-glib/nm-object.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Index: b/libnm-glib/nm-object.c
+===================================================================
+--- a/libnm-glib/nm-object.c
++++ b/libnm-glib/nm-object.c
+@@ -1138,8 +1138,8 @@ demarshal_generic (NMObject *object,
+ 	HANDLE_TYPE(DOUBLE, double, double)
+ 	HANDLE_TYPE(INT, int, int)
+ 	HANDLE_TYPE(UINT, uint, uint)
+-	HANDLE_TYPE(INT64, int, int)
+-	HANDLE_TYPE(UINT64, uint, uint)
++	HANDLE_TYPE(INT64, int64, int64)
++	HANDLE_TYPE(UINT64, uint64, uint64)
+ 	HANDLE_TYPE(LONG, long, long)
+ 	HANDLE_TYPE(ULONG, ulong, ulong)
+ 	} else {

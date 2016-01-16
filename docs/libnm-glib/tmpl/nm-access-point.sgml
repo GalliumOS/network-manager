@@ -1,0 +1,283 @@
+<!-- ##### SECTION Title ##### -->
+NMAccessPoint
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_WPA_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_RSN_FLAGS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_SSID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_BSSID ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_FREQUENCY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_MODE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_MAX_BITRATE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_STRENGTH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_ACCESS_POINT_HW_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMAccessPoint ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMAccessPoint:bssid ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:frequency ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:hw-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:max-bitrate ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:mode ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:rsn-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:ssid ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:strength ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMAccessPoint:wpa-flags ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMAccessPointClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+@_reserved5: 
+@_reserved6: 
+
+<!-- ##### FUNCTION nm_access_point_new ##### -->
+<para>
+
+</para>
+
+@connection: 
+@path: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_flags ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_wpa_flags ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_rsn_flags ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_ssid ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_bssid ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_frequency ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_mode ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_max_bitrate ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_strength ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_filter_connections ##### -->
+<para>
+
+</para>
+
+@ap: 
+@connections: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_connection_valid ##### -->
+<para>
+
+</para>
+
+@ap: 
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_access_point_get_hw_address ##### -->
+<para>
+
+</para>
+
+@ap: 
+@Returns: 
+
+

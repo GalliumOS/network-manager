@@ -1,0 +1,145 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingBridgePort
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_PORT_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingBridgePortError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_BRIDGE_PORT_ERROR_UNKNOWN: 
+@NM_SETTING_BRIDGE_PORT_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_BRIDGE_PORT_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_PORT_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_bridge_port_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_PORT_PRIORITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_PORT_PATH_COST ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingBridgePort ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingBridgePort:hairpin-mode ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridgePort:path-cost ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridgePort:priority ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingBridgePortClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_bridge_port_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_port_get_priority ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_port_get_path_cost ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_port_get_hairpin_mode ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

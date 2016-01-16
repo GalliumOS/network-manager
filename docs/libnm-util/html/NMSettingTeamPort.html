@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSettingTeamPort</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-util Reference Manual">
+<link rel="up" href="ch01.html" title="libnm-util API Reference">
+<link rel="prev" href="NMSettingTeam.html" title="NMSettingTeam">
+<link rel="next" href="NMSettingGeneric.html" title="NMSettingGeneric">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMSettingTeam.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-util Reference Manual</th>
+<td><a accesskey="n" href="NMSettingGeneric.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMSettingTeamPort.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMSettingTeamPort.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMSettingTeamPort.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMSettingTeamPort.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMSettingTeamPort"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingTeamPort.top_of_page"></a>NMSettingTeamPort</span></h2>
+<p>NMSettingTeamPort — Describes connection properties for team ports</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMSettingTeamPort.synopsis"></a><h2>Synopsis</h2>
+<a name="NMSettingTeamPortError"></a><pre class="synopsis">
+#include &lt;nm-setting-team-port.h&gt;
+
+#define             <a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-SETTING-NAME:CAPS" title="NM_SETTING_TEAM_PORT_SETTING_NAME">NM_SETTING_TEAM_PORT_SETTING_NAME</a>
+enum                <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPortError-enum" title="enum NMSettingTeamPortError">NMSettingTeamPortError</a>;
+#define             <a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-ERROR:CAPS" title="NM_SETTING_TEAM_PORT_ERROR">NM_SETTING_TEAM_PORT_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-error-quark" title="nm_setting_team_port_error_quark ()">nm_setting_team_port_error_quark</a>    (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-CONFIG:CAPS" title="NM_SETTING_TEAM_PORT_CONFIG">NM_SETTING_TEAM_PORT_CONFIG</a>
+                    <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort-struct" title="NMSettingTeamPort">NMSettingTeamPort</a>;
+                    <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPortClass" title="NMSettingTeamPortClass">NMSettingTeamPortClass</a>;
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         <a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-new" title="nm_setting_team_port_new ()">nm_setting_team_port_new</a>            (<em class="parameter"><code><span class="type">void</span></code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-get-config" title="nm_setting_team_port_get_config ()">nm_setting_team_port_get_config</a>     (<em class="parameter"><code><a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> *setting</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingTeamPort.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingTeamPortError
+</pre>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
+         +----NMSettingTeamPort
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingTeamPort.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--config" title='The "config" property'>config</a>"                   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingTeamPort.description"></a><h2>Description</h2>
+<p>
+The <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes
+optional properties that apply to team ports.
+</p>
+</div>
+<div class="refsect1">
+<a name="NMSettingTeamPort.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NM-SETTING-TEAM-PORT-SETTING-NAME:CAPS"></a><h3>NM_SETTING_TEAM_PORT_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_TEAM_PORT_SETTING_NAME "team-port"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingTeamPortError-enum"></a><h3>enum NMSettingTeamPortError</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_TEAM_PORT_ERROR_UNKNOWN = 0,      /*&lt; nick=UnknownError &gt;*/
+	NM_SETTING_TEAM_PORT_ERROR_INVALID_PROPERTY, /*&lt; nick=InvalidProperty &gt;*/
+	NM_SETTING_TEAM_PORT_ERROR_MISSING_PROPERTY, /*&lt; nick=MissingProperty &gt;*/
+} NMSettingTeamPortError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-TEAM-PORT-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_SETTING_TEAM_PORT_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-TEAM-PORT-ERROR-INVALID-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_TEAM_PORT_ERROR_INVALID_PROPERTY</code></span></p></td>
+<td>the property was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-TEAM-PORT-ERROR-MISSING-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_TEAM_PORT_ERROR_MISSING_PROPERTY</code></span></p></td>
+<td>the property was missing and
+is required
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-TEAM-PORT-ERROR:CAPS"></a><h3>NM_SETTING_TEAM_PORT_ERROR</h3>
+<pre class="programlisting">#define NM_SETTING_TEAM_PORT_ERROR nm_setting_team_port_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-team-port-error-quark"></a><h3>nm_setting_team_port_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_setting_team_port_error_quark    (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-TEAM-PORT-CONFIG:CAPS"></a><h3>NM_SETTING_TEAM_PORT_CONFIG</h3>
+<pre class="programlisting">#define NM_SETTING_TEAM_PORT_CONFIG     "config"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingTeamPort-struct"></a><h3>NMSettingTeamPort</h3>
+<pre class="programlisting">typedef struct _NMSettingTeamPort NMSettingTeamPort;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingTeamPortClass"></a><h3>NMSettingTeamPortClass</h3>
+<pre class="programlisting">typedef struct {
+	NMSettingClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+} NMSettingTeamPortClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-team-port-new"></a><h3>nm_setting_team_port_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         nm_setting_team_port_new            (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> object with default values.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the new empty <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> object. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-team-port-get-config"></a><h3>nm_setting_team_port_get_config ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_team_port_get_config     (<em class="parameter"><code><a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--config" title='The "config" property'><span class="type">"config"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingTeamPort.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMSettingTeamPort--config"></a><h3>The <code class="literal">"config"</code> property</h3>
+<pre class="programlisting">  "config"                   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write</pre>
+<p>
+The JSON configuration for the team port. The property should contain raw
+JSON configuration data suitable for teamd, because the value is passed
+directly to teamd. If not specified, the default configuration is
+used. See man teamd.conf for the format details.
+</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

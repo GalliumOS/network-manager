@@ -1,0 +1,469 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMIP4Config</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="NMAccessPoint.html" title="NMAccessPoint">
+<link rel="next" href="NMIP6Config.html" title="NMIP6Config">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMAccessPoint.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="NMIP6Config.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMIP4Config.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMIP4Config.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMIP4Config.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMIP4Config.implemented-interfaces" class="shortcut">Implemented Interfaces</a>
+                   | 
+                  <a href="#NMIP4Config.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMIP4Config"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMIP4Config.top_of_page"></a>NMIP4Config</span></h2>
+<p>NMIP4Config</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMIP4Config.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="NMIP4Config.html#NMIP4Config-struct" title="NMIP4Config">NMIP4Config</a>;
+                    <a class="link" href="NMIP4Config.html#NMIP4ConfigClass" title="NMIP4ConfigClass">NMIP4ConfigClass</a>;
+#define             <a class="link" href="NMIP4Config.html#NM-IP4-CONFIG-GATEWAY:CAPS" title="NM_IP4_CONFIG_GATEWAY">NM_IP4_CONFIG_GATEWAY</a>
+#define             <a class="link" href="NMIP4Config.html#NM-IP4-CONFIG-ADDRESSES:CAPS" title="NM_IP4_CONFIG_ADDRESSES">NM_IP4_CONFIG_ADDRESSES</a>
+#define             <a class="link" href="NMIP4Config.html#NM-IP4-CONFIG-ROUTES:CAPS" title="NM_IP4_CONFIG_ROUTES">NM_IP4_CONFIG_ROUTES</a>
+#define             <a class="link" href="NMIP4Config.html#NM-IP4-CONFIG-NAMESERVERS:CAPS" title="NM_IP4_CONFIG_NAMESERVERS">NM_IP4_CONFIG_NAMESERVERS</a>
+#define             <a class="link" href="NMIP4Config.html#NM-IP4-CONFIG-DOMAINS:CAPS" title="NM_IP4_CONFIG_DOMAINS">NM_IP4_CONFIG_DOMAINS</a>
+#define             <a class="link" href="NMIP4Config.html#NM-IP4-CONFIG-SEARCHES:CAPS" title="NM_IP4_CONFIG_SEARCHES">NM_IP4_CONFIG_SEARCHES</a>
+#define             <a class="link" href="NMIP4Config.html#NM-IP4-CONFIG-WINS-SERVERS:CAPS" title="NM_IP4_CONFIG_WINS_SERVERS">NM_IP4_CONFIG_WINS_SERVERS</a>
+<a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="NMIP4Config.html#nm-ip4-config-new" title="nm_ip4_config_new ()">nm_ip4_config_new</a>                   (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *object_path</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMIP4Config.html#nm-ip4-config-get-gateway" title="nm_ip4_config_get_gateway ()">nm_ip4_config_get_gateway</a>           (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *      <a class="link" href="NMIP4Config.html#nm-ip4-config-get-addresses" title="nm_ip4_config_get_addresses ()">nm_ip4_config_get_addresses</a>         (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *      <a class="link" href="NMIP4Config.html#nm-ip4-config-get-routes" title="nm_ip4_config_get_routes ()">nm_ip4_config_get_routes</a>            (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="returnvalue">GArray</span></a> *      <a class="link" href="NMIP4Config.html#nm-ip4-config-get-nameservers" title="nm_ip4_config_get_nameservers ()">nm_ip4_config_get_nameservers</a>       (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   <a class="link" href="NMIP4Config.html#nm-ip4-config-get-domains" title="nm_ip4_config_get_domains ()">nm_ip4_config_get_domains</a>           (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   <a class="link" href="NMIP4Config.html#nm-ip4-config-get-searches" title="nm_ip4_config_get_searches ()">nm_ip4_config_get_searches</a>          (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="returnvalue">GArray</span></a> *      <a class="link" href="NMIP4Config.html#nm-ip4-config-get-wins-servers" title="nm_ip4_config_get_wins_servers ()">nm_ip4_config_get_wins_servers</a>      (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMIP4Config.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+         +----NMIP4Config
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMIP4Config.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMIP4Config implements
+ <a href="http://library.gnome.org/devel/gio/unstable/GInitable.html">GInitable</a> and  <a href="http://library.gnome.org/devel/gio/unstable/GAsyncInitable.html">GAsyncInitable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="NMIP4Config.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMIP4Config.html#NMIP4Config--addresses" title='The "addresses" property'>addresses</a>"                <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>              : Read
+  "<a class="link" href="NMIP4Config.html#NMIP4Config--domains" title='The "domains" property'>domains</a>"                  <span class="type">NMStringArray</span>*        : Read
+  "<a class="link" href="NMIP4Config.html#NMIP4Config--gateway" title='The "gateway" property'>gateway</a>"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read
+  "<a class="link" href="NMIP4Config.html#NMIP4Config--nameservers" title='The "nameservers" property'>nameservers</a>"              <span class="type">NMUintArray</span>*          : Read
+  "<a class="link" href="NMIP4Config.html#NMIP4Config--routes" title='The "routes" property'>routes</a>"                   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>              : Read
+  "<a class="link" href="NMIP4Config.html#NMIP4Config--searches" title='The "searches" property'>searches</a>"                 <span class="type">NMStringArray</span>*        : Read
+  "<a class="link" href="NMIP4Config.html#NMIP4Config--wins-servers" title='The "wins-servers" property'>wins-servers</a>"             <span class="type">NMUintArray</span>*          : Read
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMIP4Config.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMIP4Config.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NMIP4Config-struct"></a><h3>NMIP4Config</h3>
+<pre class="programlisting">typedef struct _NMIP4Config NMIP4Config;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMIP4ConfigClass"></a><h3>NMIP4ConfigClass</h3>
+<pre class="programlisting">typedef struct {
+	NMObjectClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+	void (*_reserved5) (void);
+	void (*_reserved6) (void);
+} NMIP4ConfigClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP4-CONFIG-GATEWAY:CAPS"></a><h3>NM_IP4_CONFIG_GATEWAY</h3>
+<pre class="programlisting">#define NM_IP4_CONFIG_GATEWAY "gateway"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP4-CONFIG-ADDRESSES:CAPS"></a><h3>NM_IP4_CONFIG_ADDRESSES</h3>
+<pre class="programlisting">#define NM_IP4_CONFIG_ADDRESSES "addresses"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP4-CONFIG-ROUTES:CAPS"></a><h3>NM_IP4_CONFIG_ROUTES</h3>
+<pre class="programlisting">#define NM_IP4_CONFIG_ROUTES "routes"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP4-CONFIG-NAMESERVERS:CAPS"></a><h3>NM_IP4_CONFIG_NAMESERVERS</h3>
+<pre class="programlisting">#define NM_IP4_CONFIG_NAMESERVERS "nameservers"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP4-CONFIG-DOMAINS:CAPS"></a><h3>NM_IP4_CONFIG_DOMAINS</h3>
+<pre class="programlisting">#define NM_IP4_CONFIG_DOMAINS "domains"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP4-CONFIG-SEARCHES:CAPS"></a><h3>NM_IP4_CONFIG_SEARCHES</h3>
+<pre class="programlisting">#define NM_IP4_CONFIG_SEARCHES "searches"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP4-CONFIG-WINS-SERVERS:CAPS"></a><h3>NM_IP4_CONFIG_WINS_SERVERS</h3>
+<pre class="programlisting">#define NM_IP4_CONFIG_WINS_SERVERS "wins-servers"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip4-config-new"></a><h3>nm_ip4_config_new ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           nm_ip4_config_new                   (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *object_path</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>the <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object_path</code></em> :</span></p></td>
+<td>the DBus object path of the device</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new IP4 configuration. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip4-config-get-gateway"></a><h3>nm_ip4_config_get_gateway ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_ip4_config_get_gateway           (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);</pre>
+<p>
+Gets the IP4 gateway address.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>config</code></em> :</span></p></td>
+<td>a <a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the IP4 address of the gateway.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip4-config-get-addresses"></a><h3>nm_ip4_config_get_addresses ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *      nm_ip4_config_get_addresses         (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);</pre>
+<p>
+Gets the IP4 addresses (containing the address, prefix, and gateway).
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>config</code></em> :</span></p></td>
+<td>a <a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> containing <a href="https://developer.gnome.org/libnm-util/0.9/NMSettingIP4Config.html#NMIP4Address"><span class="type">NMIP4Address</span></a>es.
+This is the internal copy used by the configuration and must not be modified. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NetworkManager.IP4Address]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip4-config-get-routes"></a><h3>nm_ip4_config_get_routes ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *      nm_ip4_config_get_routes            (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);</pre>
+<p>
+Gets the routes.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>config</code></em> :</span></p></td>
+<td>a <a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a href="http://library.gnome.org/devel/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> containing
+<a href="https://developer.gnome.org/libnm-util/0.9/NMSettingIP4Config.html#NMIP4Route"><span class="type">NMIP4Routes</span></a>. This is the internal copy used by the configuration,
+and must not be modified. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NetworkManager.IP4Route]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip4-config-get-nameservers"></a><h3>nm_ip4_config_get_nameservers ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="returnvalue">GArray</span></a> *      nm_ip4_config_get_nameservers       (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);</pre>
+<p>
+Gets the domain name servers (DNS).
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>config</code></em> :</span></p></td>
+<td>a <a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> containing <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a>.
+This is the internal copy used by the configuration and must not be
+modified. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint32]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip4-config-get-domains"></a><h3>nm_ip4_config_get_domains ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   nm_ip4_config_get_domains           (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);</pre>
+<p>
+Gets the domain names.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>config</code></em> :</span></p></td>
+<td>a <a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing domains as strings. This is the
+internal copy used by the configuration, and must not be modified. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip4-config-get-searches"></a><h3>nm_ip4_config_get_searches ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   nm_ip4_config_get_searches          (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);</pre>
+<p>
+Gets the dns searches.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>config</code></em> :</span></p></td>
+<td>a <a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing dns searches as strings. This is the
+internal copy used by the configuration, and must not be modified. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip4-config-get-wins-servers"></a><h3>nm_ip4_config_get_wins_servers ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="returnvalue">GArray</span></a> *      nm_ip4_config_get_wins_servers      (<em class="parameter"><code><a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a> *config</code></em>);</pre>
+<p>
+Gets the Windows Internet Name Service servers (WINS).
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>config</code></em> :</span></p></td>
+<td>a <a class="link" href="NMIP4Config.html" title="NMIP4Config"><span class="type">NMIP4Config</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> containing <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a>.
+This is the internal copy used by the configuration and must not be
+modified. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint32]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMIP4Config.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMIP4Config--addresses"></a><h3>The <code class="literal">"addresses"</code> property</h3>
+<pre class="programlisting">  "addresses"                <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>              : Read</pre>
+<p>
+The <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing <a href="https://developer.gnome.org/libnm-util/0.9/NMSettingIP4Config.html#NMIP4Address"><span class="type">NMIP4Address</span></a>es of the configuration.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMIP4Config--domains"></a><h3>The <code class="literal">"domains"</code> property</h3>
+<pre class="programlisting">  "domains"                  <span class="type">NMStringArray</span>*        : Read</pre>
+<p>
+The <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing domain strings of the configuration.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMIP4Config--gateway"></a><h3>The <code class="literal">"gateway"</code> property</h3>
+<pre class="programlisting">  "gateway"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read</pre>
+<p>
+The IP4 gateway address of the configuration as string.
+</p>
+<p>Default value: NULL</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMIP4Config--nameservers"></a><h3>The <code class="literal">"nameservers"</code> property</h3>
+<pre class="programlisting">  "nameservers"              <span class="type">NMUintArray</span>*          : Read</pre>
+<p>
+The <a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> containing name servers (<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a>) of the configuration.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMIP4Config--routes"></a><h3>The <code class="literal">"routes"</code> property</h3>
+<pre class="programlisting">  "routes"                   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>              : Read</pre>
+<p>
+The <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing <span class="type">NMSettingIP4Routes</span> of the configuration.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMIP4Config--searches"></a><h3>The <code class="literal">"searches"</code> property</h3>
+<pre class="programlisting">  "searches"                 <span class="type">NMStringArray</span>*        : Read</pre>
+<p>
+The <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing dns search strings of the configuration.
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMIP4Config--wins-servers"></a><h3>The <code class="literal">"wins-servers"</code> property</h3>
+<pre class="programlisting">  "wins-servers"             <span class="type">NMUintArray</span>*          : Read</pre>
+<p>
+The <a href="http://library.gnome.org/devel/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> containing WINS servers (<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a>) of the configuration.
+</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

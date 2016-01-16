@@ -1,0 +1,642 @@
+<!-- ##### SECTION Title ##### -->
+NMConnection
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_CONNECTION_SECRETS_UPDATED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CONNECTION_SECRETS_CLEARED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CONNECTION_CHANGED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_CONNECTION_PATH ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMConnectionError ##### -->
+<para>
+
+</para>
+
+@NM_CONNECTION_ERROR_UNKNOWN: 
+@NM_CONNECTION_ERROR_CONNECTION_SETTING_NOT_FOUND: 
+@NM_CONNECTION_ERROR_CONNECTION_TYPE_INVALID: 
+@NM_CONNECTION_ERROR_SETTING_NOT_FOUND: 
+
+<!-- ##### MACRO NM_CONNECTION_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_connection_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### STRUCT NMConnection ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SIGNAL NMConnection::changed ##### -->
+<para>
+
+</para>
+
+@nmconnection: the object which received the signal.
+
+<!-- ##### SIGNAL NMConnection::secrets-cleared ##### -->
+<para>
+
+</para>
+
+@nmconnection: the object which received the signal.
+
+<!-- ##### SIGNAL NMConnection::secrets-updated ##### -->
+<para>
+
+</para>
+
+@nmconnection: the object which received the signal.
+@arg1: 
+
+<!-- ##### ARG NMConnection:path ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMConnectionClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@secrets_updated: 
+
+<!-- ##### FUNCTION nm_connection_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_new_from_hash ##### -->
+<para>
+
+</para>
+
+@hash: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_duplicate ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_create_setting ##### -->
+<para>
+
+</para>
+
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_add_setting ##### -->
+<para>
+
+</para>
+
+@connection: 
+@setting: 
+
+
+<!-- ##### FUNCTION nm_connection_remove_setting ##### -->
+<para>
+
+</para>
+
+@connection: 
+@setting_type: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting ##### -->
+<para>
+
+</para>
+
+@connection: 
+@setting_type: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_by_name ##### -->
+<para>
+
+</para>
+
+@connection: 
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_replace_settings ##### -->
+<para>
+
+</para>
+
+@connection: 
+@new_settings: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_replace_settings_from_connection ##### -->
+<para>
+
+</para>
+
+@connection: 
+@new_connection: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_compare ##### -->
+<para>
+
+</para>
+
+@a: 
+@b: 
+@flags: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_diff ##### -->
+<para>
+
+</para>
+
+@a: 
+@b: 
+@flags: 
+@out_settings: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_verify ##### -->
+<para>
+
+</para>
+
+@connection: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_need_secrets ##### -->
+<para>
+
+</para>
+
+@connection: 
+@hints: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_clear_secrets ##### -->
+<para>
+
+</para>
+
+@connection: 
+
+
+<!-- ##### FUNCTION nm_connection_clear_secrets_with_flags ##### -->
+<para>
+
+</para>
+
+@connection: 
+@func: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_connection_update_secrets ##### -->
+<para>
+
+</para>
+
+@connection: 
+@setting_name: 
+@secrets: 
+@error: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_set_path ##### -->
+<para>
+
+</para>
+
+@connection: 
+@path: 
+
+
+<!-- ##### FUNCTION nm_connection_get_path ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_virtual_iface_name ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_is_type ##### -->
+<para>
+
+</para>
+
+@connection: 
+@type: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_for_each_setting_value ##### -->
+<para>
+
+</para>
+
+@connection: 
+@func: 
+@user_data: 
+
+
+<!-- ##### FUNCTION nm_connection_to_hash ##### -->
+<para>
+
+</para>
+
+@connection: 
+@flags: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_dump ##### -->
+<para>
+
+</para>
+
+@connection: 
+
+
+<!-- ##### FUNCTION nm_connection_lookup_setting_type ##### -->
+<para>
+
+</para>
+
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_lookup_setting_type_by_quark ##### -->
+<para>
+
+</para>
+
+@error_quark: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_uuid ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_id ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_connection_type ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_virtual_device_description ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_802_1x ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_bluetooth ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_bond ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_team ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_team_port ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_bridge ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_bridge_port ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_cdma ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_connection ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_dcb ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_generic ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_gsm ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_infiniband ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_ip4_config ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_ip6_config ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_olpc_mesh ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_ppp ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_pppoe ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_serial ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_vpn ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_wimax ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_adsl ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_wired ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_wireless ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_wireless_security ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_connection_get_setting_vlan ##### -->
+<para>
+
+</para>
+
+@connection: 
+@Returns: 
+
+

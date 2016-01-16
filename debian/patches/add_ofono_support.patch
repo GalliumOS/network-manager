@@ -1,0 +1,1653 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Teach network-manager about ofono.
+
+---
+ include/NetworkManager.h            |    1 
+ src/devices/wwan/Makefile.am        |    2 
+ src/devices/wwan/nm-modem-manager.c |  212 +++++-
+ src/devices/wwan/nm-modem-ofono.c   | 1216 ++++++++++++++++++++++++++++++++++++
+ src/devices/wwan/nm-modem-ofono.h   |   64 +
+ 5 files changed, 1473 insertions(+), 22 deletions(-)
+
+Index: b/src/devices/wwan/nm-modem-ofono.c
+===================================================================
+--- /dev/null
++++ b/src/devices/wwan/nm-modem-ofono.c
+@@ -0,0 +1,1216 @@
++/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
++/* NetworkManager -- Network link manager
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * Copyright (C) 2013 Canonical Ltd.
++ */
++
++#include "config.h"
++
++#include <string.h>
++#include <glib/gi18n.h>
++
++#include "nm-dbus-glib-types.h"
++#include "nm-modem-ofono.h"
++#include "nm-device.h"
++#include "nm-device-private.h"
++#include "nm-setting-connection.h"
++#include "nm-setting-gsm.h"
++#include "nm-settings-connection.h"
++#include "nm-enum-types.h"
++#include "nm-logging.h"
++#include "nm-modem.h"
++#include "nm-dbus-manager.h"
++#include "NetworkManagerUtils.h"
++
++typedef enum {
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_ANY = 0,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_GPRS,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_EDGE,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_UMTS,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_HSDPA,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_2G_PREFERRED,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_3G_PREFERRED,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_2G_ONLY,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_3G_ONLY,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_HSUPA,
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_HSPA,
++
++    MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_LAST = MM_MODEM_GSM_NETWORK_DEPRECATED_MODE_HSPA
++} MMModemDeprecatedMode;
++
++typedef enum {
++    MM_MODEM_GSM_ALLOWED_MODE_ANY          = 0,
++    MM_MODEM_GSM_ALLOWED_MODE_2G_PREFERRED = 1,
++    MM_MODEM_GSM_ALLOWED_MODE_3G_PREFERRED = 2,
++    MM_MODEM_GSM_ALLOWED_MODE_2G_ONLY      = 3,
++    MM_MODEM_GSM_ALLOWED_MODE_3G_ONLY      = 4,
++    MM_MODEM_GSM_ALLOWED_MODE_4G_PREFERRED = 5,
++    MM_MODEM_GSM_ALLOWED_MODE_4G_ONLY      = 6,
++
++    MM_MODEM_GSM_ALLOWED_MODE_LAST = MM_MODEM_GSM_ALLOWED_MODE_4G_ONLY
++} MMModemGsmAllowedMode;
++
++typedef enum {
++	MM_MODEM_GSM_ALLOWED_AUTH_UNKNOWN  = 0x0000,
++    /* bits 0..4 order match Ericsson device bitmap */
++    MM_MODEM_GSM_ALLOWED_AUTH_NONE     = 0x0001,
++    MM_MODEM_GSM_ALLOWED_AUTH_PAP      = 0x0002,
++    MM_MODEM_GSM_ALLOWED_AUTH_CHAP     = 0x0004,
++    MM_MODEM_GSM_ALLOWED_AUTH_MSCHAP   = 0x0008,
++    MM_MODEM_GSM_ALLOWED_AUTH_MSCHAPV2 = 0x0010,
++    MM_MODEM_GSM_ALLOWED_AUTH_EAP      = 0x0020,
++
++    MM_MODEM_GSM_ALLOWED_AUTH_LAST = MM_MODEM_GSM_ALLOWED_AUTH_EAP
++} MMModemGsmAllowedAuth;
++
++G_DEFINE_TYPE (NMModemOfono, nm_modem_ofono, NM_TYPE_MODEM)
++
++#define NM_MODEM_OFONO_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_MODEM_OFONO, NMModemOfonoPrivate))
++
++typedef struct {
++	GHashTable *connect_properties;
++
++	NMDBusManager *dbus_mgr;
++
++	DBusGProxy *modem_proxy;
++	DBusGProxy *connman_proxy;
++	DBusGProxy *context_proxy;
++	DBusGProxy *simmanager_proxy;
++
++	DBusGProxyCall *call;
++
++	GError *property_error;
++
++	guint connman_iface_source;
++	guint connman_iface_retries;
++
++	char **interfaces;
++	char *context_path;
++
++	gboolean modem_online;
++	gboolean gprs_attached;
++	gboolean gprs_powered;
++
++	NMModemState state;
++} NMModemOfonoPrivate;
++
++#define NM_OFONO_ERROR (nm_ofono_error_quark ())
++
++static GQuark
++nm_ofono_error_quark (void)
++{
++        static GQuark quark = 0;
++        if (!quark)
++                quark = g_quark_from_static_string ("nm-ofono-error");
++        return quark;
++}
++
++static gboolean
++ip_string_to_network_address (const gchar *str,
++                              guint32 *out)
++{
++        struct in_addr addr;
++
++        /* IP address */
++        if (inet_pton (AF_INET, str, &addr) <= 0)
++                return FALSE;
++
++        *out = (guint32)addr.s_addr;
++        return TRUE;
++}
++
++/* Disconnect stuff */
++typedef struct {
++        NMModemOfono *self;
++        gboolean warn;
++} SimpleDisconnectContext;
++
++static void
++simple_disconnect_context_free (SimpleDisconnectContext *ctx)
++{
++        g_object_unref (ctx->self);
++        g_slice_free (SimpleDisconnectContext, ctx);
++}
++
++static void
++disconnect_done (DBusGProxy *proxy, DBusGProxyCall *call, gpointer user_data)
++{
++	SimpleDisconnectContext *ctx = (SimpleDisconnectContext*) user_data;
++	NMModemOfono *self = ctx->self;
++	GError *error = NULL;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (!dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID)) {
++		if (ctx->warn)
++			nm_log_warn (LOGD_MB, "(%s) failed to disconnect modem: %s",
++			             nm_modem_get_uid (NM_MODEM (self)),
++			             error && error->message ? error->message : "(unknown)");
++		g_clear_error (&error);
++	}
++
++        simple_disconnect_context_free (ctx);
++}
++
++static void
++disconnect (NMModem *self,
++            gboolean warn)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++        SimpleDisconnectContext *ctx;
++	GValue value = G_VALUE_INIT;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++        ctx = g_slice_new (SimpleDisconnectContext);
++        ctx->self = g_object_ref (self);
++        ctx->warn = warn;
++
++	g_value_init (&value, G_TYPE_BOOLEAN);
++	g_value_set_boolean (&value, FALSE);
++
++	dbus_g_proxy_begin_call_with_timeout (priv->context_proxy,
++	                                      "SetProperty", disconnect_done,
++	                                      ctx, NULL, 20000,
++	                                      G_TYPE_STRING, "Active",
++	                                      G_TYPE_VALUE, &value,
++	                                      G_TYPE_INVALID);
++
++}
++
++static void
++deactivate (NMModem *_self, NMDevice *device)
++{
++	/* Chain up parent's */
++	NM_MODEM_CLASS (nm_modem_ofono_parent_class)->deactivate (_self, device);
++}
++
++DBusGProxy *
++get_ofono_proxy (NMModemOfono *self, const char *path, const char *interface)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	DBusGConnection *bus;
++	DBusGProxy *proxy;
++
++	bus = nm_dbus_manager_get_connection (priv->dbus_mgr);
++
++	proxy = dbus_g_proxy_new_for_name (bus,
++	                                   OFONO_DBUS_SERVICE,
++	                                   path,
++	                                   interface);
++
++	return proxy;
++}
++
++static void ofono_read_contexts (NMModemOfono *self);
++
++static void
++update_ofono_enabled (NMModemOfono *self,
++                      gboolean new_enabled)
++{
++	NMModemState new_state;
++	NMDeviceStateReason reason;
++
++	if (new_enabled) {
++		new_state = NM_MODEM_STATE_REGISTERED;
++		reason = NM_DEVICE_STATE_REASON_NONE;
++	} else {
++		new_state = NM_MODEM_STATE_SEARCHING;
++		reason = NM_DEVICE_STATE_REASON_MODEM_NO_CARRIER;
++        }
++
++	nm_modem_set_state (NM_MODEM (self),
++	                    new_state,
++	                    nm_modem_state_to_string (reason));
++
++	nm_log_info (LOGD_MB, "(%s) now in state: %s",
++	             nm_modem_get_path (NM_MODEM (self)),
++	             nm_modem_state_to_string(new_state));
++	ofono_read_contexts (self);
++}
++
++static void
++get_ofono_conn_manager_properties_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GError *error = NULL;
++	GHashTable *properties = NULL;
++	GValue *value = NULL;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (!dbus_g_proxy_end_call (proxy, call_id, &error,
++	                            DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
++	                            G_TYPE_INVALID)) {
++		nm_log_warn (LOGD_MB, "failed get connection manager properties: (%d) %s",
++		             error ? error->code : -1,
++		             error && error->message ? error->message : "(unknown)");
++		return;
++	}
++
++	value = g_hash_table_lookup (properties, "Attached");
++	if (value)
++		priv->gprs_attached = g_value_get_boolean (value);
++	else
++		nm_log_warn (LOGD_MB, "failed get GPRS state: unexpected reply type");
++	g_value_unset (value);
++
++	value = g_hash_table_lookup (properties, "Powered");
++	if (value)
++		priv->gprs_powered = g_value_get_boolean (value);
++	else
++		nm_log_warn (LOGD_MB, "failed get modem enabled state: unexpected reply type");
++	g_value_unset (value);
++
++	update_ofono_enabled (self, priv->gprs_powered && priv->gprs_attached);
++}
++
++static void
++get_ofono_conn_manager_properties (NMModemOfono *self)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	dbus_g_proxy_begin_call_with_timeout (priv->connman_proxy,
++	                                      "GetProperties",
++	                                      get_ofono_conn_manager_properties_done,
++	                                      self, NULL, 20000,
++	                                      G_TYPE_INVALID);
++}
++
++static void
++ofono_conn_properties_changed (DBusGProxy *proxy,
++                               const char *key,
++                               GValue *value,
++                               gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (g_strcmp0 (key, "Powered") == 0 && G_VALUE_HOLDS_BOOLEAN (value)) {
++		priv->gprs_powered = g_value_get_boolean (value);
++	}
++	else if (g_strcmp0 (key, "Attached") == 0 && G_VALUE_HOLDS_BOOLEAN (value)) {
++		priv->gprs_attached = g_value_get_boolean (value);
++	}
++
++	update_ofono_enabled (self, priv->gprs_powered && priv->gprs_attached);
++}
++
++static void
++ofono_read_imsi_contexts_done (DBusGProxy *proxy,
++                               DBusGProxyCall *call_id,
++                               gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GError *error = NULL;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (!dbus_g_proxy_end_call (proxy, call_id, &error, G_TYPE_INVALID)) {
++		nm_log_warn (LOGD_MB, "failed notify settings plugin of a new context: (%d) %s",
++		             error ? error->code : -1,
++		             error && error->message ? error->message : "(unknown)");
++		return;
++	}
++}
++
++static void
++ofono_read_contexts (NMModemOfono *self)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	DBusGConnection *bus;
++	DBusGProxy *settings_proxy;
++	GHashTable *properties;
++	GError *error = NULL;
++	char *imsi = NULL;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++	nm_log_dbg (LOGD_MB, "trying to read IMSI contexts from oFono files");
++
++	bus = nm_dbus_manager_get_connection (priv->dbus_mgr);
++
++	dbus_g_proxy_call_with_timeout (priv->simmanager_proxy,
++	                                "GetProperties",
++	                                20000,
++	                                &error,
++	                                G_TYPE_INVALID,
++	                                DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
++	                                G_TYPE_INVALID);
++
++	if (error) {
++		nm_log_warn (LOGD_MB, "Could not get SIM properties: %s",
++		             error && error->message ? error->message : "(unknown)");
++		g_clear_error (&error);
++	}
++
++	imsi = g_value_get_string (g_hash_table_lookup (properties, "SubscriberIdentity"));
++
++	settings_proxy = dbus_g_proxy_new_for_name (bus,
++	                                            "com.canonical.NMOfono",
++	                                            "/com/canonical/NMOfono",
++	                                            "com.canonical.NMOfono");
++
++	if (settings_proxy)
++		dbus_g_proxy_begin_call_with_timeout (settings_proxy,
++		                                      "ReadImsiContexts", ofono_read_imsi_contexts_done,
++		                                      self, NULL, 20000,
++		                                      G_TYPE_STRING, imsi,
++		                                      G_TYPE_INVALID);
++	else
++		nm_log_warn (LOGD_MB, "could not get proxy to the oFono Settings plugin.");
++}
++
++static void
++ofono_context_added (DBusGProxy *proxy,
++                     const char *path,
++                     GValue *prop,
++                     gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++
++	nm_log_dbg (LOGD_MB, "context %s added", path);
++
++	ofono_read_contexts (self);
++}
++
++static void
++ofono_context_removed (DBusGProxy *proxy, const char *path, gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	nm_log_dbg (LOGD_MB, "context %s removed", path);
++}
++
++static void
++ofono_properties_changed (DBusGProxy *proxy,
++                          const char *key,
++                          GValue *value,
++                          gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	nm_log_dbg (LOGD_MB, "in %s: %s", __func__, key);
++
++	if (g_strcmp0 (key, "Online") == 0 && G_VALUE_HOLDS_BOOLEAN (value)) {
++		priv->modem_online = g_value_get_boolean (value);
++	} else if (g_strcmp0 (key, "Interfaces") == 0 && G_VALUE_HOLDS_BOXED (value)) {
++		gboolean found_simmanager = FALSE;
++		gboolean found_conn_manager = FALSE;
++		gboolean found_context_manager = FALSE;
++		int i;
++
++		priv->interfaces = (char **) g_value_get_boxed (value);
++		nm_log_info (LOGD_MB, "(%s) updated available interfaces", nm_modem_get_path (NM_MODEM (self)));
++
++		for (i = 0; priv->interfaces[i]; i++) {
++			if (g_strrstr (priv->interfaces[i], "SimManager"))
++				found_simmanager = TRUE;
++			if (g_strrstr (priv->interfaces[i], "ConnectionManager"))
++				found_conn_manager = TRUE;
++			if (g_strrstr (priv->interfaces[i], "ContextManager"))
++				found_context_manager = TRUE;
++		}
++
++		if (found_simmanager) {
++			if (!priv->simmanager_proxy)
++				priv->simmanager_proxy = get_ofono_proxy (self,
++				                                          nm_modem_get_path (NM_MODEM (self)),
++				                                          OFONO_DBUS_INTERFACE_SIM_MANAGER);
++		}
++		else {
++			if (priv->simmanager_proxy) {
++				g_object_unref (priv->simmanager_proxy);
++				priv->simmanager_proxy = NULL;
++			}
++		}
++
++		if (found_conn_manager) {
++			if (!priv->connman_proxy)
++				priv->connman_proxy = get_ofono_proxy (self,
++				                                       nm_modem_get_path (NM_MODEM (self)),
++				                                       OFONO_DBUS_INTERFACE_CONNECTION_MANAGER);
++
++			if (priv->connman_proxy) {
++				get_ofono_conn_manager_properties (self);
++
++				dbus_g_proxy_add_signal (priv->connman_proxy, "PropertyChanged",
++				                         G_TYPE_STRING, G_TYPE_VALUE,
++				                         G_TYPE_INVALID);
++				dbus_g_proxy_connect_signal (priv->connman_proxy, "PropertyChanged",
++				                             G_CALLBACK (ofono_conn_properties_changed),
++				                             self,
++				                             NULL);
++
++				dbus_g_proxy_add_signal (priv->connman_proxy, "ContextAdded",
++				                         DBUS_TYPE_G_OBJECT_PATH, DBUS_TYPE_G_MAP_OF_VARIANT,
++				                         G_TYPE_INVALID);
++				dbus_g_proxy_connect_signal (priv->connman_proxy, "ContextAdded",
++				                             G_CALLBACK (ofono_context_added),
++				                             self,
++				                             NULL);
++				dbus_g_proxy_add_signal (priv->connman_proxy, "ContextRemoved",
++				                         DBUS_TYPE_G_OBJECT_PATH,
++				                         G_TYPE_INVALID);
++				dbus_g_proxy_connect_signal (priv->connman_proxy, "ContextRemoved",
++				                             G_CALLBACK (ofono_context_removed),
++				                             self,
++				                             NULL);
++			}
++		}
++		else {
++			if (priv->connman_proxy) {
++				g_object_unref (priv->connman_proxy);
++				priv->connman_proxy = NULL;
++
++				/* The connection manager proxy disappeared, we should
++				 * consider the modem disabled.
++				 */
++				update_ofono_enabled (self, FALSE);
++				priv->gprs_powered = FALSE;
++				priv->gprs_attached = FALSE;
++			}
++		}
++
++		/* Clear the context manager if it got dropped from interfaces */
++		if (found_context_manager) {
++			ofono_read_contexts (self);
++		} else {
++			if (priv->context_proxy) {
++				g_object_unref (priv->context_proxy);
++				priv->context_proxy = NULL;
++			}
++		}
++	}
++}
++
++NMModem *
++nm_modem_ofono_new (const char *path)
++{
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++	g_return_val_if_fail (path != NULL, NULL);
++
++	nm_log_dbg (LOGD_MB, "in %s: path %s", __func__, path);
++
++	return (NMModem *) g_object_new (NM_TYPE_MODEM_OFONO,
++	                                 NM_MODEM_PATH, path,
++	                                 NM_MODEM_UID, (path + 1),
++	                                 NM_MODEM_CONTROL_PORT, "ofono", /* mandatory */
++	                                 NM_MODEM_IP_METHOD, MM_MODEM_IP_METHOD_STATIC,
++	                                 NM_MODEM_STATE, NM_MODEM_STATE_INITIALIZING,
++	                                 NULL);
++}
++
++static void
++stage1_prepare_done (DBusGProxy *proxy, DBusGProxyCall *call, gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GError *error = NULL;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	priv->call = NULL;
++
++	if (priv->connect_properties) {
++		g_hash_table_destroy (priv->connect_properties);
++		priv->connect_properties = NULL;
++	}
++
++	if (dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID))
++		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, TRUE, NM_DEVICE_STATE_REASON_NONE);
++	else {
++		//if (dbus_g_error_has_name (error, MM_MODEM_ERROR_SIM_PIN))
++		//	ask_for_pin (self, FALSE);
++		//else if (dbus_g_error_has_name (error, MM_MODEM_ERROR_SIM_WRONG))
++		//	ask_for_pin (self, TRUE);
++		//else {
++			nm_log_warn (LOGD_MB, "OFONO connection failed: (%d) %s",
++			             error ? error->code : -1,
++			             error && error->message ? error->message : "(unknown)");
++
++			g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE, NM_DEVICE_STATE_REASON_MODEM_NO_CARRIER);
++		//}
++
++		g_error_free (error);
++	}
++}
++
++static void
++do_context_activate (NMModemOfono *self, char *context_path)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GValue value = G_VALUE_INIT;
++
++	g_return_val_if_fail (self != NULL, FALSE);
++	g_return_val_if_fail (NM_IS_MODEM_OFONO (self), FALSE);
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	g_value_init (&value, G_TYPE_BOOLEAN);
++	g_value_set_boolean (&value, TRUE);
++
++	if (priv->context_proxy)
++		g_object_unref (priv->context_proxy);
++
++	priv->context_proxy = get_ofono_proxy (self,
++	                                       context_path,
++	                                       OFONO_DBUS_INTERFACE_CONNECTION_CONTEXT);
++
++	if (!priv->context_proxy) {
++		nm_log_err (LOGD_MB, "could not bring up connection context proxy");
++		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE,
++		                       NM_DEVICE_STATE_REASON_MODEM_BUSY);
++		return;
++	}
++
++	if (!priv->gprs_attached) {
++		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE,
++		                       NM_DEVICE_STATE_REASON_MODEM_NO_CARRIER);
++		return;
++	}
++
++	dbus_g_proxy_begin_call_with_timeout (priv->context_proxy,
++	                                      "SetProperty", stage1_prepare_done,
++	                                      self, NULL, 20000,
++	                                      G_TYPE_STRING, "Active",
++	                                      G_TYPE_VALUE, &value,
++	                                      G_TYPE_INVALID);
++
++}
++
++static void
++context_set_property (gpointer key, gpointer value, gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GValue val = G_VALUE_INIT;
++
++	nm_log_dbg (LOGD_MB, "%s -- setting context prop: %s == %s",
++	            __func__,
++	            (char*)key,
++	            (char*)value);
++
++	g_value_init (&val, G_TYPE_STRING);
++	g_value_set_string (&val, (char*)value);
++
++	if (!priv->property_error) {
++		dbus_g_proxy_call_with_timeout (priv->context_proxy,
++		                                "SetProperty",
++		                                20000,
++		                                &priv->property_error,
++		                                G_TYPE_STRING, (char*)key,
++		                                G_TYPE_VALUE, &val,
++		                                G_TYPE_INVALID);
++	} else {
++		nm_log_warn (LOGD_MB, "could not set context property '%s': %s", (char*)key,
++		             priv->property_error
++		                 && priv->property_error->message
++		                 ? priv->property_error->message : "(unknown)");
++	}
++}
++
++static void
++do_context_prepare (NMModemOfono *self, char *context_path)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	g_return_val_if_fail (self != NULL, FALSE);
++	g_return_val_if_fail (NM_IS_MODEM_OFONO (self), FALSE);
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (priv->context_proxy)
++		g_object_unref (priv->context_proxy);
++
++	priv->context_proxy = get_ofono_proxy (self,
++	                                       context_path,
++	                                       OFONO_DBUS_INTERFACE_CONNECTION_CONTEXT);
++
++	if (priv->context_proxy) {
++		priv->property_error = NULL;
++		g_hash_table_foreach (priv->connect_properties,
++		                      context_set_property,
++		                      (gpointer) self);
++		do_context_activate (self, context_path);
++	}
++}
++
++static void
++create_new_context_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GError *error = NULL;
++	char *context_path = NULL;
++	gboolean ret = FALSE;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++        ret = dbus_g_proxy_end_call (proxy,
++                                     call_id,
++	                             &error,
++	                             DBUS_TYPE_G_OBJECT_PATH, &context_path,
++	                             G_TYPE_INVALID);
++
++	nm_log_dbg (LOGD_MB, "%s: context path: %s", __func__, context_path);
++
++	if (ret)
++                do_context_prepare (self, context_path);
++        else {
++                nm_log_warn (LOGD_MB, "Ofono modem context creation failed: (%d) %s",
++                             error ? error->code : -1,
++                             error && error->message ? error->message : "(unknown)");
++
++		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE, NM_DEVICE_STATE_REASON_MODEM_INIT_FAILED);
++
++		g_error_free (error);
++        }
++}
++
++static void
++do_create_new_context (NMModemOfono *self)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	DBusGProxy *proxy;
++
++	g_return_val_if_fail (self != NULL, FALSE);
++	g_return_val_if_fail (NM_IS_MODEM_OFONO (self), FALSE);
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (priv->connman_proxy) {
++		dbus_g_proxy_begin_call_with_timeout (priv->connman_proxy,
++	                                              "AddContext", create_new_context_done,
++	                                              self, NULL, 20000,
++	                                              G_TYPE_STRING, "internet",
++	                                              G_TYPE_INVALID);
++	}
++	else {
++		nm_log_err (LOGD_MB, "could not bring up connection manager proxy "
++		                     "to add a new context");
++	}
++}
++
++static gboolean
++try_create_new_context (NMModemOfono *self)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GHashTable *properties;
++	char **interfaces;
++	GError *error = NULL;
++	gboolean found = FALSE;
++	int i;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	/* Only retry up to 20 times */
++	if (priv->connman_iface_retries < 20) {
++		dbus_g_proxy_call_with_timeout (priv->modem_proxy,
++	                                        "GetProperties",
++	                                        250, &error,
++	                                        G_TYPE_INVALID,
++	                                        DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
++	                                        G_TYPE_INVALID);
++
++		if (!error) {
++			interfaces = (char **) g_value_get_boxed (g_hash_table_lookup (properties, "Interfaces"));
++
++			for (i = 0; interfaces[i]; i++) {
++				nm_log_dbg (LOGD_MB, "%s ?? %s",
++				            interfaces[i],
++				            OFONO_DBUS_INTERFACE_CONNECTION_MANAGER);
++				if (!g_strcmp0 (interfaces[i],
++				                OFONO_DBUS_INTERFACE_CONNECTION_MANAGER)) {
++					found = TRUE;
++					break;
++				}
++			}
++		}
++		else {
++			nm_log_dbg (LOGD_MB, "failed test for properties: %s",
++			            error && error->message ? error->message : "(unknown)");
++		}
++		priv->connman_iface_retries++;
++	}
++	else {
++		if (priv->connman_iface_source != 0)
++			g_source_remove (priv->connman_iface_source);
++
++		priv->connman_iface_source = 0;
++		priv->connman_iface_retries = 0;
++
++		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE, 0);
++
++		return FALSE;
++	}
++
++	if (found) {
++		if (priv->connman_iface_source != 0)
++			g_source_remove (priv->connman_iface_source);
++
++		priv->connman_iface_source = 0;
++		priv->connman_iface_retries = 0;
++		do_create_new_context (self);
++	}
++
++	return !found;
++}
++
++static void stage1_enable_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer user_data);
++
++static void
++stage1_enable_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer user_data)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GError *error = NULL;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (dbus_g_proxy_end_call (proxy, call_id, &error, G_TYPE_INVALID)) {
++#if 0
++		/* Try once every 5 seconds to see if we've got the right interfaces */
++		priv->connman_iface_retries = 0;
++		priv->connman_iface_source
++			= g_timeout_add (500, (GSourceFunc) try_create_new_context, self);
++#endif
++		if (priv->context_path)
++			do_context_activate (self, priv->context_path);
++		else
++			g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE, NM_DEVICE_STATE_REASON_MODEM_INIT_FAILED);
++	} else {
++		nm_log_warn (LOGD_MB, "OFONO modem enable failed: (%d) %s",
++		             error ? error->code : -1,
++		             error && error->message ? error->message : "(unknown)");
++
++		g_signal_emit_by_name (self, NM_MODEM_PREPARE_RESULT, FALSE, NM_DEVICE_STATE_REASON_MODEM_INIT_FAILED);
++
++		g_error_free (error);
++	}
++}
++
++static GHashTable *
++create_connect_properties (NMConnection *connection)
++{
++	NMSettingGsm *setting;
++	GHashTable *properties;
++	const char *str;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	setting = nm_connection_get_setting_gsm (connection);
++	properties = g_hash_table_new (g_str_hash, g_str_equal);
++
++	str = nm_setting_gsm_get_apn (setting);
++	if (str)
++		g_hash_table_insert (properties, "AccessPointName", g_strdup (str));
++
++	str = nm_setting_gsm_get_username (setting);
++	if (str)
++		g_hash_table_insert (properties, "Username", g_strdup (str));
++
++	str = nm_setting_gsm_get_password (setting);
++	if (str)
++		g_hash_table_insert (properties, "Password", g_strdup (str));
++
++	return properties;
++}
++
++static NMActStageReturn
++act_stage1_prepare (NMModem *modem,
++                    NMConnection *connection,
++                    NMDeviceStateReason *reason)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (modem);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	const char *context_id;
++	char *context_path;
++	char **id = NULL;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	context_id = nm_connection_get_id (connection);
++	id = g_strsplit (context_id, "/", 0);
++	g_assert (id[2]);
++
++	nm_log_dbg (LOGD_MB, " trying %s %s", id[1], id[2]);
++
++	if (priv->context_path)
++		g_free (priv->context_path);
++
++	priv->context_path = g_strdup_printf ("%s/%s",
++	                                      nm_modem_get_path (modem),
++	                                      id[2]);
++	g_strfreev (id);
++
++	if (priv->connect_properties)
++		g_hash_table_destroy (priv->connect_properties);
++	priv->connect_properties = create_connect_properties (connection);
++
++	if (nm_modem_get_state (modem) == NM_MODEM_STATE_REGISTERED)
++		do_context_activate (self, priv->context_path);
++
++	return NM_ACT_STAGE_RETURN_POSTPONE;
++}
++
++static gboolean
++static_stage3_done (NMModemOfono *self)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	NMIP4Config *config = NULL;
++	const gchar *address_string, *gateway_string, *netmask_string, *iface;
++	guint32 address_network, gateway_network;
++	NMIP4Address *addr;
++	GError *error = NULL;
++	const gchar **dns;
++	GHashTable *properties, *ip_settings;
++	GType prop_dict;
++	gpointer settings;
++	gboolean ret;
++	guint i;
++	guint prefix = 0;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	prop_dict = dbus_g_type_get_map ("GHashTable", G_TYPE_STRING, G_TYPE_VALUE);
++	dbus_g_proxy_call_with_timeout (priv->context_proxy,
++	                                "GetProperties",
++	                                20000, &error,
++	                                G_TYPE_INVALID,
++	                                prop_dict, &properties,
++	                                G_TYPE_INVALID);
++
++	g_assert (properties);
++
++	nm_log_info (LOGD_MB, "(%s): IPv4 static configuration:",
++	             nm_modem_get_uid (NM_MODEM (self)));
++
++	if (!error) {
++		settings = g_hash_table_lookup (properties, "Settings");
++		ip_settings = (GHashTable*) g_value_get_boxed (settings);
++
++		iface = g_value_get_string (g_hash_table_lookup (ip_settings, "Interface"));
++		if (iface)
++			g_object_set (self, NM_MODEM_DATA_PORT, iface, NULL);
++
++		address_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Address"));
++		if (!ip_string_to_network_address (address_string, &address_network)) {
++			error = g_error_new (g_quark_from_static_string ("ofono_failed"),
++			                     0,
++			                     "(%s) retrieving IP4 configuration failed: invalid address given '%s'",
++			                     nm_modem_get_uid (NM_MODEM (self)),
++			                     address_string);
++			goto out;
++		}
++
++		config = nm_ip4_config_new ();
++		addr = nm_ip4_address_new ();
++		nm_ip4_address_set_address (addr, address_network);
++
++		gateway_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Gateway"));
++		if (gateway_string) {
++			if (ip_string_to_network_address (gateway_string, &gateway_network)) {
++				nm_ip4_address_set_gateway (addr, gateway_network);
++			}
++		}
++
++		/* retrieve netmask and convert to prefix value */
++		netmask_string = g_value_get_string (g_hash_table_lookup (ip_settings, "Netmask"));
++		if (ip_string_to_network_address (netmask_string, &address_network)) {
++			prefix = nm_utils_ip4_netmask_to_prefix (address_network);
++			if (prefix > 0)
++				nm_ip4_address_set_prefix (addr, prefix);
++		}
++		nm_ip4_config_take_address (config, addr);
++
++		nm_log_info (LOGD_MB, "  address %s/%d", address_string, prefix);
++
++		/* DNS servers */
++		dns = (char **) g_value_get_boxed (g_hash_table_lookup (ip_settings, "DomainNameServers"));
++		for (i = 0; dns[i]; i++) {
++			if (   ip_string_to_network_address (dns[i], &address_network)
++			    && address_network > 0) {
++				nm_ip4_config_add_nameserver (config, address_network);
++				nm_log_info (LOGD_MB, "  DNS %s", dns[i]);
++			}
++		}
++	}
++
++out:
++	g_signal_emit_by_name (self, NM_MODEM_IP4_CONFIG_RESULT, config, error);
++	g_clear_error (&error);
++
++	return FALSE;
++}
++
++static NMActStageReturn
++static_stage3_ip4_config_start (NMModem *_self,
++                                NMActRequest *req,
++                                NMDeviceStateReason *reason)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (_self);
++
++	/* We schedule it in an idle just to follow the same logic as in the
++	 * generic modem implementation. */
++	g_idle_add ((GSourceFunc)static_stage3_done, self);
++
++	return NM_ACT_STAGE_RETURN_POSTPONE;
++}
++
++static gboolean
++check_connection_compatible (NMModem *modem,
++                             NMConnection *connection)
++{
++	NMSettingConnection *s_con;
++	NMSettingGsm *s_gsm;
++	const char *id;
++
++	s_con = nm_connection_get_setting_connection (connection);
++	g_assert (s_con);
++
++	if (strcmp (nm_setting_connection_get_connection_type (s_con), NM_SETTING_GSM_SETTING_NAME))
++		return FALSE;
++
++	s_gsm = nm_connection_get_setting_gsm (connection);
++	if (!s_gsm)
++		return FALSE;
++
++	id = nm_connection_get_id (connection);
++	if (!g_strrstr (id, "/context"))
++		return FALSE;
++
++	return TRUE;
++}
++
++static void
++get_ofono_properties_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer user_data)
++{
++	NMModem *self = NM_MODEM (user_data);
++	GError *error = NULL;
++	GHashTable *properties = NULL;
++	GValue *value = NULL;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (!dbus_g_proxy_end_call (proxy, call_id, &error,
++	                            DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
++	                            G_TYPE_INVALID)) {
++		nm_log_warn (LOGD_MB, "failed get modem enabled state: (%d) %s",
++		             error ? error->code : -1,
++		             error && error->message ? error->message : "(unknown)");
++		return;
++	}
++
++	value = g_hash_table_lookup (properties, "Online");
++	if (value)
++		ofono_properties_changed (NULL, "Online", value, self);
++	else
++		nm_log_warn (LOGD_MB, "failed get modem online state: unexpected reply type");
++	g_value_unset (value);
++
++	value = g_hash_table_lookup (properties, "Interfaces");
++	if (value)
++		ofono_properties_changed (NULL, "Interfaces", value, self);
++	else
++		nm_log_warn (LOGD_MB, "failed get available oFono interfaces: unexpected reply type");
++	g_value_unset (value);
++}
++
++static void
++query_ofono_properties (NMModemOfono *self)
++{
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++	dbus_g_proxy_begin_call (NM_MODEM_OFONO_GET_PRIVATE (self)->modem_proxy,
++	                         "GetProperties", get_ofono_properties_done,
++	                         self, NULL,
++	                         G_TYPE_INVALID);
++}
++
++#if 0
++static void
++set_ofono_enabled (NMModem *self, gboolean enabled)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	GValue value = G_VALUE_INIT;
++	gboolean ret;
++	GError *error = NULL;
++
++	g_return_if_fail (self != NULL);
++	g_return_if_fail (NM_IS_MODEM_OFONO (self));
++	g_return_if_fail (priv != NULL);
++	g_return_if_fail (priv->connman_proxy != NULL);
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	g_value_init (&value, G_TYPE_BOOLEAN);
++	g_value_set_boolean (&value, enabled);
++
++	ret = dbus_g_proxy_call_with_timeout (priv->connman_proxy,
++	                                      "SetProperty",
++	                                      20000,
++	                                      &error,
++	                                      G_TYPE_STRING, "Powered",
++	                                      G_TYPE_VALUE, &value,
++	                                      G_TYPE_INVALID,
++	                                      G_TYPE_INVALID);
++
++	if (!ret) {
++		nm_log_warn (LOGD_MB, "OFONO modem set enabled failed: (%d) %s",
++		             error ? error->code : -1,
++		             error && error->message ? error->message : "(unknown)");
++	}
++	else {
++		get_ofono_conn_manager_properties (self);
++	}
++}
++#endif
++static void
++set_ofono_enabled (NMModem *self, gboolean enabled)
++{
++	nm_log_dbg (LOGD_MB, "in %s: %s", __func__,
++                    enabled ? "enabled" : "disabled");
++}
++
++static void
++get_capabilities (NMModem *_self,
++                  NMDeviceModemCapabilities *modem_caps,
++                  NMDeviceModemCapabilities *current_caps)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (_self);
++	NMDeviceModemCapabilities all_ofono_caps
++	    = NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS
++	    | NM_DEVICE_MODEM_CAPABILITY_OFONO;
++
++	*modem_caps = all_ofono_caps;
++	*current_caps = all_ofono_caps;
++}
++
++static void
++nm_modem_ofono_init (NMModemOfono *self)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	priv->dbus_mgr = nm_dbus_manager_get ();
++
++	priv->modem_proxy = NULL;
++	priv->connman_proxy = NULL;
++	priv->context_proxy = NULL;
++	priv->simmanager_proxy = NULL;
++
++	priv->connman_iface_source = 0;
++	priv->connman_iface_retries = 0;
++
++	priv->modem_online = FALSE;
++	priv->gprs_powered = FALSE;
++	priv->gprs_attached = FALSE;
++}
++
++static GObject*
++constructor (GType type,
++			 guint n_construct_params,
++			 GObjectConstructParam *construct_params)
++{
++	GObject *object;
++	NMModemOfonoPrivate *priv;
++	DBusGConnection *bus;
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	object = G_OBJECT_CLASS (nm_modem_ofono_parent_class)->constructor (type, n_construct_params, construct_params);
++	if (!object)
++		return NULL;
++
++	priv = NM_MODEM_OFONO_GET_PRIVATE (object);
++	bus = nm_dbus_manager_get_connection (priv->dbus_mgr);
++	priv->modem_proxy = get_ofono_proxy (NM_MODEM_OFONO (object),
++	                                     nm_modem_get_path (NM_MODEM (object)),
++	                                     OFONO_DBUS_INTERFACE_MODEM);
++
++	dbus_g_object_register_marshaller (g_cclosure_marshal_generic,
++	                                   G_TYPE_NONE,
++	                                   G_TYPE_STRING, G_TYPE_VALUE,
++	                                   G_TYPE_INVALID);
++	dbus_g_proxy_add_signal (priv->modem_proxy, "PropertyChanged",
++	                         G_TYPE_STRING, G_TYPE_VALUE,
++	                         G_TYPE_INVALID);
++	dbus_g_proxy_connect_signal (priv->modem_proxy, "PropertyChanged",
++	                             G_CALLBACK (ofono_properties_changed),
++	                             object,
++	                             NULL);
++
++	query_ofono_properties (NM_MODEM_OFONO (object));
++
++	return object;
++}
++
++static void
++dispose (GObject *object)
++{
++	NMModemOfono *self = NM_MODEM_OFONO (object);
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (priv->connect_properties)
++		g_hash_table_destroy (priv->connect_properties);
++
++	if (priv->modem_proxy)
++		g_object_unref (priv->modem_proxy);
++	if (priv->connman_proxy)
++		g_object_unref (priv->connman_proxy);
++	if (priv->context_proxy)
++		g_object_unref (priv->context_proxy);
++
++	G_OBJECT_CLASS (nm_modem_ofono_parent_class)->dispose (object);
++}
++
++static void
++nm_modem_ofono_class_init (NMModemOfonoClass *klass)
++{
++	GObjectClass *object_class = G_OBJECT_CLASS (klass);
++	NMModemClass *modem_class = NM_MODEM_CLASS (klass);
++
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	g_type_class_add_private (object_class, sizeof (NMModemOfonoPrivate));
++
++	/* Virtual methods */
++	object_class->constructor = constructor;
++	object_class->dispose = dispose;
++
++        modem_class->get_capabilities = get_capabilities;
++	modem_class->set_mm_enabled = set_ofono_enabled;
++        modem_class->disconnect = disconnect;
++	//modem_class->deactivate = deactivate;
++	//modem_class->get_user_pass = get_user_pass;
++	//modem_class->get_setting_name = get_setting_name;
++	//modem_class->complete_connection = complete_connection;
++	modem_class->check_connection_compatible = check_connection_compatible;
++	modem_class->act_stage1_prepare = act_stage1_prepare;
++        modem_class->static_stage3_ip4_config_start = static_stage3_ip4_config_start;
++
++	//dbus_g_error_domain_register (NM_OFONO_ERROR, NULL, NM_TYPE_OFONO_ERROR);
++}
++
+Index: b/src/devices/wwan/Makefile.am
+===================================================================
+--- a/src/devices/wwan/Makefile.am
++++ b/src/devices/wwan/Makefile.am
+@@ -38,6 +38,8 @@ libnm_wwan_la_SOURCES = \
+ 	nm-modem-old-types.h \
+ 	nm-modem-manager.c \
+ 	nm-modem-manager.h \
++	nm-modem-ofono.c \
++	nm-modem-ofono.h \
+ 	nm-modem.c \
+ 	nm-modem.h \
+ 	\
+Index: b/src/devices/wwan/nm-modem-manager.c
+===================================================================
+--- a/src/devices/wwan/nm-modem-manager.c
++++ b/src/devices/wwan/nm-modem-manager.c
+@@ -17,7 +17,7 @@
+  *
+  * Copyright (C) 2009 - 2014 Red Hat, Inc.
+  * Copyright (C) 2009 Novell, Inc.
+- * Copyright (C) 2009 Canonical Ltd.
++ * Copyright (C) 2009 - 2013 Canonical Ltd.
+  */
+ 
+ #include <string.h>
+@@ -29,6 +29,7 @@
+ #include "nm-dbus-manager.h"
+ #include "nm-modem-old-types.h"
+ #include "nm-dbus-glib-types.h"
++#include "nm-modem-ofono.h"
+ 
+ #if WITH_MODEM_MANAGER_1
+ #include <libmm-glib.h>
+@@ -36,6 +37,7 @@
+ #endif
+ 
+ #define MODEM_POKE_INTERVAL 120
++#define WITH_OFONO 1
+ 
+ G_DEFINE_TYPE (NMModemManager, nm_modem_manager, G_TYPE_OBJECT)
+ 
+@@ -102,8 +104,72 @@ clear_modem_manager_support (NMModemMana
+ 	}
+ }
+ 
++#if WITH_OFONO
+ static void
+-create_modem (NMModemManager *self, const char *path)
++ofono_create_modem (NMModemManager *self, const char *path)
++{
++	NMModem *modem = NULL;
++	DBusGProxy *proxy;
++	GError *err = NULL;
++	GValue value = { 0, };
++
++	proxy = dbus_g_proxy_new_for_name (nm_dbus_manager_get_connection (self->priv->dbus_mgr),
++	                                   OFONO_DBUS_SERVICE,
++	                                   path,
++	                                   OFONO_DBUS_INTERFACE_MODEM);
++
++	/* Create a simple TRUE gvalue boolean */
++	g_value_init (&value, G_TYPE_BOOLEAN);
++	g_value_set_boolean (&value, TRUE);
++
++	/* Mark the modem as powered */
++	if (!dbus_g_proxy_call_with_timeout (proxy, "SetProperty", 15000, &err,
++	                                     G_TYPE_STRING, "Powered",
++	                                     G_TYPE_VALUE, &value,
++	                                     G_TYPE_INVALID,
++	                                     G_TYPE_INVALID)) {
++		nm_log_warn (LOGD_MB, "could not mark modem as powered: %s %s",
++		             err ? dbus_g_error_get_name (err) : "(none)",
++		             err ? err->message : "(unknown)");
++		g_clear_error (&err);
++		/* Don't fail the creation here, some modems are weird. */
++	}
++
++	/* Mark the modem as online */
++	/*if (!dbus_g_proxy_call_with_timeout (proxy, "SetProperty", 15000, &err,
++	                                     G_TYPE_STRING, "Online",
++	                                     G_TYPE_VALUE, &value,
++	                                     G_TYPE_INVALID,
++	                                     G_TYPE_INVALID)) {
++		nm_log_warn (LOGD_MB, "could not mark modem as online: %s %s",
++		             err ? dbus_g_error_get_name (err) : "(none)",
++		             err ? err->message : "(unknown)");
++		g_clear_error (&err);
++		return;
++	}
++	*/
++
++	if (g_hash_table_lookup (self->priv->modems, path)) {
++		nm_log_warn (LOGD_MB, "modem with path %s already exists, ignoring", path);
++		return;
++	}
++
++	/* Create modem instance */
++	modem = nm_modem_ofono_new (path);
++
++	if (modem) {
++		g_object_set (G_OBJECT (modem), NM_MODEM_IP_TIMEOUT, 30, NULL);
++		g_hash_table_insert (self->priv->modems, g_strdup (path), modem);
++		g_signal_emit (self, signals[MODEM_ADDED], 0, modem, "ofono");
++	}
++	else {
++		nm_log_warn (LOGD_MB, "Invalid modem");
++	}
++}
++#endif
++
++static void
++mm_create_modem (NMModemManager *self, const char *path)
+ {
+ 	DBusGProxy *proxy;
+ 	GError *error = NULL;
+@@ -144,10 +210,19 @@ create_modem (NMModemManager *self, cons
+ 	g_clear_error (&error);
+ }
+ 
++#if WITH_OFONO
+ static void
+-modem_added (DBusGProxy *proxy, const char *path, gpointer user_data)
++ofono_modem_added (DBusGProxy *proxy, const char *path, GHashTable *props, gpointer user_data)
+ {
+-	create_modem (NM_MODEM_MANAGER (user_data), path);
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++	ofono_create_modem (NM_MODEM_MANAGER (user_data), path);
++}
++#endif
++
++static void
++mm_modem_added (DBusGProxy *proxy, const char *path, gpointer user_data)
++{
++	mm_create_modem (NM_MODEM_MANAGER (user_data), path);
+ }
+ 
+ static void
+@@ -205,8 +280,45 @@ poke_modem_cb (gpointer user_data)
+ 	return TRUE;
+ }
+ 
++#if WITH_OFONO
++#define OFONO_DBUS_MODEM_ENTRY (dbus_g_type_get_struct ("GValueArray", DBUS_TYPE_G_OBJECT_PATH, DBUS_TYPE_G_MAP_OF_VARIANT, G_TYPE_INVALID))
++#define OFONO_DBUS_MODEM_ENTRIES (dbus_g_type_get_collection ("GPtrArray", OFONO_DBUS_MODEM_ENTRY))
++
++static void
++ofono_enumerate_devices_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer data)
++{
++	NMModemManager *manager = NM_MODEM_MANAGER (data);
++	GPtrArray *modems;
++	GError *error = NULL;
++
++	if (!dbus_g_proxy_end_call (proxy, call_id, &error,
++								OFONO_DBUS_MODEM_ENTRIES, &modems,
++								G_TYPE_INVALID)) {
++		nm_log_warn (LOGD_MB, "could not get modem list: %s", error->message);
++		g_error_free (error);
++	} else {
++		int i;
++
++		for (i = 0; i < modems->len; i++) {
++			GValueArray *item = g_ptr_array_index (modems, i);
++			GValue *tmp;
++			const char *path;
++
++			tmp = g_value_array_get_nth (item, 0);
++			path = g_value_get_boxed (tmp);
++
++			ofono_create_modem (manager, path);
++
++			g_value_array_free (item);
++		}
++
++		g_ptr_array_free (modems, TRUE);
++	}
++}
++#endif
++
+ static void
+-enumerate_devices_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer data)
++mm_enumerate_devices_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer data)
+ {
+ 	NMModemManager *manager = NM_MODEM_MANAGER (data);
+ 	GPtrArray *modems;
+@@ -223,7 +335,7 @@ enumerate_devices_done (DBusGProxy *prox
+ 		for (i = 0; i < modems->len; i++) {
+ 			char *path = (char *) g_ptr_array_index (modems, i);
+ 
+-			create_modem (manager, path);
++			mm_create_modem (manager, path);
+ 			g_free (path);
+ 		}
+ 
+@@ -235,6 +347,39 @@ enumerate_devices_done (DBusGProxy *prox
+ static void clear_modem_manager_1_support (NMModemManager *self);
+ #endif
+ 
++#if WITH_OFONO
++static void
++ofono_appeared (NMModemManager *self, gboolean enumerate_devices)
++{
++	if (self->priv->poke_id) {
++		g_source_remove (self->priv->poke_id);
++		self->priv->poke_id = 0;
++	}
++
++	nm_log_info (LOGD_MB, "ofono is now available");
++
++	self->priv->proxy = dbus_g_proxy_new_for_name (nm_dbus_manager_get_connection (self->priv->dbus_mgr),
++	                                               OFONO_DBUS_SERVICE, OFONO_DBUS_PATH, OFONO_DBUS_INTERFACE);
++
++	dbus_g_object_register_marshaller (g_cclosure_marshal_generic,
++	                                   G_TYPE_NONE,
++	                                   DBUS_TYPE_G_OBJECT_PATH, DBUS_TYPE_G_MAP_OF_VARIANT,
++	                                   G_TYPE_INVALID);
++	dbus_g_proxy_add_signal (self->priv->proxy, "ModemAdded", DBUS_TYPE_G_OBJECT_PATH, DBUS_TYPE_G_MAP_OF_VARIANT, G_TYPE_INVALID);
++	dbus_g_proxy_connect_signal (self->priv->proxy, "ModemAdded",
++								 G_CALLBACK (ofono_modem_added), self,
++								 NULL);
++
++	dbus_g_proxy_add_signal (self->priv->proxy, "ModemRemoved", DBUS_TYPE_G_OBJECT_PATH, G_TYPE_INVALID);
++	dbus_g_proxy_connect_signal (self->priv->proxy, "ModemRemoved",
++								 G_CALLBACK (modem_removed), self,
++								 NULL);
++
++	if (enumerate_devices)
++		dbus_g_proxy_begin_call (self->priv->proxy, "GetModems", ofono_enumerate_devices_done, self, NULL, G_TYPE_INVALID);
++}
++#endif
++
+ static void
+ modem_manager_appeared (NMModemManager *self, gboolean enumerate_devices)
+ {
+@@ -258,7 +403,7 @@ modem_manager_appeared (NMModemManager *
+ 
+ 	dbus_g_proxy_add_signal (self->priv->proxy, "DeviceAdded", DBUS_TYPE_G_OBJECT_PATH, G_TYPE_INVALID);
+ 	dbus_g_proxy_connect_signal (self->priv->proxy, "DeviceAdded",
+-								 G_CALLBACK (modem_added), self,
++								 G_CALLBACK (mm_modem_added), self,
+ 								 NULL);
+ 
+ 	dbus_g_proxy_add_signal (self->priv->proxy, "DeviceRemoved", DBUS_TYPE_G_OBJECT_PATH, G_TYPE_INVALID);
+@@ -267,7 +412,7 @@ modem_manager_appeared (NMModemManager *
+ 								 NULL);
+ 
+ 	if (enumerate_devices)
+-		dbus_g_proxy_begin_call (self->priv->proxy, "EnumerateDevices", enumerate_devices_done, self, NULL, G_TYPE_INVALID);
++		dbus_g_proxy_begin_call (self->priv->proxy, "EnumerateDevices", mm_enumerate_devices_done, self, NULL, G_TYPE_INVALID);
+ }
+ 
+ static gboolean
+@@ -278,6 +423,12 @@ remove_one_modem (gpointer key, gpointer
+ }
+ 
+ static void
++ofono_disappeared (NMModemManager *self)
++{
++	nm_log_dbg (LOGD_MB, "in %s", __func__);
++}
++
++static void
+ modem_manager_disappeared (NMModemManager *self)
+ {
+ 	g_hash_table_foreach_remove (self->priv->modems, remove_one_modem, self);
+@@ -294,7 +445,7 @@ modem_manager_disappeared (NMModemManage
+ }
+ 
+ static void
+-nm_modem_manager_name_owner_changed (NMDBusManager *dbus_mgr,
++nm_modem_name_owner_changed (NMDBusManager *dbus_mgr,
+ 									 const char *name,
+ 									 const char *old_owner,
+ 									 const char *new_owner,
+@@ -303,19 +454,31 @@ nm_modem_manager_name_owner_changed (NMD
+ 	gboolean old_owner_good;
+ 	gboolean new_owner_good;
+ 
+-	/* Can't handle the signal if its not from the modem service */
+-	if (strcmp (MM_OLD_DBUS_SERVICE, name) != 0)
+-		return;
+-
+ 	old_owner_good = (old_owner && strlen (old_owner));
+ 	new_owner_good = (new_owner && strlen (new_owner));
+ 
+-	if (!old_owner_good && new_owner_good) {
+-		modem_manager_appeared (NM_MODEM_MANAGER (user_data), FALSE);
+-	} else if (old_owner_good && !new_owner_good) {
+-		nm_log_info (LOGD_MB, "the modem manager disappeared");
+-		modem_manager_disappeared (NM_MODEM_MANAGER (user_data));
++	/* Can't handle the signal if its not from the modem service */
++	if (strcmp (MM_OLD_DBUS_SERVICE, name) == 0) {
++		if (!old_owner_good && new_owner_good) {
++			modem_manager_appeared (NM_MODEM_MANAGER (user_data), FALSE);
++		} else if (old_owner_good && !new_owner_good) {
++			nm_log_info (LOGD_MB, "ModemManager disappeared");
++			modem_manager_disappeared (NM_MODEM_MANAGER (user_data));
++		}
+ 	}
++#if WITH_OFONO
++	else if (strcmp (OFONO_DBUS_SERVICE, name) == 0) {
++		if (!old_owner_good && new_owner_good) {
++			ofono_appeared (NM_MODEM_MANAGER (user_data), TRUE);
++		} else if (old_owner_good && !new_owner_good) {
++			nm_log_info (LOGD_MB, "ofono disappeared");
++			ofono_disappeared (NM_MODEM_MANAGER (user_data));
++		}
++	}
++#endif
++	else
++		return;
++
+ }
+ 
+ /************************************************************************/
+@@ -698,15 +861,20 @@ nm_modem_manager_init (NMModemManager *s
+ 
+ 	self->priv->modems = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+ 
+-	/* ModemManager < 0.7 */
+ 	self->priv->dbus_mgr = nm_dbus_manager_get ();
+ 	g_signal_connect (self->priv->dbus_mgr, NM_DBUS_MANAGER_NAME_OWNER_CHANGED,
+-					  G_CALLBACK (nm_modem_manager_name_owner_changed),
++					  G_CALLBACK (nm_modem_name_owner_changed),
+ 					  self);
++
++	/* ModemManager < 0.7 */
+ 	if (nm_dbus_manager_name_has_owner (self->priv->dbus_mgr, MM_OLD_DBUS_SERVICE))
+ 		modem_manager_appeared (self, TRUE);
+-	else
+-		modem_manager_disappeared (self);
++
++#if WITH_OFONO
++	/* Ofono */
++	if (nm_dbus_manager_name_has_owner (self->priv->dbus_mgr, OFONO_DBUS_SERVICE))
++		ofono_appeared (self, TRUE);
++#endif
+ 
+ #if WITH_MODEM_MANAGER_1
+ 	/* ModemManager >= 0.7 */
+Index: b/src/devices/wwan/nm-modem-ofono.h
+===================================================================
+--- /dev/null
++++ b/src/devices/wwan/nm-modem-ofono.h
+@@ -0,0 +1,64 @@
++/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
++/* NetworkManager -- Network link manager
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * Copyright (C) 2013 - Canonical Ltd.
++ */
++
++#ifndef NM_MODEM_OFONO_H
++#define NM_MODEM_OFONO_H
++
++#include <nm-modem.h>
++
++G_BEGIN_DECLS
++
++#define NM_TYPE_MODEM_OFONO            (nm_modem_ofono_get_type ())
++#define NM_MODEM_OFONO(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_MODEM_OFONO, NMModemOfono))
++#define NM_IS_MODEM_OFONO(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_MODEM_OFONO))
++#define NM_MODEM_OFONO_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_MODEM_OFONO, NMModemOfonoClass))
++#define NM_IS_MODEM_OFONO_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_MODEM_OFONO))
++#define NM_MODEM_OFONO_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_MODEM_OFONO, NMModemOfonoClass))
++#define NM_MODEM_OFONO_MODEM "modem"
++
++#define OFONO_DBUS_SERVICE                      "org.ofono"
++#define OFONO_DBUS_PATH                         "/"
++#define OFONO_DBUS_INTERFACE                    "org.ofono.Manager"
++#define OFONO_DBUS_INTERFACE_MODEM              "org.ofono.Modem"
++#define OFONO_DBUS_INTERFACE_CONNECTION_MANAGER "org.ofono.ConnectionManager"
++#define OFONO_DBUS_INTERFACE_CONNECTION_CONTEXT "org.ofono.ConnectionContext"
++#define OFONO_DBUS_INTERFACE_SIM_MANAGER        "org.ofono.SimManager"
++
++typedef enum {
++        NM_OFONO_ERROR_CONNECTION_NOT_OFONO = 0,  /*< nick=ConnectionNotOfono >*/
++        NM_OFONO_ERROR_CONNECTION_INVALID,      /*< nick=ConnectionInvalid >*/
++        NM_OFONO_ERROR_CONNECTION_INCOMPATIBLE, /*< nick=ConnectionIncompatible >*/
++} NMOfonoError;
++
++typedef struct {
++	NMModem parent;
++} NMModemOfono;
++
++typedef struct {
++	NMModemClass parent;
++} NMModemOfonoClass;
++
++GType nm_modem_ofono_get_type (void);
++
++NMModem *nm_modem_ofono_new (const char *path);
++
++G_END_DECLS
++
++#endif /* NM_MODEM_OFONO_H */
+Index: b/include/NetworkManager.h
+===================================================================
+--- a/include/NetworkManager.h
++++ b/include/NetworkManager.h
+@@ -320,6 +320,7 @@ typedef enum {
+ 	NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO = 0x00000002,
+ 	NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS  = 0x00000004,
+ 	NM_DEVICE_MODEM_CAPABILITY_LTE       = 0x00000008,
++	NM_DEVICE_MODEM_CAPABILITY_OFONO     = 0x00000010,
+ } NMDeviceModemCapabilities;
+ 
+ 

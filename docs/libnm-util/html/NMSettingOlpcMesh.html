@@ -1,0 +1,265 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSettingOlpcMesh</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-util Reference Manual">
+<link rel="up" href="ch01.html" title="libnm-util API Reference">
+<link rel="prev" href="NMSettingVlan.html" title="NMSettingVlan">
+<link rel="next" href="NMSettingAdsl.html" title="NMSettingAdsl">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMSettingVlan.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-util Reference Manual</th>
+<td><a accesskey="n" href="NMSettingAdsl.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMSettingOlpcMesh.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMSettingOlpcMesh.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMSettingOlpcMesh.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMSettingOlpcMesh.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMSettingOlpcMesh"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingOlpcMesh.top_of_page"></a>NMSettingOlpcMesh</span></h2>
+<p>NMSettingOlpcMesh</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMSettingOlpcMesh.synopsis"></a><h2>Synopsis</h2>
+<a name="NMSettingOlpcMeshError"></a><pre class="synopsis">#define             <a class="link" href="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-SETTING-NAME:CAPS" title="NM_SETTING_OLPC_MESH_SETTING_NAME">NM_SETTING_OLPC_MESH_SETTING_NAME</a>
+enum                <a class="link" href="NMSettingOlpcMesh.html#NMSettingOlpcMeshError-enum" title="enum NMSettingOlpcMeshError">NMSettingOlpcMeshError</a>;
+#define             <a class="link" href="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-ERROR:CAPS" title="NM_SETTING_OLPC_MESH_ERROR">NM_SETTING_OLPC_MESH_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMSettingOlpcMesh.html#nm-setting-olpc-mesh-error-quark" title="nm_setting_olpc_mesh_error_quark ()">nm_setting_olpc_mesh_error_quark</a>    (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-SSID:CAPS" title="NM_SETTING_OLPC_MESH_SSID">NM_SETTING_OLPC_MESH_SSID</a>
+#define             <a class="link" href="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-CHANNEL:CAPS" title="NM_SETTING_OLPC_MESH_CHANNEL">NM_SETTING_OLPC_MESH_CHANNEL</a>
+#define             <a class="link" href="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-DHCP-ANYCAST-ADDRESS:CAPS" title="NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS">NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS</a>
+                    <a class="link" href="NMSettingOlpcMesh.html#NMSettingOlpcMesh-struct" title="NMSettingOlpcMesh">NMSettingOlpcMesh</a>;
+                    <a class="link" href="NMSettingOlpcMesh.html#NMSettingOlpcMeshClass" title="NMSettingOlpcMeshClass">NMSettingOlpcMeshClass</a>;
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         <a class="link" href="NMSettingOlpcMesh.html#nm-setting-olpc-mesh-new" title="nm_setting_olpc_mesh_new ()">nm_setting_olpc_mesh_new</a>            (<em class="parameter"><code><span class="type">void</span></code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *  <a class="link" href="NMSettingOlpcMesh.html#nm-setting-olpc-mesh-get-ssid" title="nm_setting_olpc_mesh_get_ssid ()">nm_setting_olpc_mesh_get_ssid</a>       (<em class="parameter"><code><a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="NMSettingOlpcMesh.html#nm-setting-olpc-mesh-get-channel" title="nm_setting_olpc_mesh_get_channel ()">nm_setting_olpc_mesh_get_channel</a>    (<em class="parameter"><code><a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> *setting</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *  <a class="link" href="NMSettingOlpcMesh.html#nm-setting-olpc-mesh-get-dhcp-anycast-address" title="nm_setting_olpc_mesh_get_dhcp_anycast_address ()">nm_setting_olpc_mesh_get_dhcp_anycast_address</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> *setting</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingOlpcMesh.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingOlpcMeshError
+</pre>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
+         +----NMSettingOlpcMesh
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingOlpcMesh.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMSettingOlpcMesh.html#NMSettingOlpcMesh--channel" title='The "channel" property'>channel</a>"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write / Construct
+  "<a class="link" href="NMSettingOlpcMesh.html#NMSettingOlpcMesh--dhcp-anycast-address" title='The "dhcp-anycast-address" property'>dhcp-anycast-address</a>"     <span class="type">GArray_guchar_</span>*       : Read / Write
+  "<a class="link" href="NMSettingOlpcMesh.html#NMSettingOlpcMesh--ssid" title='The "ssid" property'>ssid</a>"                     <span class="type">GArray_guchar_</span>*       : Read / Write
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingOlpcMesh.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMSettingOlpcMesh.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NM-SETTING-OLPC-MESH-SETTING-NAME:CAPS"></a><h3>NM_SETTING_OLPC_MESH_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_OLPC_MESH_SETTING_NAME "802-11-olpc-mesh"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingOlpcMeshError-enum"></a><h3>enum NMSettingOlpcMeshError</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_OLPC_MESH_ERROR_UNKNOWN = 0,      /*&lt; nick=UnknownError &gt;*/
+	NM_SETTING_OLPC_MESH_ERROR_INVALID_PROPERTY, /*&lt; nick=InvalidProperty &gt;*/
+	NM_SETTING_OLPC_MESH_ERROR_MISSING_PROPERTY  /*&lt; nick=MissingProperty &gt;*/
+} NMSettingOlpcMeshError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-OLPC-MESH-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_SETTING_OLPC_MESH_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-OLPC-MESH-ERROR-INVALID-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_OLPC_MESH_ERROR_INVALID_PROPERTY</code></span></p></td>
+<td>the property was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-OLPC-MESH-ERROR-MISSING-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_OLPC_MESH_ERROR_MISSING_PROPERTY</code></span></p></td>
+<td>the property was missing and is
+required
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-OLPC-MESH-ERROR:CAPS"></a><h3>NM_SETTING_OLPC_MESH_ERROR</h3>
+<pre class="programlisting">#define NM_SETTING_OLPC_MESH_ERROR nm_setting_olpc_mesh_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-olpc-mesh-error-quark"></a><h3>nm_setting_olpc_mesh_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_setting_olpc_mesh_error_quark    (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-OLPC-MESH-SSID:CAPS"></a><h3>NM_SETTING_OLPC_MESH_SSID</h3>
+<pre class="programlisting">#define NM_SETTING_OLPC_MESH_SSID                 "ssid"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-OLPC-MESH-CHANNEL:CAPS"></a><h3>NM_SETTING_OLPC_MESH_CHANNEL</h3>
+<pre class="programlisting">#define NM_SETTING_OLPC_MESH_CHANNEL              "channel"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-OLPC-MESH-DHCP-ANYCAST-ADDRESS:CAPS"></a><h3>NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS</h3>
+<pre class="programlisting">#define NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS "dhcp-anycast-address"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingOlpcMesh-struct"></a><h3>NMSettingOlpcMesh</h3>
+<pre class="programlisting">typedef struct _NMSettingOlpcMesh NMSettingOlpcMesh;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingOlpcMeshClass"></a><h3>NMSettingOlpcMeshClass</h3>
+<pre class="programlisting">typedef struct {
+	NMSettingClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+} NMSettingOlpcMeshClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-olpc-mesh-new"></a><h3>nm_setting_olpc_mesh_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         nm_setting_olpc_mesh_new            (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> object with default values.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the new empty <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> object</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-olpc-mesh-get-ssid"></a><h3>nm_setting_olpc_mesh_get_ssid ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *  nm_setting_olpc_mesh_get_ssid       (<em class="parameter"><code><a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> *setting</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-olpc-mesh-get-channel"></a><h3>nm_setting_olpc_mesh_get_channel ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             nm_setting_olpc_mesh_get_channel    (<em class="parameter"><code><a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> *setting</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-olpc-mesh-get-dhcp-anycast-address"></a><h3>nm_setting_olpc_mesh_get_dhcp_anycast_address ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *  nm_setting_olpc_mesh_get_dhcp_anycast_address
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> *setting</code></em>);</pre>
+<p>
+</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingOlpcMesh.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMSettingOlpcMesh--channel"></a><h3>The <code class="literal">"channel"</code> property</h3>
+<pre class="programlisting">  "channel"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write / Construct</pre>
+<p>
+Channel on which the mesh network to join is located.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingOlpcMesh--dhcp-anycast-address"></a><h3>The <code class="literal">"dhcp-anycast-address"</code> property</h3>
+<pre class="programlisting">  "dhcp-anycast-address"     <span class="type">GArray_guchar_</span>*       : Read / Write</pre>
+<p>
+Anycast DHCP MAC address used when requesting an IP address via DHCP.
+The specific anycast address used determines which DHCP server class
+answers the request.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingOlpcMesh--ssid"></a><h3>The <code class="literal">"ssid"</code> property</h3>
+<pre class="programlisting">  "ssid"                     <span class="type">GArray_guchar_</span>*       : Read / Write</pre>
+<p>
+SSID of the mesh network to join.
+</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

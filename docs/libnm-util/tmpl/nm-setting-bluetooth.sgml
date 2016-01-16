@@ -1,0 +1,139 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingBluetooth
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_BLUETOOTH_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingBluetoothError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_BLUETOOTH_ERROR_UNKNOWN: 
+@NM_SETTING_BLUETOOTH_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_BLUETOOTH_ERROR_MISSING_PROPERTY: 
+@NM_SETTING_BLUETOOTH_ERROR_TYPE_SETTING_NOT_FOUND: 
+
+<!-- ##### MACRO NM_SETTING_BLUETOOTH_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_bluetooth_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_BLUETOOTH_BDADDR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BLUETOOTH_TYPE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BLUETOOTH_TYPE_DUN ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BLUETOOTH_TYPE_PANU ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingBluetooth ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingBluetooth:bdaddr ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBluetooth:type ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingBluetoothClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_bluetooth_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bluetooth_get_bdaddr ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bluetooth_get_connection_type ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+

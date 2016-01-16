@@ -1,0 +1,62 @@
+From 1571e19f81f3ac1ce646d77ffb2fa730dd8b35d8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ji=C5=99=C3=AD=20Klime=C5=A1?= <jklimes@redhat.com>
+Date: Wed, 3 Sep 2014 12:45:58 +0200
+Subject: [PATCH 2/2] dhcp: log DHCP client exit status better
+
+Conflicts:
+	src/dhcp-manager/nm-dhcp-client.c
+---
+ src/dhcp-manager/nm-dhcp-client.c | 35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
+
+diff --git a/src/dhcp-manager/nm-dhcp-client.c b/src/dhcp-manager/nm-dhcp-client.c
+index 0a541a0..759bd49 100644
+--- a/src/dhcp-manager/nm-dhcp-client.c
++++ b/src/dhcp-manager/nm-dhcp-client.c
+@@ -255,21 +255,30 @@ daemon_watch_cb (GPid pid, gint status, gpointer user_data)
+ 	NMDHCPClient *self = NM_DHCP_CLIENT (user_data);
+ 	NMDHCPClientPrivate *priv = NM_DHCP_CLIENT_GET_PRIVATE (self);
+ 	NMDHCPState new_state;
++	guint64 log_domain;
++	guint ip_ver;
++
++	log_domain = priv->ipv6 ? LOGD_DHCP6 : LOGD_DHCP4;
++	ip_ver = priv->ipv6 ? 6 : 4;
++
++	if (WIFEXITED (status))
++		nm_log_info (log_domain, "(%s): DHCPv%d client pid %d exited with status %d",
++		             priv->iface, ip_ver, pid, WEXITSTATUS (status));
++	else if (WIFSIGNALED (status))
++		nm_log_info (log_domain, "(%s): DHCPv%d client pid %d killed by signal %d",
++		             priv->iface, ip_ver, pid, WTERMSIG (status));
++	else if (WIFSTOPPED(status))
++		nm_log_info (log_domain, "(%s): DHCPv%d client pid %d stopped by signal %d",
++		             priv->iface, ip_ver, pid, WSTOPSIG (status));
++	else if (WIFCONTINUED (status))
++		nm_log_info (log_domain, "(%s): DHCPv%d client pid %d resumed (by SIGCONT)",
++		             priv->iface, ip_ver, pid);
++	else
++		nm_log_warn (LOGD_DHCP, "DHCP client died abnormally");
+ 
+-	if (priv->ipv6) {
+-		nm_log_info (LOGD_DHCP6, "(%s): DHCPv6 client pid %d exited with status %d",
+-		             priv->iface, pid,
+-		             WIFEXITED (status) ? WEXITSTATUS (status) : -1);
+-	} else {
+-		nm_log_info (LOGD_DHCP4, "(%s): DHCPv4 client pid %d exited with status %d",
+-		             priv->iface, pid,
+-		             WIFEXITED (status) ? WEXITSTATUS (status) : -1);
+-	}
+-
+-	if (!WIFEXITED (status)) {
++	if (!WIFEXITED (status))
+ 		new_state = DHC_ABEND;
+-		nm_log_warn (LOGD_DHCP, "DHCP client died abnormally");
+-	} else
++	else
+ 		new_state = DHC_END;
+ 
+ 	watch_cleanup (self);
+-- 
+2.1.3
+

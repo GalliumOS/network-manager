@@ -1,0 +1,296 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingBond
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_BOND_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingBondError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_BOND_ERROR_UNKNOWN: 
+@NM_SETTING_BOND_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_BOND_ERROR_MISSING_PROPERTY: 
+@NM_SETTING_BOND_ERROR_INVALID_OPTION: 
+@NM_SETTING_BOND_ERROR_MISSING_OPTION: 
+
+<!-- ##### MACRO NM_SETTING_BOND_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_bond_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_BOND_INTERFACE_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTIONS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_MODE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_MIIMON ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_DOWNDELAY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_UPDELAY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_ARP_INTERVAL ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_ARP_IP_TARGET ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_ARP_VALIDATE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_PRIMARY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_PRIMARY_RESELECT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_FAIL_OVER_MAC ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_USE_CARRIER ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_AD_SELECT ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BOND_OPTION_RESEND_IGMP ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingBond ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingBond:interface-name ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBond:options ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingBondClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_bond_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_get_interface_name ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_get_num_options ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_get_option ##### -->
+<para>
+
+</para>
+
+@setting: 
+@idx: 
+@out_name: 
+@out_value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_get_option_by_name ##### -->
+<para>
+
+</para>
+
+@setting: 
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_add_option ##### -->
+<para>
+
+</para>
+
+@setting: 
+@name: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_remove_option ##### -->
+<para>
+
+</para>
+
+@setting: 
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_validate_option ##### -->
+<para>
+
+</para>
+
+@name: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_get_valid_options ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bond_get_option_default ##### -->
+<para>
+
+</para>
+
+@setting: 
+@name: 
+@Returns: 
+
+

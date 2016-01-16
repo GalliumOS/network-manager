@@ -1,0 +1,435 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSettingInfiniband</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-util Reference Manual">
+<link rel="up" href="ch01.html" title="libnm-util API Reference">
+<link rel="prev" href="NMSettingGeneric.html" title="NMSettingGeneric">
+<link rel="next" href="NMSettingVlan.html" title="NMSettingVlan">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMSettingGeneric.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-util Reference Manual</th>
+<td><a accesskey="n" href="NMSettingVlan.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMSettingInfiniband.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMSettingInfiniband.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMSettingInfiniband.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMSettingInfiniband.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMSettingInfiniband"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingInfiniband.top_of_page"></a>NMSettingInfiniband</span></h2>
+<p>NMSettingInfiniband — Describes connection properties for IP-over-InfiniBand networks</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMSettingInfiniband.synopsis"></a><h2>Synopsis</h2>
+<a name="NMSettingInfinibandError"></a><pre class="synopsis">
+#include &lt;nm-setting-infiniband.h&gt;
+
+#define             <a class="link" href="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-SETTING-NAME:CAPS" title="NM_SETTING_INFINIBAND_SETTING_NAME">NM_SETTING_INFINIBAND_SETTING_NAME</a>
+enum                <a class="link" href="NMSettingInfiniband.html#NMSettingInfinibandError-enum" title="enum NMSettingInfinibandError">NMSettingInfinibandError</a>;
+#define             <a class="link" href="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-ERROR:CAPS" title="NM_SETTING_INFINIBAND_ERROR">NM_SETTING_INFINIBAND_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMSettingInfiniband.html#nm-setting-infiniband-error-quark" title="nm_setting_infiniband_error_quark ()">nm_setting_infiniband_error_quark</a>   (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-MAC-ADDRESS:CAPS" title="NM_SETTING_INFINIBAND_MAC_ADDRESS">NM_SETTING_INFINIBAND_MAC_ADDRESS</a>
+#define             <a class="link" href="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-MTU:CAPS" title="NM_SETTING_INFINIBAND_MTU">NM_SETTING_INFINIBAND_MTU</a>
+#define             <a class="link" href="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-TRANSPORT-MODE:CAPS" title="NM_SETTING_INFINIBAND_TRANSPORT_MODE">NM_SETTING_INFINIBAND_TRANSPORT_MODE</a>
+#define             <a class="link" href="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-P-KEY:CAPS" title="NM_SETTING_INFINIBAND_P_KEY">NM_SETTING_INFINIBAND_P_KEY</a>
+#define             <a class="link" href="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-PARENT:CAPS" title="NM_SETTING_INFINIBAND_PARENT">NM_SETTING_INFINIBAND_PARENT</a>
+                    <a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband-struct" title="NMSettingInfiniband">NMSettingInfiniband</a>;
+                    <a class="link" href="NMSettingInfiniband.html#NMSettingInfinibandClass" title="NMSettingInfinibandClass">NMSettingInfinibandClass</a>;
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         <a class="link" href="NMSettingInfiniband.html#nm-setting-infiniband-new" title="nm_setting_infiniband_new ()">nm_setting_infiniband_new</a>           (<em class="parameter"><code><span class="type">void</span></code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *  <a class="link" href="NMSettingInfiniband.html#nm-setting-infiniband-get-mac-address" title="nm_setting_infiniband_get_mac_address ()">nm_setting_infiniband_get_mac_address</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="NMSettingInfiniband.html#nm-setting-infiniband-get-mtu" title="nm_setting_infiniband_get_mtu ()">nm_setting_infiniband_get_mtu</a>       (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSettingInfiniband.html#nm-setting-infiniband-get-transport-mode" title="nm_setting_infiniband_get_transport_mode ()">nm_setting_infiniband_get_transport_mode</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);
+<span class="returnvalue">int</span>                 <a class="link" href="NMSettingInfiniband.html#nm-setting-infiniband-get-p-key" title="nm_setting_infiniband_get_p_key ()">nm_setting_infiniband_get_p_key</a>     (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSettingInfiniband.html#nm-setting-infiniband-get-parent" title="nm_setting_infiniband_get_parent ()">nm_setting_infiniband_get_parent</a>    (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingInfiniband.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingInfinibandError
+</pre>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
+         +----NMSettingInfiniband
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingInfiniband.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--mac-address" title='The "mac-address" property'>mac-address</a>"              <span class="type">GArray_guchar_</span>*       : Read / Write
+  "<a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--mtu" title='The "mtu" property'>mtu</a>"                      <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write / Construct
+  "<a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--p-key" title='The "p-key" property'>p-key</a>"                    <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct
+  "<a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--parent" title='The "parent" property'>parent</a>"                   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct
+  "<a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--transport-mode" title='The "transport-mode" property'>transport-mode</a>"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingInfiniband.description"></a><h2>Description</h2>
+<p>
+The <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes properties
+necessary for connection to IP-over-InfiniBand networks.
+</p>
+</div>
+<div class="refsect1">
+<a name="NMSettingInfiniband.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NM-SETTING-INFINIBAND-SETTING-NAME:CAPS"></a><h3>NM_SETTING_INFINIBAND_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_INFINIBAND_SETTING_NAME "infiniband"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingInfinibandError-enum"></a><h3>enum NMSettingInfinibandError</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_INFINIBAND_ERROR_UNKNOWN = 0,      /*&lt; nick=UnknownError &gt;*/
+	NM_SETTING_INFINIBAND_ERROR_INVALID_PROPERTY, /*&lt; nick=InvalidProperty &gt;*/
+	NM_SETTING_INFINIBAND_ERROR_MISSING_PROPERTY  /*&lt; nick=MissingProperty &gt;*/
+} NMSettingInfinibandError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-INFINIBAND-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_SETTING_INFINIBAND_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-INFINIBAND-ERROR-INVALID-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_INFINIBAND_ERROR_INVALID_PROPERTY</code></span></p></td>
+<td>the property was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-INFINIBAND-ERROR-MISSING-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_INFINIBAND_ERROR_MISSING_PROPERTY</code></span></p></td>
+<td>the property was missing and is
+required
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-INFINIBAND-ERROR:CAPS"></a><h3>NM_SETTING_INFINIBAND_ERROR</h3>
+<pre class="programlisting">#define NM_SETTING_INFINIBAND_ERROR nm_setting_infiniband_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-infiniband-error-quark"></a><h3>nm_setting_infiniband_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_setting_infiniband_error_quark   (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-INFINIBAND-MAC-ADDRESS:CAPS"></a><h3>NM_SETTING_INFINIBAND_MAC_ADDRESS</h3>
+<pre class="programlisting">#define NM_SETTING_INFINIBAND_MAC_ADDRESS    "mac-address"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-INFINIBAND-MTU:CAPS"></a><h3>NM_SETTING_INFINIBAND_MTU</h3>
+<pre class="programlisting">#define NM_SETTING_INFINIBAND_MTU            "mtu"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-INFINIBAND-TRANSPORT-MODE:CAPS"></a><h3>NM_SETTING_INFINIBAND_TRANSPORT_MODE</h3>
+<pre class="programlisting">#define NM_SETTING_INFINIBAND_TRANSPORT_MODE "transport-mode"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-INFINIBAND-P-KEY:CAPS"></a><h3>NM_SETTING_INFINIBAND_P_KEY</h3>
+<pre class="programlisting">#define NM_SETTING_INFINIBAND_P_KEY          "p-key"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-INFINIBAND-PARENT:CAPS"></a><h3>NM_SETTING_INFINIBAND_PARENT</h3>
+<pre class="programlisting">#define NM_SETTING_INFINIBAND_PARENT         "parent"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingInfiniband-struct"></a><h3>NMSettingInfiniband</h3>
+<pre class="programlisting">typedef struct _NMSettingInfiniband NMSettingInfiniband;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingInfinibandClass"></a><h3>NMSettingInfinibandClass</h3>
+<pre class="programlisting">typedef struct {
+	NMSettingClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+} NMSettingInfinibandClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-infiniband-new"></a><h3>nm_setting_infiniband_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         nm_setting_infiniband_new           (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> object with default values.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the new empty <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> object. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-infiniband-get-mac-address"></a><h3>nm_setting_infiniband_get_mac_address ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *  nm_setting_infiniband_get_mac_address
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--mac-address" title='The "mac-address" property'><span class="type">"mac-address"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-infiniband-get-mtu"></a><h3>nm_setting_infiniband_get_mtu ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             nm_setting_infiniband_get_mtu       (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--mtu" title='The "mtu" property'><span class="type">"mtu"</span></a> property of the setting</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-infiniband-get-transport-mode"></a><h3>nm_setting_infiniband_get_transport_mode ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_infiniband_get_transport_mode
+                                                        (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);</pre>
+<p>
+Returns the transport mode for this device. Either 'datagram' or
+'connected'.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the IPoIB transport mode</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-infiniband-get-p-key"></a><h3>nm_setting_infiniband_get_p_key ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>                 nm_setting_infiniband_get_p_key     (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);</pre>
+<p>
+Returns the P_Key to use for this device. A value of -1 means to
+use the default P_Key (aka "the P_Key at index 0"). Otherwise it is
+a 16-bit unsigned integer.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the IPoIB P_Key</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-infiniband-get-parent"></a><h3>nm_setting_infiniband_get_parent ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_infiniband_get_parent    (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);</pre>
+<p>
+Returns the parent interface name for this device, if set.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the parent interface name</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingInfiniband.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMSettingInfiniband--mac-address"></a><h3>The <code class="literal">"mac-address"</code> property</h3>
+<pre class="programlisting">  "mac-address"              <span class="type">GArray_guchar_</span>*       : Read / Write</pre>
+<p>
+If specified, this connection will only apply to the IPoIB device whose
+permanent MAC address matches. This property does not change the MAC
+address of the device (i.e. MAC spoofing).
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingInfiniband--mtu"></a><h3>The <code class="literal">"mtu"</code> property</h3>
+<pre class="programlisting">  "mtu"                      <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write / Construct</pre>
+<p>
+If non-zero, only transmit packets of the specified size or smaller,
+breaking larger packets up into multiple frames.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingInfiniband--p-key"></a><h3>The <code class="literal">"p-key"</code> property</h3>
+<pre class="programlisting">  "p-key"                    <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct</pre>
+<p>
+The InfiniBand P_Key to use for this device. A value of -1 means to use
+the default P_Key (aka "the P_Key at index 0").  Otherwise it is a 16-bit
+unsigned integer, whose high bit is set if it is a "full membership"
+P_Key.
+</p>
+<p>Allowed values: [-1,65535]</p>
+<p>Default value: -1</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingInfiniband--parent"></a><h3>The <code class="literal">"parent"</code> property</h3>
+<pre class="programlisting">  "parent"                   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct</pre>
+<p>
+The interface name of the parent device of this device. Normally <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>,
+but if the <a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--p-key" title='The "p-key" property'><span class="type">"p_key"</span></a> property is set, then you must
+specify the base device by setting either this property or
+<a class="link" href="NMSettingInfiniband.html#NMSettingInfiniband--mac-address" title='The "mac-address" property'><span class="type">"mac-address"</span></a>.
+</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingInfiniband--transport-mode"></a><h3>The <code class="literal">"transport-mode"</code> property</h3>
+<pre class="programlisting">  "transport-mode"           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct</pre>
+<p>
+The IP-over-InfiniBand transport mode. Either "datagram" or
+"connected".
+</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

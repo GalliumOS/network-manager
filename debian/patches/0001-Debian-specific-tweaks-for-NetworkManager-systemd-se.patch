@@ -1,0 +1,33 @@
+From: Michael Biebl <biebl@debian.org>
+Date: Wed, 2 Apr 2014 03:15:53 +0200
+Subject: Debian specific tweaks for NetworkManager systemd service file
+
+This patch is needed to avoid a dependency loop which is generated
+by early boot (rcS) SysV init scripts depending on the $network LSB
+system facility (either directly or indirectly via $remote_fs).
+
+The $network LSB system facility is mapped to network.target.
+
+Those rcS SysV init scripts are started in sysinit.target,
+NetworkManager.service is started via multi-user.target, which depends
+on sysinit.target.
+
+As long as we have rcS SysV init scripts which such a dependency on
+$remote_fs or $network we can not make NetworkManager.service a provider
+for network.target.
+---
+ data/NetworkManager.service.in | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/data/NetworkManager.service.in b/data/NetworkManager.service.in
+index 84a9c95..2fb510f 100644
+--- a/data/NetworkManager.service.in
++++ b/data/NetworkManager.service.in
+@@ -1,7 +1,5 @@
+ [Unit]
+ Description=Network Manager
+-Wants=network.target
+-Before=network.target @DISTRO_NETWORK_SERVICE@
+ 
+ [Service]
+ Type=dbus

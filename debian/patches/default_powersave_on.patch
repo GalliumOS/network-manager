@@ -1,0 +1,51 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Set the default powersave value to enabled
+Forwarded-Upstream: not-needed
+
+This is an Ubuntu-specific patch to enable wireless powersave by default.
+
+Should it not work for you for some reason, you can safely add:
+
+powersave=0
+
+to the section:
+[802-11-wireless]
+
+In the configuration file for your connection under
+/etc/NetworkManager/system-connections/.
+
+---
+ libnm-util/nm-setting-wireless.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+Index: b/libnm-util/nm-setting-wireless.c
+===================================================================
+--- a/libnm-util/nm-setting-wireless.c
++++ b/libnm-util/nm-setting-wireless.c
+@@ -675,7 +675,7 @@ nm_setting_wireless_get_hidden (NMSettin
+ guint32
+ nm_setting_wireless_get_powersave (NMSettingWireless *setting)
+ {
+-	g_return_val_if_fail (NM_IS_SETTING_WIRELESS (setting), 0);
++	g_return_val_if_fail (NM_IS_SETTING_WIRELESS (setting), 1);
+ 
+ 	return NM_SETTING_WIRELESS_GET_PRIVATE (setting)->powersave;
+ }
+@@ -885,6 +885,9 @@ verify (NMSetting *setting, GSList *all_
+ static void
+ nm_setting_wireless_init (NMSettingWireless *setting)
+ {
++	NMSettingWirelessPrivate *priv = NM_SETTING_WIRELESS_GET_PRIVATE (setting);
++
++	priv->powersave = 1;
+ }
+ 
+ static void
+@@ -1336,6 +1339,6 @@ nm_setting_wireless_class_init (NMSettin
+ 	g_object_class_install_property
+ 		(object_class, PROP_POWERSAVE,
+ 		 g_param_spec_uint (NM_SETTING_WIRELESS_POWERSAVE, "", "",
+-		                    0, G_MAXUINT32, 0,
++		                    0, G_MAXUINT32, 1,
+ 		                    G_PARAM_READWRITE));
+ }

@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMDeviceAdsl</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="NMDeviceWimax.html" title="NMDeviceWimax">
+<link rel="next" href="NMDeviceBond.html" title="NMDeviceBond">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMDeviceWimax.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="NMDeviceBond.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMDeviceAdsl.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMDeviceAdsl.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMDeviceAdsl.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMDeviceAdsl.implemented-interfaces" class="shortcut">Implemented Interfaces</a>
+                   | 
+                  <a href="#NMDeviceAdsl.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMDeviceAdsl"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMDeviceAdsl.top_of_page"></a>NMDeviceAdsl</span></h2>
+<p>NMDeviceAdsl</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMDeviceAdsl.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">enum                <a class="link" href="NMDeviceAdsl.html#NMDeviceAdslError" title="enum NMDeviceAdslError">NMDeviceAdslError</a>;
+#define             <a class="link" href="NMDeviceAdsl.html#NM-DEVICE-ADSL-ERROR:CAPS" title="NM_DEVICE_ADSL_ERROR">NM_DEVICE_ADSL_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMDeviceAdsl.html#nm-device-adsl-error-quark" title="nm_device_adsl_error_quark ()">nm_device_adsl_error_quark</a>          (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMDeviceAdsl.html#NM-DEVICE-ADSL-CARRIER:CAPS" title="NM_DEVICE_ADSL_CARRIER">NM_DEVICE_ADSL_CARRIER</a>
+                    <a class="link" href="NMDeviceAdsl.html#NMDeviceAdsl-struct" title="NMDeviceAdsl">NMDeviceAdsl</a>;
+                    <a class="link" href="NMDeviceAdsl.html#NMDeviceAdslClass" title="NMDeviceAdslClass">NMDeviceAdslClass</a>;
+<a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="NMDeviceAdsl.html#nm-device-adsl-new" title="nm_device_adsl_new ()">nm_device_adsl_new</a>                  (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMDeviceAdsl.html#nm-device-adsl-get-carrier" title="nm_device_adsl_get_carrier ()">nm_device_adsl_get_carrier</a>          (<em class="parameter"><code><a class="link" href="NMDeviceAdsl.html" title="NMDeviceAdsl"><span class="type">NMDeviceAdsl</span></a> *device</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceAdsl.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+         +----<a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+               +----NMDeviceAdsl
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceAdsl.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceAdsl implements
+ <a href="http://library.gnome.org/devel/gio/unstable/GInitable.html">GInitable</a> and  <a href="http://library.gnome.org/devel/gio/unstable/GAsyncInitable.html">GAsyncInitable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceAdsl.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMDeviceAdsl.html#NMDeviceAdsl--carrier" title='The "carrier" property'>carrier</a>"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceAdsl.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceAdsl.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NMDeviceAdslError"></a><h3>enum NMDeviceAdslError</h3>
+<pre class="programlisting">typedef enum {
+	NM_DEVICE_ADSL_ERROR_UNKNOWN = 0,             /*&lt; nick=UnknownError &gt;*/
+	NM_DEVICE_ADSL_ERROR_NOT_ADSL_CONNECTION,     /*&lt; nick=NotAdslConnection &gt;*/
+	NM_DEVICE_ADSL_ERROR_INVALID_ADSL_CONNECTION, /*&lt; nick=InvalidAdslConnection &gt;*/
+} NMDeviceAdslError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-DEVICE-ADSL-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_ADSL_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-ADSL-ERROR-NOT-ADSL-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_ADSL_ERROR_NOT_ADSL_CONNECTION</code></span></p></td>
+<td>the connection was not of ADSL type
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-ADSL-ERROR-INVALID-ADSL-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_ADSL_ERROR_INVALID_ADSL_CONNECTION</code></span></p></td>
+<td>the ADSL connection was invalid
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-ADSL-ERROR:CAPS"></a><h3>NM_DEVICE_ADSL_ERROR</h3>
+<pre class="programlisting">#define NM_DEVICE_ADSL_ERROR nm_device_adsl_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-adsl-error-quark"></a><h3>nm_device_adsl_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_device_adsl_error_quark          (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMDeviceAdsl.html" title="NMDeviceAdsl"><span class="type">NMDeviceAdsl</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMDeviceAdsl.html" title="NMDeviceAdsl"><span class="type">NMDeviceAdsl</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-ADSL-CARRIER:CAPS"></a><h3>NM_DEVICE_ADSL_CARRIER</h3>
+<pre class="programlisting">#define NM_DEVICE_ADSL_CARRIER "carrier"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceAdsl-struct"></a><h3>NMDeviceAdsl</h3>
+<pre class="programlisting">typedef struct _NMDeviceAdsl NMDeviceAdsl;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceAdslClass"></a><h3>NMDeviceAdslClass</h3>
+<pre class="programlisting">typedef struct {
+	NMDeviceClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+	void (*_reserved5) (void);
+	void (*_reserved6) (void);
+} NMDeviceAdslClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-adsl-new"></a><h3>nm_device_adsl_new ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           nm_device_adsl_new                  (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMDeviceAdsl.html" title="NMDeviceAdsl"><span class="type">NMDeviceAdsl</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>the <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
+<td>the DBus object path of the device</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new device. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-adsl-get-carrier"></a><h3>nm_device_adsl_get_carrier ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_device_adsl_get_carrier          (<em class="parameter"><code><a class="link" href="NMDeviceAdsl.html" title="NMDeviceAdsl"><span class="type">NMDeviceAdsl</span></a> *device</code></em>);</pre>
+<p>
+Whether the device has carrier.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceAdsl.html" title="NMDeviceAdsl"><span class="type">NMDeviceAdsl</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the device has carrier</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceAdsl.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceAdsl--carrier"></a><h3>The <code class="literal">"carrier"</code> property</h3>
+<pre class="programlisting">  "carrier"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<p>
+Whether the device has carrier.
+</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

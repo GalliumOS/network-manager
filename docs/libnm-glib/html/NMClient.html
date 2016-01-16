@@ -1,0 +1,1990 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMClient</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="ch02.html" title="libnm-glib API Reference">
+<link rel="next" href="NMActiveConnection.html" title="NMActiveConnection">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="ch02.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="NMActiveConnection.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMClient.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMClient.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMClient.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMClient.implemented-interfaces" class="shortcut">Implemented Interfaces</a>
+                   | 
+                  <a href="#NMClient.properties" class="shortcut">Properties</a>
+                   | 
+                  <a href="#NMClient.signals" class="shortcut">Signals</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMClient"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMClient.top_of_page"></a>NMClient</span></h2>
+<p>NMClient</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMClient.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">#define             <a class="link" href="NMClient.html#NM-CLIENT-VERSION:CAPS" title="NM_CLIENT_VERSION">NM_CLIENT_VERSION</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-STATE:CAPS" title="NM_CLIENT_STATE">NM_CLIENT_STATE</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-STARTUP:CAPS" title="NM_CLIENT_STARTUP">NM_CLIENT_STARTUP</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-MANAGER-RUNNING:CAPS" title="NM_CLIENT_MANAGER_RUNNING">NM_CLIENT_MANAGER_RUNNING</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-NETWORKING-ENABLED:CAPS" title="NM_CLIENT_NETWORKING_ENABLED">NM_CLIENT_NETWORKING_ENABLED</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-WIRELESS-ENABLED:CAPS" title="NM_CLIENT_WIRELESS_ENABLED">NM_CLIENT_WIRELESS_ENABLED</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-WIRELESS-HARDWARE-ENABLED:CAPS" title="NM_CLIENT_WIRELESS_HARDWARE_ENABLED">NM_CLIENT_WIRELESS_HARDWARE_ENABLED</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-WWAN-ENABLED:CAPS" title="NM_CLIENT_WWAN_ENABLED">NM_CLIENT_WWAN_ENABLED</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-WWAN-HARDWARE-ENABLED:CAPS" title="NM_CLIENT_WWAN_HARDWARE_ENABLED">NM_CLIENT_WWAN_HARDWARE_ENABLED</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-WIMAX-ENABLED:CAPS" title="NM_CLIENT_WIMAX_ENABLED">NM_CLIENT_WIMAX_ENABLED</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-WIMAX-HARDWARE-ENABLED:CAPS" title="NM_CLIENT_WIMAX_HARDWARE_ENABLED">NM_CLIENT_WIMAX_HARDWARE_ENABLED</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-ACTIVE-CONNECTIONS:CAPS" title="NM_CLIENT_ACTIVE_CONNECTIONS">NM_CLIENT_ACTIVE_CONNECTIONS</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-CONNECTIVITY:CAPS" title="NM_CLIENT_CONNECTIVITY">NM_CLIENT_CONNECTIVITY</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-PRIMARY-CONNECTION:CAPS" title="NM_CLIENT_PRIMARY_CONNECTION">NM_CLIENT_PRIMARY_CONNECTION</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-ACTIVATING-CONNECTION:CAPS" title="NM_CLIENT_ACTIVATING_CONNECTION">NM_CLIENT_ACTIVATING_CONNECTION</a>
+#define             <a class="link" href="NMClient.html#NM-CLIENT-DEVICES:CAPS" title="NM_CLIENT_DEVICES">NM_CLIENT_DEVICES</a>
+enum                <a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a>;
+enum                <a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult">NMClientPermissionResult</a>;
+enum                <a class="link" href="NMClient.html#NMClientError" title="enum NMClientError">NMClientError</a>;
+#define             <a class="link" href="NMClient.html#NM-CLIENT-ERROR:CAPS" title="NM_CLIENT_ERROR">NM_CLIENT_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMClient.html#nm-client-error-quark" title="nm_client_error_quark ()">nm_client_error_quark</a>               (<em class="parameter"><code><span class="type">void</span></code></em>);
+                    <a class="link" href="NMClient.html#NMClient-struct" title="NMClient">NMClient</a>;
+                    <a class="link" href="NMClient.html#NMClientClass" title="NMClientClass">NMClientClass</a>;
+<a class="link" href="NMClient.html" title="NMClient"><span class="returnvalue">NMClient</span></a> *          <a class="link" href="NMClient.html#nm-client-new" title="nm_client_new ()">nm_client_new</a>                       (<em class="parameter"><code><span class="type">void</span></code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-new-async" title="nm_client_new_async ()">nm_client_new_async</a>                 (<em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a class="link" href="NMClient.html" title="NMClient"><span class="returnvalue">NMClient</span></a> *          <a class="link" href="NMClient.html#nm-client-new-finish" title="nm_client_new_finish ()">nm_client_new_finish</a>                (<em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html"><span class="type">GAsyncResult</span></a> *result</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   <a class="link" href="NMClient.html#nm-client-get-devices" title="nm_client_get_devices ()">nm_client_get_devices</a>               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *          <a class="link" href="NMClient.html#nm-client-get-device-by-path" title="nm_client_get_device_by_path ()">nm_client_get_device_by_path</a>        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *object_path</code></em>);
+<a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *          <a class="link" href="NMClient.html#nm-client-get-device-by-iface" title="nm_client_get_device_by_iface ()">nm_client_get_device_by_iface</a>       (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *iface</code></em>);
+<span class="returnvalue">void</span>                (<a class="link" href="NMClient.html#NMClientActivateFn" title="NMClientActivateFn ()">*NMClientActivateFn</a>)               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *active_connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> *error</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-activate-connection" title="nm_client_activate_connection ()">nm_client_activate_connection</a>       (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *specific_object</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMClient.html#NMClientActivateFn" title="NMClientActivateFn ()"><span class="type">NMClientActivateFn</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<span class="returnvalue">void</span>                (<a class="link" href="NMClient.html#NMClientAddActivateFn" title="NMClientAddActivateFn ()">*NMClientAddActivateFn</a>)            (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *new_connection_path</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> *error</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-add-and-activate-connection" title="nm_client_add_and_activate_connection ()">nm_client_add_and_activate_connection</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *partial</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *specific_object</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMClient.html#NMClientAddActivateFn" title="NMClientAddActivateFn ()"><span class="type">NMClientAddActivateFn</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-deactivate-connection" title="nm_client_deactivate_connection ()">nm_client_deactivate_connection</a>     (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *active</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-networking-get-enabled" title="nm_client_networking_get_enabled ()">nm_client_networking_get_enabled</a>    (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-networking-set-enabled" title="nm_client_networking_set_enabled ()">nm_client_networking_set_enabled</a>    (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-wireless-get-enabled" title="nm_client_wireless_get_enabled ()">nm_client_wireless_get_enabled</a>      (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-wireless-set-enabled" title="nm_client_wireless_set_enabled ()">nm_client_wireless_set_enabled</a>      (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-wireless-hardware-get-enabled" title="nm_client_wireless_hardware_get_enabled ()">nm_client_wireless_hardware_get_enabled</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-wwan-get-enabled" title="nm_client_wwan_get_enabled ()">nm_client_wwan_get_enabled</a>          (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-wwan-set-enabled" title="nm_client_wwan_set_enabled ()">nm_client_wwan_set_enabled</a>          (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-wwan-hardware-get-enabled" title="nm_client_wwan_hardware_get_enabled ()">nm_client_wwan_hardware_get_enabled</a> (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-wimax-get-enabled" title="nm_client_wimax_get_enabled ()">nm_client_wimax_get_enabled</a>         (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-wimax-set-enabled" title="nm_client_wimax_set_enabled ()">nm_client_wimax_set_enabled</a>         (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-wimax-hardware-get-enabled" title="nm_client_wimax_hardware_get_enabled ()">nm_client_wimax_hardware_get_enabled</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMClient.html#nm-client-get-version" title="nm_client_get_version ()">nm_client_get_version</a>               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<span class="returnvalue">NMState</span>             <a class="link" href="NMClient.html#nm-client-get-state" title="nm_client_get_state ()">nm_client_get_state</a>                 (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-get-startup" title="nm_client_get_startup ()">nm_client_get_startup</a>               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-get-manager-running" title="nm_client_get_manager_running ()">nm_client_get_manager_running</a>       (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   <a class="link" href="NMClient.html#nm-client-get-active-connections" title="nm_client_get_active_connections ()">nm_client_get_active_connections</a>    (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-sleep" title="nm_client_sleep ()">nm_client_sleep</a>                     (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> sleep_</code></em>);
+<a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult"><span class="returnvalue">NMClientPermissionResult</span></a> <a class="link" href="NMClient.html#nm-client-get-permission-result" title="nm_client_get_permission_result ()">nm_client_get_permission_result</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a> permission</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-get-logging" title="nm_client_get_logging ()">nm_client_get_logging</a>               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> **level</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> **domains</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="NMClient.html#nm-client-set-logging" title="nm_client_set_logging ()">nm_client_set_logging</a>               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *level</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domains</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<span class="returnvalue">NMConnectivityState</span> <a class="link" href="NMClient.html#nm-client-get-connectivity" title="nm_client_get_connectivity ()">nm_client_get_connectivity</a>          (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<span class="returnvalue">NMConnectivityState</span> <a class="link" href="NMClient.html#nm-client-check-connectivity" title="nm_client_check_connectivity ()">nm_client_check_connectivity</a>        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="NMClient.html#nm-client-check-connectivity-async" title="nm_client_check_connectivity_async ()">nm_client_check_connectivity_async</a>  (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<span class="returnvalue">NMConnectivityState</span> <a class="link" href="NMClient.html#nm-client-check-connectivity-finish" title="nm_client_check_connectivity_finish ()">nm_client_check_connectivity_finish</a> (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html"><span class="type">GAsyncResult</span></a> *result</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="returnvalue">NMActiveConnection</span></a> * <a class="link" href="NMClient.html#nm-client-get-primary-connection" title="nm_client_get_primary_connection ()">nm_client_get_primary_connection</a>   (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="returnvalue">NMActiveConnection</span></a> * <a class="link" href="NMClient.html#nm-client-get-activating-connection" title="nm_client_get_activating_connection ()">nm_client_get_activating_connection</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMClient.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+         +----NMClient
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMClient.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMClient implements
+ <a href="http://library.gnome.org/devel/gio/unstable/GInitable.html">GInitable</a> and  <a href="http://library.gnome.org/devel/gio/unstable/GAsyncInitable.html">GAsyncInitable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="NMClient.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMClient.html#NMClient--activating-connection" title='The "activating-connection" property'>activating-connection</a>"    <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>*   : Read
+  "<a class="link" href="NMClient.html#NMClient--active-connections" title='The "active-connections" property'>active-connections</a>"       <span class="type">NMObjectArray</span>*        : Read
+  "<a class="link" href="NMClient.html#NMClient--connectivity" title='The "connectivity" property'>connectivity</a>"             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+  "<a class="link" href="NMClient.html#NMClient--devices" title='The "devices" property'>devices</a>"                  <span class="type">NMObjectArray</span>*        : Read
+  "<a class="link" href="NMClient.html#NMClient--manager-running" title='The "manager-running" property'>manager-running</a>"          <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="NMClient.html#NMClient--networking-enabled" title='The "networking-enabled" property'>networking-enabled</a>"       <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write
+  "<a class="link" href="NMClient.html#NMClient--primary-connection" title='The "primary-connection" property'>primary-connection</a>"       <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>*   : Read
+  "<a class="link" href="NMClient.html#NMClient--startup" title='The "startup" property'>startup</a>"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="NMClient.html#NMClient--state" title='The "state" property'>state</a>"                    <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+  "<a class="link" href="NMClient.html#NMClient--version" title='The "version" property'>version</a>"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read
+  "<a class="link" href="NMClient.html#NMClient--wimax-enabled" title='The "wimax-enabled" property'>wimax-enabled</a>"            <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write
+  "<a class="link" href="NMClient.html#NMClient--wimax-hardware-enabled" title='The "wimax-hardware-enabled" property'>wimax-hardware-enabled</a>"   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="NMClient.html#NMClient--wireless-enabled" title='The "wireless-enabled" property'>wireless-enabled</a>"         <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write
+  "<a class="link" href="NMClient.html#NMClient--wireless-hardware-enabled" title='The "wireless-hardware-enabled" property'>wireless-hardware-enabled</a>" <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="NMClient.html#NMClient--wwan-enabled" title='The "wwan-enabled" property'>wwan-enabled</a>"             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write
+  "<a class="link" href="NMClient.html#NMClient--wwan-hardware-enabled" title='The "wwan-hardware-enabled" property'>wwan-hardware-enabled</a>"    <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMClient.signals"></a><h2>Signals</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMClient.html#NMClient-device-added" title='The "device-added" signal'>device-added</a>"                                   : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a>
+  "<a class="link" href="NMClient.html#NMClient-device-removed" title='The "device-removed" signal'>device-removed</a>"                                 : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a>
+  "<a class="link" href="NMClient.html#NMClient-permission-changed" title='The "permission-changed" signal'>permission-changed</a>"                             : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMClient.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMClient.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NM-CLIENT-VERSION:CAPS"></a><h3>NM_CLIENT_VERSION</h3>
+<pre class="programlisting">#define NM_CLIENT_VERSION "version"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-STATE:CAPS"></a><h3>NM_CLIENT_STATE</h3>
+<pre class="programlisting">#define NM_CLIENT_STATE "state"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-STARTUP:CAPS"></a><h3>NM_CLIENT_STARTUP</h3>
+<pre class="programlisting">#define NM_CLIENT_STARTUP "startup"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-MANAGER-RUNNING:CAPS"></a><h3>NM_CLIENT_MANAGER_RUNNING</h3>
+<pre class="programlisting">#define NM_CLIENT_MANAGER_RUNNING "manager-running"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-NETWORKING-ENABLED:CAPS"></a><h3>NM_CLIENT_NETWORKING_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_NETWORKING_ENABLED "networking-enabled"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-WIRELESS-ENABLED:CAPS"></a><h3>NM_CLIENT_WIRELESS_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_WIRELESS_ENABLED "wireless-enabled"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-WIRELESS-HARDWARE-ENABLED:CAPS"></a><h3>NM_CLIENT_WIRELESS_HARDWARE_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_WIRELESS_HARDWARE_ENABLED "wireless-hardware-enabled"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-WWAN-ENABLED:CAPS"></a><h3>NM_CLIENT_WWAN_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_WWAN_ENABLED "wwan-enabled"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-WWAN-HARDWARE-ENABLED:CAPS"></a><h3>NM_CLIENT_WWAN_HARDWARE_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_WWAN_HARDWARE_ENABLED "wwan-hardware-enabled"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-WIMAX-ENABLED:CAPS"></a><h3>NM_CLIENT_WIMAX_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_WIMAX_ENABLED "wimax-enabled"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-WIMAX-HARDWARE-ENABLED:CAPS"></a><h3>NM_CLIENT_WIMAX_HARDWARE_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_WIMAX_HARDWARE_ENABLED "wimax-hardware-enabled"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-ACTIVE-CONNECTIONS:CAPS"></a><h3>NM_CLIENT_ACTIVE_CONNECTIONS</h3>
+<pre class="programlisting">#define NM_CLIENT_ACTIVE_CONNECTIONS "active-connections"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-CONNECTIVITY:CAPS"></a><h3>NM_CLIENT_CONNECTIVITY</h3>
+<pre class="programlisting">#define NM_CLIENT_CONNECTIVITY "connectivity"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-PRIMARY-CONNECTION:CAPS"></a><h3>NM_CLIENT_PRIMARY_CONNECTION</h3>
+<pre class="programlisting">#define NM_CLIENT_PRIMARY_CONNECTION "primary-connection"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-ACTIVATING-CONNECTION:CAPS"></a><h3>NM_CLIENT_ACTIVATING_CONNECTION</h3>
+<pre class="programlisting">#define NM_CLIENT_ACTIVATING_CONNECTION "activating-connection"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-DEVICES:CAPS"></a><h3>NM_CLIENT_DEVICES</h3>
+<pre class="programlisting">#define NM_CLIENT_DEVICES "devices"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClientPermission"></a><h3>enum NMClientPermission</h3>
+<pre class="programlisting">typedef enum {
+	NM_CLIENT_PERMISSION_NONE = 0,
+	NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK = 1,
+	NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI = 2,
+	NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN = 3,
+	NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX = 4,
+	NM_CLIENT_PERMISSION_SLEEP_WAKE = 5,
+	NM_CLIENT_PERMISSION_NETWORK_CONTROL = 6,
+	NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED = 7,
+	NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN = 8,
+	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM = 9,
+	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN = 10,
+	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME = 11,
+
+	NM_CLIENT_PERMISSION_LAST = NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME
+} NMClientPermission;
+</pre>
+<p>
+<a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a> values indicate various permissions that NetworkManager
+clients can obtain to perform certain tasks on behalf of the current user.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-NONE:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_NONE</code></span></p></td>
+<td>unknown or no permission
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-NETWORK:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK</code></span></p></td>
+<td>controls whether networking
+ can be globally enabled or disabled
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WIFI:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI</code></span></p></td>
+<td>controls whether Wi-Fi can be
+ globally enabled or disabled
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WWAN:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN</code></span></p></td>
+<td>controls whether WWAN (3G) can be
+ globally enabled or disabled
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WIMAX:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX</code></span></p></td>
+<td>controls whether WiMAX can be
+ globally enabled or disabled
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-SLEEP-WAKE:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_SLEEP_WAKE</code></span></p></td>
+<td>controls whether the client can ask
+ NetworkManager to sleep and wake
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-NETWORK-CONTROL:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_NETWORK_CONTROL</code></span></p></td>
+<td>controls whether networking connections
+ can be started, stopped, and changed
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-WIFI-SHARE-PROTECTED:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED</code></span></p></td>
+<td>controls whether a password
+ protected Wi-Fi hotspot can be created
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-WIFI-SHARE-OPEN:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN</code></span></p></td>
+<td>controls whether an open Wi-Fi hotspot
+ can be created
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-SYSTEM:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM</code></span></p></td>
+<td>controls whether connections
+ that are available to all users can be modified
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-OWN:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN</code></span></p></td>
+<td>controls whether connections
+ owned by the current user can be modified
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-HOSTNAME:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME</code></span></p></td>
+<td>controls whether the
+ persistent hostname can be changed
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-LAST:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_LAST</code></span></p></td>
+<td>a reserved boundary value
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClientPermissionResult"></a><h3>enum NMClientPermissionResult</h3>
+<pre class="programlisting">typedef enum {
+	NM_CLIENT_PERMISSION_RESULT_UNKNOWN = 0,
+	NM_CLIENT_PERMISSION_RESULT_YES,
+	NM_CLIENT_PERMISSION_RESULT_AUTH,
+	NM_CLIENT_PERMISSION_RESULT_NO
+} NMClientPermissionResult;
+</pre>
+<p>
+<a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult"><span class="type">NMClientPermissionResult</span></a> values indicate what authorizations and permissions
+the user requires to obtain a given <a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a>
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-RESULT-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_RESULT_UNKNOWN</code></span></p></td>
+<td>unknown or no authorization
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-RESULT-YES:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_RESULT_YES</code></span></p></td>
+<td>the permission is available
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-RESULT-AUTH:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_RESULT_AUTH</code></span></p></td>
+<td>authorization is necessary before the
+ permission is available
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-PERMISSION-RESULT-NO:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_PERMISSION_RESULT_NO</code></span></p></td>
+<td>permission to perform the operation is
+ denied by system policy
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClientError"></a><h3>enum NMClientError</h3>
+<pre class="programlisting">typedef enum {
+	NM_CLIENT_ERROR_UNKNOWN = 0,            /*&lt; nick=UnknownError &gt;*/
+	NM_CLIENT_ERROR_MANAGER_NOT_RUNNING,    /*&lt; nick=ManagerNotRunning &gt;*/
+} NMClientError;
+</pre>
+<p>
+Describes errors that may result from operations involving a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-CLIENT-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-CLIENT-ERROR-MANAGER-NOT-RUNNING:CAPS"></a><span class="term"><code class="literal">NM_CLIENT_ERROR_MANAGER_NOT_RUNNING</code></span></p></td>
+<td>an operation that requires NetworkManager
+  failed because NetworkManager is not running
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-ERROR:CAPS"></a><h3>NM_CLIENT_ERROR</h3>
+<pre class="programlisting">#define NM_CLIENT_ERROR nm_client_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-error-quark"></a><h3>nm_client_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_client_error_quark               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient-struct"></a><h3>NMClient</h3>
+<pre class="programlisting">typedef struct _NMClient NMClient;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClientClass"></a><h3>NMClientClass</h3>
+<pre class="programlisting">typedef struct {
+	NMObjectClass parent;
+
+	/* Signals */
+	void (*device_added) (NMClient *client, NMDevice *device);
+	void (*device_removed) (NMClient *client, NMDevice *device);
+	void (*permission_changed) (NMClient *client,
+	                            NMClientPermission permission,
+	                            NMClientPermissionResult result);
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+	void (*_reserved5) (void);
+	void (*_reserved6) (void);
+} NMClientClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-new"></a><h3>nm_client_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMClient.html" title="NMClient"><span class="returnvalue">NMClient</span></a> *          nm_client_new                       (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>.
+</p>
+<p>
+Note that this will do blocking D-Bus calls to initialize the
+client. You can use <a class="link" href="NMClient.html#nm-client-new-async" title="nm_client_new_async ()"><code class="function">nm_client_new_async()</code></a> if you want to avoid
+that.
+</p>
+<p>
+NOTE: <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> provides information about devices and a mechanism to
+control them.  To access and modify network configuration data, use the
+<a class="link" href="NMRemoteSettings.html" title="NMRemoteSettings"><span class="type">NMRemoteSettings</span></a> object.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> or NULL on an error</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-new-async"></a><h3>nm_client_new_async ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_new_async                 (<em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> and begins asynchronously initializing it.
+<em class="parameter"><code>callback</code></em> will be called when it is done; use
+<a class="link" href="NMClient.html#nm-client-new-finish" title="nm_client_new_finish ()"><code class="function">nm_client_new_finish()</code></a> to get the result. Note that on an error,
+the callback can be invoked with two first parameters as NULL.
+</p>
+<p>
+NOTE: <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> provides information about devices and a mechanism to
+control them.  To access and modify network configuration data, use the
+<a class="link" href="NMRemoteSettings.html" title="NMRemoteSettings"><span class="type">NMRemoteSettings</span></a> object.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a>, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
+<td>callback to call when the client is created</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>data for <em class="parameter"><code>callback</code></em>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-new-finish"></a><h3>nm_client_new_finish ()</h3>
+<pre class="programlisting"><a class="link" href="NMClient.html" title="NMClient"><span class="returnvalue">NMClient</span></a> *          nm_client_new_finish                (<em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html"><span class="type">GAsyncResult</span></a> *result</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+Gets the result of an <a class="link" href="NMClient.html#nm-client-new-async" title="nm_client_new_async ()"><code class="function">nm_client_new_async()</code></a> call.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>result</code></em> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html"><span class="type">GAsyncResult</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>location for a <a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> on error</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-devices"></a><h3>nm_client_get_devices ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   nm_client_get_devices               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Gets all the known network devices.  Use <code class="function">nm_device_get_type()</code> or the
+<code class="function">NM_IS_DEVICE_XXXX()</code> functions to determine what kind of device member of the
+returned array is, and then you may use device-specific methods such as
+<a class="link" href="NMDeviceEthernet.html#nm-device-ethernet-get-hw-address" title="nm_device_ethernet_get_hw_address ()"><code class="function">nm_device_ethernet_get_hw_address()</code></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
+containing all the <a href="NMDevice.html"><span class="type">NMDevices</span></a>.  The returned array is owned by the
+<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMClient.Device]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-device-by-path"></a><h3>nm_client_get_device_by_path ()</h3>
+<pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *          nm_client_get_device_by_path        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *object_path</code></em>);</pre>
+<p>
+Gets a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> from a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object_path</code></em> :</span></p></td>
+<td>the object path to search for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> for the given <em class="parameter"><code>object_path</code></em> or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is found. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-device-by-iface"></a><h3>nm_client_get_device_by_iface ()</h3>
+<pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *          nm_client_get_device_by_iface       (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *iface</code></em>);</pre>
+<p>
+Gets a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> from a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>iface</code></em> :</span></p></td>
+<td>the interface name to search for</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> for the given <em class="parameter"><code>iface</code></em> or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is found. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClientActivateFn"></a><h3>NMClientActivateFn ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                (*NMClientActivateFn)               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *active_connection</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> *error</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-activate-connection"></a><h3>nm_client_activate_connection ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_activate_connection       (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *specific_object</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMClient.html#NMClientActivateFn" title="NMClientActivateFn ()"><span class="type">NMClientActivateFn</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>
+Starts a connection to a particular network using the configuration settings
+from <em class="parameter"><code>connection</code></em> and the network device <em class="parameter"><code>device</code></em>.  Certain connection types
+also take a "specific object" which is the object path of a connection-
+specific object, like an <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> for Wi-Fi connections, or an
+<a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> for WiMAX connections, to which you wish to connect.  If the
+specific object is not given, NetworkManager can, in some cases, automatically
+determine which network to connect to given the settings in <em class="parameter"><code>connection</code></em>.
+</p>
+<p>
+If <em class="parameter"><code>connection</code></em> is not given for a device-based activation, NetworkManager
+picks the best available connection for the device and activates it.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
+<td>an <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>specific_object</code></em> :</span></p></td>
+<td>the object path of a connection-type-specific
+object this activation should use. This parameter is currently ignored for
+wired and mobile broadband connections, and the value of <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> should be used
+(ie, no specific object).  For Wi-Fi or WiMAX connections, pass the object
+path of a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> or <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> owned by <em class="parameter"><code>device</code></em>, which you can
+get using <a class="link" href="NMObject.html#nm-object-get-path" title="nm_object_get_path ()"><code class="function">nm_object_get_path()</code></a>, and which will be used to complete the
+details of the newly added connection. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
+<td>the function to call when the call is done. <span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data to pass to the callback function. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClientAddActivateFn"></a><h3>NMClientAddActivateFn ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                (*NMClientAddActivateFn)            (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *new_connection_path</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> *error</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-add-and-activate-connection"></a><h3>nm_client_add_and_activate_connection ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_add_and_activate_connection
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *partial</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *specific_object</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMClient.html#NMClientAddActivateFn" title="NMClientAddActivateFn ()"><span class="type">NMClientAddActivateFn</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>
+Adds a new connection using the given details (if any) as a template,
+automatically filling in missing settings with the capabilities of the
+given device and specific object.  The new connection is then activated.
+Cannot be used for VPN connections at this time.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>partial</code></em> :</span></p></td>
+<td>an <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> to add; the connection may be
+partially filled (or even <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>) and will be completed by NetworkManager
+using the given <em class="parameter"><code>device</code></em> and <em class="parameter"><code>specific_object</code></em> before being added. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>specific_object</code></em> :</span></p></td>
+<td>the object path of a connection-type-specific
+object this activation should use. This parameter is currently ignored for
+wired and mobile broadband connections, and the value of <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> should be used
+(ie, no specific object).  For Wi-Fi or WiMAX connections, pass the object
+path of a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> or <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> owned by <em class="parameter"><code>device</code></em>, which you can
+get using <a class="link" href="NMObject.html#nm-object-get-path" title="nm_object_get_path ()"><code class="function">nm_object_get_path()</code></a>, and which will be used to complete the
+details of the newly added connection. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
+<td>the function to call when the call is done. <span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data to pass to the callback function. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-deactivate-connection"></a><h3>nm_client_deactivate_connection ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_deactivate_connection     (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *active</code></em>);</pre>
+<p>
+Deactivates an active <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>active</code></em> :</span></p></td>
+<td>the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> to deactivate</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-networking-get-enabled"></a><h3>nm_client_networking_get_enabled ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_networking_get_enabled    (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Whether networking is enabled or disabled.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if networking is enabled, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if networking is disabled</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-networking-set-enabled"></a><h3>nm_client_networking_set_enabled ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_networking_set_enabled    (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<p>
+Enables or disables networking.  When networking is disabled, all controlled
+interfaces are disconnected and deactivated.  When networking is enabled,
+all controlled interfaces are available for activation.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>enabled</code></em> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to set networking enabled, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> to set networking disabled</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wireless-get-enabled"></a><h3>nm_client_wireless_get_enabled ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_wireless_get_enabled      (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Determines whether the wireless is enabled.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if wireless is enabled</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wireless-set-enabled"></a><h3>nm_client_wireless_set_enabled ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_wireless_set_enabled      (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<p>
+Enables or disables wireless devices.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>enabled</code></em> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to enable wireless</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wireless-hardware-get-enabled"></a><h3>nm_client_wireless_hardware_get_enabled ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_wireless_hardware_get_enabled
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Determines whether the wireless hardware is enabled.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the wireless hardware is enabled</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wwan-get-enabled"></a><h3>nm_client_wwan_get_enabled ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_wwan_get_enabled          (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Determines whether WWAN is enabled.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if WWAN is enabled</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wwan-set-enabled"></a><h3>nm_client_wwan_set_enabled ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_wwan_set_enabled          (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<p>
+Enables or disables WWAN devices.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>enabled</code></em> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to enable WWAN</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wwan-hardware-get-enabled"></a><h3>nm_client_wwan_hardware_get_enabled ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_wwan_hardware_get_enabled (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Determines whether the WWAN hardware is enabled.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the WWAN hardware is enabled</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wimax-get-enabled"></a><h3>nm_client_wimax_get_enabled ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_wimax_get_enabled         (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Determines whether WiMAX is enabled.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if WiMAX is enabled</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wimax-set-enabled"></a><h3>nm_client_wimax_set_enabled ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_wimax_set_enabled         (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<p>
+Enables or disables WiMAX devices.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>enabled</code></em> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to enable WiMAX</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-wimax-hardware-get-enabled"></a><h3>nm_client_wimax_hardware_get_enabled ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_wimax_hardware_get_enabled
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Determines whether the WiMAX hardware is enabled.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the WiMAX hardware is enabled</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-version"></a><h3>nm_client_get_version ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_client_get_version               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Gets NetworkManager version.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>string with the version</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-state"></a><h3>nm_client_get_state ()</h3>
+<pre class="programlisting"><span class="returnvalue">NMState</span>             nm_client_get_state                 (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Gets the current daemon state.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the current <code class="literal">NMState</code>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-startup"></a><h3>nm_client_get_startup ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_get_startup               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Tests whether the daemon is still in the process of activating
+connections at startup.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>whether the daemon is still starting up</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-manager-running"></a><h3>nm_client_get_manager_running ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_get_manager_running       (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Determines whether the daemon is running.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the daemon is running</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-active-connections"></a><h3>nm_client_get_active_connections ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *   nm_client_get_active_connections    (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Gets the active connections.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
+containing all the active <a href="NMActiveConnection.html"><span class="type">NMActiveConnections</span></a>.
+The returned array is owned by the client and should not be modified. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMClient.ActiveConnection]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-sleep"></a><h3>nm_client_sleep ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_sleep                     (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> sleep_</code></em>);</pre>
+<p>
+Deprecated; use <a class="link" href="NMClient.html#nm-client-networking-set-enabled" title="nm_client_networking_set_enabled ()"><code class="function">nm_client_networking_set_enabled()</code></a> instead.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>sleep_</code></em> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to put the daemon to sleep</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-permission-result"></a><h3>nm_client_get_permission_result ()</h3>
+<pre class="programlisting"><a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult"><span class="returnvalue">NMClientPermissionResult</span></a> nm_client_get_permission_result
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a> permission</code></em>);</pre>
+<p>
+Requests the result of a specific permission, which indicates whether the
+client can or cannot perform the action the permission represents
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>permission</code></em> :</span></p></td>
+<td>the permission for which to return the result, one of <a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the permission's result, one of <a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult"><span class="type">NMClientPermissionResult</span></a>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-logging"></a><h3>nm_client_get_logging ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_get_logging               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> **level</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> **domains</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+Gets NetworkManager current logging level and domains.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>level</code></em> :</span></p></td>
+<td>return location for logging level string. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>domains</code></em> :</span></p></td>
+<td>return location for log domains string. The string is
+a list of domains separated by ",". <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>return location for a <a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.8</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-set-logging"></a><h3>nm_client_set_logging ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            nm_client_set_logging               (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *level</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *domains</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+Sets NetworkManager logging level and/or domains.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>level</code></em> :</span></p></td>
+<td>logging level to set (<a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> or an empty string for no change). <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>domains</code></em> :</span></p></td>
+<td>logging domains to set. The string should be a list of log
+domains separated by ",". (<a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a> or an empty string for no change). <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>return location for a <a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.8</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-connectivity"></a><h3>nm_client_get_connectivity ()</h3>
+<pre class="programlisting"><span class="returnvalue">NMConnectivityState</span> nm_client_get_connectivity          (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Gets the current network connectivity state. Contrast
+<a class="link" href="NMClient.html#nm-client-check-connectivity" title="nm_client_check_connectivity ()"><code class="function">nm_client_check_connectivity()</code></a> and
+<a class="link" href="NMClient.html#nm-client-check-connectivity-async" title="nm_client_check_connectivity_async ()"><code class="function">nm_client_check_connectivity_async()</code></a>, which re-check the
+connectivity state first before returning any information.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the current connectivity state</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-check-connectivity"></a><h3>nm_client_check_connectivity ()</h3>
+<pre class="programlisting"><span class="returnvalue">NMConnectivityState</span> nm_client_check_connectivity        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+Updates the network connectivity state and returns the (new)
+current state. Contrast <a class="link" href="NMClient.html#nm-client-get-connectivity" title="nm_client_get_connectivity ()"><code class="function">nm_client_get_connectivity()</code></a>, which returns
+the most recent known state without re-checking.
+</p>
+<p>
+This is a blocking call; use <a class="link" href="NMClient.html#nm-client-check-connectivity-async" title="nm_client_check_connectivity_async ()"><code class="function">nm_client_check_connectivity_async()</code></a>
+if you do not want to block.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>return location for a <a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the (new) current connectivity state</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-check-connectivity-async"></a><h3>nm_client_check_connectivity_async ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                nm_client_check_connectivity_async  (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>
+Asynchronously updates the network connectivity state and invokes
+<em class="parameter"><code>callback</code></em> when complete. Contrast <a class="link" href="NMClient.html#nm-client-get-connectivity" title="nm_client_get_connectivity ()"><code class="function">nm_client_get_connectivity()</code></a>,
+which (immediately) returns the most recent known state without
+re-checking, and <a class="link" href="NMClient.html#nm-client-check-connectivity" title="nm_client_check_connectivity ()"><code class="function">nm_client_check_connectivity()</code></a>, which blocks.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
+<td>a <a href="http://library.gnome.org/devel/gio/unstable/GCancellable.html"><span class="type">GCancellable</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
+<td>callback to call with the result</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>data for <em class="parameter"><code>callback</code></em>.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-check-connectivity-finish"></a><h3>nm_client_check_connectivity_finish ()</h3>
+<pre class="programlisting"><span class="returnvalue">NMConnectivityState</span> nm_client_check_connectivity_finish (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html"><span class="type">GAsyncResult</span></a> *result</code></em>,
+                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+Retrieves the result of an <a class="link" href="NMClient.html#nm-client-check-connectivity-async" title="nm_client_check_connectivity_async ()"><code class="function">nm_client_check_connectivity_async()</code></a>
+call.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>result</code></em> :</span></p></td>
+<td>the <a href="http://library.gnome.org/devel/gio/unstable/GAsyncResult.html"><span class="type">GAsyncResult</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>return location for a <a href="http://library.gnome.org/devel/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the (new) current connectivity state</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-primary-connection"></a><h3>nm_client_get_primary_connection ()</h3>
+<pre class="programlisting"><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="returnvalue">NMActiveConnection</span></a> * nm_client_get_primary_connection   (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Gets the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> corresponding to the primary active
+network device.
+</p>
+<p>
+In particular, when there is no VPN active, or the VPN does not
+have the default route, this returns the active connection that has
+the default route. If there is a VPN active with the default route,
+then this function returns the active connection that contains the
+route to the VPN endpoint.
+</p>
+<p>
+If there is no default route, or the default route is over a
+non-NetworkManager-recognized device, this will return <a href="/usr/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the appropriate <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>, if
+any. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-activating-connection"></a><h3>nm_client_get_activating_connection ()</h3>
+<pre class="programlisting"><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="returnvalue">NMActiveConnection</span></a> * nm_client_get_activating_connection
+                                                        (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>
+Gets the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> corresponding to a
+currently-activating connection that is expected to become the new
+<a class="link" href="NMClient.html#NMClient--primary-connection" title='The "primary-connection" property'><span class="type">"primary-connection"</span></a> upon successful activation.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the appropriate <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>, if
+any. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.8.6</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMClient.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMClient--activating-connection"></a><h3>The <code class="literal">"activating-connection"</code> property</h3>
+<pre class="programlisting">  "activating-connection"    <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>*   : Read</pre>
+<p>
+The <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> of the activating connection that is
+likely to become the new <a class="link" href="NMClient.html#NMClient--primary-connection" title='The "primary-connection" property'><span class="type">"primary-connection"</span></a>.
+</p>
+<p class="since">Since 0.9.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--active-connections"></a><h3>The <code class="literal">"active-connections"</code> property</h3>
+<pre class="programlisting">  "active-connections"       <span class="type">NMObjectArray</span>*        : Read</pre>
+<p>Active connections.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--connectivity"></a><h3>The <code class="literal">"connectivity"</code> property</h3>
+<pre class="programlisting">  "connectivity"             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The network connectivity state.
+</p>
+<p>Allowed values: &lt;= 4</p>
+<p>Default value: 0</p>
+<p class="since">Since 0.9.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--devices"></a><h3>The <code class="literal">"devices"</code> property</h3>
+<pre class="programlisting">  "devices"                  <span class="type">NMObjectArray</span>*        : Read</pre>
+<p>
+List of known network devices.
+</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--manager-running"></a><h3>The <code class="literal">"manager-running"</code> property</h3>
+<pre class="programlisting">  "manager-running"          <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<p>Whether NetworkManager is running.</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--networking-enabled"></a><h3>The <code class="literal">"networking-enabled"</code> property</h3>
+<pre class="programlisting">  "networking-enabled"       <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write</pre>
+<p>Is networking enabled.</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--primary-connection"></a><h3>The <code class="literal">"primary-connection"</code> property</h3>
+<pre class="programlisting">  "primary-connection"       <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>*   : Read</pre>
+<p>
+The <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> of the device with the default route;
+see <a class="link" href="NMClient.html#nm-client-get-primary-connection" title="nm_client_get_primary_connection ()"><code class="function">nm_client_get_primary_connection()</code></a> for more details.
+</p>
+<p class="since">Since 0.9.8.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--startup"></a><h3>The <code class="literal">"startup"</code> property</h3>
+<pre class="programlisting">  "startup"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<p>
+Whether the daemon is still starting up.
+</p>
+<p>Default value: FALSE</p>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--state"></a><h3>The <code class="literal">"state"</code> property</h3>
+<pre class="programlisting">  "state"                    <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The current daemon state.
+</p>
+<p>Allowed values: &lt;= 70</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--version"></a><h3>The <code class="literal">"version"</code> property</h3>
+<pre class="programlisting">  "version"                  <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read</pre>
+<p>
+The NetworkManager version.
+</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--wimax-enabled"></a><h3>The <code class="literal">"wimax-enabled"</code> property</h3>
+<pre class="programlisting">  "wimax-enabled"            <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write</pre>
+<p>Is WiMAX enabled.</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--wimax-hardware-enabled"></a><h3>The <code class="literal">"wimax-hardware-enabled"</code> property</h3>
+<pre class="programlisting">  "wimax-hardware-enabled"   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<p>Is WiMAX hardware enabled.</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--wireless-enabled"></a><h3>The <code class="literal">"wireless-enabled"</code> property</h3>
+<pre class="programlisting">  "wireless-enabled"         <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write</pre>
+<p>Is wireless enabled.</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--wireless-hardware-enabled"></a><h3>The <code class="literal">"wireless-hardware-enabled"</code> property</h3>
+<pre class="programlisting">  "wireless-hardware-enabled" <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<p>Is wireless hardware enabled.</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--wwan-enabled"></a><h3>The <code class="literal">"wwan-enabled"</code> property</h3>
+<pre class="programlisting">  "wwan-enabled"             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write</pre>
+<p>Is WWAN enabled.</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--wwan-hardware-enabled"></a><h3>The <code class="literal">"wwan-hardware-enabled"</code> property</h3>
+<pre class="programlisting">  "wwan-hardware-enabled"    <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<p>Is WWAN hardware enabled.</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMClient.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="NMClient-device-added"></a><h3>The <code class="literal">"device-added"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
+                                                        <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>  *device,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>  user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a></pre>
+<p>
+Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is added.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>the client that received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>the new device. <span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMClient.Device]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient-device-removed"></a><h3>The <code class="literal">"device-removed"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
+                                                        <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>  *device,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>  user_data)      : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a></pre>
+<p>
+Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is removed.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>the client that received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>device</code></em> :</span></p></td>
+<td>the removed device. <span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMClient.Device]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient-permission-changed"></a><h3>The <code class="literal">"permission-changed"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>     permission,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>     result,
+                                                        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>  user_data)       : <a href="http://library.gnome.org/devel/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a></pre>
+<p>
+Notifies that a permission has changed
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>client</code></em> :</span></p></td>
+<td>the client that received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>permission</code></em> :</span></p></td>
+<td>a permission from <a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>result</code></em> :</span></p></td>
+<td>the permission's result, one of <a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult"><span class="type">NMClientPermissionResult</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

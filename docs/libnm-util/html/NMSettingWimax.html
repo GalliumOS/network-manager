@@ -1,0 +1,286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSettingWimax</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-util Reference Manual">
+<link rel="up" href="ch01.html" title="libnm-util API Reference">
+<link rel="prev" href="NMSettingGsm.html" title="NMSettingGsm">
+<link rel="next" href="NMSettingBond.html" title="NMSettingBond">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMSettingGsm.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-util Reference Manual</th>
+<td><a accesskey="n" href="NMSettingBond.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMSettingWimax.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMSettingWimax.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMSettingWimax.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMSettingWimax.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMSettingWimax"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingWimax.top_of_page"></a>NMSettingWimax</span></h2>
+<p>NMSettingWimax — Describes 802.16e Mobile WiMAX connection properties</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMSettingWimax.synopsis"></a><h2>Synopsis</h2>
+<a name="NMSettingWimaxError"></a><pre class="synopsis">
+#include &lt;nm-setting-wimax.h&gt;
+
+#define             <a class="link" href="NMSettingWimax.html#NM-SETTING-WIMAX-SETTING-NAME:CAPS" title="NM_SETTING_WIMAX_SETTING_NAME">NM_SETTING_WIMAX_SETTING_NAME</a>
+enum                <a class="link" href="NMSettingWimax.html#NMSettingWimaxError-enum" title="enum NMSettingWimaxError">NMSettingWimaxError</a>;
+#define             <a class="link" href="NMSettingWimax.html#NM-SETTING-WIMAX-ERROR:CAPS" title="NM_SETTING_WIMAX_ERROR">NM_SETTING_WIMAX_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMSettingWimax.html#nm-setting-wimax-error-quark" title="nm_setting_wimax_error_quark ()">nm_setting_wimax_error_quark</a>        (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMSettingWimax.html#NM-SETTING-WIMAX-NETWORK-NAME:CAPS" title="NM_SETTING_WIMAX_NETWORK_NAME">NM_SETTING_WIMAX_NETWORK_NAME</a>
+#define             <a class="link" href="NMSettingWimax.html#NM-SETTING-WIMAX-MAC-ADDRESS:CAPS" title="NM_SETTING_WIMAX_MAC_ADDRESS">NM_SETTING_WIMAX_MAC_ADDRESS</a>
+                    <a class="link" href="NMSettingWimax.html#NMSettingWimax-struct" title="NMSettingWimax">NMSettingWimax</a>;
+                    <a class="link" href="NMSettingWimax.html#NMSettingWimaxClass" title="NMSettingWimaxClass">NMSettingWimaxClass</a>;
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         <a class="link" href="NMSettingWimax.html#nm-setting-wimax-new" title="nm_setting_wimax_new ()">nm_setting_wimax_new</a>                (<em class="parameter"><code><span class="type">void</span></code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="NMSettingWimax.html#nm-setting-wimax-get-network-name" title="nm_setting_wimax_get_network_name ()">nm_setting_wimax_get_network_name</a>   (<em class="parameter"><code><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> *setting</code></em>);
+const <a href="http://library.gnome.org/devel/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *  <a class="link" href="NMSettingWimax.html#nm-setting-wimax-get-mac-address" title="nm_setting_wimax_get_mac_address ()">nm_setting_wimax_get_mac_address</a>    (<em class="parameter"><code><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> *setting</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingWimax.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GEnum
+   +----NMSettingWimaxError
+</pre>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
+         +----NMSettingWimax
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingWimax.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMSettingWimax.html#NMSettingWimax--mac-address" title='The "mac-address" property'>mac-address</a>"              <span class="type">GArray_guchar_</span>*       : Read / Write
+  "<a class="link" href="NMSettingWimax.html#NMSettingWimax--network-name" title='The "network-name" property'>network-name</a>"             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingWimax.description"></a><h2>Description</h2>
+<p>
+The <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes properties
+necessary for connection to 802.16e Mobile WiMAX networks.
+</p>
+</div>
+<div class="refsect1">
+<a name="NMSettingWimax.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NM-SETTING-WIMAX-SETTING-NAME:CAPS"></a><h3>NM_SETTING_WIMAX_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_WIMAX_SETTING_NAME "wimax"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingWimaxError-enum"></a><h3>enum NMSettingWimaxError</h3>
+<pre class="programlisting">typedef enum {
+	NM_SETTING_WIMAX_ERROR_UNKNOWN = 0,      /*&lt; nick=UnknownError &gt;*/
+	NM_SETTING_WIMAX_ERROR_INVALID_PROPERTY, /*&lt; nick=InvalidProperty &gt;*/
+	NM_SETTING_WIMAX_ERROR_MISSING_PROPERTY  /*&lt; nick=MissingProperty &gt;*/
+} NMSettingWimaxError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-SETTING-WIMAX-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_SETTING_WIMAX_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-WIMAX-ERROR-INVALID-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_WIMAX_ERROR_INVALID_PROPERTY</code></span></p></td>
+<td>the property was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-SETTING-WIMAX-ERROR-MISSING-PROPERTY:CAPS"></a><span class="term"><code class="literal">NM_SETTING_WIMAX_ERROR_MISSING_PROPERTY</code></span></p></td>
+<td>the property was missing and is
+required
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-WIMAX-ERROR:CAPS"></a><h3>NM_SETTING_WIMAX_ERROR</h3>
+<pre class="programlisting">#define NM_SETTING_WIMAX_ERROR nm_setting_wimax_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-wimax-error-quark"></a><h3>nm_setting_wimax_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_setting_wimax_error_quark        (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-WIMAX-NETWORK-NAME:CAPS"></a><h3>NM_SETTING_WIMAX_NETWORK_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_WIMAX_NETWORK_NAME "network-name"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-WIMAX-MAC-ADDRESS:CAPS"></a><h3>NM_SETTING_WIMAX_MAC_ADDRESS</h3>
+<pre class="programlisting">#define NM_SETTING_WIMAX_MAC_ADDRESS  "mac-address"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingWimax-struct"></a><h3>NMSettingWimax</h3>
+<pre class="programlisting">typedef struct _NMSettingWimax NMSettingWimax;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingWimaxClass"></a><h3>NMSettingWimaxClass</h3>
+<pre class="programlisting">typedef struct {
+	NMSettingClass parent;
+} NMSettingWimaxClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-wimax-new"></a><h3>nm_setting_wimax_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *         nm_setting_wimax_new                (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Creates a new <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object with default values.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the new empty <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-wimax-get-network-name"></a><h3>nm_setting_wimax_get_network_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        nm_setting_wimax_get_network_name   (<em class="parameter"><code><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> *setting</code></em>);</pre>
+<p>
+Returns the WiMAX NSP name (ex "Sprint" or "CLEAR") which identifies the
+specific WiMAX network this setting describes a connection to.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the WiMAX NSP name</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-wimax-get-mac-address"></a><h3>nm_setting_wimax_get_mac_address ()</h3>
+<pre class="programlisting">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *  nm_setting_wimax_get_mac_address    (<em class="parameter"><code><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> *setting</code></em>);</pre>
+<p>
+Returns the MAC address of a WiMAX device which this connection is locked
+to.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>setting</code></em> :</span></p></td>
+<td>the <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the MAC address</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingWimax.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMSettingWimax--mac-address"></a><h3>The <code class="literal">"mac-address"</code> property</h3>
+<pre class="programlisting">  "mac-address"              <span class="type">GArray_guchar_</span>*       : Read / Write</pre>
+<p>
+If specified, this connection will only apply to the WiMAX device whose
+MAC address matches. This property does not change the MAC address of the
+device (known as MAC spoofing).
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingWimax--network-name"></a><h3>The <code class="literal">"network-name"</code> property</h3>
+<pre class="programlisting">  "network-name"             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write</pre>
+<p>
+Network Service Provider (NSP) name of the WiMAX network this connection
+should use.
+</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

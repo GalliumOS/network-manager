@@ -1,0 +1,1811 @@
+<?xml version="1.0"?>
+<!DOCTYPE section PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+<!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">]><section>
+  <title>Configuration Settings</title>
+  <para>
+<table>
+  <title>802-1x setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>802-1x</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>eap</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The allowed EAP method to be used when authenticating to the network with 802.1x. Valid methods are: 'leap', 'md5', 'tls', 'peap', 'ttls', 'pwd', and 'fast'. Each method requires different configuration using the properties of this setting; refer to wpa_supplicant documentation for the allowed combinations.</entry>
+      </row>
+      <row>
+        <entry><screen>identity</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Identity string for EAP authentication methods.  Often the user's user or login name.</entry>
+      </row>
+      <row>
+        <entry><screen>anonymous-identity</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Anonymous identity string for EAP authentication methods.  Used as the unencrypted identity with EAP types that support different tunneled identity like EAP-TTLS.</entry>
+      </row>
+      <row>
+        <entry><screen>pac-file</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>UTF-8 encoded file path containing PAC for EAP-FAST.</entry>
+      </row>
+      <row>
+        <entry><screen>ca-cert</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>Contains the CA certificate if used by the EAP method specified in the 'eap' property.  Certificate data is specified using a 'scheme'; two are currently supported: blob and path.  When using the blob scheme (which is backwards compatible with NM 0.7.x) this property should be set to the certificate's DER encoded data.  When using the path scheme, this property should be set to the full UTF-8 encoded path of the certificate, prefixed with the string 'file://' and ending with a terminating NULL byte.  This property can be unset even if the EAP method supports CA certificates, but this allows man-in-the-middle attacks and is NOT recommended.</entry>
+      </row>
+      <row>
+        <entry><screen>ca-path</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>UTF-8 encoded path to a directory containing PEM or DER formatted certificates to be added to the verification chain in addition to the certificate specified in the 'ca-cert' property.</entry>
+      </row>
+      <row>
+        <entry><screen>subject-match</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Substring to be matched against the subject of the certificate presented by the authentication server. When unset, no verification of the authentication server certificate's subject is performed.</entry>
+      </row>
+      <row>
+        <entry><screen>altsubject-matches</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>List of strings to be matched against the altSubjectName of the certificate presented by the authentication server. If the list is empty, no verification of the server certificate's altSubjectName is performed.</entry>
+      </row>
+      <row>
+        <entry><screen>client-cert</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>Contains the client certificate if used by the EAP method specified in the 'eap' property.  Certificate data is specified using a 'scheme'; two are currently supported: blob and path.  When using the blob scheme (which is backwards compatible with NM 0.7.x) this property should be set to the certificate's DER encoded data.  When using the path scheme, this property should be set to the full UTF-8 encoded path of the certificate, prefixed with the string 'file://' and ending with a terminating NULL byte.</entry>
+      </row>
+      <row>
+        <entry><screen>phase1-peapver</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Forces which PEAP version is used when PEAP is set as the EAP method in 'eap' property.  When unset, the version reported by the server will be used.  Sometimes when using older RADIUS servers, it is necessary to force the client to use a particular PEAP version.  To do so, this property may be set to '0' or '1' to force that specific PEAP version.</entry>
+      </row>
+      <row>
+        <entry><screen>phase1-peaplabel</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Forces use of the new PEAP label during key derivation.  Some RADIUS servers may require forcing the new PEAP label to interoperate with PEAPv1.  Set to '1' to force use of the new PEAP label.  See the wpa_supplicant documentation for more details.</entry>
+      </row>
+      <row>
+        <entry><screen>phase1-fast-provisioning</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Enables or disables in-line provisioning of EAP-FAST credentials when FAST is specified as the EAP method in the #NMSetting8021x:eap property. Allowed values are '0' (disabled), '1' (allow unauthenticated provisioning), '2' (allow authenticated provisioning), and '3' (allow both authenticated and unauthenticated provisioning).  See the wpa_supplicant documentation for more details.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-auth</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Specifies the allowed 'phase 2' inner non-EAP authentication methods when an EAP method that uses an inner TLS tunnel is specified in the 'eap' property. Recognized non-EAP phase2 methods are 'pap', 'chap', 'mschap', 'mschapv2', 'gtc', 'otp', 'md5', and 'tls'.  Each 'phase 2' inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-autheap</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Specifies the allowed 'phase 2' inner EAP-based authentication methods when an EAP method that uses an inner TLS tunnel is specified in the 'eap' property. Recognized EAP-based 'phase 2' methods are 'md5', 'mschapv2', 'otp', 'gtc', and 'tls'. Each 'phase 2' inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-ca-cert</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>Contains the 'phase 2' CA certificate if used by the EAP method specified in the 'phase2-auth' or 'phase2-autheap' properties.  Certificate data is specified using a 'scheme'; two are currentlysupported: blob and path. When using the blob scheme (which is backwards compatible with NM 0.7.x) this property should be set to the certificate's DER encoded data. When using the path scheme, this property should be set to the full UTF-8 encoded path of the certificate, prefixed with the string 'file://' and ending with a terminating NULL byte.  This property can be unset even if the EAP method supports CA certificates, but this allows man-in-the-middle attacks and is NOT recommended.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-ca-path</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>UTF-8 encoded path to a directory containing PEM or DER formatted certificates to be added to the verification chain in addition to the certificate specified in the 'phase2-ca-cert' property.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-subject-match</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Substring to be matched against the subject of the certificate presented by the authentication server during the inner 'phase2' authentication. When unset, no verification of the authentication server certificate's subject is performed.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-altsubject-matches</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>List of strings to be matched against List of strings to be matched against the altSubjectName of the certificate presented by the authentication server during the inner 'phase 2' authentication. If the list is empty, no verification of the server certificate's altSubjectName is performed.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-client-cert</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>Contains the 'phase 2' client certificate if used by the EAP method specified in the 'phase2-auth' or 'phase2-autheap' properties. Certificate data is specified using a 'scheme'; two are currently supported: blob and path.  When using the blob scheme (which is backwards compatible with NM 0.7.x) this property should be set to the certificate's DER encoded data.  When using the path scheme, this property should be set to the full UTF-8 encoded path of the certificate, prefixed with the string 'file://' and ending with a terminating NULL byte.</entry>
+      </row>
+      <row>
+        <entry><screen>password</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>UTF-8 encoded password used for EAP authentication methods.</entry>
+      </row>
+      <row>
+        <entry><screen>password-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the 802.1x password. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>password-raw</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>Password used for EAP authentication methods, given as a byte array to allow passwords in other encodings than UTF-8 to be used.  If both 'password' and 'password-raw' are given, 'password' is preferred.</entry>
+      </row>
+      <row>
+        <entry><screen>password-raw-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the 802.1x password byte array. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>private-key</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>Contains the private key when the 'eap' property is set to 'tls'.  Key data is specified using a 'scheme'; two are currently supported: blob and path. When using the blob scheme and private keys, this property should be set to the key's encrypted PEM encoded data. When using private keys with the path scheme, this property should be set to the full UTF-8 encoded path of the key, prefixed with the string 'file://' and ending with a terminating NULL byte.  When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the 'private-key-password' property must be set to password used to decrypt the PKCS#12 certificate and key.  When using PKCS#12 files and the path scheme, this property should be set to the full UTF-8 encoded path of the key, prefixed with the string 'file://' and and ending with a terminating NULL byte, and as with the blob scheme the 'private-key-password' property must be set to the password used to decode the PKCS#12 private key and certificate.</entry>
+      </row>
+      <row>
+        <entry><screen>private-key-password</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The password used to decrypt the private key specified in the 'private-key' property when the private key either uses the path scheme, or if the private key is a PKCS#12 format key.</entry>
+      </row>
+      <row>
+        <entry><screen>private-key-password-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the 802.1x private key password. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-private-key</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>Contains the 'phase 2' inner private key when the 'phase2-auth' or 'phase2-autheap' property is set to 'tls'.  Key data is specified using a 'scheme'; two are currently supported: blob and path. When using the blob scheme and private keys, this property should be set to the key's encrypted PEM encoded data. When using private keys with the path scheme, this property should be set to the full UTF-8 encoded path of the key, prefixed with the string 'file://' and ending with a terminating NULL byte.  When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the 'phase2-private-key-password' property must be set to password used to decrypt the PKCS#12 certificate and key.  When using PKCS#12 files and the path scheme, this property should be set to the full UTF-8 encoded path of the key, prefixed with the string 'file://' and and ending with a terminating NULL byte, and as with the blob scheme the 'phase2-private-key-password' property must be set to the password used to decode the PKCS#12 private key and certificate.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-private-key-password</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The password used to decrypt the 'phase 2' private key specified in the 'private-key' property when the phase2 private key either uses the path scheme, or if the phase2 private key is a PKCS#12 format key.</entry>
+      </row>
+      <row>
+        <entry><screen>phase2-private-key-password-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the 802.1x phase2 private key password. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>pin</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>PIN used for EAP authentication methods.</entry>
+      </row>
+      <row>
+        <entry><screen>pin-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the 802.1x PIN. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>system-ca-certs</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>When TRUE, overrides 'ca-path' and 'phase2-ca-path' properties using the system CA directory specified at configure time with the --system-ca-path switch.  The certificates in this directory are added to the verification chain in addition to any certificates specified by the 'ca-cert' and 'phase2-ca-cert' properties.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>adsl setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>adsl</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>username</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Username used to authenticate with the pppoa service.</entry>
+      </row>
+      <row>
+        <entry><screen>password</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Password used to authenticate with the pppoa service.</entry>
+      </row>
+      <row>
+        <entry><screen>password-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the ADSL password. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>protocol</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>ADSL connection protocol.</entry>
+      </row>
+      <row>
+        <entry><screen>encapsulation</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Encapsulation of ADSL connection</entry>
+      </row>
+      <row>
+        <entry><screen>vpi</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>VPI of ADSL connection</entry>
+      </row>
+      <row>
+        <entry><screen>vci</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>VCI of ADSL connection</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>bluetooth setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>bluetooth</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>bdaddr</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>The Bluetooth address of the device</entry>
+      </row>
+      <row>
+        <entry><screen>type</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Either 'dun' for Dial-Up Networking connections or 'panu' for Personal Area Networking connections.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>bond setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>bond</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>interface-name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The name of the virtual in-kernel bonding network interface</entry>
+      </row>
+      <row>
+        <entry><screen>options</screen></entry>
+        <entry><screen>dict of (string::string)</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Dictionary of key/value pairs of bonding options.  Both keys and values must be strings.  Option names must contain only alphanumeric characters (ie, [a-zA-Z0-9]).</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>bridge setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>bridge</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>interface-name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The name of the virtual in-kernel bridging network interface</entry>
+      </row>
+      <row>
+        <entry><screen>mac-address</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>The MAC address of the bridge</entry>
+      </row>
+      <row>
+        <entry><screen>stp</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>TRUE</screen></entry>
+        <entry>Controls whether Spanning Tree Protocol (STP) is enabled for this bridge.</entry>
+      </row>
+      <row>
+        <entry><screen>priority</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>32768</screen></entry>
+        <entry>Sets the Spanning Tree Protocol (STP) priority for this bridge.  Lower values are 'better'; the lowest priority bridge will be elected the root bridge.</entry>
+      </row>
+      <row>
+        <entry><screen>forward-delay</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>15</screen></entry>
+        <entry>The Spanning Tree Protocol (STP) forwarding delay, in seconds.</entry>
+      </row>
+      <row>
+        <entry><screen>hello-time</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>2</screen></entry>
+        <entry>The Spanning Tree Protocol (STP) hello time, in seconds.</entry>
+      </row>
+      <row>
+        <entry><screen>max-age</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>20</screen></entry>
+        <entry>The Spanning Tree Protocol (STP) maximum message age, in seconds.</entry>
+      </row>
+      <row>
+        <entry><screen>ageing-time</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>300</screen></entry>
+        <entry>The Ethernet MAC address aging time, in seconds.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>bridge-port setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>bridge-port</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>priority</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>32</screen></entry>
+        <entry>The Spanning Tree Protocol (STP) priority of this bridge port</entry>
+      </row>
+      <row>
+        <entry><screen>path-cost</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>100</screen></entry>
+        <entry>The Spanning Tree Protocol (STP) port cost for destinations via this port.</entry>
+      </row>
+      <row>
+        <entry><screen>hairpin-mode</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>Enables or disabled 'hairpin mode' for the port, which allows frames to be sent back out through the port the frame was received on.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>cdma setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>cdma</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>number</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Number to dial when establishing a PPP data session with the CDMA-based mobile broadband network.  If not specified, the default number (#777) is used when required.</entry>
+      </row>
+      <row>
+        <entry><screen>username</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Username used to authenticate with the network, if required.  Note that many providers do not require a username or accept any username.</entry>
+      </row>
+      <row>
+        <entry><screen>password</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Password used to authenticate with the network, if required.  Note that many providers do not require a password or accept any password.</entry>
+      </row>
+      <row>
+        <entry><screen>password-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the CDMA password. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>connection setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>connection</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>id</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>User-readable connection identifier/name.  Must be one or more characters and may change over the lifetime of the connection if the user decides to rename it.</entry>
+      </row>
+      <row>
+        <entry><screen>uuid</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Universally unique connection identifier.  Must be in the format '2815492f-7e56-435e-b2e9-246bd7cdc664' (ie, contains only hexadecimal characters and '-'). The UUID should be assigned when the connection is created and never changed as long as the connection still applies to the same network.  For example, it should not be changed when the user changes the connection's 'id', but should be recreated when the Wi-Fi SSID, mobile broadband network provider, or the connection type changes.</entry>
+      </row>
+      <row>
+        <entry><screen>interface-name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Interface name this connection is bound to. If not set, then the connection can be attached to any interface of the appropriate type (subject to restrictions imposed by other settings). For connection types where interface names cannot easily be made persistent (e.g. mobile broadband or USB Ethernet), this property should not be used. Setting this property restricts the interfaces a connection can be used with, and if interface names change or are reordered the connection may be applied to the wrong interface.</entry>
+      </row>
+      <row>
+        <entry><screen>type</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Base type of the connection.  For hardware-dependent connections, should contain the setting name of the hardware-type specific setting (ie, '802-3-ethernet' or '802-11-wireless' or 'bluetooth', etc), and for non-hardware dependent connections like VPN or otherwise, should contain the setting name of that setting type (ie, 'vpn' or 'bridge', etc).</entry>
+      </row>
+      <row>
+        <entry><screen>permissions</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>An array of strings defining what access a given user has to this connection.  If this is NULL or empty, all users are allowed to access this connection.  Otherwise a user is allowed to access this connection if and only if they are in this array. Each entry is of the form "[type]:[id]:[reserved]", for example: "user:dcbw:blah"  At this time only the 'user' [type] is allowed.  Any other values are ignored and reserved for future use.  [id] is the username that this permission refers to, which may not contain the ':' character.  Any [reserved] information (if present) must be ignored and is reserved for future use.  All of [type], [id], and [reserved] must be valid UTF-8.</entry>
+      </row>
+      <row>
+        <entry><screen>autoconnect</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>TRUE</screen></entry>
+        <entry>If TRUE, NetworkManager will activate this connection when its network resources are available.  If FALSE, the connection must be manually activated by the user or some other mechanism.</entry>
+      </row>
+      <row>
+        <entry><screen>timestamp</screen></entry>
+        <entry><screen>uint64</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Timestamp (in seconds since the Unix Epoch) that the connection was last successfully activated.  NetworkManager updates the connection timestamp periodically when the connection is active to ensure that an active connection has the latest timestamp. The property is only meant for reading (changes to this property will not be preserved).</entry>
+      </row>
+      <row>
+        <entry><screen>read-only</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, the connection is read-only and cannot be changed by the user or any other mechanism.  This is normally set for system connections whose plugin cannot yet write updated connections back out.</entry>
+      </row>
+      <row>
+        <entry><screen>zone</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The trust level of a the connection.Free form case-insensitive string (for example "Home", "Work", "Public").  NULL or unspecified zone means the connection will be placed in the default zone as defined by the firewall.</entry>
+      </row>
+      <row>
+        <entry><screen>master</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Interface name of the master device or UUID of the master connection</entry>
+      </row>
+      <row>
+        <entry><screen>slave-type</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Setting name describing the type of slave this connection is (ie, 'bond') or NULL if this connection is not a slave.</entry>
+      </row>
+      <row>
+        <entry><screen>secondaries</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>List of connection UUIDs that should be activated when the base connection itself is activated.  Currently only VPN connections are supported.</entry>
+      </row>
+      <row>
+        <entry><screen>gateway-ping-timeout</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If greater than zero, delay success of IP addressing until either the timeout is reached, or an IP gateway replies to a ping.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>dcb setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>dcb</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>app-fcoe-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Specifies the flags for the DCB FCoE application. Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing). (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>app-fcoe-priority</screen></entry>
+        <entry><screen>int32</screen></entry>
+        <entry><screen>-1</screen></entry>
+        <entry>The highest User Priority (0 - 7) which FCoE frames should use, or -1 for default priority. Only used when the 'app-fcoe-flags' property includes the 'enabled' flag.</entry>
+      </row>
+      <row>
+        <entry><screen>app-fcoe-mode</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>"fabric"</screen></entry>
+        <entry>The FCoe controller mode; either 'fabric' (default) or 'vn2vn'.</entry>
+      </row>
+      <row>
+        <entry><screen>app-iscsi-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Specifies the flags for the DCB iSCSI application. Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing). (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>app-iscsi-priority</screen></entry>
+        <entry><screen>int32</screen></entry>
+        <entry><screen>-1</screen></entry>
+        <entry>The highest User Priority (0 - 7) which iSCSI frames should use, or -1 for default priority. Only used when the 'app-iscsi-flags' property includes the 'enabled' flag.</entry>
+      </row>
+      <row>
+        <entry><screen>app-fip-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Specifies the flags for the DCB FIP application. Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing). (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>app-fip-priority</screen></entry>
+        <entry><screen>int32</screen></entry>
+        <entry><screen>-1</screen></entry>
+        <entry>The highest User Priority (0 - 7) which FIP frames should use, or -1 for default priority. Only used when the 'app-fip-flags' property includes the 'enabled' flag.</entry>
+      </row>
+      <row>
+        <entry><screen>priority-flow-control-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Specifies the flags for DCB Priority Flow Control. Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing). (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>priority-flow-control</screen></entry>
+        <entry><screen>array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates whether or not the corresponding priority should transmit priority pause.  Allowed values are 0 (do not transmit pause) and 1 (transmit pause).</entry>
+      </row>
+      <row>
+        <entry><screen>priority-group-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Specifies the flags for DCB Priority Groups. Flags may be any combination of 0x1 (enable), 0x2 (advertise), and 0x4 (willing). (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>priority-group-id</screen></entry>
+        <entry><screen>array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the Priority Group ID. Allowed Priority Group ID values are 0 - 7 or 15 for the unrestricted group.</entry>
+      </row>
+      <row>
+        <entry><screen>priority-group-bandwidth</screen></entry>
+        <entry><screen>array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>An array of 8 uint values, where the array index corresponds to the Priority Group ID (0 - 7) and the value indicates the percentage of link bandwidth allocated to that group.  Allowed values are 0 - 100, and the sum of all values must total 100 percent.</entry>
+      </row>
+      <row>
+        <entry><screen>priority-bandwidth</screen></entry>
+        <entry><screen>array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the percentage of bandwidth of the priority's assigned group that the priority may use.  The sum of all percentages for priorities which belong to the same group must total 100 percent.</entry>
+      </row>
+      <row>
+        <entry><screen>priority-strict-bandwidth</screen></entry>
+        <entry><screen>array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates whether or not the priority may use all of the bandwidth allocated to its assigned group. Allowed values are 0 (the priority may not utilize all bandwidth) or 1 (the priority may utilize all bandwidth).</entry>
+      </row>
+      <row>
+        <entry><screen>priority-traffic-class</screen></entry>
+        <entry><screen>array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the traffic class (0 - 7) to which the priority is mapped.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>gsm setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>gsm</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>number</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Number to dial when establishing a PPP data session with the GSM-based mobile broadband network.  Many modems do not require PPP for connections to the mobile network and thus this property should be left blank, which allows NetworkManager to select the appropriate settings automatically.</entry>
+      </row>
+      <row>
+        <entry><screen>username</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Username used to authenticate with the network, if required.  Note that many providers do not require a username or accept any username.</entry>
+      </row>
+      <row>
+        <entry><screen>password</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Password used to authenticate with the network, if required.  Note that many providers do not require a password or accept any password.</entry>
+      </row>
+      <row>
+        <entry><screen>password-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the GSM password. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>apn</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The GPRS Access Point Name specifying the APN used when establishing a data session with the GSM-based network.  The APN often determines how the user will be billed for their network usage and whether the user has access to the Internet or just a provider-specific walled-garden, so it is important to use the correct APN for the user's mobile broadband plan.  The APN may only be composed of the characters a-z, 0-9, ., and - per GSM 03.60 Section 14.9.</entry>
+      </row>
+      <row>
+        <entry><screen>network-id</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The Network ID (GSM LAI format, ie MCC-MNC) to force specific network registration.  If the Network ID is specified, NetworkManager will attempt to force the device to register only on the specified network.  This can be used to ensure that the device does not roam when direct roaming control of the device is not otherwise possible.</entry>
+      </row>
+      <row>
+        <entry><screen>network-type</screen></entry>
+        <entry><screen>int32</screen></entry>
+        <entry><screen>-1</screen></entry>
+        <entry>Network preference to force the device to only use specific network technologies.  The permitted values are: -1: any, 0: 3G only, 1: GPRS/EDGE only, 2: prefer 3G, 3: prefer 2G, 4: prefer 4G/LTE, 5: 4G/LTE only. Notes: This property is deprecated and NetworkManager from 0.9.10 onwards doesn't use this property when talking to ModemManager.Also, not all devices allow network preference control.</entry>
+      </row>
+      <row>
+        <entry><screen>pin</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If the SIM is locked with a PIN it must be unlocked before any other operations are requested.  Specify the PIN here to allow operation of the device.</entry>
+      </row>
+      <row>
+        <entry><screen>pin-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the GSM SIM PIN. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>allowed-bands</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>1</screen></entry>
+        <entry>Bitfield of allowed frequency bands.Notes: This property is deprecated and NetworkManager from 0.9.10 onwards doesn't use this property when talking to ModemManager.Also, not all devices allow frequency band control.</entry>
+      </row>
+      <row>
+        <entry><screen>home-only</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>When TRUE, only connections to the home network will be allowed.  Connections to roaming networks will not be made.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>infiniband setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>infiniband</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>mac-address</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>If specified, this connection will only apply to the IPoIB device whose permanent MAC address matches.  This property does not change the MAC address of the device (i.e. MAC spoofing).</entry>
+      </row>
+      <row>
+        <entry><screen>mtu</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames.</entry>
+      </row>
+      <row>
+        <entry><screen>transport-mode</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The IPoIB transport mode. Either 'datagram' or 'connected'.</entry>
+      </row>
+      <row>
+        <entry><screen>p-key</screen></entry>
+        <entry><screen>int32</screen></entry>
+        <entry><screen>-1</screen></entry>
+        <entry>The InfiniBand P_Key. Either -1 for the default, or a 16-bit unsigned integer.</entry>
+      </row>
+      <row>
+        <entry><screen>parent</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The interface name of the parent device, or NULL</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>ipv4 setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>ipv4</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>method</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>IPv4 configuration method.  If 'auto' is specified then the appropriate automatic method (DHCP, PPP, etc) is used for the interface and most other properties can be left unset.  If 'link-local' is specified, then a link-local address in the 169.254/16 range will be assigned to the interface.  If 'manual' is specified, static IP addressing is used and at least one IP address must be given in the 'addresses' property.  If 'shared' is specified (indicating that this connection will provide network access to other computers) then the interface is assigned an address in the 10.42.x.1/24 range and a DHCP and forwarding DNS server are started, and the interface is NAT-ed to the current default network connection.  'disabled' means IPv4 will not be used on this connection.  This property must be set.</entry>
+      </row>
+      <row>
+        <entry><screen>dns</screen></entry>
+        <entry><screen>array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>List of DNS servers (network byte order). For the 'auto' method, these DNS servers are appended to those (if any) returned by automatic configuration.  DNS servers cannot be used with the 'shared', 'link-local', or 'disabled' methods as there is no upstream network.  In all other methods, these DNS servers are used as the only DNS servers for this connection.</entry>
+      </row>
+      <row>
+        <entry><screen>dns-search</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>List of DNS search domains.  For the 'auto' method, these search domains are appended to those returned by automatic configuration. Search domains cannot be used with the 'shared', 'link-local', or 'disabled' methods as there is no upstream network.  In all other methods, these search domains are used as the only search domains for this connection.</entry>
+      </row>
+      <row>
+        <entry><screen>addresses</screen></entry>
+        <entry><screen>array of array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Array of IPv4 address structures.  Each IPv4 address structure is composed of 3 32-bit values; the first being the IPv4 address (network byte order), the second the prefix (1 - 32), and last the IPv4 gateway (network byte order). The gateway may be left as 0 if no gateway exists for that subnet.  For the 'auto' method, given IP addresses are appended to those returned by automatic configuration.  Addresses cannot be used with the 'shared', 'link-local', or 'disabled' methods as addressing is either automatic or disabled with these methods.</entry>
+      </row>
+      <row>
+        <entry><screen>address-labels</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Internal use only</entry>
+      </row>
+      <row>
+        <entry><screen>routes</screen></entry>
+        <entry><screen>array of array of uint32</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Array of IPv4 route structures.  Each IPv4 route structure is composed of 4 32-bit values; the first being the destination IPv4 network or address (network byte order), the second the destination network or address prefix (1 - 32), the third being the next-hop (network byte order) if any, and the fourth being the route metric. For the 'auto' method, given IP routes are appended to those returned by automatic configuration.  Routes cannot be used with the 'shared', 'link-local', or 'disabled', methods as there is no upstream network.</entry>
+      </row>
+      <row>
+        <entry><screen>ignore-auto-routes</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>When the method is set to 'auto' and this property to TRUE, automatically configured routes are ignored and only routes specified in the 'routes' property, if any, are used.</entry>
+      </row>
+      <row>
+        <entry><screen>ignore-auto-dns</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>When the method is set to 'auto' and this property to TRUE, automatically configured nameservers and search domains are ignored and only nameservers and search domains specified in the 'dns' and 'dns-search' properties, if any, are used.</entry>
+      </row>
+      <row>
+        <entry><screen>dhcp-client-id</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options.</entry>
+      </row>
+      <row>
+        <entry><screen>dhcp-send-hostname</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>TRUE</screen></entry>
+        <entry>If TRUE, a hostname is sent to the DHCP server when acquiring a lease.  Some DHCP servers use this hostname to update DNS databases, essentially providing a static hostname for the computer.  If the 'dhcp-hostname' property is empty and this property is TRUE, the current persistent hostname of the computer is sent.</entry>
+      </row>
+      <row>
+        <entry><screen>dhcp-hostname</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If the 'dhcp-send-hostname' property is TRUE, then the specified name will be sent to the DHCP server when acquiring a lease.</entry>
+      </row>
+      <row>
+        <entry><screen>never-default</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, this connection will never be the default IPv4 connection, meaning it will never be assigned the default route by NetworkManager.</entry>
+      </row>
+      <row>
+        <entry><screen>may-fail</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>TRUE</screen></entry>
+        <entry>If TRUE, allow overall network configuration to proceed even if IPv4 configuration times out. Note that at least one IP configuration must succeed or overall network configuration will still fail.  For example, in IPv6-only networks, setting this property to TRUE allows the overall network configuration to succeed if IPv4 configuration fails but IPv6 configuration completes successfully.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>ipv6 setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>ipv6</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>method</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>IPv6 configuration method.  If 'auto' is specified then the appropriate automatic method (PPP, router advertisement, etc) is used for the device and most other properties can be left unset.  To force the use of DHCP only, specify 'dhcp'; this method is only valid for Ethernet-based hardware.  If 'link-local' is specified, then an IPv6 link-local address will be assigned to the interface.  If 'manual' is specified, static IP addressing is used and at least one IP address must be given in  the 'addresses' property.  If 'ignore' is specified, IPv6 configuration is not done. This property must be set.  Note: the 'shared' method is not yet supported.</entry>
+      </row>
+      <row>
+        <entry><screen>dhcp-hostname</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The specified name will be sent to the DHCP server when acquiring a lease.</entry>
+      </row>
+      <row>
+        <entry><screen>dns</screen></entry>
+        <entry><screen>array of byte array</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Array of DNS servers, where each member of the array is a byte array containing the IPv6 address of the DNS server (in network byte order). For the 'auto' method, these DNS servers are appended to those (if any) returned by automatic configuration.  DNS servers cannot be used with the 'shared' or 'link-local' methods as there is no usptream network.  In all other methods, these DNS servers are used as the only DNS servers for this connection.</entry>
+      </row>
+      <row>
+        <entry><screen>dns-search</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>List of DNS search domains.  For the 'auto' method, these search domains are appended to those returned by automatic configuration. Search domains cannot be used with the 'shared' or 'link-local' methods as there is no upstream network.  In all other methods, these search domains are used as the only search domains for this connection.</entry>
+      </row>
+      <row>
+        <entry><screen>addresses</screen></entry>
+        <entry><screen>array of (byte array, uint32, byte array)</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Array of IPv6 address structures.  Each IPv6 address structure is composed of 3 members, the first being a byte array containing the IPv6 address (network byte order), the second a 32-bit integer containing the IPv6 address prefix, and the third a byte array containing the IPv6 address (network byte order) of the gateway associated with this address, if any. If no gateway is given, the third element should be given as all zeros.  For the 'auto' method, given IP addresses are appended to those returned by automatic configuration.  Addresses cannot be used with the 'shared' or 'link-local' methods as the interface is automatically assigned an address with these methods.</entry>
+      </row>
+      <row>
+        <entry><screen>routes</screen></entry>
+        <entry><screen>array of (byte array, uint32, byte array, uint32)</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Array of IPv6 route structures.  Each IPv6 route structure is composed of 4 members; the first being the destination IPv6 network or address (network byte order) as a byte array, the second the destination network or address IPv6 prefix, the third being the next-hop IPv6 address (network byte order) if any, and the fourth being the route metric. For the 'auto' method, given IP routes are appended to those returned by automatic configuration.  Routes cannot be used with the 'shared' or 'link-local' methods because there is no upstream network.</entry>
+      </row>
+      <row>
+        <entry><screen>ignore-auto-routes</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>When the method is set to 'auto' or 'dhcp' and this property is set to TRUE, automatically configured routes are ignored and only routes specified in the 'routes' property, if any, are used.</entry>
+      </row>
+      <row>
+        <entry><screen>ignore-auto-dns</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>When the method is set to 'auto' or 'dhcp' and this property is set to TRUE, automatically configured nameservers and search domains are ignored and only nameservers and search domains specified in the 'dns' and 'dns-search' properties, if any, are used.</entry>
+      </row>
+      <row>
+        <entry><screen>never-default</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, this connection will never be the default IPv6 connection, meaning it will never be assigned the default IPv6 route by NetworkManager.</entry>
+      </row>
+      <row>
+        <entry><screen>may-fail</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>TRUE</screen></entry>
+        <entry>If TRUE, allow overall network configuration to proceed even if IPv6 configuration times out. Note that at least one IP configuration must succeed or overall network configuration will still fail.  For example, in IPv4-only networks, setting this property to TRUE allows the overall network configuration to succeed if IPv6 configuration fails but IPv4 configuration completes successfully.</entry>
+      </row>
+      <row>
+        <entry><screen>ip6-privacy</screen></entry>
+        <entry><screen>int32</screen></entry>
+        <entry><screen>-1</screen></entry>
+        <entry>Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941.  If enabled, it makes the kernel generate a temporary IPv6 address in addition to the public one generated from MAC address via modified EUI-64.  This enhances privacy, but could cause problems in some applications, on the other hand.  The permitted values are: 0: disabled, 1: enabled (prefer public address), 2: enabled (prefer temporary addresses).</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>802-11-olpc-mesh setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>802-11-olpc-mesh</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>ssid</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>SSID of the mesh network to join.</entry>
+      </row>
+      <row>
+        <entry><screen>channel</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Channel on which the mesh network to join is located.</entry>
+      </row>
+      <row>
+        <entry><screen>dhcp-anycast-address</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>Anycast DHCP MAC address used when requesting an IP address via DHCP.  The specific anycast address used determines which DHCP server class answers the the request.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>ppp setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>ppp</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>noauth</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>TRUE</screen></entry>
+        <entry>If TRUE, do not require the other side (usually the PPP server) to authenticate itself to the client.  If FALSE, require authentication from the remote side.  In almost all cases, this should be TRUE.</entry>
+      </row>
+      <row>
+        <entry><screen>refuse-eap</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, the EAP authentication method will not be used.</entry>
+      </row>
+      <row>
+        <entry><screen>refuse-pap</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, the PAP authentication method will not be used.</entry>
+      </row>
+      <row>
+        <entry><screen>refuse-chap</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, the CHAP authentication method will not be used.</entry>
+      </row>
+      <row>
+        <entry><screen>refuse-mschap</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, the MSCHAP authentication method will not be used.</entry>
+      </row>
+      <row>
+        <entry><screen>refuse-mschapv2</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, the MSCHAPv2 authentication method will not be used.</entry>
+      </row>
+      <row>
+        <entry><screen>nobsdcomp</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, BSD compression will not be requested.</entry>
+      </row>
+      <row>
+        <entry><screen>nodeflate</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, 'deflate' compression will not be requested.</entry>
+      </row>
+      <row>
+        <entry><screen>no-vj-comp</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, Van Jacobsen TCP header compression will not be requested.</entry>
+      </row>
+      <row>
+        <entry><screen>require-mppe</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, MPPE (Microsoft Point-to-Point Encrpytion) will be required for the PPP session.  If either 64-bit or 128-bit MPPE is not available the session will fail.  Note that MPPE is not used on mobile broadband connections.</entry>
+      </row>
+      <row>
+        <entry><screen>require-mppe-128</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, 128-bit MPPE (Microsoft Point-to-Point Encrpytion) will be required for the PPP session, and the 'require-mppe' property must also be set to TRUE.  If 128-bit MPPE is not available the session will fail.</entry>
+      </row>
+      <row>
+        <entry><screen>mppe-stateful</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, stateful MPPE is used.  See pppd documentation for more information on stateful MPPE.</entry>
+      </row>
+      <row>
+        <entry><screen>crtscts</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, specify that pppd should set the serial port to use hardware flow control with RTS and CTS signals.  This value should normally be set to FALSE.</entry>
+      </row>
+      <row>
+        <entry><screen>baud</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, instruct pppd to set the serial port to the specified baudrate.  This value should normally be left as 0 to automatically choose the speed.</entry>
+      </row>
+      <row>
+        <entry><screen>mru</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, instruct pppd to request that the peer send packets no larger than the specified size.  If non-zero, the MRU should be between 128 and 16384.</entry>
+      </row>
+      <row>
+        <entry><screen>mtu</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, instruct pppd to send packets no larger than the specified size.</entry>
+      </row>
+      <row>
+        <entry><screen>lcp-echo-failure</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, instruct pppd to presume the connection to the peer has failed if the specified number of LCP echo-requests go unanswered by the peer.  The 'lcp-echo-interval' property must also be set to a non-zero value if this property is used.</entry>
+      </row>
+      <row>
+        <entry><screen>lcp-echo-interval</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, instruct pppd to send an LCP echo-request frame to the peer every n seconds (where n is the specified value).  Note that some PPP peers will respond to echo requests and some will not, and it is not possible to autodetect this.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>pppoe setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>pppoe</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>service</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If specified, instruct PPPoE to only initiate sessions with access concentrators that provide the specified service.  For most providers, this should be left blank.  It is only required if there are multiple access concentrators or a specific service is known to be required.</entry>
+      </row>
+      <row>
+        <entry><screen>username</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Username used to authenticate with the PPPoE service.</entry>
+      </row>
+      <row>
+        <entry><screen>password</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Password used to authenticate with the PPPoE service.</entry>
+      </row>
+      <row>
+        <entry><screen>password-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the PPPoE password. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>serial setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>serial</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>baud</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>57600</screen></entry>
+        <entry>Speed to use for communication over the serial port.  Note that this value usually has no effect for mobile broadband modems as they generally ignore speed settings and use the highest available speed.</entry>
+      </row>
+      <row>
+        <entry><screen>bits</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>8</screen></entry>
+        <entry>Byte-width of the serial communication.  The 8 in '8n1' for example.</entry>
+      </row>
+      <row>
+        <entry><screen>parity</screen></entry>
+        <entry><screen>gchar</screen></entry>
+        <entry><screen>110</screen></entry>
+        <entry>Parity setting of the serial port.  Either 'E' for even parity, 'o' for odd parity, or 'n' for no parity.</entry>
+      </row>
+      <row>
+        <entry><screen>stopbits</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>1</screen></entry>
+        <entry>Number of stop bits for communication on the serial port.  Either 1 or 2.  The 1 in '8n1' for example.</entry>
+      </row>
+      <row>
+        <entry><screen>send-delay</screen></entry>
+        <entry><screen>uint64</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Time to delay between each byte sent to the modem, in microseconds.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>team setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>team</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>interface-name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The name of the virtual in-kernel team network interface</entry>
+      </row>
+      <row>
+        <entry><screen>config</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>JSON configuration for the team network interface. The property should contain raw JSON configuration data suitable for teamd, because the value is passed directly to teamd. If not specified, the default configuration is used. See man teamd.conf for the format details.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>team-port setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>team-port</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>config</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>JSON configuration for the team port. The property should contain raw JSON configuration data suitable for teamd, because the value is passed directly to teamd. If not specified, the dafault configuration is used. See man teamd.conf for the format details.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>vlan setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>vlan</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>interface-name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If given, specifies the kernel name of the VLAN interface. If not given, a default name will be constructed from the interface described by the parent interface and the 'id' property, ex 'eth2.1'. The parent interface may be given by the 'parent' property or by the 'mac-address' property of a 'wired' setting.</entry>
+      </row>
+      <row>
+        <entry><screen>parent</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If given, specifies the parent interface name or parent connection UUID from which this VLAN interface should be created.  If this property is not specified, the connection must contain a 'wired' setting with a 'mac-address' property.</entry>
+      </row>
+      <row>
+        <entry><screen>id</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>The VLAN indentifier the interface created by this connection should be assigned.</entry>
+      </row>
+      <row>
+        <entry><screen>flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>One or more flags which control the behavior and features of the VLAN interface.  Flags include reordering of output packet headers (0x01), use of the GVRP protocol (0x02), and loose binding of the interface to its master device's operating state (0x04).</entry>
+      </row>
+      <row>
+        <entry><screen>ingress-priority-map</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>For incoming packets, a list of mappings from 802.1p priorities to Linux SKB priorities.  The mapping is given in the format 'from:to' where both 'from' and 'to' are unsigned integers, ie '7:3'.</entry>
+      </row>
+      <row>
+        <entry><screen>egress-priority-map</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>For outgoing packets, a list of mappings from Linux SKB priorities to 802.1p priorities.  The mapping is given in the format 'from:to' where both 'from' and 'to' are unsigned integers, ie '7:3'.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>vpn setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>vpn</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>service-type</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>D-Bus service name of the VPN plugin that this setting uses to connect to its network.  i.e. org.freedesktop.NetworkManager.vpnc for the vpnc plugin.</entry>
+      </row>
+      <row>
+        <entry><screen>user-name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If the VPN connection requires a user name for authentication, that name should be provided here.  If the connection is available to more than one user, and the VPN requires each user to supply a different name, then leave this property empty.  If this property is empty, NetworkManager will automatically supply the username of the user which requested the VPN connection.</entry>
+      </row>
+      <row>
+        <entry><screen>data</screen></entry>
+        <entry><screen>dict of (string::string)</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Dictionary of key/value pairs of VPN plugin specific data.  Both keys and values must be strings.</entry>
+      </row>
+      <row>
+        <entry><screen>secrets</screen></entry>
+        <entry><screen>dict of (string::string)</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Dictionary of key/value pairs of VPN plugin specific secrets like passwords or private keys.  Both keys and values must be strings.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>wimax setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>wimax</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>network-name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Network Service Provider (NSP) name of the WiMAX network this connection should use.</entry>
+      </row>
+      <row>
+        <entry><screen>mac-address</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>If specified, this connection will only apply to the WiMAX device whose MAC address matches.  This property does not change the MAC address of the device (known as MAC spoofing).</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>802-3-ethernet setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>802-3-ethernet</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>port</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Specific port type to use if multiple the device supports multiple attachment methods.  One of 'tp' (Twisted Pair), 'aui' (Attachment Unit Interface), 'bnc' (Thin Ethernet) or 'mii' (Media Independent Interface.  If the device supports only one port type, this setting is ignored.</entry>
+      </row>
+      <row>
+        <entry><screen>speed</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, request that the device use only the specified speed.  In Mbit/s, ie 100 == 100Mbit/s.</entry>
+      </row>
+      <row>
+        <entry><screen>duplex</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If specified, request that the device only use the specified duplex mode.  Either 'half' or 'full'.</entry>
+      </row>
+      <row>
+        <entry><screen>auto-negotiate</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>TRUE</screen></entry>
+        <entry>If TRUE, allow auto-negotiation of port speed and duplex mode.  If FALSE, do not allow auto-negotiation,in which case the 'speed' and 'duplex' properties should be set.</entry>
+      </row>
+      <row>
+        <entry><screen>mac-address</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>If specified, this connection will only apply to the Ethernet device whose permanent MAC address matches.  This property does not change the MAC address of the device (i.e. MAC spoofing).</entry>
+      </row>
+      <row>
+        <entry><screen>cloned-mac-address</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>If specified, request that the device use this MAC address instead of its permanent MAC address.  This is known as MAC cloning or spoofing.</entry>
+      </row>
+      <row>
+        <entry><screen>mac-address-blacklist</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If specified, this connection will never apply to the Ethernet device whose permanent MAC address matches an address in the list.  Each MAC address is in the standard hex-digits-and-colons notation (00:11:22:33:44:55).</entry>
+      </row>
+      <row>
+        <entry><screen>mtu</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple Ethernet frames.</entry>
+      </row>
+      <row>
+        <entry><screen>s390-subchannels</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Identifies specific subchannels that this network device uses for communcation with z/VM or s390 host.  Like the 'mac-address' property for non-z/VM devices, this property can be used to ensure this connection only applies to the network device that uses these subchannels. The list should contain exactly 3 strings, and each string may only be composed of hexadecimal characters and the period (.) character.</entry>
+      </row>
+      <row>
+        <entry><screen>s390-nettype</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>s390 network device type; one of 'qeth', 'lcs', or 'ctc', representing the different types of virtual network devices available on s390 systems.</entry>
+      </row>
+      <row>
+        <entry><screen>s390-options</screen></entry>
+        <entry><screen>dict of (string::string)</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Dictionary of key/value pairs of s390-specific device options.  Both keys and values must be strings.  Allowed keys include 'portno', 'layer2', 'portname', 'protocol', among others.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>802-11-wireless setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>802-11-wireless</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>ssid</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>SSID of the Wi-Fi network.  Must be specified.</entry>
+      </row>
+      <row>
+        <entry><screen>mode</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Wi-Fi network mode; one of 'infrastructure', 'adhoc' or 'ap'.  If blank, infrastructure is assumed.</entry>
+      </row>
+      <row>
+        <entry><screen>band</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>802.11 frequency band of the network.  One of 'a' for 5GHz 802.11a or 'bg' for 2.4GHz 802.11.  This will lock associations to the Wi-Fi network to the specific band, i.e. if 'a' is specified, the device will not associate with the same network in the 2.4GHz band even if the network's settings are compatible.  This setting depends on specific driver capability and may not work with all drivers.</entry>
+      </row>
+      <row>
+        <entry><screen>channel</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Wireless channel to use for the Wi-Fi connection.  The device will only join (or create for Ad-Hoc networks) a Wi-Fi network on the specified channel.  Because channel numbers overlap between bands, this property also requires the 'band' property to be set.</entry>
+      </row>
+      <row>
+        <entry><screen>bssid</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>If specified, directs the device to only associate with the given access point.  This capability is highly driver dependent and not supported by all devices.  Note: this property does not control the BSSID used when creating an Ad-Hoc network and is unlikely to in the future.</entry>
+      </row>
+      <row>
+        <entry><screen>rate</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, directs the device to only use the specified bitrate for communication with the access point.  Units are in Kb/s, ie 5500 = 5.5 Mbit/s.  This property is highly driver dependent and not all devices support setting a static bitrate.</entry>
+      </row>
+      <row>
+        <entry><screen>tx-power</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, directs the device to use the specified transmit power.  Units are dBm.  This property is highly driver dependent and not all devices support setting a static transmit power.</entry>
+      </row>
+      <row>
+        <entry><screen>mac-address</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>If specified, this connection will only apply to the Wi-Fi device whose permanent MAC address matches.  This property does not change the MAC address of the device (i.e. MAC spoofing).</entry>
+      </row>
+      <row>
+        <entry><screen>cloned-mac-address</screen></entry>
+        <entry><screen>byte array</screen></entry>
+        <entry><screen>[]</screen></entry>
+        <entry>If specified, request that the Wi-Fi device use this MAC address instead of its permanent MAC address.  This is known as MAC cloning or spoofing.</entry>
+      </row>
+      <row>
+        <entry><screen>mac-address-blacklist</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>A list of permanent MAC addresses of Wi-Fi devices to which this connection should never apply.  Each MAC address should be given in the standard hex-digits-and-colons notation (eg '00:11:22:33:44:55').</entry>
+      </row>
+      <row>
+        <entry><screen>mtu</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>If non-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple Ethernet frames.</entry>
+      </row>
+      <row>
+        <entry><screen>seen-bssids</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>A list of BSSIDs (each BSSID formatted as a MAC address like 00:11:22:33:44:55') that have been detected as part of the Wi-Fi network. NetworkManager internally tracks previously seen BSSIDs. The property is only meant for reading and reflects the BSSID list of NetworkManager. The changes you make to this property will not be preserved.</entry>
+      </row>
+      <row>
+        <entry><screen>security</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>If the wireless connection has any security restrictions, like 802.1x, WEP, or WPA, set this property to '802-11-wireless-security' and ensure the connection contains a valid 802-11-wireless-security setting.</entry>
+      </row>
+      <row>
+        <entry><screen>hidden</screen></entry>
+        <entry><screen>boolean</screen></entry>
+        <entry><screen>FALSE</screen></entry>
+        <entry>If TRUE, indicates this network is a non-broadcasting network that hides its SSID.  In this case various workarounds may take place, such as probe-scanning the SSID for more reliable network discovery.  However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+<table>
+  <title>802-11-wireless-security setting</title>
+  <tgroup cols="4">
+    <thead>
+      <row>
+        <entry>Key Name</entry>
+        <entry>Value Type</entry>
+        <entry>Default Value</entry>
+        <entry>Value Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><screen>name</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen>802-11-wireless-security</screen></entry>
+        <entry>The setting's name; these names are defined by the specification and cannot be changed after the object has been created.  Each setting class has a name, and all objects of that class share the same name.</entry>
+      </row>
+      <row>
+        <entry><screen>key-mgmt</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Key management used for the connection.  One of 'none' (WEP), 'ieee8021x' (Dynamic WEP), 'wpa-none' (WPA-PSK Ad-Hoc), 'wpa-psk' (infrastructure WPA-PSK), or 'wpa-eap' (WPA-Enterprise).  This property must be set for any Wi-Fi connection that uses security.</entry>
+      </row>
+      <row>
+        <entry><screen>wep-tx-keyidx</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>When static WEP is used (ie, key-mgmt = 'none') and a non-default WEP key index is used by the AP, put that WEP key index here.  Valid values are 0 (default key) through 3.  Note that some consumer access points (like the Linksys WRT54G) number the keys 1 - 4.</entry>
+      </row>
+      <row>
+        <entry><screen>auth-alg</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>When WEP is used (ie, key-mgmt = 'none' or 'ieee8021x') indicate the 802.11 authentication algorithm required by the AP here.  One of 'open' for Open System, 'shared' for Shared Key, or 'leap' for Cisco LEAP.  When using Cisco LEAP (ie, key-mgmt = 'ieee8021x' and auth-alg = 'leap') the 'leap-username' and 'leap-password' properties must be specified.</entry>
+      </row>
+      <row>
+        <entry><screen>proto</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>List of strings specifying the allowed WPA protocol versions to use.  Each element may be one 'wpa' (allow WPA) or 'rsn' (allow WPA2/RSN).  If not specified, both WPA and RSN connections are allowed.</entry>
+      </row>
+      <row>
+        <entry><screen>pairwise</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>A list of pairwise encryption algorithms which prevents connections to Wi-Fi networks that do not utilize one of the algorithms in the list. For maximum compatibility leave this property empty.  Each list element may be one of 'tkip' or 'ccmp'.</entry>
+      </row>
+      <row>
+        <entry><screen>group</screen></entry>
+        <entry><screen>array of string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>A list of group/broadcast encryption algorithms which prevents connections to Wi-Fi networks that do not utilize one of the algorithms in the list.  For maximum compatibility leave this property empty.  Each list element may be one  of 'wep40', 'wep104', 'tkip', or 'ccmp'.</entry>
+      </row>
+      <row>
+        <entry><screen>leap-username</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The login username for legacy LEAP connections (ie, key-mgmt = 'ieee8021x' and auth-alg = 'leap').</entry>
+      </row>
+      <row>
+        <entry><screen>wep-key0</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Index 0 WEP key.  This is the WEP key used in most networks.  See the 'wep-key-type' property for a description of how this key is interpreted.</entry>
+      </row>
+      <row>
+        <entry><screen>wep-key1</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Index 1 WEP key.  This WEP index is not used by most networks.  See the 'wep-key-type' property for a description of how this key is interpreted.</entry>
+      </row>
+      <row>
+        <entry><screen>wep-key2</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Index 2 WEP key.  This WEP index is not used by most networks.  See the 'wep-key-type' property for a description of how this key is interpreted.</entry>
+      </row>
+      <row>
+        <entry><screen>wep-key3</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Index 3 WEP key.  This WEP index is not used by most networks.  See the 'wep-key-type' property for a description of how this key is interpreted.</entry>
+      </row>
+      <row>
+        <entry><screen>wep-key-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the WEP keys. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>wep-key-type</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Controls the interpretation of WEP keys.  Allowed values are 1 (interpret WEP keys as hexadecimal or ASCII keys) or 2 (interpret WEP keys as WEP Passphrases).  If set to 1 and the keys are hexadecimal, they must be either 10 or 26 characters in length.  If set to 1 and the keys are ASCII keys, they must be either 5 or 13 characters in length.  If set to 2, the passphrase is hashed using  the de-facto MD5 method to derive the actual WEP key.</entry>
+      </row>
+      <row>
+        <entry><screen>psk</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>Pre-Shared-Key for WPA networks.  If the key is 64-characters long, it must contain only hexadecimal characters and is interpreted as a hexadecimal WPA key.  Otherwise, the key must be between 8 and 63 ASCII characters (as specified in the 802.11i standard) and is interpreted as a WPA passphrase, and is hashed to derive the actual WPA-PSK used when connecting to the Wi-Fi network.</entry>
+      </row>
+      <row>
+        <entry><screen>psk-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the WPA PSK key. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+      <row>
+        <entry><screen>leap-password</screen></entry>
+        <entry><screen>string</screen></entry>
+        <entry><screen></screen></entry>
+        <entry>The login password for legacy LEAP connections (ie, key-mgmt = 'ieee8021x' and auth-alg = 'leap').</entry>
+      </row>
+      <row>
+        <entry><screen>leap-password-flags</screen></entry>
+        <entry><screen>uint32</screen></entry>
+        <entry><screen>0</screen></entry>
+        <entry>Flags indicating how to handle the LEAP password. (see <xref linkend="secrets-flags"/> for flag values)</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
+  </para>
+</section>

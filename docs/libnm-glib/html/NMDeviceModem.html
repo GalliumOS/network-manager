@@ -1,0 +1,280 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMDeviceModem</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm-glib Reference Manual">
+<link rel="up" href="ch02.html" title="libnm-glib API Reference">
+<link rel="prev" href="NMDeviceWifi.html" title="NMDeviceWifi">
+<link rel="next" href="NMDeviceBt.html" title="NMDeviceBt">
+<meta name="generator" content="GTK-Doc V1.19 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="NMDeviceWifi.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">libnm-glib Reference Manual</th>
+<td><a accesskey="n" href="NMDeviceBt.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#NMDeviceModem.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#NMDeviceModem.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#NMDeviceModem.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#NMDeviceModem.implemented-interfaces" class="shortcut">Implemented Interfaces</a>
+                   | 
+                  <a href="#NMDeviceModem.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="NMDeviceModem"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMDeviceModem.top_of_page"></a>NMDeviceModem</span></h2>
+<p>NMDeviceModem</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="NMDeviceModem.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">enum                <a class="link" href="NMDeviceModem.html#NMDeviceModemError" title="enum NMDeviceModemError">NMDeviceModemError</a>;
+#define             <a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-ERROR:CAPS" title="NM_DEVICE_MODEM_ERROR">NM_DEVICE_MODEM_ERROR</a>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              <a class="link" href="NMDeviceModem.html#nm-device-modem-error-quark" title="nm_device_modem_error_quark ()">nm_device_modem_error_quark</a>         (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-MODEM-CAPABILITIES:CAPS" title="NM_DEVICE_MODEM_MODEM_CAPABILITIES">NM_DEVICE_MODEM_MODEM_CAPABILITIES</a>
+#define             <a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-CURRENT-CAPABILITIES:CAPS" title="NM_DEVICE_MODEM_CURRENT_CAPABILITIES">NM_DEVICE_MODEM_CURRENT_CAPABILITIES</a>
+                    <a class="link" href="NMDeviceModem.html#NMDeviceModem-struct" title="NMDeviceModem">NMDeviceModem</a>;
+                    <a class="link" href="NMDeviceModem.html#NMDeviceModemClass" title="NMDeviceModemClass">NMDeviceModemClass</a>;
+<span class="returnvalue">NMDeviceModemCapabilities</span> <a class="link" href="NMDeviceModem.html#nm-device-modem-get-modem-capabilities" title="nm_device_modem_get_modem_capabilities ()">nm_device_modem_get_modem_capabilities</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMDeviceModem.html" title="NMDeviceModem"><span class="type">NMDeviceModem</span></a> *self</code></em>);
+<span class="returnvalue">NMDeviceModemCapabilities</span> <a class="link" href="NMDeviceModem.html#nm-device-modem-get-current-capabilities" title="nm_device_modem_get_current_capabilities ()">nm_device_modem_get_current_capabilities</a>
+                                                        (<em class="parameter"><code><a class="link" href="NMDeviceModem.html" title="NMDeviceModem"><span class="type">NMDeviceModem</span></a> *self</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceModem.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+         +----<a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+               +----NMDeviceModem
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceModem.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceModem implements
+ <a href="http://library.gnome.org/devel/gio/unstable/GInitable.html">GInitable</a> and  <a href="http://library.gnome.org/devel/gio/unstable/GAsyncInitable.html">GAsyncInitable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceModem.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="NMDeviceModem.html#NMDeviceModem--current-capabilities" title='The "current-capabilities" property'>current-capabilities</a>"     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+  "<a class="link" href="NMDeviceModem.html#NMDeviceModem--modem-capabilities" title='The "modem-capabilities" property'>modem-capabilities</a>"       <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceModem.description"></a><h2>Description</h2>
+<p>
+</p>
+</div>
+<div class="refsect1">
+<a name="NMDeviceModem.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="NMDeviceModemError"></a><h3>enum NMDeviceModemError</h3>
+<pre class="programlisting">typedef enum {
+	NM_DEVICE_MODEM_ERROR_UNKNOWN = 0,              /*&lt; nick=UnknownError &gt;*/
+	NM_DEVICE_MODEM_ERROR_NOT_MODEM_CONNECTION,     /*&lt; nick=NotModemConnection &gt;*/
+	NM_DEVICE_MODEM_ERROR_INVALID_MODEM_CONNECTION, /*&lt; nick=InvalidModemConnection &gt;*/
+	NM_DEVICE_MODEM_ERROR_MISSING_DEVICE_CAPS,      /*&lt; nick=MissingDeviceCaps &gt;*/
+} NMDeviceModemError;
+</pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="NM-DEVICE-MODEM-ERROR-UNKNOWN:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_MODEM_ERROR_UNKNOWN</code></span></p></td>
+<td>unknown or unclassified error
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-MODEM-ERROR-NOT-MODEM-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_MODEM_ERROR_NOT_MODEM_CONNECTION</code></span></p></td>
+<td>the connection was not of modem type
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-MODEM-ERROR-INVALID-MODEM-CONNECTION:CAPS"></a><span class="term"><code class="literal">NM_DEVICE_MODEM_ERROR_INVALID_MODEM_CONNECTION</code></span></p></td>
+<td>the modem connection was invalid
+</td>
+</tr>
+<tr>
+<td><p><a name="NM-DEVICE-MODEM-ERROR-MISSING-DEVICE-CAPS"></a><span class="term"><code class="literal">NM_DEVICE_MODEM_ERROR_MISSING_DEVICE_CAPS</code></span></p></td>
+<td>the device missed required capabilities
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-MODEM-ERROR:CAPS"></a><h3>NM_DEVICE_MODEM_ERROR</h3>
+<pre class="programlisting">#define NM_DEVICE_MODEM_ERROR nm_device_modem_error_quark ()
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-modem-error-quark"></a><h3>nm_device_modem_error_quark ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>              nm_device_modem_error_quark         (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Registers an error quark for <a class="link" href="NMDeviceModem.html" title="NMDeviceModem"><span class="type">NMDeviceModem</span></a> if necessary.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the error quark used for <a class="link" href="NMDeviceModem.html" title="NMDeviceModem"><span class="type">NMDeviceModem</span></a> errors.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-MODEM-MODEM-CAPABILITIES:CAPS"></a><h3>NM_DEVICE_MODEM_MODEM_CAPABILITIES</h3>
+<pre class="programlisting">#define NM_DEVICE_MODEM_MODEM_CAPABILITIES   "modem-capabilities"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-MODEM-CURRENT-CAPABILITIES:CAPS"></a><h3>NM_DEVICE_MODEM_CURRENT_CAPABILITIES</h3>
+<pre class="programlisting">#define NM_DEVICE_MODEM_CURRENT_CAPABILITIES "current-capabilities"
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceModem-struct"></a><h3>NMDeviceModem</h3>
+<pre class="programlisting">typedef struct _NMDeviceModem NMDeviceModem;</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceModemClass"></a><h3>NMDeviceModemClass</h3>
+<pre class="programlisting">typedef struct {
+	NMDeviceClass parent;
+
+	/* Padding for future expansion */
+	void (*_reserved1) (void);
+	void (*_reserved2) (void);
+	void (*_reserved3) (void);
+	void (*_reserved4) (void);
+	void (*_reserved5) (void);
+	void (*_reserved6) (void);
+} NMDeviceModemClass;
+</pre>
+<p>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-modem-get-modem-capabilities"></a><h3>nm_device_modem_get_modem_capabilities ()</h3>
+<pre class="programlisting"><span class="returnvalue">NMDeviceModemCapabilities</span> nm_device_modem_get_modem_capabilities
+                                                        (<em class="parameter"><code><a class="link" href="NMDeviceModem.html" title="NMDeviceModem"><span class="type">NMDeviceModem</span></a> *self</code></em>);</pre>
+<p>
+Returns a bitfield of the generic access technology families the modem
+supports.  Not all capabilities are available concurrently however; some
+may require a firmware reload or reinitialization.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceModem.html" title="NMDeviceModem"><span class="type">NMDeviceModem</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the generic access technology families the modem supports</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-modem-get-current-capabilities"></a><h3>nm_device_modem_get_current_capabilities ()</h3>
+<pre class="programlisting"><span class="returnvalue">NMDeviceModemCapabilities</span> nm_device_modem_get_current_capabilities
+                                                        (<em class="parameter"><code><a class="link" href="NMDeviceModem.html" title="NMDeviceModem"><span class="type">NMDeviceModem</span></a> *self</code></em>);</pre>
+<p>
+Returns a bitfield of the generic access technology families the modem
+supports without a firmware reload or reinitialization.  This value
+represents the network types the modem can immediately connect to.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="NMDeviceModem.html" title="NMDeviceModem"><span class="type">NMDeviceModem</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the generic access technology families the modem supports without
+a firmware reload or other reinitialization</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceModem.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceModem--current-capabilities"></a><h3>The <code class="literal">"current-capabilities"</code> property</h3>
+<pre class="programlisting">  "current-capabilities"     <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The generic family of access technologies the modem currently supports
+without a firmware reload or reinitialization.
+</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceModem--modem-capabilities"></a><h3>The <code class="literal">"modem-capabilities"</code> property</h3>
+<pre class="programlisting">  "modem-capabilities"       <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read</pre>
+<p>
+The generic family of access technologies the modem supports.  Not all
+capabilities are available at the same time however; some modems require
+a firmware reload or other reinitialization to switch between eg
+CDMA/EVDO and GSM/UMTS.
+</p>
+<p>Default value: 0</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.19</div>
+</body>
+</html>

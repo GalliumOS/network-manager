@@ -1,0 +1,76 @@
+#breaks on Ubuntu! LP#1431774
+#0001-Debian-specific-tweaks-for-NetworkManager-systemd-se.patch
+0002-Force-online-state-with-unmanaged-devices.patch
+0003-Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
+0004-Use-symlinks-for-nmtui.patch
+0005-Mark-virtual-ethernet-interfaces-as-unmanaged.patch
+0006-tui-fix-Wi-Fi-section-of-nmtui-connect-list-in-non-U.patch
+0007-core-fix-checks-for-default-routes-by-comparing-the-.patch
+0008-Use-the-correct-path-when-calling-dnssec-trigger-scr.patch
+0009-Support-building-against-libsystemd-library.patch
+0010-tui-fix-requesting-and-displaying-secrets.patch
+0011-tui-fix-updating-of-NmtPasswordFields-passwords-bgo-.patch
+0012-fix-arping-path.patch
+0013-fix-dhclient-abnormal-exit-due-to-SIGPIPE.patch
+0014-log-DHCLIENT-exit-status-better.patch
+0019-Don-t-make-NetworkManager-D-Bus-activatable.patch
+demarshal_int64_properties.patch
+fix-NetworkManager-wait-online.service.patch
+
+# misc git cherry-picks
+git_ignore_cache_routes_faa7d8ab.patch
+git_fix_crash_test-remote-settings-client_98e7145f.patch
+git_assert_test-remote-settings-client_746a13bd.patch
+git_primary_connection_type_aab7fbfc.patch
+git_fix_nmcli_multiple_wifi.patch
+
+# ubuntu-specific
+whoopsie-daisy-dbus-support.patch
+only-ignore-host-side-veth.patch
+dont_mangle_bridges.patch
+
+# upstart support.
+add_sendsigs_omissions.patch
+quit_dhclient_on_exit.patch
+
+# dnsmasq
+0001-dns-use-DBus-to-make-dnsmasq-nameserver-changes.patch
+nm-change-dnsmasq-parameters.diff
+dnsmasq-vpn-dns-filtering.patch
+lp936712_dnsmasq_ip6_ns_ordering.patch
+
+# ipv6 / privacy
+lp990011_use_tempaddr_sysctl_default.patch
+
+# wifi
+adhoc_use_wpa_rsn_part1.patch
+adhoc_use_wpa_rsn_part2.patch
+monotonic_timestamp_as_boottime.patch
+0002-wifi-expose-the-last_seen-property-for-a-NMAccessPoi.patch
+0001-wifi-Signal-on-the-wifi-device-when-its-supplicant-i.patch
+0002-wifi-cull-the-scan-list-before-signalling-ScanDone-b.patch
+
+# wifi powersave
+0001-libnm-libnm-util-add-Wi-Fi-powersave-property.patch
+0002-fixup-libnm-libnm-util-add-Wi-Fi-powersave-property.patch
+0003-cli-add-support-for-wifi.powersave-setting.patch
+0004-wifi-set-wireless-power-save-for-nl80211-devices-whe.patch
+0005-fixup-wifi-set-wireless-power-save-for-nl80211-devic.patch
+default_powersave_on.patch
+
+# touch-specific
+ignore_rmnet_devices.patch
+lp1099983_ignore-p2p-wifi-devices.patch
+prioritize_3g_later.patch
+0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch
+add_ofono_settings_support.patch
+
+# killswitch
+ignore_rfkill_if_urfkill_is_present.patch
+
+# bugfix
+CVE-2015-1322.patch
+fix_default_routes.patch
+git_route_fixes_part1_207ab013.patch
+git_route_fixes_part2_529591d8.patch
+git_avoid_conflict_reinstall_dev_route_e439478c.patch

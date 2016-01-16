@@ -1,0 +1,30 @@
+From fcd3642ef374927a44ae83a4c385c0bcd35e2f95 Mon Sep 17 00:00:00 2001
+From: Dan Williams <dcbw@redhat.com>
+Date: Mon, 17 Nov 2014 09:12:17 -0600
+Subject: [PATCH 2/5] fixup! libnm/libnm-util: add Wi-Fi 'powersave' property
+
+---
+ libnm-util/nm-setting-wireless.c |   10 ----------
+ 1 file changed, 10 deletions(-)
+
+Index: b/libnm-util/nm-setting-wireless.c
+===================================================================
+--- a/libnm-util/nm-setting-wireless.c
++++ b/libnm-util/nm-setting-wireless.c
+@@ -879,16 +879,6 @@ verify (NMSetting *setting, GSList *all_
+ 		}
+ 	}
+ 
+-	if (priv->powersave > 1) {
+-		g_set_error (error,
+-		             NM_SETTING_WIRELESS_ERROR,
+-		             NM_SETTING_WIRELESS_ERROR_INVALID_PROPERTY,
+-		             _("'%u' is not a valid powersave value"),
+-		             priv->powersave);
+-		g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SETTING_NAME, NM_SETTING_WIRELESS_POWERSAVE);
+-		return FALSE;
+-	}
+-
+ 	return TRUE;
+ }
+ 

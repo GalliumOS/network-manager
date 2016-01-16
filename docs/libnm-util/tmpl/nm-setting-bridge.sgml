@@ -1,0 +1,250 @@
+<!-- ##### SECTION Title ##### -->
+NMSettingBridge
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_SETTING_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM NMSettingBridgeError ##### -->
+<para>
+
+</para>
+
+@NM_SETTING_BRIDGE_ERROR_UNKNOWN: 
+@NM_SETTING_BRIDGE_ERROR_INVALID_PROPERTY: 
+@NM_SETTING_BRIDGE_ERROR_MISSING_PROPERTY: 
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_ERROR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION nm_setting_bridge_error_quark ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_INTERFACE_NAME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_MAC_ADDRESS ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_STP ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_PRIORITY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_FORWARD_DELAY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_HELLO_TIME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_MAX_AGE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO NM_SETTING_BRIDGE_AGEING_TIME ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### STRUCT NMSettingBridge ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ARG NMSettingBridge:ageing-time ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridge:forward-delay ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridge:hello-time ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridge:interface-name ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridge:mac-address ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridge:max-age ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridge:priority ##### -->
+<para>
+
+</para>
+
+<!-- ##### ARG NMSettingBridge:stp ##### -->
+<para>
+
+</para>
+
+<!-- ##### STRUCT NMSettingBridgeClass ##### -->
+<para>
+
+</para>
+
+@parent: 
+@_reserved1: 
+@_reserved2: 
+@_reserved3: 
+@_reserved4: 
+
+<!-- ##### FUNCTION nm_setting_bridge_new ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_get_interface_name ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_get_mac_address ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_get_stp ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_get_priority ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_get_forward_delay ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_get_hello_time ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_get_max_age ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
+<!-- ##### FUNCTION nm_setting_bridge_get_ageing_time ##### -->
+<para>
+
+</para>
+
+@setting: 
+@Returns: 
+
+
