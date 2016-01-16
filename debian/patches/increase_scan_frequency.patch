@@ -1,0 +1,13 @@
+--- a/src/devices/wifi/nm-device-wifi.c
++++ b/src/devices/wifi/nm-device-wifi.c
+@@ -79,8 +79,8 @@
+ 
+ /* All of these are in seconds */
+ #define SCAN_INTERVAL_MIN 3
+-#define SCAN_INTERVAL_STEP 20
+-#define SCAN_INTERVAL_MAX 120
++#define SCAN_INTERVAL_STEP 8
++#define SCAN_INTERVAL_MAX 30
+ 
+ #define WIRELESS_SECRETS_TRIES "wireless-secrets-tries"
+ 

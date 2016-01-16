@@ -1,3 +1,10 @@
+network-manager (0.9.10.0-4ubuntu15.3-galliumos1) vivid; urgency=medium
+
+  * Removed default_powersave_on.patch
+  * Added increase_scan_frequency.patch
+
+ -- Hugh Greenberg <hugh@galliumos.org>  Fri, 15 Jan 2015 10:10:50 -0400
+
 network-manager (0.9.10.0-4ubuntu15.3) vivid; urgency=medium
 
   * debian/patches/git_route_fixes_part1_207ab013.patch,

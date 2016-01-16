@@ -56,7 +56,6 @@ monotonic_timestamp_as_boottime.patch
 0003-cli-add-support-for-wifi.powersave-setting.patch
 0004-wifi-set-wireless-power-save-for-nl80211-devices-whe.patch
 0005-fixup-wifi-set-wireless-power-save-for-nl80211-devic.patch
-default_powersave_on.patch
 
 # touch-specific
 ignore_rmnet_devices.patch
@@ -74,3 +73,4 @@ fix_default_routes.patch
 git_route_fixes_part1_207ab013.patch
 git_route_fixes_part2_529591d8.patch
 git_avoid_conflict_reinstall_dev_route_e439478c.patch
+increase_scan_frequency.patch
