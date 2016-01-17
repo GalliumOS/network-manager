@@ -1,2 +1,0 @@
-# network-manager
-network-manager
