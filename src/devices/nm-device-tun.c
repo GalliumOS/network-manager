@@ -28,8 +28,12 @@
 #include "nm-dbus-manager.h"
 #include "nm-logging.h"
 #include "nm-platform.h"
+#include "nm-device-factory.h"
 
 #include "nm-device-tun-glue.h"
+
+#include "nm-device-logging.h"
+_LOG_DECLARE_SELF(NMDeviceTun);
 
 G_DEFINE_TYPE (NMDeviceTun, nm_device_tun, NM_TYPE_DEVICE_GENERIC)
 
@@ -55,15 +59,14 @@ enum {
 };
 
 static void
-reload_tun_properties (NMDeviceTun *device)
+reload_tun_properties (NMDeviceTun *self)
 {
-	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (device);
-	GObject *object = G_OBJECT (device);
+	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (self);
+	GObject *object = G_OBJECT (self);
 	NMPlatformTunProperties props;
 
-	if (!nm_platform_tun_get_properties (nm_device_get_ifindex (NM_DEVICE (device)), &props)) {
-		nm_log_warn (LOGD_HW, "(%s): could not read tun properties",
-		             nm_device_get_iface (NM_DEVICE (device)));
+	if (!nm_platform_tun_get_properties (NM_PLATFORM_GET, nm_device_get_ifindex (NM_DEVICE (self)), &props)) {
+		_LOGD (LOGD_HW, "could not read tun properties");
 		return;
 	}
 
@@ -108,27 +111,6 @@ delay_tun_get_properties_cb (gpointer user_data)
 
 /**************************************************************/
 
-NMDevice *
-nm_device_tun_new (NMPlatformLink *platform_device)
-{
-	const char *mode = NULL;
-
-	g_return_val_if_fail (platform_device != NULL, NULL);
-
-	if (platform_device->type == NM_LINK_TYPE_TUN)
-		mode = "tun";
-	else if (platform_device->type == NM_LINK_TYPE_TAP)
-		mode = "tap";
-	g_return_val_if_fail (mode != NULL, NULL);
-
-	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_TUN,
-	                                  NM_DEVICE_PLATFORM_DEVICE, platform_device,
-	                                  NM_DEVICE_TYPE_DESC, "Tun",
-	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_GENERIC,
-	                                  NM_DEVICE_TUN_MODE, mode,
-	                                  NULL);
-}
-
 static void
 nm_device_tun_init (NMDeviceTun *self)
 {
@@ -137,18 +119,18 @@ nm_device_tun_init (NMDeviceTun *self)
 static void
 constructed (GObject *object)
 {
+	NMDeviceTun *self = NM_DEVICE_TUN (object);
 	gboolean properties_read;
-	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (object);
+	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (self);
 
-	properties_read = nm_platform_tun_get_properties (nm_device_get_ifindex (NM_DEVICE (object)), &priv->props);
+	properties_read = nm_platform_tun_get_properties (NM_PLATFORM_GET, nm_device_get_ifindex (NM_DEVICE (self)), &priv->props);
 
 	G_OBJECT_CLASS (nm_device_tun_parent_class)->constructed (object);
 
 	if (!properties_read) {
 		/* Error reading the tun properties. Maybe this was due to a race. Try again a bit later. */
-		nm_log_dbg (LOGD_HW, "(%s): could not read tun properties (retry)",
-		                     nm_device_get_iface (NM_DEVICE (object)));
-		priv->delay_tun_get_properties_id = g_timeout_add_seconds (1, delay_tun_get_properties_cb, object);
+		_LOGD (LOGD_HW, "could not read tun properties (retry)");
+		priv->delay_tun_get_properties_id = g_timeout_add_seconds (1, delay_tun_get_properties_cb, self);
 	}
 }
 
@@ -174,10 +156,10 @@ get_property (GObject *object, guint prop_id,
 
 	switch (prop_id) {
 	case PROP_OWNER:
-		g_value_set_uint (value, priv->props.owner);
+		g_value_set_int64 (value, priv->props.owner);
 		break;
 	case PROP_GROUP:
-		g_value_set_uint (value, priv->props.group);
+		g_value_set_int64 (value, priv->props.group);
 		break;
 	case PROP_MODE:
 		g_value_set_string (value, priv->mode);
@@ -242,49 +224,37 @@ nm_device_tun_class_init (NMDeviceTunClass *klass)
 	/* properties */
 	g_object_class_install_property
 		(object_class, PROP_OWNER,
-		 g_param_spec_int64 (NM_DEVICE_TUN_OWNER,
-		                     "Owner",
-		                     "Owner",
+		 g_param_spec_int64 (NM_DEVICE_TUN_OWNER, "", "",
 		                     -1, G_MAXUINT32, -1,
 		                     G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_GROUP,
-		 g_param_spec_int64 (NM_DEVICE_TUN_GROUP,
-		                     "Group",
-		                     "Group",
+		 g_param_spec_int64 (NM_DEVICE_TUN_GROUP, "", "",
 		                     -1, G_MAXUINT32, -1,
 		                     G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_MODE,
-		 g_param_spec_string (NM_DEVICE_TUN_MODE,
-		                      "Mode",
-		                      "Mode",
+		 g_param_spec_string (NM_DEVICE_TUN_MODE, "", "",
 		                      "tun",
 		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_NO_PI,
-		 g_param_spec_boolean (NM_DEVICE_TUN_NO_PI,
-		                      "No Protocol Info",
-		                      "No Protocol Info",
-		                      FALSE,
-		                      G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+		 g_param_spec_boolean (NM_DEVICE_TUN_NO_PI, "", "",
+		                       FALSE,
+		                       G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_VNET_HDR,
-		 g_param_spec_boolean (NM_DEVICE_TUN_VNET_HDR,
-		                       "Virtio networking header",
-		                       "Virtio networking header",
+		 g_param_spec_boolean (NM_DEVICE_TUN_VNET_HDR, "", "",
 		                       FALSE,
 		                       G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_MULTI_QUEUE,
-		 g_param_spec_boolean (NM_DEVICE_TUN_MULTI_QUEUE,
-		                       "Multi-queue",
-		                       "Multi-queue",
+		 g_param_spec_boolean (NM_DEVICE_TUN_MULTI_QUEUE, "", "",
 		                       FALSE,
 		                       G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
@@ -292,3 +262,37 @@ nm_device_tun_class_init (NMDeviceTunClass *klass)
 	                                        G_TYPE_FROM_CLASS (klass),
 	                                        &dbus_glib_nm_device_tun_object_info);
 }
+
+
+/*************************************************************/
+
+#define NM_TYPE_TUN_FACTORY (nm_tun_factory_get_type ())
+#define NM_TUN_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_TUN_FACTORY, NMTunFactory))
+
+static NMDevice *
+new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
+{
+	const char *mode = NULL;
+
+	if (plink->type == NM_LINK_TYPE_TUN)
+		mode = "tun";
+	else if (plink->type == NM_LINK_TYPE_TAP)
+		mode = "tap";
+	else {
+		g_warn_if_reached ();
+		mode = "unknown";
+	}
+
+	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_TUN,
+	                                  NM_DEVICE_PLATFORM_DEVICE, plink,
+	                                  NM_DEVICE_TYPE_DESC, "Tun",
+	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_GENERIC,
+	                                  NM_DEVICE_TUN_MODE, mode,
+	                                  NULL);
+}
+
+NM_DEVICE_FACTORY_DEFINE_INTERNAL (TUN, Tun, tun,
+	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES (NM_LINK_TYPE_TUN, NM_LINK_TYPE_TAP),
+	factory_iface->new_link = new_link;
+	)
+

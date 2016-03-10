@@ -1,9 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -19,12 +16,14 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2013 Red Hat, Inc.
- * (C) Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2013 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-pppoe.h"
 #include "nm-setting-ppp.h"
@@ -210,7 +209,7 @@ nm_setting_pppoe_init (NMSettingPPPOE *setting)
 
 static void
 set_property (GObject *object, guint prop_id,
-		    const GValue *value, GParamSpec *pspec)
+              const GValue *value, GParamSpec *pspec)
 {
 	NMSettingPPPOEPrivate *priv = NM_SETTING_PPPOE_GET_PRIVATE (object);
 
@@ -238,7 +237,7 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-		    GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMSettingPPPOE *setting = NM_SETTING_PPPOE (object);
 
@@ -299,16 +298,10 @@ nm_setting_pppoe_class_init (NMSettingPPPOEClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SERVICE,
-		 g_param_spec_string (NM_SETTING_PPPOE_SERVICE,
-						  "Service",
-						  "If specified, instruct PPPoE to only initiate sessions "
-						  "with access concentrators that provide the specified "
-						  "service.  For most providers, this should be left "
-						  "blank.  It is only required if there are multiple "
-						  "access concentrators or a specific service is known "
-						  "to be required.",
-						  NULL,
-						  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_PPPOE_SERVICE, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingPPPOE:username:
@@ -317,11 +310,10 @@ nm_setting_pppoe_class_init (NMSettingPPPOEClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_USERNAME,
-		 g_param_spec_string (NM_SETTING_PPPOE_USERNAME,
-						  "Username",
-						  "Username used to authenticate with the PPPoE service.",
-						  NULL,
-						  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_PPPOE_USERNAME, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingPPPOE:password:
@@ -330,23 +322,23 @@ nm_setting_pppoe_class_init (NMSettingPPPOEClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PASSWORD,
-		 g_param_spec_string (NM_SETTING_PPPOE_PASSWORD,
-						  "Password",
-						  "Password used to authenticate with the PPPoE service.",
-						  NULL,
-						  G_PARAM_READWRITE | NM_SETTING_PARAM_SECRET));
+		 g_param_spec_string (NM_SETTING_PPPOE_PASSWORD, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_SECRET |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingPPPOE:password-flags:
 	 *
 	 * Flags indicating how to handle the #NMSettingPPPOE:password property.
 	 **/
-	g_object_class_install_property (object_class, PROP_PASSWORD_FLAGS,
-		 g_param_spec_uint (NM_SETTING_PPPOE_PASSWORD_FLAGS,
-		                    "Password Flags",
-		                    "Flags indicating how to handle the PPPoE password.",
+	g_object_class_install_property
+		(object_class, PROP_PASSWORD_FLAGS,
+		 g_param_spec_uint (NM_SETTING_PPPOE_PASSWORD_FLAGS, "", "",
 		                    NM_SETTING_SECRET_FLAG_NONE,
 		                    NM_SETTING_SECRET_FLAGS_ALL,
 		                    NM_SETTING_SECRET_FLAG_NONE,
-		                    G_PARAM_READWRITE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_STATIC_STRINGS));
 }

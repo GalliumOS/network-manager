@@ -22,7 +22,8 @@
  * (C) Copyright 2007 - 2008 Novell, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 
 #include <gmodule.h>
@@ -54,17 +55,6 @@ typedef struct {
 	GFileMonitor *dhcp_monitor;
 	char *hostname;
 } SCPluginIfcfgPrivate;
-
-GQuark
-ifcfg_plugin_error_quark (void)
-{
-	static GQuark error_quark = 0;
-
-	if (G_UNLIKELY (error_quark == 0))
-		error_quark = g_quark_from_static_string ("ifcfg-plugin-error-quark");
-
-	return error_quark;
-}
 
 typedef void (*FileChangedFn) (gpointer user_data);
 
@@ -148,7 +138,7 @@ hostname_is_dynamic (void)
 }
 
 static char *
-hostname_read ()
+hostname_read (void)
 {
 	GIOChannel *channel;
 	char *hostname = NULL;

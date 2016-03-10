@@ -2,6 +2,8 @@
 
 <node name="/" xmlns:tp="http://telepathy.freedesktop.org/wiki/DbusSpec#extensions-v0">
   <interface name="org.freedesktop.NetworkManager.Device.Wireless">
+    <annotation name="org.gtk.GDBus.C.Name" value="DeviceWifi"/>
+
     <method name="GetAccessPoints">
       <annotation name="org.freedesktop.DBus.GLib.CSymbol" value="impl_device_get_access_points"/>
       <arg name="access_points" type="ao" direction="out">
@@ -35,7 +37,7 @@
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <arg name="options" type="a{sv}" direction="in">
         <tp:docstring>
-          Options of scan
+          Options of scan (currently unused argument).
         </tp:docstring>
       </arg>
       <tp:docstring>
@@ -148,6 +150,23 @@
       </tp:flag>
       <tp:flag suffix="ADHOC" value="0x80">
         <tp:docstring>The device supports Ad-Hoc mode.</tp:docstring>
+      </tp:flag>
+      <tp:flag suffix="FREQ_VALID" value="0x100">
+	<tp:docstring>
+	  The device properly reports information about supported
+	  frequencies and thus both NM_802_11_DEVICE_CAP_FREQ_2GHZ and
+	  NM_802_11_DEVICE_CAP_FREQ_5GHZ are valid.
+	</tp:docstring>
+      </tp:flag>
+      <tp:flag suffix="FREQ_2GHZ" value="0x200">
+        <tp:docstring>
+          The device supports 2.4GHz frequencies.
+        </tp:docstring>
+      </tp:flag>
+      <tp:flag suffix="FREQ_5GHZ" value="0x400">
+        <tp:docstring>
+          The device supports 5GHz frequencies.
+        </tp:docstring>
       </tp:flag>
     </tp:flags>
   </interface>

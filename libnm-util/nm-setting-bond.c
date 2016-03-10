@@ -1,8 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Thomas Graf <tgraf@redhat.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -18,8 +16,10 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2011 - 2013 Red Hat, Inc.
+ * Copyright 2011 - 2013 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -27,7 +27,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-bond.h"
 #include "nm-param-spec-specialized.h"
@@ -122,6 +122,8 @@ static const BondDefault defaults[] = {
 	{ NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY, "0",          TYPE_BOTH, 0, 2,
 	  { "layer2", "layer3+4", "layer2+3", NULL } },
 	{ NM_SETTING_BOND_OPTION_RESEND_IGMP,      "1",          TYPE_INT, 0, 255 },
+	{ NM_SETTING_BOND_OPTION_LACP_RATE,        "0",          TYPE_BOTH, 0, 1,
+	  { "slow", "fast", NULL } },
 };
 
 /**
@@ -313,8 +315,8 @@ nm_setting_bond_validate_option (const char *name,
 			case TYPE_STR:
 				return validate_list (name, value, &defaults[i]);
 			case TYPE_BOTH:
-				return    validate_int (name, value, &defaults[i])
-				       || validate_list (name, value, &defaults[i]);
+				return (   validate_int (name, value, &defaults[i])
+				        || validate_list (name, value, &defaults[i]));
 			case TYPE_IP:
 				return validate_ip (name, value);
 			case TYPE_IFNAME:
@@ -489,25 +491,8 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 	                              NULL };
 	int miimon = 0, arp_interval = 0;
 	const char *arp_ip_target = NULL;
+	const char *lacp_rate;
 	const char *primary;
-
-	if (!priv->interface_name || !strlen(priv->interface_name)) {
-		g_set_error_literal (error,
-		                     NM_SETTING_BOND_ERROR,
-		                     NM_SETTING_BOND_ERROR_MISSING_PROPERTY,
-		                     _("property is missing"));
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_BOND_SETTING_NAME, NM_SETTING_BOND_INTERFACE_NAME);
-		return FALSE;
-	}
-
-	if (!nm_utils_iface_valid_name (priv->interface_name)) {
-		g_set_error_literal (error,
-		                     NM_SETTING_BOND_ERROR,
-		                     NM_SETTING_BOND_ERROR_INVALID_PROPERTY,
-		                     _("property is invalid"));
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_BOND_SETTING_NAME, NM_SETTING_BOND_INTERFACE_NAME);
-		return FALSE;
-	}
 
 	g_hash_table_iter_init (&iter, priv->options);
 	while (g_hash_table_iter_next (&iter, (gpointer) &key, (gpointer) &value)) {
@@ -688,7 +673,26 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		}
 	}
 
-	return TRUE;
+	lacp_rate = g_hash_table_lookup (priv->options, NM_SETTING_BOND_OPTION_LACP_RATE);
+	if (   lacp_rate
+	    && (g_strcmp0 (value, "802.3ad") != 0 && g_strcmp0 (value, "4") != 0)
+	    && (strcmp (lacp_rate, "slow") != 0 && strcmp (lacp_rate, "0") != 0)) {
+		g_set_error (error,
+		             NM_SETTING_BOND_ERROR,
+		             NM_SETTING_BOND_ERROR_INVALID_OPTION,
+		             _("'%s' option is only valid with mode '%s'"),
+		             NM_SETTING_BOND_OPTION_LACP_RATE, "802.3ad");
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_BOND_SETTING_NAME, NM_SETTING_BOND_OPTIONS);
+		return FALSE;
+	}
+
+	return _nm_setting_verify_deprecated_virtual_iface_name (
+	         priv->interface_name, FALSE,
+	         NM_SETTING_BOND_SETTING_NAME, NM_SETTING_BOND_INTERFACE_NAME,
+	         NM_SETTING_BOND_ERROR,
+	         NM_SETTING_BOND_ERROR_INVALID_PROPERTY,
+	         NM_SETTING_BOND_ERROR_MISSING_PROPERTY,
+	         all_settings, error);
 }
 
 static const char *
@@ -765,7 +769,7 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_OPTIONS:
 		g_value_set_boxed (value, priv->options);
-        break;
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -795,11 +799,11 @@ nm_setting_bond_class_init (NMSettingBondClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_INTERFACE_NAME,
-		 g_param_spec_string (NM_SETTING_BOND_INTERFACE_NAME,
-		                      "InterfaceName",
-		                      "The name of the virtual in-kernel bonding network interface",
+		 g_param_spec_string (NM_SETTING_BOND_INTERFACE_NAME, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBond:options:
@@ -810,12 +814,9 @@ nm_setting_bond_class_init (NMSettingBondClass *setting_class)
 	 **/
 	 g_object_class_install_property
 		 (object_class, PROP_OPTIONS,
-		 _nm_param_spec_specialized (NM_SETTING_BOND_OPTIONS,
-		                             "Options",
-		                             "Dictionary of key/value pairs of bonding "
-		                             "options.  Both keys and values must be "
-		                             "strings.  Option names must contain only "
-		                             "alphanumeric characters (ie, [a-zA-Z0-9]).",
+		 _nm_param_spec_specialized (NM_SETTING_BOND_OPTIONS, "", "",
 		                             DBUS_TYPE_G_MAP_OF_STRING,
-		                             G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_INFERRABLE |
+		                             G_PARAM_STATIC_STRINGS));
 }

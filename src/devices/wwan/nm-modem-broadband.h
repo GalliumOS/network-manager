@@ -18,10 +18,9 @@
  * Copyright (C) 2012 - Aleksander Morgado <aleksander@gnu.org>
  */
 
-#ifndef NM_MODEM_BROADBAND_H
-#define NM_MODEM_BROADBAND_H
+#ifndef __NETWORKMANAGER_MODEM_BROADBAND_H__
+#define __NETWORKMANAGER_MODEM_BROADBAND_H__
 
-#include <dbus/dbus-glib.h>
 #include <glib-object.h>
 #include "nm-modem.h"
 
@@ -55,4 +54,4 @@ NMModem *nm_modem_broadband_new (GObject *object, GError **error);
 
 G_END_DECLS
 
-#endif /* NM_MODEM_BROADBAND_H */
+#endif /* __NETWORKMANAGER_MODEM_BROADBAND_H__ */

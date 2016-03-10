@@ -106,7 +106,8 @@
         If TRUE, indicates the device is allowed to autoconnect.  If FALSE,
         manual intervention is required before the device will automatically
         connect to a known network, such as activating a connection using the
-        device, or setting this property to TRUE.
+        device, or setting this property to TRUE.  This property cannot be
+        set to TRUE for default-unmanaged devices, since they never autoconnect.
       </tp:docstring>
     </property>
     <property name="FirmwareMissing" type="b" access="read">
@@ -144,6 +145,15 @@
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
       <tp:docstring>
         Disconnects a device and prevents the device from automatically activating further connections without user intervention.
+      </tp:docstring>
+    </method>
+
+    <method name="Delete">
+      <annotation name="org.freedesktop.DBus.GLib.CSymbol" value="impl_device_delete"/>
+      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
+      <tp:docstring>
+        Deletes a software device from NetworkManager and removes the interface from the system.
+        The method returns an error when called for a hardware device.
       </tp:docstring>
     </method>
 
@@ -625,6 +635,21 @@
       <tp:enumvalue suffix="SIM_PIN_INCORRECT" value="59">
         <tp:docstring>
           The SIM PIN was incorrect.
+        </tp:docstring>
+      </tp:enumvalue>
+      <tp:enumvalue suffix="NEW_ACTIVATION" value="60">
+        <tp:docstring>
+          A new connection activation was enqueued.
+        </tp:docstring>
+      </tp:enumvalue>
+      <tp:enumvalue suffix="PARENT_CHANGED" value="61">
+        <tp:docstring>
+          The device's parent changed.
+        </tp:docstring>
+      </tp:enumvalue>
+      <tp:enumvalue suffix="PARENT_MANAGED_CHANGED" value="62">
+        <tp:docstring>
+          The device parent's management changed.
         </tp:docstring>
       </tp:enumvalue>
     </tp:enum>

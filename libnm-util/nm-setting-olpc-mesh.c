@@ -1,10 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
- * Sjoerd Simons <sjoerd.simons@collabora.co.uk>
- * Daniel Drake <dsd@laptop.org>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -20,15 +15,17 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2013 Red Hat, Inc.
- * (C) Copyright 2007 - 2008 Novell, Inc.
- * (C) Copyright 2009 One Laptop per Child
+ * Copyright 2007 - 2013 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2009 One Laptop per Child
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <netinet/ether.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "NetworkManager.h"
 #include "nm-setting-olpc-mesh.h"
@@ -175,7 +172,7 @@ finalize (GObject *object)
 
 static void
 set_property (GObject *object, guint prop_id,
-		    const GValue *value, GParamSpec *pspec)
+              const GValue *value, GParamSpec *pspec)
 {
 	NMSettingOlpcMeshPrivate *priv = NM_SETTING_OLPC_MESH_GET_PRIVATE (object);
 
@@ -201,7 +198,7 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-		    GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMSettingOlpcMesh *setting = NM_SETTING_OLPC_MESH (object);
 
@@ -243,11 +240,11 @@ nm_setting_olpc_mesh_class_init (NMSettingOlpcMeshClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SSID,
-		 _nm_param_spec_specialized (NM_SETTING_OLPC_MESH_SSID,
-		                             "SSID",
-		                             "SSID of the mesh network to join.",
+		 _nm_param_spec_specialized (NM_SETTING_OLPC_MESH_SSID, "", "",
 		                             DBUS_TYPE_G_UCHAR_ARRAY,
-		                             G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_INFERRABLE |
+		                             G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingOlpcMesh:channel:
@@ -256,11 +253,12 @@ nm_setting_olpc_mesh_class_init (NMSettingOlpcMeshClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CHANNEL,
-		 g_param_spec_uint (NM_SETTING_OLPC_MESH_CHANNEL,
-		                    "Channel",
-		                    "Channel on which the mesh network to join is located.",
+		 g_param_spec_uint (NM_SETTING_OLPC_MESH_CHANNEL, "", "",
 		                    0, G_MAXUINT32, 0,
-		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingOlpcMesh:dhcp-anycast-address:
@@ -271,13 +269,8 @@ nm_setting_olpc_mesh_class_init (NMSettingOlpcMeshClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DHCP_ANYCAST_ADDRESS,
-		 _nm_param_spec_specialized (NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS,
-		                             "Anycast DHCP MAC address",
-		                             "Anycast DHCP MAC address used when "
-		                             "requesting an IP address via DHCP.  The "
-		                             "specific anycast address used determines "
-		                             "which DHCP server class answers the "
-		                             "the request.",
+		 _nm_param_spec_specialized (NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS, "", "",
 		                             DBUS_TYPE_G_UCHAR_ARRAY,
-		                             G_PARAM_READWRITE));
+		                             G_PARAM_READWRITE |
+		                             G_PARAM_STATIC_STRINGS));
 }

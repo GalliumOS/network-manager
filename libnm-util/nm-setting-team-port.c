@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * Copyright (C) 2013 Jiri Pirko <jiri@resnulli.us>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -16,13 +14,17 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
+ *
+ * Copyright 2013 Jiri Pirko <jiri@resnulli.us>
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-team-port.h"
 #include "nm-utils.h"
@@ -128,6 +130,7 @@ set_property (GObject *object, guint prop_id,
 
 	switch (prop_id) {
 	case PROP_CONFIG:
+		g_free (priv->config);
 		priv->config = g_value_dup_string (value);
 		break;
 	default:
@@ -153,6 +156,16 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
+finalize (GObject *object)
+{
+	NMSettingTeamPortPrivate *priv = NM_SETTING_TEAM_PORT_GET_PRIVATE (object);
+
+	g_free (priv->config);
+
+	G_OBJECT_CLASS (nm_setting_team_port_parent_class)->finalize (object);
+}
+
+static void
 nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
@@ -163,6 +176,7 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 	/* virtual methods */
 	object_class->set_property = set_property;
 	object_class->get_property = get_property;
+	object_class->finalize = finalize;
 	parent_class->verify       = verify;
 
 	/* Properties */
@@ -176,13 +190,9 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CONFIG,
-		 g_param_spec_string (NM_SETTING_TEAM_PORT_CONFIG,
-		                      "Config",
-		                      "JSON configuration for the team port. "
-		                      "The property should contain raw JSON configuration data "
-		                      "suitable for teamd, because the value is passed directly to "
-		                      "teamd. If not specified, the dafault configuration is used. "
-		                      "See man teamd.conf for the format details.",
+		 g_param_spec_string (NM_SETTING_TEAM_PORT_CONFIG, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 }

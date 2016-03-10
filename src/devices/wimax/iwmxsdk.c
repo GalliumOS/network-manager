@@ -19,24 +19,22 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <linux/if.h>
 
 #include <glib.h>
 
-#include <WiMaxType.h>
+#include "nm-wimax-util.h"
+
 #include <WiMaxAPI.h>
 #include <WiMaxAPIEx.h>
 
-#include "logging/nm-logging.h"
+#include "nm-logging.h"
 #include "iwmxsdk.h"
 
 static WIMAX_API_DEVICE_ID g_api;

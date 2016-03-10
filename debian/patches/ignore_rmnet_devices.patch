@@ -1,16 +1,16 @@
 From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
 Subject: Ignore rmnet_usbX devices.
 ---
- src/nm-manager.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ src/nm-manager.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Index: network-manager-0.9.10.0/src/nm-manager.c
+Index: b/src/nm-manager.c
 ===================================================================
---- network-manager-0.9.10.0.orig/src/nm-manager.c
-+++ network-manager-0.9.10.0/src/nm-manager.c
-@@ -2054,6 +2054,12 @@ platform_link_added (NMManager *self,
- 	if (!strncmp (plink->name, "bnep", STRLEN ("bnep")))
- 		return;
+--- a/src/nm-manager.c
++++ b/src/nm-manager.c
+@@ -1943,6 +1943,12 @@ platform_link_added (NMManager *self,
+ 		}
+ 	}
  
 +	/* Ignore rmnet_usb devices, which will be handled by their modem parent
 +	 */
@@ -19,5 +19,5 @@ Index: network-manager-0.9.10.0/src/nm-manager.c
 +		return;
 +
  	if (device == NULL) {
- 		int parent_ifindex = -1;
- 		NMDevice *parent;
+ 		switch (plink->type) {
+ 		case NM_LINK_TYPE_WWAN_ETHERNET:

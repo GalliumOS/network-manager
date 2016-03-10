@@ -1,0 +1,138 @@
+From 6fdfb03107138e96e641d12a7c4df5ecfacb5406 Mon Sep 17 00:00:00 2001
+From: Dan Williams <dcbw@redhat.com>
+Date: Wed, 18 Feb 2015 10:45:07 -0600
+Subject: Revert "ppp-manager: don't use kernel pppoe (rh #1034860, rh
+ #1061641)"
+
+We switched to user-mode PPPoE client to work around a bug in kernel
+PPPoE code that caused pppd not to be notified when the connection was
+terminated with a PADT before the LCP Termination Request.
+
+The kernel bug has now been fixed upstream with commit 287f3a943fef
+"pppoe: Use workqueue to die properly when a PADT is received", queued
+for v4.1.
+
+Since the issue affected only very particular scenarios and could
+somehow be solved with the right configuration (see bugzilla entry),
+we can safely revert the patch and restore the use of kernel mode
+PPPoE.
+
+This reverts commit 7955806a02db64b20079267743056d7d9d45af3b.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=742939
+
+Origin: upstream, http://cgit.freedesktop.org/NetworkManager/NetworkManager/commit/?id=6fdfb03107138e96e641d12a7c4df5ecfacb5406
+Bug: https://bugzilla.gnome.org/show_bug.cgi?id=742939
+Bug-Debian: https://bugs.debian.org/783525
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1446689
+Last-Update: 2015-10-14
+
+---
+ configure.ac                     |    9 -------
+ src/ppp-manager/nm-ppp-manager.c |   45 ++++++++++-----------------------------
+ 2 files changed, 12 insertions(+), 42 deletions(-)
+
+Index: b/configure.ac
+===================================================================
+--- a/configure.ac
++++ b/configure.ac
+@@ -633,15 +633,6 @@ fi
+ AC_DEFINE_UNQUOTED(PPPD_PATH, "$PPPD_PATH", [Define to path of pppd binary])
+ AC_SUBST(PPPD_PATH)
+ 
+-AC_ARG_WITH(pppoe, AS_HELP_STRING([--with-pppoe=/path/to/pppoe], [path to pppoe binary]))
+-if test "x${with_pppoe}" = x; then
+-  AC_PATH_PROG(PPPOE_PATH, pppoe, [], $PATH:/sbin:/usr/sbin)
+-else
+-  PPPOE_PATH="$with_pppoe"
+-fi
+-AC_DEFINE_UNQUOTED(PPPOE_PATH, "$PPPOE_PATH", [Define to path of pppoe binary])
+-AC_SUBST(PPPOE_PATH)
+-
+ # ModemManager1 with libmm-glib
+ AC_ARG_WITH(modem-manager-1, AS_HELP_STRING([--with-modem-manager-1], [Enable new ModemManager1 interface support]),,[with_modem_manager_1=auto])
+ if (test "${with_modem_manager_1}" != "no"); then
+Index: b/src/ppp-manager/nm-ppp-manager.c
+===================================================================
+--- a/src/ppp-manager/nm-ppp-manager.c
++++ b/src/ppp-manager/nm-ppp-manager.c
+@@ -854,7 +854,7 @@ create_pppd_cmd_line (NMPPPManager *self
+                       GError **err)
+ {
+ 	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE (self);
+-	const char *pppd_binary = NULL, *pppoe_binary = NULL;
++	const char *pppd_binary = NULL;
+ 	NMCmdLine *cmd;
+ 	gboolean ppp_debug;
+ 
+@@ -864,13 +864,6 @@ create_pppd_cmd_line (NMPPPManager *self
+ 	if (!pppd_binary)
+ 		return NULL;
+ 
+-	if (   pppoe
+-	    || (adsl && strcmp (nm_setting_adsl_get_protocol (adsl), NM_SETTING_ADSL_PROTOCOL_PPPOE))) {
+-		pppoe_binary = nm_utils_find_helper ("pppoe", NULL, err);
+-		if (!pppoe_binary)
+-			return NULL;
+-	}
+-
+ 	/* Create pppd command line */
+ 	cmd = nm_cmd_line_new ();
+ 	nm_cmd_line_add_string (cmd, pppd_binary);
+@@ -898,30 +891,21 @@ create_pppd_cmd_line (NMPPPManager *self
+ 	}
+ 
+ 	if (pppoe) {
+-		GString *pppoe_arg;
++		char *dev_str;
+ 		const char *pppoe_service;
+-		char *quoted;
+ 
+-		g_assert (pppoe_binary != NULL);
+-		pppoe_arg = g_string_new (pppoe_binary);
++		nm_cmd_line_add_string (cmd, "plugin");
++		nm_cmd_line_add_string (cmd, "rp-pppoe.so");
+ 
+-		g_string_append (pppoe_arg, " -I ");
+-		quoted = g_shell_quote (priv->parent_iface);
+-		g_string_append (pppoe_arg, quoted);
+-		g_free (quoted);
++		dev_str = g_strdup_printf ("nic-%s", priv->parent_iface);
++		nm_cmd_line_add_string (cmd, dev_str);
++		g_free (dev_str);
+ 
+ 		pppoe_service = nm_setting_pppoe_get_service (pppoe);
+ 		if (pppoe_service) {
+-			g_string_append (pppoe_arg, " -S ");
+-			quoted = g_shell_quote (pppoe_service);
+-			g_string_append (pppoe_arg, quoted);
+-			g_free (quoted);
++			nm_cmd_line_add_string (cmd, "rp_pppoe_service");
++			nm_cmd_line_add_string (cmd, pppoe_service);
+ 		}
+-
+-		nm_cmd_line_add_string (cmd, "pty");
+-		nm_cmd_line_add_string (cmd, pppoe_arg->str);
+-
+-		g_string_free (pppoe_arg, TRUE);
+ 	} else if (adsl) {
+ 		const gchar *protocol = nm_setting_adsl_get_protocol (adsl);
+ 
+@@ -944,14 +928,9 @@ create_pppd_cmd_line (NMPPPManager *self
+ 				nm_cmd_line_add_string (cmd, "vc-encaps");
+ 
+ 		} else if (!strcmp (protocol, NM_SETTING_ADSL_PROTOCOL_PPPOE)) {
+-			char *pppoe_arg;
+-
+-			g_assert (pppoe_binary != NULL);
+-
+-			pppoe_arg = g_strdup_printf ("%s -I %s", pppoe_binary, priv->parent_iface);
+-			nm_cmd_line_add_string (cmd, "pty");
+-			nm_cmd_line_add_string (cmd, pppoe_arg);
+-			g_free (pppoe_arg);
++			nm_cmd_line_add_string (cmd, "plugin");
++			nm_cmd_line_add_string (cmd, "rp-pppoe.so");
++			nm_cmd_line_add_string (cmd, priv->parent_iface);
+ 		}
+ 
+ 		nm_cmd_line_add_string (cmd, "noipdefault");

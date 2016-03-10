@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,9 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2011 Novell, Inc.
- * Copyright (C) 2008 Red Hat, Inc.
+ * Copyright 2007 - 2011 Novell, Inc.
+ * Copyright 2008 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 
@@ -240,11 +240,10 @@ nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_GATEWAY,
-	     g_param_spec_string (NM_IP4_CONFIG_GATEWAY,
-	                          "Gateway",
-	                          "Gateway",
+	     g_param_spec_string (NM_IP4_CONFIG_GATEWAY, "", "",
 	                          NULL,
-	                          G_PARAM_READABLE));
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP4Config:addresses:
@@ -253,10 +252,9 @@ nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_ADDRESSES,
-	     g_param_spec_pointer (NM_IP4_CONFIG_ADDRESSES,
-	                           "Addresses",
-	                           "Addresses",
-	                           G_PARAM_READABLE));
+	     g_param_spec_pointer (NM_IP4_CONFIG_ADDRESSES, "", "",
+	                           G_PARAM_READABLE |
+	                           G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP4Config:routes:
@@ -265,10 +263,9 @@ nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_ROUTES,
-	     g_param_spec_pointer (NM_IP4_CONFIG_ROUTES,
-	                           "Routes",
-	                           "Routes",
-	                           G_PARAM_READABLE));
+	     g_param_spec_pointer (NM_IP4_CONFIG_ROUTES, "", "",
+	                           G_PARAM_READABLE |
+	                           G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP4Config:nameservers:
@@ -277,11 +274,10 @@ nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_NAMESERVERS,
-	     g_param_spec_boxed (NM_IP4_CONFIG_NAMESERVERS,
-	                         "Nameservers",
-	                         "Nameservers",
+	     g_param_spec_boxed (NM_IP4_CONFIG_NAMESERVERS, "", "",
 	                         NM_TYPE_UINT_ARRAY,
-	                         G_PARAM_READABLE));
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP4Config:domains:
@@ -290,11 +286,10 @@ nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_DOMAINS,
-	     g_param_spec_boxed (NM_IP4_CONFIG_DOMAINS,
-	                         "Domains",
-	                         "Domains",
+	     g_param_spec_boxed (NM_IP4_CONFIG_DOMAINS, "", "",
 	                         NM_TYPE_STRING_ARRAY,
-	                         G_PARAM_READABLE));
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP4Config:searches:
@@ -305,11 +300,10 @@ nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_SEARCHES,
-	     g_param_spec_boxed (NM_IP4_CONFIG_SEARCHES,
-	                         "Searches",
-	                         "DNS searches",
+	     g_param_spec_boxed (NM_IP4_CONFIG_SEARCHES, "", "",
 	                         NM_TYPE_STRING_ARRAY,
-	                         G_PARAM_READABLE));
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP4Config:wins-servers:
@@ -318,11 +312,10 @@ nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_WINS_SERVERS,
-	     g_param_spec_boxed (NM_IP4_CONFIG_WINS_SERVERS,
-	                         "WINS Servers",
-	                         "WINS Servers",
+	     g_param_spec_boxed (NM_IP4_CONFIG_WINS_SERVERS, "", "",
 	                         NM_TYPE_UINT_ARRAY,
-	                         G_PARAM_READABLE));
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 }
 
 /**
@@ -368,7 +361,7 @@ nm_ip4_config_get_gateway (NMIP4Config *config)
  *
  * Gets the IP4 addresses (containing the address, prefix, and gateway).
  *
- * Returns: (element-type NetworkManager.IP4Address): the #GSList containing #NMIP4Address<!-- -->es.
+ * Returns: (element-type NMIP4Address): the #GSList containing #NMIP4Address<!-- -->es.
  * This is the internal copy used by the configuration and must not be modified.
  **/
 const GSList *
@@ -405,7 +398,7 @@ nm_ip4_config_get_nameservers (NMIP4Config *config)
  *
  * Gets the domain names.
  *
- * Returns: (element-type utf8): the #GPtrArray containing domains as strings. This is the 
+ * Returns: (element-type utf8): the #GPtrArray containing domains as strings. This is the
  * internal copy used by the configuration, and must not be modified.
  **/
 const GPtrArray *
@@ -462,7 +455,7 @@ nm_ip4_config_get_wins_servers (NMIP4Config *config)
  *
  * Gets the routes.
  *
- * Returns: (element-type NetworkManager.IP4Route): the #GSList containing
+ * Returns: (element-type NMIP4Route): the #GSList containing
  * #NMIP4Routes. This is the internal copy used by the configuration,
  * and must not be modified.
  **/
@@ -474,4 +467,3 @@ nm_ip4_config_get_routes (NMIP4Config *config)
 	_nm_object_ensure_inited (NM_OBJECT (config));
 	return NM_IP4_CONFIG_GET_PRIVATE (config)->routes;
 }
-

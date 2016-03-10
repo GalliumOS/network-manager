@@ -1,8 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Dan Williams <dcbw@redhat.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -18,14 +16,16 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2012 - 2013 Red Hat, Inc.
+ * Copyright 2012 - 2013 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-bridge-port.h"
 #include "nm-utils.h"
@@ -264,11 +264,12 @@ nm_setting_bridge_port_class_init (NMSettingBridgePortClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PRIORITY,
-		 g_param_spec_uint (NM_SETTING_BRIDGE_PORT_PRIORITY,
-		                    "Priority",
-		                    "The Spanning Tree Protocol (STP) priority of this bridge port",
+		 g_param_spec_uint (NM_SETTING_BRIDGE_PORT_PRIORITY, "", "",
 		                    0, BR_MAX_PORT_PRIORITY, BR_DEF_PRIORITY,
-		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridgePort:path-cost:
@@ -278,14 +279,14 @@ nm_setting_bridge_port_class_init (NMSettingBridgePortClass *setting_class)
 	 *
 	 * Since: 0.9.8
 	 **/
-	 g_object_class_install_property
-		 (object_class, PROP_PATH_COST,
-		 g_param_spec_uint (NM_SETTING_BRIDGE_PORT_PATH_COST,
-		                    "Path Cost",
-		                    "The Spanning Tree Protocol (STP) port cost for "
-		                    "destinations via this port.",
+	g_object_class_install_property
+		(object_class, PROP_PATH_COST,
+		 g_param_spec_uint (NM_SETTING_BRIDGE_PORT_PATH_COST, "", "",
 		                    0, BR_MAX_PATH_COST, 100,
-		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridgePort:hairpin-mode:
@@ -295,13 +296,11 @@ nm_setting_bridge_port_class_init (NMSettingBridgePortClass *setting_class)
 	 *
 	 * Since: 0.9.8
 	 **/
-	 g_object_class_install_property
-		 (object_class, PROP_HAIRPIN_MODE,
-		 g_param_spec_boolean (NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE,
-		                       "Hairpin Mode",
-		                       "Enables or disabled 'hairpin mode' for the "
-		                       "port, which allows frames to be sent back out "
-		                       "through the port the frame was received on.",
+	g_object_class_install_property
+		(object_class, PROP_HAIRPIN_MODE,
+		 g_param_spec_boolean (NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE, "", "",
 		                       FALSE,
-		                       G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                       G_PARAM_READWRITE |
+		                       NM_SETTING_PARAM_INFERRABLE |
+		                       G_PARAM_STATIC_STRINGS));
 }

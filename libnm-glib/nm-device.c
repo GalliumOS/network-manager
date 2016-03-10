@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,13 +15,15 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2012 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2012 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 #include <gudev/gudev.h>
 
 #include "NetworkManager.h"
@@ -346,9 +346,9 @@ constructed (GObject *object)
 	register_properties (NM_DEVICE (object));
 
 	dbus_g_object_register_marshaller (g_cclosure_marshal_generic,
-									   G_TYPE_NONE,
-									   G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT,
-									   G_TYPE_INVALID);
+	                                   G_TYPE_NONE,
+	                                   G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT,
+	                                   G_TYPE_INVALID);
 
 	dbus_g_proxy_add_signal (priv->proxy,
 	                         "StateChanged",
@@ -356,9 +356,9 @@ constructed (GObject *object)
 	                         G_TYPE_INVALID);
 
 	dbus_g_proxy_connect_signal (priv->proxy, "StateChanged",
-								 G_CALLBACK (device_state_changed),
-								 NM_DEVICE (object),
-								 NULL);
+	                             G_CALLBACK (device_state_changed),
+	                             NM_DEVICE (object),
+	                             NULL);
 }
 
 static void
@@ -552,11 +552,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_INTERFACE,
-		 g_param_spec_string (NM_DEVICE_INTERFACE,
-						  "Interface",
-						  "Interface name",
-						  NULL,
-						  G_PARAM_READABLE));
+		 g_param_spec_string (NM_DEVICE_INTERFACE, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:ip-interface:
@@ -566,11 +565,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_IP_INTERFACE,
-		 g_param_spec_string (NM_DEVICE_IP_INTERFACE,
-						  "IP Interface",
-						  "IP Interface name",
-						  NULL,
-						  G_PARAM_READABLE));
+		 g_param_spec_string (NM_DEVICE_IP_INTERFACE, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:device-type:
@@ -579,11 +577,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DEVICE_TYPE,
-		 g_param_spec_uint (NM_DEVICE_DEVICE_TYPE,
-						  "Device Type",
-						  "Numeric device type (ie Ethernet, Wi-Fi, etc)",
-						  NM_DEVICE_TYPE_UNKNOWN, G_MAXUINT32, NM_DEVICE_TYPE_UNKNOWN,
-						  G_PARAM_READABLE));
+		 g_param_spec_uint (NM_DEVICE_DEVICE_TYPE, "", "",
+		                    NM_DEVICE_TYPE_UNKNOWN, G_MAXUINT32, NM_DEVICE_TYPE_UNKNOWN,
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 	/**
 	 * NMDevice:udi:
 	 *
@@ -596,11 +593,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_UDI,
-		 g_param_spec_string (NM_DEVICE_UDI,
-						  "UDI",
-						  "Unique Device Identifier",
-						  NULL,
-						  G_PARAM_READABLE));
+		 g_param_spec_string (NM_DEVICE_UDI, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:driver:
@@ -609,11 +605,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DRIVER,
-		 g_param_spec_string (NM_DEVICE_DRIVER,
-						  "Driver",
-						  "Driver",
-						  NULL,
-						  G_PARAM_READABLE));
+		 g_param_spec_string (NM_DEVICE_DRIVER, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:driver-version:
@@ -622,11 +617,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DRIVER_VERSION,
-		 g_param_spec_string (NM_DEVICE_DRIVER_VERSION,
-		                      "Driver Version",
-		                      "Driver Version",
+		 g_param_spec_string (NM_DEVICE_DRIVER_VERSION, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:firmware-version:
@@ -635,11 +629,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_FIRMWARE_VERSION,
-		 g_param_spec_string (NM_DEVICE_FIRMWARE_VERSION,
-		                      "Firmware Version",
-		                      "Firmware Version",
+		 g_param_spec_string (NM_DEVICE_FIRMWARE_VERSION, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:capabilities:
@@ -648,11 +641,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CAPABILITIES,
-		 g_param_spec_uint (NM_DEVICE_CAPABILITIES,
-						  "Capabilities",
-						  "Capabilities",
-						  0, G_MAXUINT32, 0,
-						  G_PARAM_READABLE));
+		 g_param_spec_uint (NM_DEVICE_CAPABILITIES, "", "",
+		                    0, G_MAXUINT32, 0,
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:managed:
@@ -661,11 +653,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_MANAGED,
-		 g_param_spec_boolean (NM_DEVICE_MANAGED,
-						  "Managed",
-						  "Managed",
-						  FALSE,
-						  G_PARAM_READABLE));
+		 g_param_spec_boolean (NM_DEVICE_MANAGED, "", "",
+		                       FALSE,
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:autoconnect:
@@ -674,11 +665,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_AUTOCONNECT,
-		 g_param_spec_boolean (NM_DEVICE_AUTOCONNECT,
-		                       "Autoconnect",
-		                       "Autoconnect",
+		 g_param_spec_boolean (NM_DEVICE_AUTOCONNECT, "", "",
 		                       TRUE,
-		                       G_PARAM_READWRITE));
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:firmware-missing:
@@ -688,11 +678,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_FIRMWARE_MISSING,
-		 g_param_spec_boolean (NM_DEVICE_FIRMWARE_MISSING,
-						  "FirmwareMissing",
-						  "Firmware missing",
-						  FALSE,
-						  G_PARAM_READABLE));
+		 g_param_spec_boolean (NM_DEVICE_FIRMWARE_MISSING, "", "",
+		                       FALSE,
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:ip4-config:
@@ -701,11 +690,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_IP4_CONFIG,
-		 g_param_spec_object (NM_DEVICE_IP4_CONFIG,
-						  "IP4 Config",
-						  "IP4 Config",
-						  NM_TYPE_IP4_CONFIG,
-						  G_PARAM_READABLE));
+		 g_param_spec_object (NM_DEVICE_IP4_CONFIG, "", "",
+		                      NM_TYPE_IP4_CONFIG,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:dhcp4-config:
@@ -714,11 +702,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DHCP4_CONFIG,
-		 g_param_spec_object (NM_DEVICE_DHCP4_CONFIG,
-						  "DHCP4 Config",
-						  "DHCP4 Config",
-						  NM_TYPE_DHCP4_CONFIG,
-						  G_PARAM_READABLE));
+		 g_param_spec_object (NM_DEVICE_DHCP4_CONFIG, "", "",
+		                      NM_TYPE_DHCP4_CONFIG,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:ip6-config:
@@ -727,11 +714,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_IP6_CONFIG,
-		 g_param_spec_object (NM_DEVICE_IP6_CONFIG,
-		                      "IP6 Config",
-		                      "IP6 Config",
+		 g_param_spec_object (NM_DEVICE_IP6_CONFIG, "", "",
 		                      NM_TYPE_IP6_CONFIG,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:dhcp6-config:
@@ -740,11 +726,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DHCP6_CONFIG,
-		 g_param_spec_object (NM_DEVICE_DHCP6_CONFIG,
-						  "DHCP6 Config",
-						  "DHCP6 Config",
-						  NM_TYPE_DHCP6_CONFIG,
-						  G_PARAM_READABLE));
+		 g_param_spec_object (NM_DEVICE_DHCP6_CONFIG, "", "",
+		                      NM_TYPE_DHCP6_CONFIG,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:state:
@@ -753,11 +738,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_STATE,
-		 g_param_spec_uint (NM_DEVICE_STATE,
-						  "State",
-						  "State",
-						  0, G_MAXUINT32, 0,
-						  G_PARAM_READABLE));
+		 g_param_spec_uint (NM_DEVICE_STATE, "", "",
+		                    0, G_MAXUINT32, 0,
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:state-reason:
@@ -766,11 +750,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_STATE_REASON,
-		 g_param_spec_boxed (NM_DEVICE_STATE_REASON,
-		                     "StateReason",
-		                     "StateReason",
+		 g_param_spec_boxed (NM_DEVICE_STATE_REASON, "", "",
 		                     DBUS_G_TYPE_UINT_STRUCT,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:active-connection:
@@ -779,11 +762,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ACTIVE_CONNECTION,
-		 g_param_spec_object (NM_DEVICE_ACTIVE_CONNECTION,
-		                      "ActiveConnection",
-		                      "Active Connection",
+		 g_param_spec_object (NM_DEVICE_ACTIVE_CONNECTION, "", "",
 		                      NM_TYPE_ACTIVE_CONNECTION,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:available-connections:
@@ -794,11 +776,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_AVAILABLE_CONNECTIONS,
-		 g_param_spec_boxed (NM_DEVICE_AVAILABLE_CONNECTIONS,
-							 "AvailableConnections",
-							 "Available Connections",
-							 NM_TYPE_OBJECT_ARRAY,
-							 G_PARAM_READABLE));
+		 g_param_spec_boxed (NM_DEVICE_AVAILABLE_CONNECTIONS, "", "",
+		                     NM_TYPE_OBJECT_ARRAY,
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:vendor:
@@ -807,11 +788,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_VENDOR,
-		 g_param_spec_string (NM_DEVICE_VENDOR,
-						  "Vendor",
-						  "Vendor string",
-						  NULL,
-						  G_PARAM_READABLE));
+		 g_param_spec_string (NM_DEVICE_VENDOR, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:product:
@@ -820,11 +800,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PRODUCT,
-		 g_param_spec_string (NM_DEVICE_PRODUCT,
-						  "Product",
-						  "Product string",
-						  NULL,
-						  G_PARAM_READABLE));
+		 g_param_spec_string (NM_DEVICE_PRODUCT, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:physical-port-id:
@@ -836,11 +815,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PHYSICAL_PORT_ID,
-		 g_param_spec_string (NM_DEVICE_PHYSICAL_PORT_ID,
-		                      "Physical Port ID",
-		                      "Physical port ID",
+		 g_param_spec_string (NM_DEVICE_PHYSICAL_PORT_ID, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDevice:mtu:
@@ -851,11 +829,10 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_MTU,
-		 g_param_spec_uint (NM_DEVICE_MTU,
-		                    "MTU",
-		                    "MTU",
+		 g_param_spec_uint (NM_DEVICE_MTU, "", "",
 		                    0, G_MAXUINT32, 1500,
-		                    G_PARAM_READABLE));
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/* signals */
 
@@ -870,12 +847,12 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 **/
 	signals[STATE_CHANGED] =
 		g_signal_new ("state-changed",
-				    G_OBJECT_CLASS_TYPE (object_class),
-				    G_SIGNAL_RUN_FIRST,
-				    G_STRUCT_OFFSET (NMDeviceClass, state_changed),
-				    NULL, NULL, NULL,
-				    G_TYPE_NONE, 3,
-				    G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
+		              G_OBJECT_CLASS_TYPE (object_class),
+		              G_SIGNAL_RUN_FIRST,
+		              G_STRUCT_OFFSET (NMDeviceClass, state_changed),
+		              NULL, NULL, NULL,
+		              G_TYPE_NONE, 3,
+		              G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
 }
 
 /**
@@ -1448,7 +1425,7 @@ nm_device_get_active_connection (NMDevice *device)
  * Gets the #NMRemoteConnections currently known to the daemon that could
  * be activated on @device.
  *
- * Returns: (element-type NMClient.RemoteConnection): the #GPtrArray
+ * Returns: (element-type NMRemoteConnection): the #GPtrArray
  * containing #NMRemoteConnections. This is the internal copy used by
  * the connection, and must not be modified.
  *
@@ -1782,8 +1759,7 @@ get_short_vendor (NMDevice *device)
  * nm_device_get_description:
  * @device: an #NMDevice
  *
- * Gets a description of @device, incorporating the results of
- * nm_device_get_short_vendor() and nm_device_get_short_product().
+ * Gets a description of @device, based on its vendor and product names.
  *
  * Returns: a description of @device. If either the vendor or the
  *   product name is unknown, this returns the interface name.
@@ -2090,18 +2066,38 @@ nm_device_get_mtu (NMDevice *device)
 	return NM_DEVICE_GET_PRIVATE (device)->mtu;
 }
 
+/**
+ * nm_device_is_software:
+ * @device: a #NMDevice
+ *
+ * Whether the device is a software device.
+ *
+ * Returns: %TRUE if @device is a software device, %FALSE if it is a hardware device.
+ *
+ * Since: 1.0
+ **/
+gboolean
+nm_device_is_software (NMDevice *device)
+{
+	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
+
+	_nm_object_ensure_inited (NM_OBJECT (device));
+	return !!(NM_DEVICE_GET_PRIVATE (device)->capabilities & NM_DEVICE_CAP_IS_SOFTWARE);
+}
+
 typedef struct {
 	NMDevice *device;
-	NMDeviceDeactivateFn fn;
+	NMDeviceCallbackFn fn;
 	gpointer user_data;
-} DeactivateInfo;
+	const char *method;
+} DeviceCallbackInfo;
 
 static void
-deactivate_cb (DBusGProxy *proxy,
-               DBusGProxyCall *call,
-               gpointer user_data)
+device_operation_cb (DBusGProxy *proxy,
+                     DBusGProxyCall *call,
+                     gpointer user_data)
 {
-	DeactivateInfo *info = user_data;
+	DeviceCallbackInfo *info = user_data;
 	GError *error = NULL;
 
 	dbus_g_proxy_end_call (proxy, call, &error,
@@ -2109,16 +2105,17 @@ deactivate_cb (DBusGProxy *proxy,
 	if (info->fn)
 		info->fn (info->device, error, info->user_data);
 	else if (error) {
-		g_warning ("%s: device %s deactivation failed: (%d) %s",
+		g_warning ("%s: device %s %s failed: (%d) %s",
 		           __func__,
 		           nm_object_get_path (NM_OBJECT (info->device)),
+		           info->method,
 		           error ? error->code : -1,
 		           error && error->message ? error->message : "(unknown)");
 	}
 	g_clear_error (&error);
 
 	g_object_unref (info->device);
-	g_slice_free (DeactivateInfo, info);
+	g_slice_free (DeviceCallbackInfo, info);
 }
 
 /**
@@ -2134,20 +2131,52 @@ deactivate_cb (DBusGProxy *proxy,
  **/
 void
 nm_device_disconnect (NMDevice *device,
-                      NMDeviceDeactivateFn callback,
+                      NMDeviceCallbackFn callback,
                       gpointer user_data)
 {
-	DeactivateInfo *info;
+	DeviceCallbackInfo *info;
 
 	g_return_if_fail (NM_IS_DEVICE (device));
 
-	info = g_slice_new (DeactivateInfo);
+	info = g_slice_new (DeviceCallbackInfo);
 	info->fn = callback;
 	info->user_data = user_data;
+	info->method = "Disconnect";
 	info->device = g_object_ref (device);
 
 	dbus_g_proxy_begin_call (NM_DEVICE_GET_PRIVATE (device)->proxy, "Disconnect",
-	                         deactivate_cb, info, NULL,
+	                         device_operation_cb, info, NULL,
+	                         G_TYPE_INVALID);
+}
+
+/**
+ * nm_device_delete:
+ * @device: a #NMDevice
+ * @callback: (scope async) (allow-none): callback to be called when delete
+ * operation completes
+ * @user_data: (closure): caller-specific data passed to @callback
+ *
+ * Deletes the software device. Hardware devices can't be deleted.
+ *
+ * Since: 1.0
+ **/
+void
+nm_device_delete (NMDevice *device,
+                  NMDeviceCallbackFn callback,
+                  gpointer user_data)
+{
+	DeviceCallbackInfo *info;
+
+	g_return_if_fail (NM_IS_DEVICE (device));
+
+	info = g_slice_new (DeviceCallbackInfo);
+	info->fn = callback;
+	info->user_data = user_data;
+	info->method = "Delete";
+	info->device = g_object_ref (device);
+
+	dbus_g_proxy_begin_call (NM_DEVICE_GET_PRIVATE (device)->proxy, "Delete",
+	                         device_operation_cb, info, NULL,
 	                         G_TYPE_INVALID);
 }
 
@@ -2186,7 +2215,7 @@ connection_compatible (NMDevice *device, NMConnection *connection, GError **erro
 	device_iface = nm_device_get_iface (device);
 	if (config_iface && g_strcmp0 (config_iface, device_iface) != 0) {
 		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_INTERFACE_MISMATCH,
-					 "The interface names of the device and the connection didn't match.");
+		             "The interface names of the device and the connection didn't match.");
 		return FALSE;
 	}
 
@@ -2227,7 +2256,7 @@ nm_device_connection_compatible (NMDevice *device, NMConnection *connection, GEr
 /**
  * nm_device_filter_connections:
  * @device: an #NMDevice to filter connections for
- * @connections: (element-type NetworkManager.Connection): a list of #NMConnection objects to filter
+ * @connections: (element-type NMConnection): a list of #NMConnection objects to filter
  *
  * Filters a given list of connections for a given #NMDevice object and return
  * connections which may be activated with the device. For example if @device
@@ -2238,7 +2267,7 @@ nm_device_connection_compatible (NMDevice *device, NMConnection *connection, GEr
  * incompatible with the device. To get the full list of connections see
  * nm_remote_settings_list_connections().
  *
- * Returns: (transfer container) (element-type NetworkManager.Connection): a
+ * Returns: (transfer container) (element-type NMConnection): a
  * list of #NMConnection objects that could be activated with the given @device.
  * The elements of the list are owned by their creator and should not be freed
  * by the caller, but the returned list itself is owned by the caller and should

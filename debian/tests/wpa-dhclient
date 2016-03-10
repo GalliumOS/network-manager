@@ -19,6 +19,7 @@ SSID = 'fake net'
 
 
 class T(network_test_base.NetworkTestBase):
+    @unittest.expectedFailure
     def test_open_a_ip4(self):
         '''Open network, 802.11a, IPv4'''
 
@@ -28,6 +29,7 @@ class T(network_test_base.NetworkTestBase):
                      None,
                      ['54.0'])
 
+    @unittest.expectedFailure
     def test_open_a_ip6(self):
         '''Open network, 802.11a, IPv6'''
 

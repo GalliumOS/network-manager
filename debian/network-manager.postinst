@@ -46,7 +46,7 @@ case "$1" in
         fi
 
         # enable NM-wait-online on upgrades
-        if dpkg --compare-versions "$2" lt-nl "0.9.10.0-4ubuntu10"; then
+        if dpkg --compare-versions "$2" lt-nl "1.0.4-0ubuntu8"; then
             deb-systemd-helper purge NetworkManager-wait-online.service
         fi
         ;;

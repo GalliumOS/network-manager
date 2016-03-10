@@ -18,13 +18,11 @@
  * Copyright (C) 2011 Intel Corporation. All rights reserved.
  */
 
-#ifndef WIFI_UTILS_NL80211_H
-#define WIFI_UTILS_NL80211_H
+#ifndef __WIFI_UTILS_NL80211_H__
+#define __WIFI_UTILS_NL80211_H__
 
 #include "wifi-utils.h"
 
 WifiData *wifi_nl80211_init (const char *iface, int ifindex);
 
-gboolean wifi_nl80211_is_wifi (const char *iface);
-
-#endif  /* WIFI_UTILS_NL80211_H */
+#endif  /* __WIFI_UTILS_NL80211_H__ */

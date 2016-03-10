@@ -19,6 +19,8 @@
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
 #include <gio/gio.h>
 
@@ -27,36 +29,27 @@
 #include "nm-vpn-connection.h"
 #include "nm-setting-vpn.h"
 #include "nm-dbus-manager.h"
-#include "NetworkManagerVPN.h"
+#include "nm-vpn-dbus-interface.h"
 #include "nm-enum-types.h"
 #include "nm-logging.h"
 
 #define VPN_NAME_FILES_DIR NMCONFDIR "/VPN"
 
-G_DEFINE_TYPE (NMVPNManager, nm_vpn_manager, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NMVpnManager, nm_vpn_manager, G_TYPE_OBJECT)
 
-#define NM_VPN_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_VPN_MANAGER, NMVPNManagerPrivate))
+#define NM_VPN_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_VPN_MANAGER, NMVpnManagerPrivate))
 
 typedef struct {
 	GHashTable *services;
 	GFileMonitor *monitor;
 	guint monitor_id;
-} NMVPNManagerPrivate;
+} NMVpnManagerPrivate;
 
-GQuark
-nm_vpn_manager_error_quark (void)
+
+static NMVpnService *
+get_service_by_namefile (NMVpnManager *self, const char *namefile)
 {
-	static GQuark quark = 0;
-	if (!quark)
-		quark = g_quark_from_static_string ("nm-vpn-manager-error");
-	return quark;
-}
-
-
-static NMVPNService *
-get_service_by_namefile (NMVPNManager *self, const char *namefile)
-{
-	NMVPNManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
+	NMVpnManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
 	GHashTableIter iter;
 	gpointer data;
 
@@ -65,7 +58,7 @@ get_service_by_namefile (NMVPNManager *self, const char *namefile)
 
 	g_hash_table_iter_init (&iter, priv->services);
 	while (g_hash_table_iter_next (&iter, NULL, &data)) {
-		NMVPNService *candidate = NM_VPN_SERVICE (data);
+		NMVpnService *candidate = NM_VPN_SERVICE (data);
 		const char *service_namefile;
 
 		service_namefile = nm_vpn_service_get_name_file (candidate);
@@ -76,13 +69,13 @@ get_service_by_namefile (NMVPNManager *self, const char *namefile)
 }
 
 gboolean
-nm_vpn_manager_activate_connection (NMVPNManager *manager,
-                                    NMVPNConnection *vpn,
+nm_vpn_manager_activate_connection (NMVpnManager *manager,
+                                    NMVpnConnection *vpn,
                                     GError **error)
 {
 	NMConnection *connection;
-	NMSettingVPN *s_vpn;
-	NMVPNService *service;
+	NMSettingVpn *s_vpn;
+	NMVpnService *service;
 	const char *service_name;
 	NMDevice *device;
 
@@ -95,7 +88,7 @@ nm_vpn_manager_activate_connection (NMVPNManager *manager,
 	g_assert (device);
 	if (   nm_device_get_state (device) != NM_DEVICE_STATE_ACTIVATED
 	    && nm_device_get_state (device) != NM_DEVICE_STATE_SECONDARIES) {
-		g_set_error_literal (error, NM_VPN_MANAGER_ERROR, NM_VPN_MANAGER_ERROR_DEVICE_NOT_ACTIVE,
+		g_set_error_literal (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_DEPENDENCY_FAILED,
 		                     "The base device for the VPN connection was not active.");
 		return FALSE;
 	}
@@ -109,7 +102,7 @@ nm_vpn_manager_activate_connection (NMVPNManager *manager,
 	g_assert (service_name);
 	service = g_hash_table_lookup (NM_VPN_MANAGER_GET_PRIVATE (manager)->services, service_name);
 	if (!service) {
-		g_set_error (error, NM_VPN_MANAGER_ERROR, NM_VPN_MANAGER_ERROR_SERVICE_INVALID,
+		g_set_error (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_CONNECTION_NOT_AVAILABLE,
 		             "The VPN service '%s' was not installed.",
 		             service_name);
 		return FALSE;
@@ -119,18 +112,18 @@ nm_vpn_manager_activate_connection (NMVPNManager *manager,
 }
 
 gboolean
-nm_vpn_manager_deactivate_connection (NMVPNManager *self,
-                                      NMVPNConnection *connection,
-                                      NMVPNConnectionStateReason reason)
+nm_vpn_manager_deactivate_connection (NMVpnManager *self,
+                                      NMVpnConnection *connection,
+                                      NMVpnConnectionStateReason reason)
 {
 	return nm_vpn_connection_deactivate (connection, reason, FALSE);
 }
 
 static void
-try_add_service (NMVPNManager *self, const char *namefile)
+try_add_service (NMVpnManager *self, const char *namefile)
 {
-	NMVPNManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
-	NMVPNService *service = NULL;
+	NMVpnManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
+	NMVpnService *service = NULL;
 	GHashTableIter iter;
 	GError *error = NULL;
 	const char *service_name;
@@ -166,9 +159,9 @@ vpn_dir_changed (GFileMonitor *monitor,
                  GFileMonitorEvent event_type,
                  gpointer user_data)
 {
-	NMVPNManager *self = NM_VPN_MANAGER (user_data);
-	NMVPNManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
-	NMVPNService *service;
+	NMVpnManager *self = NM_VPN_MANAGER (user_data);
+	NMVpnManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
+	NMVpnService *service;
 	char *path;
 
 	path = g_file_get_path (file);
@@ -207,10 +200,10 @@ vpn_dir_changed (GFileMonitor *monitor,
 
 /******************************************************************************/
 
-NMVPNManager *
+NMVpnManager *
 nm_vpn_manager_get (void)
 {
-	static NMVPNManager *singleton = NULL;
+	static NMVpnManager *singleton = NULL;
 
 	if (!singleton)
 		singleton = NM_VPN_MANAGER (g_object_new (NM_TYPE_VPN_MANAGER, NULL));
@@ -222,9 +215,9 @@ nm_vpn_manager_get (void)
 }
 
 static void
-nm_vpn_manager_init (NMVPNManager *self)
+nm_vpn_manager_init (NMVpnManager *self)
 {
-	NMVPNManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
+	NMVpnManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
 	GFile *file;
 	GDir *dir;
 	const char *fn;
@@ -258,11 +251,11 @@ nm_vpn_manager_init (NMVPNManager *self)
 }
 
 static void
-stop_all_services (NMVPNManager *self)
+stop_all_services (NMVpnManager *self)
 {
-	NMVPNManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
+	NMVpnManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (self);
 	GHashTableIter iter;
-	NMVPNService *service;
+	NMVpnService *service;
 
 	g_hash_table_iter_init (&iter, priv->services);
 	while (g_hash_table_iter_next (&iter, NULL, (gpointer) &service)) {
@@ -275,7 +268,7 @@ stop_all_services (NMVPNManager *self)
 static void
 dispose (GObject *object)
 {
-	NMVPNManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (object);
+	NMVpnManagerPrivate *priv = NM_VPN_MANAGER_GET_PRIVATE (object);
 
 	if (priv->monitor) {
 		if (priv->monitor_id)
@@ -294,15 +287,13 @@ dispose (GObject *object)
 }
 
 static void
-nm_vpn_manager_class_init (NMVPNManagerClass *manager_class)
+nm_vpn_manager_class_init (NMVpnManagerClass *manager_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (manager_class);
 
-	g_type_class_add_private (manager_class, sizeof (NMVPNManagerPrivate));
+	g_type_class_add_private (manager_class, sizeof (NMVpnManagerPrivate));
 
 	/* virtual methods */
 	object_class->dispose = dispose;
-
-	dbus_g_error_domain_register (NM_VPN_MANAGER_ERROR, NULL, NM_TYPE_VPN_MANAGER_ERROR);
 }
 

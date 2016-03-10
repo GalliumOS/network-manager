@@ -18,8 +18,12 @@
  * Copyright (C) 2006 - 2008 Red Hat, Inc.
  */
 
-#ifndef NM_SUPPLICANT_TYPES_H
-#define NM_SUPPLICANT_TYPES_H
+#ifndef __NETWORKMANAGER_SUPPLICANT_TYPES_H__
+#define __NETWORKMANAGER_SUPPLICANT_TYPES_H__
+
+#define WPAS_DBUS_SERVICE	"fi.w1.wpa_supplicant1"
+#define WPAS_DBUS_PATH		"/fi/w1/wpa_supplicant1"
+#define WPAS_DBUS_INTERFACE	"fi.w1.wpa_supplicant1"
 
 typedef struct _NMSupplicantManager NMSupplicantManager;
 typedef struct _NMSupplicantInterface NMSupplicantInterface;

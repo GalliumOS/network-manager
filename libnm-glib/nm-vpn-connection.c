@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,9 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2012 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2012 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include "nm-vpn-connection.h"
@@ -70,7 +70,7 @@ nm_vpn_connection_new (DBusGConnection *connection, const char *path)
 	g_return_val_if_fail (connection != NULL, NULL);
 	g_return_val_if_fail (path != NULL, NULL);
 
-	return g_object_new (NM_TYPE_VPN_CONNECTION, 
+	return g_object_new (NM_TYPE_VPN_CONNECTION,
 	                     NM_OBJECT_DBUS_CONNECTION, connection,
 	                     NM_OBJECT_DBUS_PATH, path,
 	                     NULL);
@@ -176,10 +176,10 @@ constructed (GObject *object)
 	                                   G_TYPE_INVALID);
 	dbus_g_proxy_add_signal (priv->proxy, "VpnStateChanged", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID);
 	dbus_g_proxy_connect_signal (priv->proxy,
-						    "VpnStateChanged",
-						    G_CALLBACK (vpn_state_changed_proxy),
-						    object,
-						    NULL);
+	                             "VpnStateChanged",
+	                             G_CALLBACK (vpn_state_changed_proxy),
+	                             object,
+	                             NULL);
 
 	register_properties (NM_VPN_CONNECTION (object));
 }
@@ -237,34 +237,34 @@ nm_vpn_connection_class_init (NMVPNConnectionClass *connection_class)
 	 *
 	 * The VPN state of the active VPN connection.
 	 **/
-	g_object_class_install_property (object_class, PROP_VPN_STATE,
-	                                 g_param_spec_uint (NM_VPN_CONNECTION_VPN_STATE,
-	                                                    "VpnState",
-	                                                    "Current VPN state",
-	                                                    NM_VPN_CONNECTION_STATE_UNKNOWN,
-	                                                    NM_VPN_CONNECTION_STATE_DISCONNECTED,
-	                                                    NM_VPN_CONNECTION_STATE_UNKNOWN,
-	                                                    G_PARAM_READABLE));
+	g_object_class_install_property
+		(object_class, PROP_VPN_STATE,
+		 g_param_spec_uint (NM_VPN_CONNECTION_VPN_STATE, "", "",
+		                    NM_VPN_CONNECTION_STATE_UNKNOWN,
+		                    NM_VPN_CONNECTION_STATE_DISCONNECTED,
+		                    NM_VPN_CONNECTION_STATE_UNKNOWN,
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMVPNConnection:banner:
 	 *
 	 * The VPN login banner of the active VPN connection.
 	 **/
-	g_object_class_install_property (object_class, PROP_BANNER,
-	                                 g_param_spec_string (NM_VPN_CONNECTION_BANNER,
-	                                                      "Banner",
-	                                                      "Login Banner",
-	                                                      NULL,
-	                                                      G_PARAM_READABLE));
+	g_object_class_install_property
+		(object_class, PROP_BANNER,
+		 g_param_spec_string (NM_VPN_CONNECTION_BANNER, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/* signals */
 	signals[VPN_STATE_CHANGED] =
 		g_signal_new ("vpn-state-changed",
-				    G_OBJECT_CLASS_TYPE (object_class),
-				    G_SIGNAL_RUN_FIRST,
-				    G_STRUCT_OFFSET (NMVPNConnectionClass, vpn_state_changed),
-				    NULL, NULL, NULL,
-				    G_TYPE_NONE, 2,
-				    G_TYPE_UINT, G_TYPE_UINT);
+		              G_OBJECT_CLASS_TYPE (object_class),
+		              G_SIGNAL_RUN_FIRST,
+		              G_STRUCT_OFFSET (NMVPNConnectionClass, vpn_state_changed),
+		              NULL, NULL, NULL,
+		              G_TYPE_NONE, 2,
+		              G_TYPE_UINT, G_TYPE_UINT);
 }

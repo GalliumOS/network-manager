@@ -18,8 +18,8 @@
  * Copyright 2013 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_VETH_H
-#define NM_DEVICE_VETH_H
+#ifndef __NETWORKMANAGER_DEVICE_VETH_H__
+#define __NETWORKMANAGER_DEVICE_VETH_H__
 
 #include <glib-object.h>
 
@@ -36,18 +36,10 @@ G_BEGIN_DECLS
 
 #define NM_DEVICE_VETH_PEER "peer"
 
-typedef struct {
-	NMDeviceEthernet parent;
-} NMDeviceVeth;
-
-typedef struct {
-	NMDeviceEthernetClass parent;
-
-} NMDeviceVethClass;
+typedef NMDeviceEthernet NMDeviceVeth;
+typedef NMDeviceEthernetClass NMDeviceVethClass;
 
 GType nm_device_veth_get_type (void);
-
-NMDevice *nm_device_veth_new (NMPlatformLink *platform_device);
 
 G_END_DECLS
 

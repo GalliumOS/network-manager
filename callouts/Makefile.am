@@ -2,11 +2,11 @@ SUBDIRS = . tests
 
 AM_CPPFLAGS = \
 	-I${top_srcdir}/include \
-	-I${top_builddir}/include \
-	-I${top_srcdir}/libnm-util \
-	-I${top_builddir}/libnm-util \
+	-I${top_srcdir}/libnm-core \
+	-I${top_builddir}/libnm-core \
 	$(GLIB_CFLAGS) \
 	$(DBUS_CFLAGS) \
+	-DNETWORKMANAGER_COMPILATION \
 	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	-DNMCONFDIR=\"$(nmconfdir)\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" \
@@ -45,12 +45,31 @@ nm_dispatcher_SOURCES = \
 	nm-dispatcher-utils.h
 
 nm_dispatcher_LDADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(DBUS_LIBS) \
+	$(top_builddir)/libnm/libnm.la \
+	libnmdbus-dispatcher.la \
 	$(GLIB_LIBS)
 
-nm-dispatcher-glue.h: nm-dispatcher.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_dispatcher --mode=glib-server --output=$@ $<
+# See note about gdbus-codegen in introspection/Makefile.am
+
+noinst_LTLIBRARIES += libnmdbus-dispatcher.la
+
+nodist_libnmdbus_dispatcher_la_SOURCES = \
+	nmdbus-dispatcher.c \
+	nmdbus-dispatcher.h
+
+libnmdbus_dispatcher_la_CPPFLAGS = $(filter-out -DGLIB_VERSION_MAX_ALLOWED%,$(AM_CPPFLAGS))
+
+nmdbus-dispatcher.h: nm-dispatcher.xml
+	$(AM_V_GEN) gdbus-codegen \
+		--generate-c-code $(basename $@) \
+		--c-namespace NMDBus \
+		--interface-prefix org.freedesktop \
+		$<
+
+nmdbus-dispatcher.c: nmdbus-dispatcher.h
+	@true
+
+BUILT_SOURCES = nmdbus-dispatcher.h nmdbus-dispatcher.c
 
 ###########################################
 # dispatcher envp
@@ -64,13 +83,9 @@ libtest_dispatcher_envp_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
 libtest_dispatcher_envp_la_LIBADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(GLIB_LIBS) \
-	$(DBUS_LIBS)
+	$(top_builddir)/libnm/libnm.la \
+	$(GLIB_LIBS)
 
-
-udevrulesdir = $(UDEV_BASE_DIR)/rules.d
-udevrules_DATA = 77-nm-olpc-mesh.rules
 
 dbusactivationdir = $(datadir)/dbus-1/system-services
 dbusactivation_in_files = org.freedesktop.nm_dispatcher.service.in
@@ -91,13 +106,10 @@ install-data-hook:
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)/pre-down.d
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)/pre-up.d
 
-BUILT_SOURCES = nm-dispatcher-glue.h
-
-CLEANFILES = $(BUILT_SOURCES) $(dbusactivation_DATA)
+CLEANFILES = $(nodist_libnmdbus_dispatcher_la_SOURCES) $(dbusactivation_DATA)
 
 EXTRA_DIST = \
 	$(dbusservice_DATA) \
-	$(udevrules_DATA) \
 	$(dbusactivation_in_files) \
 	nm-dispatcher.xml
 

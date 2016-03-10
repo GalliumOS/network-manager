@@ -5,18 +5,16 @@ include $(GLIB_MAKEFILE)
 AM_CPPFLAGS = \
 	-I${top_srcdir}/src \
 	-I${top_builddir}/src \
-	-I${top_srcdir}/src/logging \
 	-I${top_srcdir}/src/devices \
 	-I${top_srcdir}/src/settings \
 	-I${top_srcdir}/src/platform \
-	-I${top_builddir}/include \
 	-I${top_srcdir}/include \
-	-I${top_builddir}/libnm-util \
-	-I${top_srcdir}/libnm-util \
+	-I${top_builddir}/libnm-core \
+	-I${top_srcdir}/libnm-core \
 	-DG_LOG_DOMAIN=\""NetworkManager-wwan"\" \
+	-DNETWORKMANAGER_COMPILATION \
 	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	$(DBUS_CFLAGS) \
-	$(POLKIT_CFLAGS) \
 	$(MM_GLIB_CFLAGS)
 
 BUILT_SOURCES = $(null)
@@ -33,21 +31,14 @@ nm_modem_enum_types_sources = $(srcdir)/nm-modem.h
 BUILT_SOURCES += $(GLIB_GENERATED)
 
 libnm_wwan_la_SOURCES = \
-	nm-modem-old.c \
-	nm-modem-old.h \
-	nm-modem-old-types.h \
+	nm-modem-broadband.c \
+	nm-modem-broadband.h \
 	nm-modem-manager.c \
 	nm-modem-manager.h \
 	nm-modem.c \
 	nm-modem.h \
 	\
 	$(GLIB_GENERATED)
-
-if WITH_MODEM_MANAGER_1
-libnm_wwan_la_SOURCES += \
-	nm-modem-broadband.c \
-	nm-modem-broadband.h
-endif
 
 WWAN_SYMBOL_VIS_FILE=$(srcdir)/wwan-exports.ver
 

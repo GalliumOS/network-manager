@@ -21,10 +21,10 @@
  */
 
 
-#include <config.h>
+#include "config.h"
+
 #include <glib.h>
 #include <glib/gi18n.h>
-#include <dbus/dbus.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -37,69 +37,38 @@
 #include "nm-dhcp-manager.h"
 #include "nm-utils.h"
 #include "nm-logging.h"
-#include "nm-posix-signals.h"
+#include "NetworkManagerUtils.h"
+#include "nm-dhcp-listener.h"
 
-G_DEFINE_TYPE (NMDHCPDhcpcd, nm_dhcp_dhcpcd, NM_TYPE_DHCP_CLIENT)
+G_DEFINE_TYPE (NMDhcpDhcpcd, nm_dhcp_dhcpcd, NM_TYPE_DHCP_CLIENT)
 
-#define NM_DHCP_DHCPCD_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DHCP_DHCPCD, NMDHCPDhcpcdPrivate))
+#define NM_DHCP_DHCPCD_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DHCP_DHCPCD, NMDhcpDhcpcdPrivate))
 
 typedef struct {
-	const char *path;
 	char *pid_file;
-} NMDHCPDhcpcdPrivate;
+} NMDhcpDhcpcdPrivate;
 
-const char *
-nm_dhcp_dhcpcd_get_path (const char *try_first)
+static const char *
+nm_dhcp_dhcpcd_get_path (void)
 {
-	static const char *dhcpcd_paths[] = {
-		"/sbin/dhcpcd",
-		"/usr/sbin/dhcpcd",
-		"/usr/pkg/sbin/dhcpcd",
-		"/usr/local/sbin/dhcpcd",
-		NULL
-	};
-	const char **path = dhcpcd_paths;
+	const char *path = NULL;
 
-	if (strlen (try_first) && g_file_test (try_first, G_FILE_TEST_EXISTS))
-		return try_first;
-
-	while (*path != NULL) {
-		if (g_file_test (*path, G_FILE_TEST_EXISTS))
-			break;
-		path++;
-	}
-
-	return *path;
+	if (WITH_DHCPCD)
+		path = nm_utils_find_helper ("dhcpcd", DHCPCD_PATH, NULL);
+	return path;
 }
 
-static void
-dhcpcd_child_setup (gpointer user_data G_GNUC_UNUSED)
+static gboolean
+ip4_start (NMDhcpClient *client, const char *dhcp_anycast_addr, const char *last_ip4_address)
 {
-	/* We are in the child process at this point */
-	pid_t pid = getpid ();
-	setpgid (pid, pid);
-
-	/*
-	 * We blocked signals in main(). We need to restore original signal
-	 * mask for dhcpcd here so that it can receive signals.
-	 */
-	nm_unblock_posix_signals (NULL);
-}
-
-static GPid
-ip4_start (NMDHCPClient *client,
-           const char *dhcp_client_id,
-           GByteArray *dhcp_anycast_addr,
-           const char *hostname)
-{
-	NMDHCPDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (client);
+	NMDhcpDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (client);
 	GPtrArray *argv = NULL;
-	GPid pid = -1;
+	pid_t pid = -1;
 	GError *error = NULL;
 	char *pid_contents = NULL, *binary_name, *cmd_str;
-	const char *iface;
+	const char *iface, *dhcpcd_path, *hostname;
 
-	g_return_val_if_fail (priv->pid_file == NULL, -1);
+	g_return_val_if_fail (priv->pid_file == NULL, FALSE);
 
 	iface = nm_dhcp_client_get_iface (client);
 
@@ -108,24 +77,28 @@ ip4_start (NMDHCPClient *client,
 	 */
 	priv->pid_file = g_strdup_printf (RUNDIR "/dhcpcd-%s.pid", iface);
 
-	if (!g_file_test (priv->path, G_FILE_TEST_EXISTS)) {
-		nm_log_warn (LOGD_DHCP4, "%s does not exist.", priv->path);
-		return -1;
+	dhcpcd_path = nm_dhcp_dhcpcd_get_path ();
+	if (!dhcpcd_path) {
+		nm_log_warn (LOGD_DHCP4, "dhcpcd could not be found");
+		return FALSE;
 	}
 
 	/* Kill any existing dhcpcd from the pidfile */
-	binary_name = g_path_get_basename (priv->path);
+	binary_name = g_path_get_basename (dhcpcd_path);
 	nm_dhcp_client_stop_existing (priv->pid_file, binary_name);
 	g_free (binary_name);
 
 	argv = g_ptr_array_new ();
-	g_ptr_array_add (argv, (gpointer) priv->path);
+	g_ptr_array_add (argv, (gpointer) dhcpcd_path);
 
 	g_ptr_array_add (argv, (gpointer) "-B");	/* Don't background on lease (disable fork()) */
 
 	g_ptr_array_add (argv, (gpointer) "-K");	/* Disable built-in carrier detection */
 
 	g_ptr_array_add (argv, (gpointer) "-L");	/* Disable built-in IPv4LL since we use avahi-autoipd */
+
+	/* --noarp. Don't request or claim the address by ARP; this also disables IPv4LL. */
+	g_ptr_array_add (argv, (gpointer) "-A");
 
 	g_ptr_array_add (argv, (gpointer) "-G");	/* Let NM handle routing */
 
@@ -140,7 +113,8 @@ ip4_start (NMDHCPClient *client,
 	g_ptr_array_add (argv, (gpointer) "-4");
 #endif
 
-	if (hostname && strlen (hostname)) {
+	hostname = nm_dhcp_client_get_hostname (client);
+	if (hostname) {
 		g_ptr_array_add (argv, (gpointer) "-h");	/* Send hostname to DHCP server */
 		g_ptr_array_add (argv, (gpointer) hostname );
 	}
@@ -152,34 +126,37 @@ ip4_start (NMDHCPClient *client,
 	nm_log_dbg (LOGD_DHCP4, "running: %s", cmd_str);
 	g_free (cmd_str);
 
-	if (!g_spawn_async (NULL, (char **) argv->pdata, NULL, G_SPAWN_DO_NOT_REAP_CHILD,
-	                    &dhcpcd_child_setup, NULL, &pid, &error)) {
+	if (g_spawn_async (NULL, (char **) argv->pdata, NULL,
+	                   G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_STDERR_TO_DEV_NULL,
+	                   nm_utils_setpgid, NULL, &pid, &error)) {
+		g_assert (pid > 0);
+		nm_log_info (LOGD_DHCP4, "dhcpcd started with pid %d", pid);
+		nm_dhcp_client_watch_child (client, pid);
+	} else {
 		nm_log_warn (LOGD_DHCP4, "dhcpcd failed to start.  error: '%s'", error->message);
 		g_error_free (error);
-		pid = -1;
-	} else
-		nm_log_info (LOGD_DHCP4, "dhcpcd started with pid %d", pid);
+	}
 
 	g_free (pid_contents);
 	g_ptr_array_free (argv, TRUE);
-	return pid;
+	return pid > 0 ? TRUE : FALSE;
 }
 
-static GPid
-ip6_start (NMDHCPClient *client,
-           GByteArray *dhcp_anycast_addr,
-           const char *hostname,
+static gboolean
+ip6_start (NMDhcpClient *client,
+           const char *dhcp_anycast_addr,
            gboolean info_only,
+           NMSettingIP6ConfigPrivacy privacy,
            const GByteArray *duid)
 {
 	nm_log_warn (LOGD_DHCP6, "the dhcpcd backend does not support IPv6.");
-	return -1;
+	return FALSE;
 }
 
 static void
-stop (NMDHCPClient *client, gboolean release, const GByteArray *duid)
+stop (NMDhcpClient *client, gboolean release, const GByteArray *duid)
 {
-	NMDHCPDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (client);
+	NMDhcpDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (client);
 
 	/* Chain up to parent */
 	NM_DHCP_CLIENT_CLASS (nm_dhcp_dhcpcd_parent_class)->stop (client, release, duid);
@@ -195,17 +172,22 @@ stop (NMDHCPClient *client, gboolean release, const GByteArray *duid)
 /***************************************************/
 
 static void
-nm_dhcp_dhcpcd_init (NMDHCPDhcpcd *self)
+nm_dhcp_dhcpcd_init (NMDhcpDhcpcd *self)
 {
-	NMDHCPDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (self);
-
-	priv->path = nm_dhcp_dhcpcd_get_path (DHCPCD_PATH);
+	g_signal_connect (nm_dhcp_listener_get (),
+	                  NM_DHCP_LISTENER_EVENT,
+	                  G_CALLBACK (nm_dhcp_client_handle_event),
+	                  self);
 }
 
 static void
 dispose (GObject *object)
 {
-	NMDHCPDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (object);
+	NMDhcpDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (object);
+
+	g_signal_handlers_disconnect_by_func (nm_dhcp_listener_get (),
+	                                      G_CALLBACK (nm_dhcp_client_handle_event),
+	                                      NM_DHCP_DHCPCD (object));
 
 	g_free (priv->pid_file);
 
@@ -213,12 +195,12 @@ dispose (GObject *object)
 }
 
 static void
-nm_dhcp_dhcpcd_class_init (NMDHCPDhcpcdClass *dhcpcd_class)
+nm_dhcp_dhcpcd_class_init (NMDhcpDhcpcdClass *dhcpcd_class)
 {
-	NMDHCPClientClass *client_class = NM_DHCP_CLIENT_CLASS (dhcpcd_class);
+	NMDhcpClientClass *client_class = NM_DHCP_CLIENT_CLASS (dhcpcd_class);
 	GObjectClass *object_class = G_OBJECT_CLASS (dhcpcd_class);
 
-	g_type_class_add_private (dhcpcd_class, sizeof (NMDHCPDhcpcdPrivate));
+	g_type_class_add_private (dhcpcd_class, sizeof (NMDhcpDhcpcdPrivate));
 
 	/* virtual methods */
 	object_class->dispose = dispose;
@@ -226,5 +208,15 @@ nm_dhcp_dhcpcd_class_init (NMDHCPDhcpcdClass *dhcpcd_class)
 	client_class->ip4_start = ip4_start;
 	client_class->ip6_start = ip6_start;
 	client_class->stop = stop;
+}
+
+static void __attribute__((constructor))
+register_dhcp_dhclient (void)
+{
+	g_type_init ();
+	_nm_dhcp_client_register (NM_TYPE_DHCP_DHCPCD,
+	                          "dhcpcd",
+	                          nm_dhcp_dhcpcd_get_path,
+	                          NULL);
 }
 

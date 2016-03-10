@@ -1,0 +1,48 @@
+Author: Tony Espy <espy@canonical.com>
+Subject: Modify NMDeviceModem's available logic
+
+This patch modifies NMDeviceModem's available logic such that
+the device is only considered available if the modem_state is
+>= NM_MODEM_STATE_REGISTERED.  NMDevice defines 'available' as
+meaning the device is in such a state that it can be activated.
+This change prevents NM from trying to activate a modem which
+is not yet ready to be activated.
+
+Bug: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1445080
+
+---
+ src/devices/wwan/nm-device-modem.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+Index: b/src/devices/wwan/nm-device-modem.c
+===================================================================
+--- a/src/devices/wwan/nm-device-modem.c
++++ b/src/devices/wwan/nm-device-modem.c
+@@ -425,8 +425,6 @@ check_connection_available (NMDevice *de
+ 		return FALSE;
+ 
+ 	state = nm_modem_get_state (priv->modem);
+-	if (state <= NM_MODEM_STATE_INITIALIZING)
+-		return FALSE;
+ 
+ 	if (state == NM_MODEM_STATE_LOCKED) {
+ 		NMSettingGsm *s_gsm = nm_connection_get_setting_gsm (connection);
+@@ -436,6 +434,9 @@ check_connection_available (NMDevice *de
+ 			return FALSE;
+ 	}
+ 
++	if (state <= NM_MODEM_STATE_SEARCHING)
++		return FALSE;
++
+ 	return TRUE;
+ }
+ 
+@@ -615,7 +616,7 @@ is_available (NMDevice *device, NMDevice
+ 
+ 	g_assert (priv->modem);
+ 	modem_state = nm_modem_get_state (priv->modem);
+-	if (modem_state <= NM_MODEM_STATE_INITIALIZING)
++	if (modem_state <= NM_MODEM_STATE_SEARCHING)
+ 		return FALSE;
+ 
+ 	return TRUE;

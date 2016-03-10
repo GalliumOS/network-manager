@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,9 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 - 2010 Red Hat, Inc.
- * Copyright (C) 2008 Novell, Inc.
+ * Copyright 2008 - 2010 Red Hat, Inc.
+ * Copyright 2008 Novell, Inc.
  */
+
+#include "config.h"
 
 #include "nm-vpn-plugin-ui-interface.h"
 
@@ -32,26 +32,39 @@ interface_init (gpointer g_iface)
 		return;
 
 	/* Properties */
-	g_object_interface_install_property (g_iface,
-		 g_param_spec_string (NM_VPN_PLUGIN_UI_INTERFACE_NAME,
-							  "Name",
-							  "VPN Plugin name",
-							  NULL,
-							  G_PARAM_READABLE));
 
+	/**
+	 * NMVPNPluginUiInterface:name:
+	 *
+	 * Short display name of the VPN plugin.
+	 */
 	g_object_interface_install_property (g_iface,
-		 g_param_spec_string (NM_VPN_PLUGIN_UI_INTERFACE_DESC,
-							  "Desc",
-							  "VPN Plugin description",
-							  NULL,
-							  G_PARAM_READABLE));
+		 g_param_spec_string (NM_VPN_PLUGIN_UI_INTERFACE_NAME, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * NMVPNPluginUiInterface:desc:
+	 *
+	 * Longer description of the VPN plugin.
+	 */
 	g_object_interface_install_property (g_iface,
-		 g_param_spec_string (NM_VPN_PLUGIN_UI_INTERFACE_SERVICE,
-							  "Service",
-							  "VPN Plugin D-Bus service name",
-							  NULL,
-							  G_PARAM_READABLE));
+		 g_param_spec_string (NM_VPN_PLUGIN_UI_INTERFACE_DESC, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMVPNPluginUiInterface:service:
+	 *
+	 * D-Bus service name of the plugin's VPN service.
+	 */
+	g_object_interface_install_property (g_iface,
+		 g_param_spec_string (NM_VPN_PLUGIN_UI_INTERFACE_SERVICE, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	initialized = TRUE;
 }
@@ -76,9 +89,9 @@ nm_vpn_plugin_ui_interface_get_type (void)
 		};
 
 		vpn_plugin_ui_interface_type = g_type_register_static (G_TYPE_INTERFACE,
-														       "NMVpnPluginUiInterface",
-														       &vpn_plugin_ui_interface_info,
-														       0);
+		                                                       "NMVpnPluginUiInterface",
+		                                                       &vpn_plugin_ui_interface_info,
+		                                                       0);
 
 		g_type_interface_add_prerequisite (vpn_plugin_ui_interface_type, G_TYPE_OBJECT);
 	}
@@ -166,12 +179,12 @@ widget_interface_init (gpointer g_iface)
 
 	/* Signals */
 	g_signal_new ("changed",
-				  iface_type,
-				  G_SIGNAL_RUN_FIRST,
-				  G_STRUCT_OFFSET (NMVpnPluginUiWidgetInterface, changed),
-				  NULL, NULL,
-				  g_cclosure_marshal_VOID__VOID,
-				  G_TYPE_NONE, 0);
+	              iface_type,
+	              G_SIGNAL_RUN_FIRST,
+	              G_STRUCT_OFFSET (NMVpnPluginUiWidgetInterface, changed),
+	              NULL, NULL,
+	              g_cclosure_marshal_VOID__VOID,
+	              G_TYPE_NONE, 0);
 
 	initialized = TRUE;
 }
@@ -234,4 +247,3 @@ nm_vpn_plugin_ui_widget_interface_save_secrets (NMVpnPluginUiWidgetInterface *if
 	/* Deprecated and no longer used */
 	return TRUE;
 }
-

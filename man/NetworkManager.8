@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 07/03/2014
+.\"      Date: 07/14/2015
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 0.9.10
+.\"    Source: NetworkManager 1.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 0\&.9\&.10" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.0" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -110,6 +110,11 @@ The UUID of the connection profile\&.
 The name (ID) of the connection profile\&.
 .RE
 .PP
+\fICONNECTION_FILENAME\fR
+.RS 4
+The backing file name of the connection profile (if any)\&.
+.RE
+.PP
 \fIDEVICE_IFACE\fR
 .RS 4
 The interface name of the device\&.
@@ -122,7 +127,7 @@ The IP interface name of the device\&.
 .PP
 \fIIP4_ADDRESS_N\fR
 .RS 4
-The IPv4 address in the format "address/prefix gateway", where N is a number from 0 to (# IPv4 address \e\- 1)\&.
+The IPv4 address in the format "address/prefix gateway", where N is a number from 0 to (# IPv4 addresses \- 1)\&. gateway item in this variable is deprecated, use IP4_GATEWAY instead\&.
 .RE
 .PP
 \fIIP4_NUM_ADDRESSES\fR
@@ -130,9 +135,14 @@ The IPv4 address in the format "address/prefix gateway", where N is a number fro
 The variable contains the number of IPv4 addresses the script may expect\&.
 .RE
 .PP
+\fIIP4_GATEWAY\fR
+.RS 4
+The gateway IPv4 address in traditional numbers\-and\-dots notation\&.
+.RE
+.PP
 \fIIP4_ROUTE_N\fR
 .RS 4
-The IPv4 route in the format "address/prefix next\-hop metric", where N is a number from 0 to (# IPv4 routes \e\- 1)\&.
+The IPv4 route in the format "address/prefix next\-hop metric", where N is a number from 0 to (# IPv4 routes \- 1)\&.
 .RE
 .PP
 \fIIP4_NUM_ROUTES\fR
@@ -199,7 +209,7 @@ Specify file for storing state of the NetworkManager persistently\&. If not spec
 .PP
 \fB\-\-config\fR
 .RS 4
-Specify configuration file to set up various settings for NetworkManager\&. If not specified, the default value of /etc/NetworkManager/NetworkManager\&.conf is used with a fallback to the older \*(Aqnm\e\-system\e\-settings\&.conf\*(Aq if located in the same directory\&. See
+Specify configuration file to set up various settings for NetworkManager\&. If not specified, the default value of /etc/NetworkManager/NetworkManager\&.conf is used with a fallback to the older \*(Aqnm\-system\-settings\&.conf\*(Aq if located in the same directory\&. See
 \fBNetworkManager.conf\fR(5)
 for more information on configuration file\&.
 .RE
@@ -229,6 +239,17 @@ in
 \fBNetworkManager.conf\fR(5)
 for more information\&.
 .RE
+.SH "UDEV PROPERTIES"
+.PP
+\fBudev\fR(7)
+device manager is used for the network device discovery\&. The following property influences how NetworkManager manages the devices:
+.PP
+\fINM_UNMANAGED\fR
+.RS 4
+No default connection will be created and automatic activation will not be attempted when this property of a device is set to a true value ("1" or "true")\&. You will still be able to attach a connection to the device manually or observe externally added configuration such as addresses or routes\&.
+.sp
+Create an udev rule that sets this property to prevent NetworkManager from interfering with virtual Ethernet device interfaces that are managed by virtualization tools\&.
+.RE
 .SH "DEBUGGING"
 .PP
 The following environment variables are supported to help debugging\&. When used in conjunction with the
@@ -248,4 +269,4 @@ to enable debug logging inside NetworkManager itself\&.
 \fBnm-online\fR(1),
 \fBnm-settings\fR(5),
 \fBnm-applet\fR(1),
-\fBnm-connection-editor\fR(1)
+\fBnm-connection-editor\fR(1)\fBudev\fR(7)

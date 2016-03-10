@@ -5,11 +5,11 @@ Subject: Ignore p2p0 wifi devices from android.
  src/nm-manager.c |   10 ++++++++++
  1 file changed, 10 insertions(+)
 
-Index: network-manager-0.9.10.0/src/nm-manager.c
+Index: b/src/nm-manager.c
 ===================================================================
---- network-manager-0.9.10.0.orig/src/nm-manager.c
-+++ network-manager-0.9.10.0/src/nm-manager.c
-@@ -2060,6 +2060,16 @@ platform_link_added (NMManager *self,
+--- a/src/nm-manager.c
++++ b/src/nm-manager.c
+@@ -1949,6 +1949,16 @@ platform_link_added (NMManager *self,
  		!strncmp (plink->name, "ccmni", STRLEN ("ccmni")))
  		return;
  
@@ -24,5 +24,5 @@ Index: network-manager-0.9.10.0/src/nm-manager.c
 +	}
 +
  	if (device == NULL) {
- 		int parent_ifindex = -1;
- 		NMDevice *parent;
+ 		switch (plink->type) {
+ 		case NM_LINK_TYPE_WWAN_ETHERNET:

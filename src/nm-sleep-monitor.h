@@ -17,10 +17,12 @@
  * Author: Matthias Clasen <mclasen@redhat.com>
  */
 
-#ifndef NM_SLEEP_MONITOR_H
-#define NM_SLEEP_MONITOR_H
+#ifndef __NETWORKMANAGER_SLEEP_MONITOR_H__
+#define __NETWORKMANAGER_SLEEP_MONITOR_H__
 
 #include <glib-object.h>
+
+#include "nm-types.h"
 
 G_BEGIN_DECLS
 
@@ -34,7 +36,6 @@ G_BEGIN_DECLS
 #define NM_SLEEP_MONITOR_SLEEPING "sleeping"
 #define NM_SLEEP_MONITOR_RESUMING "resuming"
 
-typedef struct _NMSleepMonitor         NMSleepMonitor;
 typedef struct _NMSleepMonitorClass    NMSleepMonitorClass;
 
 GType           nm_sleep_monitor_get_type     (void) G_GNUC_CONST;
@@ -42,5 +43,5 @@ NMSleepMonitor *nm_sleep_monitor_get          (void);
 
 G_END_DECLS
 
-#endif /* NM_SLEEP_MONITOR_H */
+#endif /* __NETWORKMANAGER_SLEEP_MONITOR_H__ */
 

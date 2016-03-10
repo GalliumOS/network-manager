@@ -18,19 +18,18 @@
  * (C) Copyright 2011 Red Hat, Inc.
  */
 
-#ifndef NM_WIFI_AP_UTILS_H
-#define NM_WIFI_AP_UTILS_H
+#ifndef __NETWORKMANAGER_WIFI_AP_UTILS_H__
+#define __NETWORKMANAGER_WIFI_AP_UTILS_H__
 
-#include <net/ethernet.h>
 
-#include <NetworkManager.h>
+#include <nm-dbus-interface.h>
 #include <nm-connection.h>
 #include <nm-setting-wireless.h>
 #include <nm-setting-wireless-security.h>
 #include <nm-setting-8021x.h>
 
 gboolean nm_ap_utils_complete_connection (const GByteArray *ssid,
-                                          const guint8 bssid[ETH_ALEN],
+                                          const char *bssid,
                                           NM80211Mode mode,
                                           guint32 flags,
                                           guint32 wpa_flags,

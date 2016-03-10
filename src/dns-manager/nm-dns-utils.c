@@ -17,10 +17,13 @@
  *
  */
 
+#include "config.h"
+
 #include <arpa/inet.h>
 #include <string.h>
 
 #include "nm-dns-utils.h"
+#include "nm-platform.h"
 #include "nm-utils.h"
 
 static void

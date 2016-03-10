@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,9 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2008 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2008 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <signal.h>
 #include "nm-glib-compat.h"
@@ -125,7 +125,7 @@ GQuark
 nm_vpn_plugin_error_quark (void)
 {
 	static GQuark quark = 0;
-	
+
 	if (!quark)
 		quark = g_quark_from_static_string ("nm_vpn_plugin_error");
 
@@ -729,8 +729,8 @@ nm_vpn_plugin_init (NMVPNPlugin *plugin)
 {
 	active_plugins = g_slist_append (active_plugins, plugin);
 	g_object_weak_ref (G_OBJECT (plugin),
-				    one_plugin_destroyed,
-				    NULL);
+	                   one_plugin_destroyed,
+	                   NULL);
 }
 
 static GObject *
@@ -747,8 +747,8 @@ constructor (GType type,
 	GError *err = NULL;
 
 	object = G_OBJECT_CLASS (nm_vpn_plugin_parent_class)->constructor (type,
-														  n_construct_params,
-														  construct_params);
+	                                                                   n_construct_params,
+	                                                                   construct_params);
 	if (!object)
 		return NULL;
 
@@ -823,7 +823,7 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-			  GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMVPNPluginPrivate *priv = NM_VPN_PLUGIN_GET_PRIVATE (object);
 
@@ -953,23 +953,33 @@ nm_vpn_plugin_class_init (NMVPNPluginClass *plugin_class)
 	plugin_class->state_changed = state_changed;
 
 	/* properties */
+
+	/**
+	 * NMVPNPlugin:service-name:
+	 *
+	 * The D-Bus service name of this plugin.
+	 */
 	g_object_class_install_property
 		(object_class, PROP_DBUS_SERVICE_NAME,
-		 g_param_spec_string (NM_VPN_PLUGIN_DBUS_SERVICE_NAME,
-		                      "DBus service name",
-		                      "DBus service name",
+		 g_param_spec_string (NM_VPN_PLUGIN_DBUS_SERVICE_NAME, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_CONSTRUCT_ONLY |
+		                      G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * NMVPNPlugin:state:
+	 *
+	 * The state of the plugin.
+	 */
 	g_object_class_install_property
 		(object_class, PROP_STATE,
-		 g_param_spec_uint (NM_VPN_PLUGIN_STATE,
-		                    "State",
-		                    "Current VPN service state",
+		 g_param_spec_uint (NM_VPN_PLUGIN_STATE, "", "",
 		                    NM_VPN_SERVICE_STATE_UNKNOWN,
 		                    NM_VPN_SERVICE_STATE_STOPPED,
 		                    NM_VPN_SERVICE_STATE_INIT,
-		                    G_PARAM_READWRITE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/* signals */
 	signals[STATE_CHANGED] =

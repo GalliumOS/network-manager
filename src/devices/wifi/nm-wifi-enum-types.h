@@ -9,10 +9,6 @@
 #include <glib-object.h>
 
 G_BEGIN_DECLS
-GType nm_wifi_error_get_type (void) G_GNUC_CONST;
-#define NM_TYPE_WIFI_ERROR (nm_wifi_error_get_type ())
-GType nm_olpc_mesh_error_get_type (void) G_GNUC_CONST;
-#define NM_TYPE_OLPC_MESH_ERROR (nm_olpc_mesh_error_get_type ())
 G_END_DECLS
 
 #endif /* __NM_WIFI_ENUM_TYPES_H__ */

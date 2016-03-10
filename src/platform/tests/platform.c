@@ -18,12 +18,15 @@
  * Copyright (C) 2013 Red Hat, Inc.
  */
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include <netlink/route/addr.h>
 
+#include "gsystem-local-alloc.h"
 #include "nm-platform.h"
 #include "nm-linux-platform.h"
 #include "nm-fake-platform.h"
@@ -41,13 +44,13 @@ typedef const char *string_t;
 static gboolean
 do_sysctl_set (char **argv)
 {
-	return nm_platform_sysctl_set (argv[0], argv[1]);
+	return nm_platform_sysctl_set (NM_PLATFORM_GET, argv[0], argv[1]);
 }
 
 static gboolean
 do_sysctl_get (char **argv)
 {
-	auto_g_free char *value = nm_platform_sysctl_get (argv[0]);
+	gs_free char *value = nm_platform_sysctl_get (NM_PLATFORM_GET, argv[0]);
 
 	printf ("%s\n", value);
 
@@ -63,7 +66,7 @@ parse_ifindex (const char *str)
 	ifindex = strtol (str, &endptr, 10);
 
 	if (*endptr) {
-		ifindex = nm_platform_link_get_ifindex (str);
+		ifindex = nm_platform_link_get_ifindex (NM_PLATFORM_GET, str);
 	}
 
 	return ifindex;
@@ -76,7 +79,7 @@ do_link_get_all (char **argv)
 	NMPlatformLink *device;
 	int i;
 
-	links = nm_platform_link_get_all ();
+	links = nm_platform_link_get_all (NM_PLATFORM_GET);
 	for (i = 0; i < links->len; i++) {
 		device = &g_array_index (links, NMPlatformLink, i);
 
@@ -90,25 +93,25 @@ do_link_get_all (char **argv)
 static gboolean
 do_dummy_add (char **argv)
 {
-	return nm_platform_dummy_add (argv[0]);
+	return nm_platform_dummy_add (NM_PLATFORM_GET, argv[0], NULL) == NM_PLATFORM_ERROR_SUCCESS;
 }
 
 static gboolean
 do_bridge_add (char **argv)
 {
-	return nm_platform_bridge_add (argv[0], NULL, 0);
+	return nm_platform_bridge_add (NM_PLATFORM_GET, argv[0], NULL, 0, NULL) == NM_PLATFORM_ERROR_SUCCESS;
 }
 
 static gboolean
 do_bond_add (char **argv)
 {
-	return nm_platform_bond_add (argv[0]);
+	return nm_platform_bond_add (NM_PLATFORM_GET, argv[0], NULL) == NM_PLATFORM_ERROR_SUCCESS;
 }
 
 static gboolean
 do_team_add (char **argv)
 {
-	return nm_platform_team_add (argv[0]);
+	return nm_platform_team_add (NM_PLATFORM_GET, argv[0], NULL) == NM_PLATFORM_ERROR_SUCCESS;
 }
 
 static gboolean
@@ -119,13 +122,13 @@ do_vlan_add (char **argv)
 	int vlanid = strtol (*argv++, NULL, 10);
 	guint32 vlan_flags = strtol (*argv++, NULL, 10);
 
-	return nm_platform_vlan_add (name, parent, vlanid, vlan_flags);
+	return nm_platform_vlan_add (NM_PLATFORM_GET, name, parent, vlanid, vlan_flags, NULL) == NM_PLATFORM_ERROR_SUCCESS;
 }
 
 static gboolean
 do_link_exists (char **argv)
 {
-	gboolean value = nm_platform_link_exists (argv[0]);
+	gboolean value = !!nm_platform_link_get_by_ifname (NM_PLATFORM_GET, argv[0]);
 
 	print_boolean (value);
 
@@ -137,7 +140,7 @@ do_link_exists (char **argv)
 	do_link_##cmdname (char **argv) \
 	{ \
 		int ifindex = parse_ifindex (argv[0]); \
-		return ifindex ? nm_platform_link_##cmdname (ifindex) : FALSE; \
+		return ifindex ? nm_platform_link_##cmdname (NM_PLATFORM_GET, ifindex) : FALSE; \
 	}
 
 #define LINK_CMD_GET_FULL(cmdname, type, cond) \
@@ -146,7 +149,7 @@ do_link_exists (char **argv)
 	{ \
 		int ifindex = parse_ifindex (argv[0]); \
 		if (ifindex) { \
-			type##_t value = nm_platform_link_##cmdname (ifindex); \
+			type##_t value = nm_platform_link_##cmdname (NM_PLATFORM_GET, ifindex); \
 			if (cond) { \
 				print_##type (value); \
 				return TRUE; \
@@ -166,7 +169,7 @@ LINK_CMD (delete)
 static gboolean
 do_link_get_ifindex (char **argv)
 {
-	int ifindex = nm_platform_link_get_ifindex (argv[0]);
+	int ifindex = nm_platform_link_get_ifindex (NM_PLATFORM_GET, argv[0]);
 
 	if (ifindex)
 		printf ("%d\n", ifindex);
@@ -179,7 +182,14 @@ LINK_CMD_GET_FULL (get_type, decimal, value > 0)
 LINK_CMD_GET (is_software, boolean)
 LINK_CMD_GET (supports_slaves, boolean)
 
-LINK_CMD (set_up)
+static gboolean
+do_link_set_up (char **argv)
+{
+	int ifindex = parse_ifindex (argv[0]);
+
+	return ifindex ? nm_platform_link_set_up (NM_PLATFORM_GET, ifindex, NULL) : FALSE;
+}
+
 LINK_CMD (set_down)
 LINK_CMD (set_arp)
 LINK_CMD (set_noarp)
@@ -210,7 +220,7 @@ do_link_set_address (char **argv)
 		g_assert (!*endptr);
 	}
 
-	return nm_platform_link_set_address (ifindex, address, sizeof (address));
+	return nm_platform_link_set_address (NM_PLATFORM_GET, ifindex, address, sizeof (address));
 }
 
 static gboolean
@@ -221,7 +231,7 @@ do_link_get_address (char **argv)
 	size_t length;
 	int i;
 
-	address = nm_platform_link_get_address (ifindex, &length);
+	address = nm_platform_link_get_address (NM_PLATFORM_GET, ifindex, &length);
 
 	if (!address || length <= 0)
 		return FALSE;
@@ -239,7 +249,7 @@ do_link_set_mtu (char **argv)
 	int ifindex = parse_ifindex (*argv++);
 	int mtu = strtoul (*argv++, NULL, 10);
 
-	return nm_platform_link_set_mtu (ifindex, mtu);
+	return nm_platform_link_set_mtu (NM_PLATFORM_GET, ifindex, mtu);
 }
 
 LINK_CMD_GET (get_mtu, decimal);
@@ -252,7 +262,7 @@ do_link_enslave (char **argv)
 	int master = parse_ifindex (*argv++);
 	int slave = parse_ifindex (*argv++);
 
-	return nm_platform_link_enslave (master, slave);
+	return nm_platform_link_enslave (NM_PLATFORM_GET, master, slave);
 }
 
 static gboolean
@@ -261,7 +271,7 @@ do_link_release (char **argv)
 	int master = parse_ifindex (*argv++);
 	int slave = parse_ifindex (*argv++);
 
-	return nm_platform_link_release (master, slave);
+	return nm_platform_link_release (NM_PLATFORM_GET, master, slave);
 }
 
 LINK_CMD_GET (get_master, decimal)
@@ -273,7 +283,7 @@ do_master_set_option (char **argv)
 	const char *option = *argv++;
 	const char *value = *argv++;
 
-	return nm_platform_master_set_option (ifindex, option, value);
+	return nm_platform_master_set_option (NM_PLATFORM_GET, ifindex, option, value);
 }
 
 static gboolean
@@ -281,7 +291,7 @@ do_master_get_option (char **argv)
 {
 	int ifindex = parse_ifindex (*argv++);
 	const char *option = *argv++;
-	auto_g_free char *value = nm_platform_master_get_option (ifindex, option);
+	gs_free char *value = nm_platform_master_get_option (NM_PLATFORM_GET, ifindex, option);
 
 	printf ("%s\n", value);
 
@@ -295,7 +305,7 @@ do_slave_set_option (char **argv)
 	const char *option = *argv++;
 	const char *value = *argv++;
 
-	return nm_platform_slave_set_option (ifindex, option, value);
+	return nm_platform_slave_set_option (NM_PLATFORM_GET, ifindex, option, value);
 }
 
 static gboolean
@@ -303,7 +313,7 @@ do_slave_get_option (char **argv)
 {
 	int ifindex = parse_ifindex (*argv++);
 	const char *option = *argv++;
-	auto_g_free char *value = nm_platform_slave_get_option (ifindex, option);
+	gs_free char *value = nm_platform_slave_get_option (NM_PLATFORM_GET, ifindex, option);
 
 	printf ("%s\n", value);
 
@@ -317,7 +327,7 @@ do_vlan_get_info (char **argv)
 	int parent;
 	int vlanid;
 
-	if (!nm_platform_vlan_get_info (ifindex, &parent, &vlanid))
+	if (!nm_platform_vlan_get_info (NM_PLATFORM_GET, ifindex, &parent, &vlanid))
 		return FALSE;
 
 	printf ("%d %d\n", parent, vlanid);
@@ -332,7 +342,7 @@ do_vlan_set_ingress_map (char **argv)
 	int from = strtol (*argv++, NULL, 10);
 	int to = strtol (*argv++, NULL, 10);
 
-	return nm_platform_vlan_set_ingress_map (ifindex, from, to);
+	return nm_platform_vlan_set_ingress_map (NM_PLATFORM_GET, ifindex, from, to);
 }
 
 static gboolean
@@ -342,7 +352,7 @@ do_vlan_set_egress_map (char **argv)
 	int from = strtol (*argv++, NULL, 10);
 	int to = strtol (*argv++, NULL, 10);
 
-	return nm_platform_vlan_set_egress_map (ifindex, from, to);
+	return nm_platform_vlan_set_egress_map (NM_PLATFORM_GET, ifindex, from, to);
 }
 
 static gboolean
@@ -351,7 +361,7 @@ do_veth_get_properties (char **argv)
 	int ifindex = parse_ifindex (*argv++);
 	NMPlatformVethProperties props;
 
-	if (!nm_platform_veth_get_properties (ifindex, &props))
+	if (!nm_platform_veth_get_properties (NM_PLATFORM_GET, ifindex, &props))
 		return FALSE;
 
 	printf ("peer: %d\n", props.peer);
@@ -365,7 +375,7 @@ do_tun_get_properties (char **argv)
 	int ifindex = parse_ifindex (*argv++);
 	NMPlatformTunProperties props;
 
-	if (!nm_platform_tun_get_properties (ifindex, &props))
+	if (!nm_platform_tun_get_properties (NM_PLATFORM_GET, ifindex, &props))
 		return FALSE;
 
 	printf ("mode: %s\n", props.mode);
@@ -393,7 +403,7 @@ do_macvlan_get_properties (char **argv)
 	int ifindex = parse_ifindex (*argv++);
 	NMPlatformMacvlanProperties props;
 
-	if (!nm_platform_macvlan_get_properties (ifindex, &props))
+	if (!nm_platform_macvlan_get_properties (NM_PLATFORM_GET, ifindex, &props))
 		return FALSE;
 
 	printf ("parent: %d\n", props.parent_ifindex);
@@ -410,7 +420,7 @@ do_vxlan_get_properties (char **argv)
 	NMPlatformVxlanProperties props;
 	char addrstr[INET6_ADDRSTRLEN];
 
-	if (!nm_platform_vxlan_get_properties (ifindex, &props))
+	if (!nm_platform_vxlan_get_properties (NM_PLATFORM_GET, ifindex, &props))
 		return FALSE;
 
 	printf ("parent-ifindex: %u\n", props.parent_ifindex);
@@ -457,7 +467,7 @@ do_gre_get_properties (char **argv)
 	NMPlatformGreProperties props;
 	char addrstr[INET_ADDRSTRLEN];
 
-	if (!nm_platform_gre_get_properties (ifindex, &props))
+	if (!nm_platform_gre_get_properties (NM_PLATFORM_GET, ifindex, &props))
 		return FALSE;
 
 	printf ("parent-ifindex: %u\n", props.parent_ifindex);
@@ -493,7 +503,7 @@ do_ip4_address_get_all (char **argv)
 	int i;
 
 	if (ifindex) {
-		addresses = nm_platform_ip4_address_get_all (ifindex);
+		addresses = nm_platform_ip4_address_get_all (NM_PLATFORM_GET, ifindex);
 		for (i = 0; i < addresses->len; i++) {
 			address = &g_array_index (addresses, NMPlatformIP4Address, i);
 			inet_ntop (AF_INET, &address->address, addrstr, sizeof (addrstr));
@@ -515,7 +525,7 @@ do_ip6_address_get_all (char **argv)
 	int i;
 
 	if (ifindex) {
-		addresses = nm_platform_ip6_address_get_all (ifindex);
+		addresses = nm_platform_ip6_address_get_all (NM_PLATFORM_GET, ifindex);
 		for (i = 0; i < addresses->len; i++) {
 			address = &g_array_index (addresses, NMPlatformIP6Address, i);
 			inet_ntop (AF_INET6, &address->address, addrstr, sizeof (addrstr));
@@ -531,6 +541,9 @@ static gboolean
 parse_ip_address (int family, char *str, gpointer address, int *plen)
 {
 	char *endptr;
+
+	if (plen)
+		*plen = 0;
 
 	if (plen) {
 		char *ptr = strchr (str, '/');
@@ -570,7 +583,7 @@ do_ip4_address_add (char **argv)
 		guint32 lifetime = strtol (*argv++, NULL, 10);
 		guint32 preferred = strtol (*argv++, NULL, 10);
 
-		gboolean value = nm_platform_ip4_address_add (ifindex, address, 0, plen, lifetime, preferred, NULL);
+		gboolean value = nm_platform_ip4_address_add (NM_PLATFORM_GET, ifindex, address, 0, plen, lifetime, preferred, NULL);
 		return value;
 	} else
 		return FALSE;
@@ -588,13 +601,13 @@ do_ip6_address_add (char **argv)
 		guint32 preferred = strtol (*argv++, NULL, 10);
 		guint flags = (*argv) ? rtnl_addr_str2flags (*argv++) : 0;
 
-		gboolean value = nm_platform_ip6_address_add (ifindex, address, in6addr_any, plen, lifetime, preferred, flags);
+		gboolean value = nm_platform_ip6_address_add (NM_PLATFORM_GET, ifindex, address, in6addr_any, plen, lifetime, preferred, flags);
 		return value;
 	} else
 		return FALSE;
 }
 
-#define ADDR_CMD_FULL(v, cmdname, print) \
+#define ADDR_CMD_FULL(v, cmdname, print, ...) \
 	static gboolean \
 	do_##v##_address_##cmdname (char **argv) \
 	{ \
@@ -602,7 +615,7 @@ do_ip6_address_add (char **argv)
 		v##_t address; \
 		int plen; \
 		if (ifindex && parse_##v##_address (*argv++, &address, &plen)) { \
-			gboolean value = nm_platform_##v##_address_##cmdname (ifindex, address, plen); \
+			gboolean value = !!nm_platform_##v##_address_##cmdname (NM_PLATFORM_GET, ifindex, address, plen, ##__VA_ARGS__); \
 			if (print) { \
 				print_boolean (value); \
 				return TRUE; \
@@ -611,11 +624,11 @@ do_ip6_address_add (char **argv)
 		} else \
 			return FALSE; \
 	}
-#define ADDR_CMD(cmdname) ADDR_CMD_FULL (ip4, cmdname, FALSE) ADDR_CMD_FULL (ip6, cmdname, FALSE)
+#define ADDR_CMD(cmdname) ADDR_CMD_FULL (ip4, cmdname, FALSE, 0) ADDR_CMD_FULL (ip6, cmdname, FALSE)
 #define ADDR_CMD_PRINT(cmdname) ADDR_CMD_FULL (ip4, cmdname, TRUE) ADDR_CMD_FULL (ip6, cmdname, TRUE)
 
 ADDR_CMD (delete)
-ADDR_CMD_PRINT (exists)
+ADDR_CMD_PRINT (get)
 
 static gboolean
 do_ip4_route_get_all (char **argv)
@@ -627,7 +640,7 @@ do_ip4_route_get_all (char **argv)
 	int i;
 
 	if (ifindex) {
-		routes = nm_platform_ip4_route_get_all (ifindex, TRUE);
+		routes = nm_platform_ip4_route_get_all (NM_PLATFORM_GET, ifindex, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT | NM_PLATFORM_GET_ROUTE_FLAGS_WITH_NON_DEFAULT);
 		for (i = 0; i < routes->len; i++) {
 			route = &g_array_index (routes, NMPlatformIP4Route, i);
 			inet_ntop (AF_INET, &route->network, networkstr, sizeof (networkstr));
@@ -651,7 +664,7 @@ do_ip6_route_get_all (char **argv)
 	int i;
 
 	if (ifindex) {
-		routes = nm_platform_ip6_route_get_all (ifindex, TRUE);
+		routes = nm_platform_ip6_route_get_all (NM_PLATFORM_GET, ifindex, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT | NM_PLATFORM_GET_ROUTE_FLAGS_WITH_NON_DEFAULT);
 		for (i = 0; i < routes->len; i++) {
 			route = &g_array_index (routes, NMPlatformIP6Route, i);
 			inet_ntop (AF_INET6, &route->network, networkstr, sizeof (networkstr));
@@ -677,8 +690,8 @@ do_ip4_route_add (char **argv)
 	metric = strtol (*argv++, NULL, 10);
 	mss = strtol (*argv++, NULL, 10);
 
-	return nm_platform_ip4_route_add (ifindex, NM_PLATFORM_SOURCE_USER,
-	                                  network, plen, gateway,
+	return nm_platform_ip4_route_add (NM_PLATFORM_GET, ifindex, NM_IP_CONFIG_SOURCE_USER,
+	                                  network, plen, gateway, 0,
 	                                  metric, mss);
 }
 
@@ -693,7 +706,7 @@ do_ip6_route_add (char **argv)
 	parse_ip6_address (*argv++, &gateway, NULL);
 	metric = strtol (*argv++, NULL, 10);
 	mss = strtol (*argv++, NULL, 10);
-	return nm_platform_ip6_route_add (ifindex, NM_PLATFORM_SOURCE_USER,
+	return nm_platform_ip6_route_add (NM_PLATFORM_GET, ifindex, NM_IP_CONFIG_SOURCE_USER,
 	                                  network, plen, gateway,
 	                                  metric, mss);
 }
@@ -708,7 +721,7 @@ do_ip4_route_delete (char **argv)
 	parse_ip4_address (*argv++, &network, &plen);
 	metric = strtol (*argv++, NULL, 10);
 
-	return nm_platform_ip4_route_delete (ifindex, network, plen, metric);
+	return nm_platform_ip4_route_delete (NM_PLATFORM_GET, ifindex, network, plen, metric);
 }
 
 static gboolean
@@ -721,11 +734,11 @@ do_ip6_route_delete (char **argv)
 	parse_ip6_address (*argv++, &network, &plen);
 	metric = strtol (*argv++, NULL, 10);
 
-	return nm_platform_ip6_route_delete (ifindex, network, plen, metric);
+	return nm_platform_ip6_route_delete (NM_PLATFORM_GET, ifindex, network, plen, metric);
 }
 
 static gboolean
-do_ip4_route_exists (char **argv)
+do_ip4_route_get (char **argv)
 {
 	int ifindex = parse_ifindex (*argv++);
 	in_addr_t network;
@@ -734,12 +747,12 @@ do_ip4_route_exists (char **argv)
 	parse_ip4_address (*argv++, &network, &plen);
 	metric = strtol (*argv++, NULL, 10);
 
-	print_boolean (nm_platform_ip4_route_exists (ifindex, network, plen, metric));
+	print_boolean (!!nm_platform_ip4_route_get (NM_PLATFORM_GET, ifindex, network, plen, metric));
 	return TRUE;
 }
 
 static gboolean
-do_ip6_route_exists (char **argv)
+do_ip6_route_get (char **argv)
 {
 	int ifindex = parse_ifindex (*argv++);
 	struct in6_addr network;
@@ -748,7 +761,7 @@ do_ip6_route_exists (char **argv)
 	parse_ip6_address (*argv++, &network, &plen);
 	metric = strtol (*argv++, NULL, 10);
 
-	print_boolean (nm_platform_ip6_route_exists (ifindex, network, plen, metric));
+	print_boolean (!!nm_platform_ip6_route_get (NM_PLATFORM_GET, ifindex, network, plen, metric));
 	return TRUE;
 }
 
@@ -825,9 +838,9 @@ static const command_t commands[] = {
 		"<ifname/ifindex> <address>/<plen>" },
 	{ "ip6-address-delete", "delete IPv6 address", do_ip6_address_delete, 2,
 		"<ifname/ifindex> <address>/<plen>" },
-	{ "ip4-address-exists", "check for existence of IPv4 address", do_ip4_address_exists, 2,
+	{ "ip4-address-exists", "check for existence of IPv4 address", do_ip4_address_get, 2,
 		"<ifname/ifindex> <address>/<plen>" },
-	{ "ip6-address-exists", "check for existence of IPv6 address", do_ip6_address_exists, 2,
+	{ "ip6-address-exists", "check for existence of IPv6 address", do_ip6_address_get, 2,
 		"<ifname/ifindex> <address>/<plen>" },
 	{ "ip4-route-get-all", "print all IPv4 routes", do_ip4_route_get_all, 1, "<ifname/ifindex>" },
 	{ "ip6-route-get-all", "print all IPv6 routes", do_ip6_route_get_all, 1, "<ifname/ifindex>" },
@@ -839,9 +852,9 @@ static const command_t commands[] = {
 		"<ifname/ifindex> <network>/<plen> <metric>" },
 	{ "ip6-route-delete", "delete IPv6 route", do_ip6_route_delete, 3,
 		"<ifname/ifindex> <network>/<plen> <metric>" },
-	{ "ip4-route-exists", "check for existence of IPv4 route", do_ip4_route_exists, 3,
+	{ "ip4-route-exists", "check for existence of IPv4 route", do_ip4_route_get, 3,
 		"<ifname/ifindex> <network>/<plen> <metric>" },
-	{ "ip6-route-exists", "check for existence of IPv6 route", do_ip6_route_exists, 3,
+	{ "ip6-route-exists", "check for existence of IPv6 route", do_ip6_route_get, 3,
 		"<ifname/ifindex> <network>/<plen> <metric>" },
 	{ NULL, NULL, NULL, 0, NULL },
 };
@@ -852,7 +865,6 @@ main (int argc, char **argv)
 	const char *arg0 = *argv++;
 	const command_t *command = NULL;
 	gboolean status = TRUE;
-	int error;
 
 #if !GLIB_CHECK_VERSION (2, 35, 0)
 	g_type_init ();
@@ -886,12 +898,5 @@ main (int argc, char **argv)
 		error ("\n");
 	}
 
-	error = nm_platform_get_error ();
-	if (error) {
-		const char *msg = nm_platform_get_error_msg ();
-
-		error ("nm-platform: %s\n", msg);
-	}
-
-	return !!error;
+	return EXIT_SUCCESS;
 }

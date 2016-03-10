@@ -18,8 +18,8 @@
  * Copyright 2012 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_VLAN_H
-#define NM_DEVICE_VLAN_H
+#ifndef __NETWORKMANAGER_DEVICE_VLAN_H__
+#define __NETWORKMANAGER_DEVICE_VLAN_H__
 
 #include <glib-object.h>
 
@@ -40,25 +40,17 @@ typedef enum {
 	NM_VLAN_ERROR_CONNECTION_INCOMPATIBLE, /*< nick=ConnectionIncompatible >*/
 } NMVlanError;
 
+/* D-Bus exported properties */
 #define NM_DEVICE_VLAN_PARENT     "parent"
 #define NM_DEVICE_VLAN_ID         "vlan-id"
 
-typedef struct {
-	NMDevice parent;
-} NMDeviceVlan;
+/* Internal non-exported properties */
+#define NM_DEVICE_VLAN_INT_PARENT_DEVICE     "int-parent-device"
 
-typedef struct {
-	NMDeviceClass parent;
-
-} NMDeviceVlanClass;
-
+typedef NMDevice NMDeviceVlan;
+typedef NMDeviceClass NMDeviceVlanClass;
 
 GType nm_device_vlan_get_type (void);
-
-NMDevice *nm_device_vlan_new (NMPlatformLink *platform_link,
-                              NMDevice       *parent);
-NMDevice *nm_device_vlan_new_for_connection (NMConnection *connection,
-                                             NMDevice     *parent);
 
 G_END_DECLS
 

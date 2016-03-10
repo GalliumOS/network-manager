@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,10 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2011 - 2012 Red Hat, Inc.
+ * Copyright 2011 - 2012 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 #include <linux/if_infiniband.h>
 #include <netinet/ether.h>
@@ -89,9 +88,9 @@ nm_device_infiniband_new (DBusGConnection *connection, const char *path)
 	g_return_val_if_fail (path != NULL, NULL);
 
 	device = g_object_new (NM_TYPE_DEVICE_INFINIBAND,
-						   NM_OBJECT_DBUS_CONNECTION, connection,
-						   NM_OBJECT_DBUS_PATH, path,
-						   NULL);
+	                       NM_OBJECT_DBUS_CONNECTION, connection,
+	                       NM_OBJECT_DBUS_PATH, path,
+	                       NULL);
 	_nm_object_ensure_inited (NM_OBJECT (device));
 	return device;
 }
@@ -268,12 +267,12 @@ get_property (GObject *object,
 }
 
 static void
-nm_device_infiniband_class_init (NMDeviceInfinibandClass *eth_class)
+nm_device_infiniband_class_init (NMDeviceInfinibandClass *ib_class)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (eth_class);
-	NMDeviceClass *device_class = NM_DEVICE_CLASS (eth_class);
+	GObjectClass *object_class = G_OBJECT_CLASS (ib_class);
+	NMDeviceClass *device_class = NM_DEVICE_CLASS (ib_class);
 
-	g_type_class_add_private (eth_class, sizeof (NMDeviceInfinibandPrivate));
+	g_type_class_add_private (ib_class, sizeof (NMDeviceInfinibandPrivate));
 
 	/* virtual methods */
 	object_class->constructed = constructed;
@@ -293,11 +292,10 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_INFINIBAND_HW_ADDRESS,
-		                      "Active MAC Address",
-		                      "Currently set hardware MAC address",
+		 g_param_spec_string (NM_DEVICE_INFINIBAND_HW_ADDRESS, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceInfiniband:carrier:
@@ -306,11 +304,9 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CARRIER,
-		 g_param_spec_boolean (NM_DEVICE_INFINIBAND_CARRIER,
-		                       "Carrier",
-		                       "Carrier",
+		 g_param_spec_boolean (NM_DEVICE_INFINIBAND_CARRIER, "", "",
 		                       FALSE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 }
-

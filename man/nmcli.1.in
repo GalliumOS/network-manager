@@ -19,9 +19,9 @@
 .\" with this manual; if not, write to the Free Software Foundation, Inc.,
 .\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 .\"
-.\" Copyright (C) 2010 - 2014 Red Hat, Inc.
+.\" Copyright 2010 - 2014 Red Hat, Inc.
 .\"
-.TH NMCLI "1" "28 February 2014"
+.TH NMCLI "1" "3 December 2014"
 
 .SH NAME
 nmcli \- command\(hyline tool for controlling NetworkManager
@@ -33,7 +33,7 @@ nmcli \- command\(hyline tool for controlling NetworkManager
 .sp
 
 .IR OBJECT " := { "
-.BR general " | " networking " | " radio " | " connection " | " device
+.BR general " | " networking " | " radio " | " connection " | " device " | " agent
 .RI " }"
 .sp
 
@@ -131,10 +131,12 @@ incompatible versions may produce incorrect results.
 .B \-a, \-\-ask
 When using this option \fInmcli\fP will stop and ask for any missing required
 arguments, so do not use this option for non-interactive purposes like scripts.
+This option controls, for example, whether you will be prompted for a password
+if it is required for connecting to a network.
 .TP
 .B \-w, \-\-wait <seconds>
 This option sets a timeout period for which \fInmcli\fP will wait for \fINetworkManager\fP
-to finsh operations. It is especially useful for commands that may take a longer time to
+to finish operations. It is especially useful for commands that may take a longer time to
 complete, e.g. connection activation.
 Specifying a value of \fB0\fP instructs \fInmcli\fP not to wait but to exit immediately
 with a status of success. The default value depends on the executed command.
@@ -287,12 +289,12 @@ active if a device is using that connection profile. Without a parameter, all
 profiles are listed. When --active option is specified, only the active profiles
 are shown.
 .TP
-.B show [--active] [ id | uuid | path | apath ] <ID> ...
+.B show [--active] [--show-secrets] [ id | uuid | path | apath ] <ID> ...
 .br
 Show details for specified connections. By default, both static configuration
 and active connection data are displayed.  When --active option is specified,
-only the active profiles are taken into
-account.
+only the active profiles are taken into account. When --show-secrets option is
+specified, secrets associated with the profile will be revealed too.
 \fIid\fP, \fIuuid\fP, \fIpath\fP and \fIapath\fP keywords can be used if
 \fI<ID>\fP is ambiguous.
 .RS
@@ -327,10 +329,10 @@ When no command is given to the \fIconnection\fP object, the default action
 is 'nmcli connection show'.
 .RE
 .TP
-.B up [ id | uuid | path ] <ID> [ifname <ifname>] [ap <BSSID>] [nsp <name>]
+.B up [ id | uuid | path ] <ID> [ifname <ifname>] [ap <BSSID>] [nsp <name>] [passwd <file with passwords>]
 .RE
 .RS
-.B up ifname <ifname> [ap <BSSID>] [nsp <name>]
+.B up ifname <ifname> [ap <BSSID>] [nsp <name>] [passwd <file with passwords>]
 .RS
 .br
 Activate a connection.  The connection is identified by its name, UUID or D-Bus
@@ -355,18 +357,38 @@ Available options are:
 \(en BSSID of the AP which the command should connect to (for Wi\(hyFi connections)
 .IP \fInsp\fP 13
 \(en NSP (Network Service Provider) which the command should connect to (for WiMAX connections)
+.IP \fIpasswd-file\fP 13
+\(en some networks may require credentials during activation. You can give these
+credentials using this option.
+Each line of the file should contain one password in the form of
+.br
+\fBsetting_name.property_name:the password\fP
+.br
+For example, for WPA Wi-Fi with PSK, the line would be
+.br
+\fI802-11-wireless-security.psk:secret12345\fP
+.br
+For 802.1X password, the line would be
+.br
+\fI802-1x.password:my 1X password\fP
+.br
+nmcli also accepts "wifi-sec" and "wifi" strings instead of "802-11-wireless-security".
+When NetworkManager requires a password and it is not given, nmcli will ask for it
+when run with --ask. If --ask was not passed, NetworkManager can ask another secret
+agent that may be running (typically a GUI secret agent, such as nm-applet or
+gnome-shell).
 .RE
 .RE
 .TP
-.B down [ id | uuid | path | apath ] <ID>
+.B down [ id | uuid | path | apath ] <ID> ...
 .br
 Deactivate a connection from a device without preventing the device from
-further auto-activation.
+further auto-activation. Multiple connections can be passed to the command. 
 .sp
-Be aware that this command deactivates the specified active connection. The device
+Be aware that this command deactivates the specified active connection, but the device
 on which the connection was active, is still ready to connect and will perform
 auto-activation by looking for a suitable connection that has the 'autoconnect'
-flag set. This includes the just deactivated connection, so if the connection is set
+flag set. This includes the just deactivated connection. So if the connection is set
 to auto-connect, it will be automatically started on the disconnected device again.
 .br
 In most cases you may want to use \fIdevice disconnect\fP command instead.
@@ -376,6 +398,8 @@ If <ID> is ambiguous, a keyword \fIid\fP, \fIuuid\fP, \fIpath\fP or
 \fIapath\fP can be used.
 .br
 See \fBconnection show\fP above for the description of the <ID>-specifying keywords.
+.br
+If '--wait' option is not specified, the default timeout will be 10 seconds.
 .TP
 .B add COMMON_OPTIONS TYPE_SPECIFIC_OPTIONS IP_OPTIONS
 .br
@@ -418,6 +442,8 @@ Note: use quotes around \fB*\fP to suppress shell expansion.
 \(en MAC address of the device this connection is locked to
 .IP "\fI[cloned-mac <cloned MAC address>]\fP" 42
 \(en cloned MAC
+.IP "\fI[mode infrastructure|ap|adhoc]\fP" 42
+\(en Wi-Fi network mode. If blank, \fIinfrastructure\fP is assumed.
 .IP "\fI[mtu <MTU>]\fP" 42
 \(en MTU
 .RE
@@ -662,6 +688,8 @@ its name, UUID or D-Bus path. If <ID> is ambiguous, a keyword \fIid\fP,
 \fIuuid\fP or \fIpath\fP can be used.
 .br
 See \fBconnection show\fP above for the description of the <ID>-specifying keywords.
+.br
+If '--wait' option is not specified, the default timeout will be 10 seconds.
 .TP
 .B reload
 .br
@@ -683,7 +711,7 @@ of its latest state.
 .B device - show and manage network interfaces
 .br
 .TP
-.SS \fICOMMAND\fP := { status | show | connect | disconnect | wifi | wimax }
+.SS \fICOMMAND\fP := { status | show | connect | disconnect | delete | wifi | wimax }
 .sp
 .RS
 .TP
@@ -706,10 +734,19 @@ will be activated. It will also consider connections that are not set to auto co
 .br
 If '--wait' option is not specified, the default timeout will be 90 seconds.
 .TP
-.B disconnect <ifname>
+.B disconnect <ifname> ...
 .br
 Disconnect a device and prevent the device from automatically activating further
-connections without user/manual intervention.
+connections without user/manual intervention. Note that disconnecting software
+devices may mean that the devices will disappear.
+.br
+If '--wait' option is not specified, the default timeout will be 10 seconds.
+.TP
+.B delete <ifname> ...
+.br
+Delete a device. The command removes the interface from the system. Note that
+this only works for software devices like bonds, bridges, teams, etc.
+Hardware devices (like Ethernet) cannot be deleted by the command.
 .br
 If '--wait' option is not specified, the default timeout will be 10 seconds.
 .TP
@@ -761,6 +798,39 @@ This command does not show the APs, use 'nmcli device wifi list' for that.
 List available WiMAX NSP. The \fIifname\fP and \fInsp\fP options
 can be used to list networks for a particular interface or with a specific
 NSP, respectively.
+.RE
+
+.TP
+.B agent \- run nmcli as a NetworkManager secret agent, or polkit agent
+.br
+.TP
+.SS \fICOMMAND\fP := { secret | polkit  | all }
+.sp
+.RS
+.TP
+.B secret
+.br
+Register nmcli as a NetworkManager secret agent and listen for secret requests.
+You do usually not need this command, because nmcli can handle secrets when
+connecting to networks. However, you may find the command useful when you use
+another tool for activating connections and you do not have a secret agent
+available (like nm-applet).
+.TP
+.B polkit
+.br
+Register nmcli as a polkit agent for the user session and listen for
+authorization requests. You do not usually need this command, because nmcli can
+handle polkit actions related to NetworkManager operations (when run with
+--ask).  However, you may find the command useful when you want to run a simple
+text based polkit agent and you do not have an agent of a desktop environment.
+Note that running this command makes nmcli handle all polkit requests, not only
+NetworkManager related ones, because only one polkit agent can run for the
+session.
+.TP
+.B all
+.br
+Runs nmcli as both NetworkManager secret and a polkit agent.
+.RE
 
 .SH ENVIRONMENT VARIABLES
 \fInmcli\fP's behavior is affected by the following environment variables.
@@ -850,6 +920,11 @@ shows all connection profile names and their auto-connect property.
 .IP "\fB\f(CWnmcli \-p connection show \(dq\&My default em1\(dq\&\fP\fP"
 .IP
 shows details for "My default em1" connection profile.
+
+.IP "\fB\f(CWnmcli connection show --show-secrets \(dq\&My Home WiFi\(dq\&\fP\fP"
+.IP
+shows details for "My Home WiFi" connection profile with all passwords.
+Without \fI--show-secrets\fP option, secrets would not be displayed.
 
 .IP "\fB\f(CWnmcli \-f active connection show \(dq\&My default em1\(dq\&\fP\fP"
 .IP

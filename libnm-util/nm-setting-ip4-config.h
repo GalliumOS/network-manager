@@ -1,9 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -19,8 +16,8 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2014 Red Hat, Inc.
- * (C) Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2014 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
  */
 
 #ifndef NM_SETTING_IP4_CONFIG_H
@@ -63,6 +60,7 @@ GQuark nm_setting_ip4_config_error_quark (void);
 #define NM_SETTING_IP4_CONFIG_DNS_SEARCH         "dns-search"
 #define NM_SETTING_IP4_CONFIG_ADDRESSES          "addresses"
 #define NM_SETTING_IP4_CONFIG_ROUTES             "routes"
+#define NM_SETTING_IP4_CONFIG_ROUTE_METRIC       "route-metric"
 #define NM_SETTING_IP4_CONFIG_IGNORE_AUTO_ROUTES "ignore-auto-routes"
 #define NM_SETTING_IP4_CONFIG_IGNORE_AUTO_DNS    "ignore-auto-dns"
 #define NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID     "dhcp-client-id"
@@ -216,6 +214,9 @@ void          nm_setting_ip4_config_remove_route           (NMSettingIP4Config *
 NM_AVAILABLE_IN_0_9_10
 gboolean      nm_setting_ip4_config_remove_route_by_value  (NMSettingIP4Config *setting, NMIP4Route *route);
 void          nm_setting_ip4_config_clear_routes           (NMSettingIP4Config *setting);
+
+NM_AVAILABLE_IN_1_0
+gint64        nm_setting_ip4_config_get_route_metric       (NMSettingIP4Config *setting);
 
 gboolean      nm_setting_ip4_config_get_ignore_auto_routes (NMSettingIP4Config *setting);
 gboolean      nm_setting_ip4_config_get_ignore_auto_dns    (NMSettingIP4Config *setting);

@@ -47,6 +47,7 @@ nm_connection_error_get_type (void)
         { NM_CONNECTION_ERROR_CONNECTION_SETTING_NOT_FOUND, "NM_CONNECTION_ERROR_CONNECTION_SETTING_NOT_FOUND", "ConnectionSettingNotFound" },
         { NM_CONNECTION_ERROR_CONNECTION_TYPE_INVALID, "NM_CONNECTION_ERROR_CONNECTION_TYPE_INVALID", "ConnectionTypeInvalid" },
         { NM_CONNECTION_ERROR_SETTING_NOT_FOUND, "NM_CONNECTION_ERROR_SETTING_NOT_FOUND", "SettingNotFound" },
+        { NM_CONNECTION_ERROR_INVALID_SETTING, "NM_CONNECTION_ERROR_INVALID_SETTING", "InvalidSetting" },
         { 0, NULL, NULL }
       };
       GType g_define_type_id =
@@ -112,6 +113,8 @@ nm_setting_compare_flags_get_type (void)
         { NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, "NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS", "ignore-secrets" },
         { NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, "NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS", "ignore-agent-owned-secrets" },
         { NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, "NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS", "ignore-not-saved-secrets" },
+        { NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT, "NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT", "diff-result-with-default" },
+        { NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT, "NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT", "diff-result-no-default" },
         { 0, NULL, NULL }
       };
       GType g_define_type_id =
@@ -152,6 +155,8 @@ nm_setting_diff_result_get_type (void)
         { NM_SETTING_DIFF_RESULT_UNKNOWN, "NM_SETTING_DIFF_RESULT_UNKNOWN", "unknown" },
         { NM_SETTING_DIFF_RESULT_IN_A, "NM_SETTING_DIFF_RESULT_IN_A", "in-a" },
         { NM_SETTING_DIFF_RESULT_IN_B, "NM_SETTING_DIFF_RESULT_IN_B", "in-b" },
+        { NM_SETTING_DIFF_RESULT_IN_A_DEFAULT, "NM_SETTING_DIFF_RESULT_IN_A_DEFAULT", "in-a-default" },
+        { NM_SETTING_DIFF_RESULT_IN_B_DEFAULT, "NM_SETTING_DIFF_RESULT_IN_B_DEFAULT", "in-b-default" },
         { 0, NULL, NULL }
       };
       GType g_define_type_id =

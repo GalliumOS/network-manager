@@ -15,9 +15,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 - 2011 Red Hat, Inc.
+ * Copyright 2008 - 2011 Red Hat, Inc.
  *
  */
+
+#include "config.h"
 
 #include <glib.h>
 #include <string.h>
@@ -186,6 +188,7 @@ test_phase2_private_key_import (const char *path,
 		g_object_get (s_8021x, NM_SETTING_802_1X_PHASE2_PRIVATE_KEY, &tmp_key, NULL);
 		ASSERT (tmp_key != NULL, "phase2-private-key-import", "missing private key value");
 		check_scheme_path (tmp_key, path);
+		g_byte_array_free (tmp_key, TRUE);
 	} else
 		g_assert_not_reached ();
 
@@ -247,6 +250,7 @@ test_wrong_password_keeps_data (const char *path, const char *password)
 	        "wrong-password-keeps-data", "unexpected missing error");
 	ASSERT (format == NM_SETTING_802_1X_CK_FORMAT_UNKNOWN,
 	        "wrong-password-keeps-data", "unexpected success reading private key format");
+	g_clear_error (&error);
 
 	/* Make sure the password hasn't changed */
 	pw = nm_setting_802_1x_get_private_key_password (s_8021x);
@@ -344,6 +348,7 @@ test_wrong_phase2_password_keeps_data (const char *path, const char *password)
 	        "wrong-phase2-password-keeps-data", "unexpected missing error");
 	ASSERT (format == NM_SETTING_802_1X_CK_FORMAT_UNKNOWN,
 	        "wrong-phase2-password-keeps-data", "unexpected success reading private key format");
+	g_clear_error (&error);
 
 	/* Make sure the password hasn't changed */
 	pw = nm_setting_802_1x_get_phase2_private_key_password (s_8021x);
@@ -404,40 +409,57 @@ test_clear_phase2_private_key (const char *path, const char *password)
 	g_object_unref (s_8021x);
 }
 
-int main (int argc, char **argv)
+static void
+do_8021x_test (gconstpointer test_data)
 {
-	GError *error = NULL;
-	char *base;
+	char **parts, *path, *password;
 
-	if (argc < 3)
-		FAIL ("init", "need at least two arguments: <path> <password>");
+	parts = g_strsplit ((const char *) test_data, ", ", -1);
+	g_assert_cmpint (g_strv_length (parts), ==, 2);
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
-
-	if (!nm_utils_init (&error))
-		FAIL ("nm-utils-init", "failed to initialize libnm-util: %s", error->message);
+	path = g_build_filename (TEST_CERT_DIR, parts[0], NULL);
+	password = parts[1];
 
 	/* Test phase1 and phase2 path scheme */
-	test_private_key_import (argv[1], argv[2], NM_SETTING_802_1X_CK_SCHEME_PATH);
-	test_phase2_private_key_import (argv[1], argv[2], NM_SETTING_802_1X_CK_SCHEME_PATH);
+	test_private_key_import (path, password, NM_SETTING_802_1X_CK_SCHEME_PATH);
+	test_phase2_private_key_import (path, password, NM_SETTING_802_1X_CK_SCHEME_PATH);
 
 	/* Test phase1 and phase2 blob scheme */
-	test_private_key_import (argv[1], argv[2], NM_SETTING_802_1X_CK_SCHEME_BLOB);
-	test_phase2_private_key_import (argv[1], argv[2], NM_SETTING_802_1X_CK_SCHEME_BLOB);
+	test_private_key_import (path, password, NM_SETTING_802_1X_CK_SCHEME_BLOB);
+	test_phase2_private_key_import (path, password, NM_SETTING_802_1X_CK_SCHEME_BLOB);
 
 	/* Test that using a wrong password does not change existing data */
-	test_wrong_password_keeps_data (argv[1], argv[2]);
-	test_wrong_phase2_password_keeps_data (argv[1], argv[2]);
+	test_wrong_password_keeps_data (path, password);
+	test_wrong_phase2_password_keeps_data (path, password);
 
 	/* Test clearing the private key */
-	test_clear_private_key (argv[1], argv[2]);
-	test_clear_phase2_private_key (argv[1], argv[2]);
+	test_clear_private_key (path, password);
+	test_clear_phase2_private_key (path, password);
 
-	base = g_path_get_basename (argv[0]);
-	fprintf (stdout, "%s: SUCCESS\n", base);
-	g_free (base);
-	return 0;
+	g_free (path);
+	g_strfreev (parts);
+}
+
+NMTST_DEFINE ();
+
+int
+main (int argc, char **argv)
+{
+	nmtst_init (&argc, &argv, TRUE);
+
+	g_test_add_data_func ("/libnm-utils/setting-8021x/key-and-cert",
+	                      "test_key_and_cert.pem, test",
+	                      do_8021x_test);
+	g_test_add_data_func ("/libnm-utils/setting-8021x/key-only",
+	                      "test-key-only.pem, test",
+	                      do_8021x_test);
+	g_test_add_data_func ("/libnm-utils/setting-8021x/pkcs8-enc-key",
+	                      "pkcs8-enc-key.pem, 1234567890",
+	                      do_8021x_test);
+	g_test_add_data_func ("/libnm-utils/setting-8021x/pkcs12",
+	                      "test-cert.p12, test",
+	                      do_8021x_test);
+
+	return g_test_run ();
 }
 

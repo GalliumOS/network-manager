@@ -1,17 +1,9 @@
 EXTRA_DIST = \
-     NetworkManager.h \
-     NetworkManagerVPN.h \
+     gsystem-local-alloc.h \
      nm-dbus-glib-types.h \
      nm-glib-compat.h \
      nm-gvaluearray-compat.h \
      nm-test-utils.h \
-     nm-version.h.in \
-     nm-settings-flags.h
+     nm-macros-internal.h
 
-NetworkManagerincludedir=$(includedir)/NetworkManager
-
-NetworkManagerinclude_HEADERS = \
-	NetworkManager.h \
-	NetworkManagerVPN.h \
-	nm-version.h
-
+CLEANFILES=nm-version.h

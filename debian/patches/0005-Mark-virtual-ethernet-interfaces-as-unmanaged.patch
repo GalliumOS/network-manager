@@ -5,15 +5,15 @@ Subject: Mark virtual ethernet interfaces as unmanaged
 We do not want to interfere with VBox and VMware network interfaces, so ignore
 any virtual ethernet interfaces and mark them as unmanaged.
 ---
- src/devices/nm-device-ethernet.c | 41 ++++++++++++++++++++++++++++++++++++++++
+ src/devices/nm-device-ethernet.c |   41 +++++++++++++++++++++++++++++++++++++++
  1 file changed, 41 insertions(+)
 
-diff --git a/src/devices/nm-device-ethernet.c b/src/devices/nm-device-ethernet.c
-index f4a90c7..bed6b33 100644
+Index: b/src/devices/nm-device-ethernet.c
+===================================================================
 --- a/src/devices/nm-device-ethernet.c
 +++ b/src/devices/nm-device-ethernet.c
-@@ -265,6 +265,45 @@ out:
- 	g_object_unref (client);
+@@ -239,6 +239,45 @@ out:
+ 		g_object_unref (dev);
  }
  
 +static void
@@ -58,12 +58,12 @@ index f4a90c7..bed6b33 100644
  static GObject*
  constructor (GType type,
               guint n_construct_params,
-@@ -290,6 +329,8 @@ constructor (GType type,
+@@ -261,6 +300,8 @@ constructor (GType type,
  
  		/* s390 stuff */
- 		_update_s390_subchannels (NM_DEVICE_ETHERNET (self));
+ 		_update_s390_subchannels (NM_DEVICE_ETHERNET (object));
 +
-+		nm_device_check_virtual (NM_DEVICE_ETHERNET (self));
++		nm_device_check_virtual (NM_DEVICE_ETHERNET (object));
  	}
  
  	return object;

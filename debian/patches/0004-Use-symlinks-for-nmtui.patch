@@ -4,15 +4,14 @@ Subject: Use symlinks for nmtui
 
 Make /usr/bin/nmtui-* symbolic links to /usr/bin/nmtui.
 ---
- configure.ac    | 2 ++
- tui/Makefile.am | 2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ configure.ac |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/configure.ac b/configure.ac
-index a77d55a..3c216a2 100644
+Index: b/configure.ac
+===================================================================
 --- a/configure.ac
 +++ b/configure.ac
-@@ -46,6 +46,8 @@ AM_PROG_CC_C_O
+@@ -33,6 +33,8 @@ AM_PROG_CC_C_O
  # C++ only required if --enable-qt=yes
  AC_PROG_CXX
  
@@ -21,10 +20,10 @@ index a77d55a..3c216a2 100644
  dnl Initialize libtool
  LT_PREREQ([2.2])
  LT_INIT([disable-static])
-diff --git a/tui/Makefile.am b/tui/Makefile.am
-index 755b689..7f4e7d6 100644
---- a/tui/Makefile.am
-+++ b/tui/Makefile.am
+diff --git a/clients/tui/Makefile.am b/clients/tui/Makefile.am
+index ad9335d..09f2700 100644
+--- a/clients/tui/Makefile.am
++++ b/clients/tui/Makefile.am
 @@ -24,7 +24,7 @@ links = nmtui-edit nmtui-connect nmtui-hostname
  
  install-exec-hook:

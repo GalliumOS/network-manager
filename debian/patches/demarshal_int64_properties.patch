@@ -10,7 +10,7 @@ Index: b/libnm-glib/nm-object.c
 ===================================================================
 --- a/libnm-glib/nm-object.c
 +++ b/libnm-glib/nm-object.c
-@@ -1138,8 +1138,8 @@ demarshal_generic (NMObject *object,
+@@ -1137,8 +1137,8 @@ demarshal_generic (NMObject *object,
  	HANDLE_TYPE(DOUBLE, double, double)
  	HANDLE_TYPE(INT, int, int)
  	HANDLE_TYPE(UINT, uint, uint)

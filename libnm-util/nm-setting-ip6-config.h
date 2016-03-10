@@ -1,9 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Dan Williams <dcbw@redhat.com>
- * David Cantrell <dcantrel@redhat.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -19,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2014 Red Hat, Inc.
+ * Copyright 2007 - 2014 Red Hat, Inc.
  */
 
 #ifndef NM_SETTING_IP6_CONFIG_H
@@ -64,6 +61,7 @@ GQuark nm_setting_ip6_config_error_quark (void);
 #define NM_SETTING_IP6_CONFIG_DNS_SEARCH         "dns-search"
 #define NM_SETTING_IP6_CONFIG_ADDRESSES          "addresses"
 #define NM_SETTING_IP6_CONFIG_ROUTES             "routes"
+#define NM_SETTING_IP6_CONFIG_ROUTE_METRIC       "route-metric"
 #define NM_SETTING_IP6_CONFIG_IGNORE_AUTO_ROUTES "ignore-auto-routes"
 #define NM_SETTING_IP6_CONFIG_IGNORE_AUTO_DNS    "ignore-auto-dns"
 #define NM_SETTING_IP6_CONFIG_NEVER_DEFAULT      "never-default"
@@ -186,7 +184,7 @@ void                   nm_ip6_route_set_dest     (NMIP6Route *route,
 
 guint32                nm_ip6_route_get_prefix   (NMIP6Route *route);
 void                   nm_ip6_route_set_prefix   (NMIP6Route *route,
-                                        guint32 prefix);
+                                                  guint32 prefix);
 
 const struct in6_addr *nm_ip6_route_get_next_hop (NMIP6Route *route);
 void                   nm_ip6_route_set_next_hop (NMIP6Route *route,
@@ -247,6 +245,9 @@ NM_AVAILABLE_IN_0_9_10
 gboolean               nm_setting_ip6_config_remove_route_by_value  (NMSettingIP6Config *setting, NMIP6Route *route);
 void                   nm_setting_ip6_config_clear_routes           (NMSettingIP6Config *setting);
 gboolean               nm_setting_ip6_config_get_ignore_auto_routes (NMSettingIP6Config *setting);
+
+NM_AVAILABLE_IN_1_0
+gint64                 nm_setting_ip6_config_get_route_metric       (NMSettingIP6Config *setting);
 
 gboolean               nm_setting_ip6_config_get_ignore_auto_dns    (NMSettingIP6Config *setting);
 const char *           nm_setting_ip6_config_get_dhcp_hostname      (NMSettingIP6Config *setting);

@@ -1,9 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Dan Williams <dcbw@redhat.com>
- * David Cantrell <dcantrel@redhat.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -19,12 +16,14 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2014 Red Hat, Inc.
+ * Copyright 2007 - 2014 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-ip6-config.h"
 #include "nm-param-spec-specialized.h"
@@ -78,6 +77,7 @@ typedef struct {
 	GSList *dns_search; /* list of strings */
 	GSList *addresses;  /* array of NMIP6Address */
 	GSList *routes;     /* array of NMIP6Route */
+	gint64  route_metric;
 	gboolean ignore_auto_routes;
 	gboolean ignore_auto_dns;
 	gboolean never_default;
@@ -94,6 +94,7 @@ enum {
 	PROP_DNS_SEARCH,
 	PROP_ADDRESSES,
 	PROP_ROUTES,
+	PROP_ROUTE_METRIC,
 	PROP_IGNORE_AUTO_ROUTES,
 	PROP_IGNORE_AUTO_DNS,
 	PROP_NEVER_DEFAULT,
@@ -174,7 +175,7 @@ const struct in6_addr *
 nm_setting_ip6_config_get_dns (NMSettingIP6Config *setting, guint32 i)
 {
 	NMSettingIP6ConfigPrivate *priv;
-	
+
 
 	g_return_val_if_fail (NM_IS_SETTING_IP6_CONFIG (setting), NULL);
 
@@ -712,6 +713,26 @@ nm_setting_ip6_config_clear_routes (NMSettingIP6Config *setting)
 }
 
 /**
+ * nm_setting_ip6_config_get_route_metric:
+ * @setting: the #NMSettingIP6Config
+ *
+ * Returns the value contained in the #NMSettingIP6Config:route-metric
+ * property.
+ *
+ * Returns: the route metric that is used for IPv6 routes that don't explicitly
+ * specify a metric. See #NMSettingIP6Config:route-metric for more details.
+ *
+ * Since: 1.0
+ **/
+gint64
+nm_setting_ip6_config_get_route_metric (NMSettingIP6Config *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_IP6_CONFIG (setting), -1);
+
+	return NM_SETTING_IP6_CONFIG_GET_PRIVATE (setting)->route_metric;
+}
+
+/**
  * nm_setting_ip6_config_get_ignore_auto_routes:
  * @setting: the #NMSettingIP6Config
  *
@@ -804,6 +825,8 @@ static gboolean
 verify (NMSetting *setting, GSList *all_settings, GError **error)
 {
 	NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE (setting);
+	GSList *iter;
+	int i;
 
 	if (!priv->method) {
 		g_set_error_literal (error,
@@ -878,6 +901,48 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		return FALSE;
 	}
 
+	/* Validate addresses */
+	for (iter = priv->addresses, i = 0; iter; iter = g_slist_next (iter), i++) {
+		NMIP6Address *addr = (NMIP6Address *) iter->data;
+		guint32 prefix = nm_ip6_address_get_prefix (addr);
+
+		if (IN6_IS_ADDR_UNSPECIFIED (nm_ip6_address_get_address (addr))) {
+			g_set_error (error,
+			             NM_SETTING_IP6_CONFIG_ERROR,
+			             NM_SETTING_IP6_CONFIG_ERROR_INVALID_PROPERTY,
+			             _("%d. IPv6 address is invalid"),
+			             i+1);
+			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_ADDRESSES);
+			return FALSE;
+		}
+
+		if (!prefix || prefix > 128) {
+			g_set_error (error,
+			             NM_SETTING_IP6_CONFIG_ERROR,
+			             NM_SETTING_IP6_CONFIG_ERROR_INVALID_PROPERTY,
+			             _("%d. IPv6 address has invalid prefix"),
+			             i+1);
+			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_ADDRESSES);
+			return FALSE;
+		}
+	}
+
+	/* Validate routes */
+	for (iter = priv->routes, i = 0; iter; iter = g_slist_next (iter), i++) {
+		NMIP6Route *route = (NMIP6Route *) iter->data;
+		guint32 prefix = nm_ip6_route_get_prefix (route);
+
+		if (!prefix || prefix > 128) {
+			g_set_error (error,
+			             NM_SETTING_IP6_CONFIG_ERROR,
+			             NM_SETTING_IP6_CONFIG_ERROR_INVALID_PROPERTY,
+			             _("%d. route has invalid prefix"),
+			             i+1);
+			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_ROUTES);
+			return FALSE;
+		}
+	}
+
 	return TRUE;
 }
 
@@ -905,7 +970,7 @@ finalize (GObject *object)
 
 static void
 set_property (GObject *object, guint prop_id,
-		    const GValue *value, GParamSpec *pspec)
+              const GValue *value, GParamSpec *pspec)
 {
 	NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE (object);
 
@@ -929,6 +994,9 @@ set_property (GObject *object, guint prop_id,
 	case PROP_ROUTES:
 		g_slist_free_full (priv->routes, g_free);
 		priv->routes = nm_utils_ip6_routes_from_gvalue (value);
+		break;
+	case PROP_ROUTE_METRIC:
+		priv->route_metric = g_value_get_int64 (value);
 		break;
 	case PROP_IGNORE_AUTO_ROUTES:
 		priv->ignore_auto_routes = g_value_get_boolean (value);
@@ -957,7 +1025,7 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-		    GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE (object);
 
@@ -976,6 +1044,9 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_ROUTES:
 		nm_utils_ip6_routes_to_gvalue (priv->routes, value);
+		break;
+	case PROP_ROUTE_METRIC:
+		g_value_set_int64 (value, priv->route_metric);
 		break;
 	case PROP_IGNORE_AUTO_ROUTES:
 		g_value_set_boolean (value, priv->ignore_auto_routes);
@@ -1032,24 +1103,11 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_METHOD,
-		 g_param_spec_string (NM_SETTING_IP6_CONFIG_METHOD,
-						      "Method",
-						      "IPv6 configuration method.  If 'auto' is specified "
-						      "then the appropriate automatic method (PPP, router "
-						      "advertisement, etc) is used for the device and "
-						      "most other properties can be left unset.  To force "
-						      "the use of DHCP only, specify 'dhcp'; this method "
-						      "is only valid for Ethernet-based hardware.  If "
-						      "'link-local' is specified, then an IPv6 link-local "
-						      "address will be assigned to the interface.  If "
-						      "'manual' is specified, static IP addressing is "
-						      "used and at least one IP address must be given in "
-						      " the 'addresses' property.  If 'ignore' is "
-						      "specified, IPv6 configuration is not done. This "
-						      "property must be set.  Note: the 'shared' method "
-						      "is not yet supported.",
-						      NULL,
-						      G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		 g_param_spec_string (NM_SETTING_IP6_CONFIG_METHOD, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:dhcp-hostname:
@@ -1061,12 +1119,10 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DHCP_HOSTNAME,
-		 g_param_spec_string (NM_SETTING_IP6_CONFIG_DHCP_HOSTNAME,
-		                      "DHCP Hostname",
-		                      "The specified name will be sent to the DHCP server "
-		                      "when acquiring a lease.",
+		 g_param_spec_string (NM_SETTING_IP6_CONFIG_DHCP_HOSTNAME, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE));
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:dns:
@@ -1081,20 +1137,10 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DNS,
-		 _nm_param_spec_specialized (NM_SETTING_IP6_CONFIG_DNS,
-							   "DNS",
-							   "Array of DNS servers, where each member of the "
-							   "array is a byte array containing the IPv6 address "
-							   "of the DNS server (in network byte order). For "
-							   "the 'auto' method, these DNS servers are "
-							   "appended to those (if any) returned by automatic "
-							   "configuration.  DNS servers cannot be used with "
-							   "the 'shared' or 'link-local' methods as there is "
-							   "no usptream network.  In all other methods, "
-							   "these DNS servers are used as the only DNS "
-							   "servers for this connection.",
-							   DBUS_TYPE_G_ARRAY_OF_ARRAY_OF_UCHAR,
-							   G_PARAM_READWRITE));
+		 _nm_param_spec_specialized (NM_SETTING_IP6_CONFIG_DNS, "", "",
+		                             DBUS_TYPE_G_ARRAY_OF_ARRAY_OF_UCHAR,
+		                             G_PARAM_READWRITE |
+		                             G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:dns-search:
@@ -1107,18 +1153,10 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DNS_SEARCH,
-		 _nm_param_spec_specialized (NM_SETTING_IP6_CONFIG_DNS_SEARCH,
-							   "DNS search",
-							   "List of DNS search domains.  For the 'auto' "
-							   "method, these search domains are appended to "
-							   "those returned by automatic configuration. "
-							   "Search domains cannot be used with the 'shared' "
-							   "or 'link-local' methods as there is no upstream "
-							   "network.  In all other methods, these search "
-							   "domains are used as the only search domains for "
-							   "this connection.",
-							   DBUS_TYPE_G_LIST_OF_STRING,
-							   G_PARAM_READWRITE));
+		 _nm_param_spec_specialized (NM_SETTING_IP6_CONFIG_DNS_SEARCH, "", "",
+		                             DBUS_TYPE_G_LIST_OF_STRING,
+		                             G_PARAM_READWRITE |
+		                             G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:addresses:
@@ -1136,25 +1174,11 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ADDRESSES,
-		 _nm_param_spec_specialized (NM_SETTING_IP6_CONFIG_ADDRESSES,
-							   "Addresses",
-							   "Array of IPv6 address structures.  Each IPv6 "
-							   "address structure is composed of 3 members, the "
-							   "first being a byte array containing the IPv6 "
-							   "address (network byte order), the second a "
-							   "32-bit integer containing the IPv6 address "
-							   "prefix, and the third a byte array containing "
-							   "the IPv6 address (network byte order) of the "
-							   "gateway associated with this address, if any. "
-							   "If no gateway is given, the third element should "
-							   "be given as all zeros.  For the 'auto' method, "
-							   "given IP addresses are appended to those returned "
-							   "by automatic configuration.  Addresses cannot be "
-							   "used with the 'shared' or 'link-local' methods "
-							   "as the interface is automatically assigned an "
-							   "address with these methods.",
-							   DBUS_TYPE_G_ARRAY_OF_IP6_ADDRESS,
-							   G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		 _nm_param_spec_specialized (NM_SETTING_IP6_CONFIG_ADDRESSES, "", "",
+		                             DBUS_TYPE_G_ARRAY_OF_IP6_ADDRESS,
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_INFERRABLE |
+		                             G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:routes:
@@ -1170,22 +1194,33 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ROUTES,
-		 _nm_param_spec_specialized (NM_SETTING_IP6_CONFIG_ROUTES,
-							   "Routes",
-							   "Array of IPv6 route structures.  Each IPv6 route "
-							   "structure is composed of 4 members; the first "
-							   "being the destination IPv6 network or address "
-							   "(network byte order) as a byte array, the second "
-							   "the destination network or address IPv6 prefix, "
-							   "the third being the next-hop IPv6 address "
-							   "(network byte order) if any, and the fourth "
-							   "being the route metric. For the 'auto' method, "
-							   "given IP routes are appended to those returned "
-							   "by automatic configuration.  Routes cannot be "
-							   "used with the 'shared' or 'link-local' methods "
-							   "because there is no upstream network.",
-							   DBUS_TYPE_G_ARRAY_OF_IP6_ROUTE,
-							   G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		 _nm_param_spec_specialized (NM_SETTING_IP6_CONFIG_ROUTES, "", "",
+		                             DBUS_TYPE_G_ARRAY_OF_IP6_ROUTE,
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_INFERRABLE |
+		                             G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingIP6Config:route-metric:
+	 *
+	 * The default metric for routes that don't explicitly specify a metric.
+	 * The default value -1 means that the metric is choosen automatically
+	 * based on the device type.
+	 * The metric applies to dynamic routes, manual (static) routes that
+	 * don't have an explicit metric setting, address prefix routes, and
+	 * the default route.
+	 * As the linux kernel replaces zero (0) by 1024 (user-default), setting
+	 * this property to 0 means effectively setting it to 1024.
+	 *
+	 * Since: 1.0
+	 **/
+	g_object_class_install_property
+	    (object_class, PROP_ROUTE_METRIC,
+	     g_param_spec_int64 (NM_SETTING_IP6_CONFIG_ROUTE_METRIC, "", "",
+	                         -1, G_MAXUINT32, -1,
+	                         G_PARAM_READWRITE |
+	                         G_PARAM_CONSTRUCT |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:ignore-auto-routes:
@@ -1196,14 +1231,11 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_IGNORE_AUTO_ROUTES,
-		 g_param_spec_boolean (NM_SETTING_IP6_CONFIG_IGNORE_AUTO_ROUTES,
-						   "Ignore automatic routes",
-						   "When the method is set to 'auto' or 'dhcp' and this "
-						   "property is set to TRUE, automatically configured "
-						   "routes are ignored and only routes specified in the "
-						   "'routes' property, if any, are used.",
-						   FALSE,
-						   G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+		 g_param_spec_boolean (NM_SETTING_IP6_CONFIG_IGNORE_AUTO_ROUTES, "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_CONSTRUCT |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:ignore-auto-dns:
@@ -1216,15 +1248,11 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_IGNORE_AUTO_DNS,
-		 g_param_spec_boolean (NM_SETTING_IP6_CONFIG_IGNORE_AUTO_DNS,
-						   "Ignore DHCPv6/RDNSS DNS",
-						   "When the method is set to 'auto' or 'dhcp' and this "
-						   "property is set to TRUE, automatically configured "
-						   "nameservers and search domains are ignored and only "
-						   "nameservers and search domains specified in the 'dns' "
-						   "and 'dns-search' properties, if any, are used.",
-						   FALSE,
-						   G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+		 g_param_spec_boolean (NM_SETTING_IP6_CONFIG_IGNORE_AUTO_DNS, "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_CONSTRUCT |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:never-default:
@@ -1235,13 +1263,11 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NEVER_DEFAULT,
-		 g_param_spec_boolean (NM_SETTING_IP6_CONFIG_NEVER_DEFAULT,
-						   "Never default",
-						   "If TRUE, this connection will never be the default "
-						   "IPv6 connection, meaning it will never be assigned "
-						   "the default IPv6 route by NetworkManager.",
-						   FALSE,
-						   G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+		 g_param_spec_boolean (NM_SETTING_IP6_CONFIG_NEVER_DEFAULT, "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_CONSTRUCT |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:may-fail:
@@ -1255,18 +1281,11 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_MAY_FAIL,
-		 g_param_spec_boolean (NM_SETTING_IP6_CONFIG_MAY_FAIL,
-						   "May Fail",
-						   "If TRUE, allow overall network configuration to "
-						   "proceed even if IPv6 configuration times out. "
-						   "Note that at least one IP configuration must "
-						   "succeed or overall network configuration will still "
-						   "fail.  For example, in IPv4-only networks, setting "
-						   "this property to TRUE allows the overall network "
-						   "configuration to succeed if IPv6 configuration "
-						   "fails but IPv4 configuration completes successfully.",
-						   TRUE,
-						   G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+		 g_param_spec_boolean (NM_SETTING_IP6_CONFIG_MAY_FAIL, "", "",
+		                       TRUE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_CONSTRUCT |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingIP6Config:ip6-privacy:
@@ -1281,20 +1300,13 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_IP6_PRIVACY,
-		 g_param_spec_int (NM_SETTING_IP6_CONFIG_IP6_PRIVACY,
-		                   "Configure IPv6 Privacy",
-		                   "Configure IPv6 Privacy Extensions for SLAAC, described "
-		                   "in RFC4941.  If enabled, it makes the kernel generate "
-		                   "a temporary IPv6 address in addition to the public one "
-		                   "generated from MAC address via modified EUI-64.  This "
-		                   "enhances privacy, but could cause problems in some "
-		                   "applications, on the other hand.  The permitted values "
-		                   "are: 0: disabled, 1: enabled (prefer public address), "
-		                   "2: enabled (prefer temporary addresses).",
+		 g_param_spec_int (NM_SETTING_IP6_CONFIG_IP6_PRIVACY, "", "",
 		                   NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN,
 		                   NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR,
 		                   NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN,
-		                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+		                   G_PARAM_READWRITE |
+		                   G_PARAM_CONSTRUCT |
+		                   G_PARAM_STATIC_STRINGS));
 }
 
 /********************************************************************/

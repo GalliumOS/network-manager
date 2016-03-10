@@ -28,8 +28,12 @@
 #include "nm-logging.h"
 #include "nm-manager.h"
 #include "nm-platform.h"
+#include "nm-device-factory.h"
 
 #include "nm-device-macvlan-glue.h"
+
+#include "nm-device-logging.h"
+_LOG_DECLARE_SELF(NMDeviceMacvlan);
 
 G_DEFINE_TYPE (NMDeviceMacvlan, nm_device_macvlan, NM_TYPE_DEVICE_GENERIC)
 
@@ -55,13 +59,13 @@ enum {
 static void
 update_properties (NMDevice *device)
 {
+	NMDeviceMacvlan *self = NM_DEVICE_MACVLAN (device);
 	NMDeviceMacvlanPrivate *priv = NM_DEVICE_MACVLAN_GET_PRIVATE (device);
 	GObject *object = G_OBJECT (device);
 	NMPlatformMacvlanProperties props;
 
-	if (!nm_platform_macvlan_get_properties (nm_device_get_ifindex (device), &props)) {
-		nm_log_warn (LOGD_HW, "(%s): could not read macvlan properties",
-		             nm_device_get_iface (device));
+	if (!nm_platform_macvlan_get_properties (NM_PLATFORM_GET, nm_device_get_ifindex (device), &props)) {
+		_LOGW (LOGD_HW, "could not read macvlan properties");
 		return;
 	}
 
@@ -87,18 +91,6 @@ link_changed (NMDevice *device, NMPlatformLink *info)
 }
 
 /**************************************************************/
-
-NMDevice *
-nm_device_macvlan_new (NMPlatformLink *platform_device)
-{
-	g_return_val_if_fail (platform_device != NULL, NULL);
-
-	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_MACVLAN,
-	                                  NM_DEVICE_PLATFORM_DEVICE, platform_device,
-	                                  NM_DEVICE_TYPE_DESC, "Macvlan",
-	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_GENERIC,
-	                                  NULL);
-}
 
 static void
 nm_device_macvlan_init (NMDeviceMacvlan *self)
@@ -153,29 +145,47 @@ nm_device_macvlan_class_init (NMDeviceMacvlanClass *klass)
 	/* properties */
 	g_object_class_install_property
 		(object_class, PROP_PARENT,
-		 g_param_spec_boxed (NM_DEVICE_MACVLAN_PARENT,
-		                     "Parent",
-		                     "Parent device",
+		 g_param_spec_boxed (NM_DEVICE_MACVLAN_PARENT, "", "",
 		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_MODE,
-		 g_param_spec_string (NM_DEVICE_MACVLAN_MODE,
-		                      "Mode",
-		                      "Mode: 'private', 'vepa', 'bridge', or 'passthru'",
+		 g_param_spec_string (NM_DEVICE_MACVLAN_MODE, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_NO_PROMISC,
-		 g_param_spec_boolean (NM_DEVICE_MACVLAN_NO_PROMISC,
-		                       "No-promisc",
-		                       "No promiscuous mode",
+		 g_param_spec_boolean (NM_DEVICE_MACVLAN_NO_PROMISC, "", "",
 		                       FALSE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
 	                                        G_TYPE_FROM_CLASS (klass),
 	                                        &dbus_glib_nm_device_macvlan_object_info);
 }
+
+/*************************************************************/
+
+#define NM_TYPE_MACVLAN_FACTORY (nm_macvlan_factory_get_type ())
+#define NM_MACVLAN_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_MACVLAN_FACTORY, NMMacvlanFactory))
+
+static NMDevice *
+new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
+{
+	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_MACVLAN,
+	                                  NM_DEVICE_PLATFORM_DEVICE, plink,
+	                                  NM_DEVICE_TYPE_DESC, "Macvlan",
+	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_GENERIC,
+	                                  NULL);
+}
+
+NM_DEVICE_FACTORY_DEFINE_INTERNAL (MACVLAN, Macvlan, macvlan,
+	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES (NM_LINK_TYPE_MACVLAN, NM_LINK_TYPE_MACVTAP),
+	factory_iface->new_link = new_link;
+	)
+

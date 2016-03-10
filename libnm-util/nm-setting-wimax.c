@@ -16,14 +16,16 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2011 - 2013 Red Hat, Inc.
- * (C) Copyright 2009 Novell, Inc.
+ * Copyright 2011 - 2013 Red Hat, Inc.
+ * Copyright 2009 Novell, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <net/ethernet.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-wimax.h"
 #include "nm-param-spec-specialized.h"
@@ -179,7 +181,7 @@ finalize (GObject *object)
 
 static void
 set_property (GObject *object, guint prop_id,
-		    const GValue *value, GParamSpec *pspec)
+              const GValue *value, GParamSpec *pspec)
 {
 	NMSettingWimaxPrivate *priv = NM_SETTING_WIMAX_GET_PRIVATE (object);
 
@@ -201,7 +203,7 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-		    GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMSettingWimax *setting = NM_SETTING_WIMAX (object);
 
@@ -241,12 +243,10 @@ nm_setting_wimax_class_init (NMSettingWimaxClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NETWORK_NAME,
-		 g_param_spec_string (NM_SETTING_WIMAX_NETWORK_NAME,
-							  "NetworkName",
-							  "Network Service Provider (NSP) name of the WiMAX "
-							  "network this connection should use.",
-							  NULL,
-							  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_WIMAX_NETWORK_NAME, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingWimax:mac-address:
@@ -257,12 +257,8 @@ nm_setting_wimax_class_init (NMSettingWimaxClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_MAC_ADDRESS,
-		 _nm_param_spec_specialized (NM_SETTING_WIMAX_MAC_ADDRESS,
-							   "MAC Address",
-							   "If specified, this connection will only apply to "
-							   "the WiMAX device whose MAC address matches.  "
-							   "This property does not change the MAC address "
-							   "of the device (known as MAC spoofing).",
-							   DBUS_TYPE_G_UCHAR_ARRAY,
-							   G_PARAM_READWRITE));
+		 _nm_param_spec_specialized (NM_SETTING_WIMAX_MAC_ADDRESS, "", "",
+		                             DBUS_TYPE_G_UCHAR_ARRAY,
+		                             G_PARAM_READWRITE |
+		                             G_PARAM_STATIC_STRINGS));
 }

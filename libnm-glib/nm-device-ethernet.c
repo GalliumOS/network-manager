@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,11 +15,12 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2012 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2012 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 #include <netinet/ether.h>
 
@@ -93,9 +92,9 @@ nm_device_ethernet_new (DBusGConnection *connection, const char *path)
 	g_return_val_if_fail (path != NULL, NULL);
 
 	device = g_object_new (NM_TYPE_DEVICE_ETHERNET,
-						   NM_OBJECT_DBUS_CONNECTION, connection,
-						   NM_OBJECT_DBUS_PATH, path,
-						   NULL);
+	                       NM_OBJECT_DBUS_CONNECTION, connection,
+	                       NM_OBJECT_DBUS_PATH, path,
+	                       NULL);
 	_nm_object_ensure_inited (NM_OBJECT (device));
 	return device;
 }
@@ -350,11 +349,10 @@ nm_device_ethernet_class_init (NMDeviceEthernetClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_ETHERNET_HW_ADDRESS,
-						  "Active MAC Address",
-						  "Currently set hardware MAC address",
-						  NULL,
-						  G_PARAM_READABLE));
+		 g_param_spec_string (NM_DEVICE_ETHERNET_HW_ADDRESS, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceEthernet:perm-hw-address:
@@ -363,11 +361,10 @@ nm_device_ethernet_class_init (NMDeviceEthernetClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PERM_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_ETHERNET_PERMANENT_HW_ADDRESS,
-						  "Permanent MAC Address",
-						  "Permanent hardware MAC address",
-						  NULL,
-						  G_PARAM_READABLE));
+		 g_param_spec_string (NM_DEVICE_ETHERNET_PERMANENT_HW_ADDRESS, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceEthernet:speed:
@@ -376,11 +373,10 @@ nm_device_ethernet_class_init (NMDeviceEthernetClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SPEED,
-		 g_param_spec_uint (NM_DEVICE_ETHERNET_SPEED,
-					    "Speed",
-					    "Speed",
-					    0, G_MAXUINT32, 0,
-					    G_PARAM_READABLE));
+		 g_param_spec_uint (NM_DEVICE_ETHERNET_SPEED, "", "",
+		                    0, G_MAXUINT32, 0,
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceEthernet:carrier:
@@ -389,11 +385,9 @@ nm_device_ethernet_class_init (NMDeviceEthernetClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CARRIER,
-		 g_param_spec_boolean (NM_DEVICE_ETHERNET_CARRIER,
-					    "Carrier",
-					    "Carrier",
-					    FALSE,
-					    G_PARAM_READABLE));
+		 g_param_spec_boolean (NM_DEVICE_ETHERNET_CARRIER, "", "",
+		                       FALSE,
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 }
-

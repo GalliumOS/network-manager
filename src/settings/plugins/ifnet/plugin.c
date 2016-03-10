@@ -20,6 +20,8 @@
  * Copyright (C) 1999-2010 Gentoo Foundation, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
 
 #include <gmodule.h>
@@ -29,7 +31,7 @@
 #include <nm-utils.h>
 #include <nm-setting-connection.h>
 
-#include "NetworkManager.h"
+#include "nm-dbus-interface.h"
 #include "nm-system-config-interface.h"
 #include "nm-logging.h"
 #include "nm-ifnet-connection.h"
@@ -45,7 +47,6 @@
 #define IFNET_PLUGIN_INFO "(C) 1999-2010 Gentoo Foundation, Inc. To report bugs please use bugs.gentoo.org with [networkmanager] or [qiaomuf] prefix."
 #define IFNET_SYSTEM_HOSTNAME_FILE "/etc/conf.d/hostname"
 #define IFNET_MANAGE_WELL_KNOWN_DEFAULT TRUE
-#define IFNET_KEY_FILE_KEY_MANAGED "managed"
 
 typedef struct {
 	GHashTable *connections;  /* uuid::connection */
@@ -119,17 +120,9 @@ write_system_hostname (NMSystemConfigInterface * config,
 static gboolean
 is_managed_plugin (void)
 {
-	char *result = NULL;
-
-	result = nm_config_get_value (nm_config_get (),
-	                              IFNET_KEY_FILE_GROUP, IFNET_KEY_FILE_KEY_MANAGED,
-	                              NULL);
-	if (result) {
-		gboolean ret = is_true (result);
-		g_free (result);
-		return ret;
-	}
-	return IFNET_MANAGE_WELL_KNOWN_DEFAULT;
+	return nm_config_data_get_value_boolean (NM_CONFIG_GET_DATA_ORIG,
+	                                         NM_CONFIG_KEYFILE_GROUP_IFNET, NM_CONFIG_KEYFILE_KEY_IFNET_MANAGED,
+	                                         IFNET_MANAGE_WELL_KNOWN_DEFAULT);
 }
 
 static void
@@ -244,8 +237,7 @@ reload_connections (NMSystemConfigInterface *config)
 	SCPluginIfnet *self = SC_PLUGIN_IFNET (config);
 	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (self);
 	GList *conn_names = NULL, *n_iter = NULL;
-	gboolean auto_refresh = FALSE;
-	char *str_auto_refresh;
+	gboolean auto_refresh;
 	GError *error = NULL;
 
 	/* save names for removing unused connections */
@@ -262,12 +254,9 @@ reload_connections (NMSystemConfigInterface *config)
 
 	nm_log_info (LOGD_SETTINGS, "Loading connections");
 
-	str_auto_refresh = nm_config_get_value (nm_config_get (),
-	                                        IFNET_KEY_FILE_GROUP, "auto_refresh",
-	                                        NULL);
-	if (str_auto_refresh && is_true (str_auto_refresh))
-		auto_refresh = TRUE;
-	g_free (str_auto_refresh);
+	auto_refresh = nm_config_data_get_value_boolean (NM_CONFIG_GET_DATA_ORIG,
+	                                                 NM_CONFIG_KEYFILE_GROUP_IFNET, NM_CONFIG_KEYFILE_KEY_IFNET_AUTO_REFRESH,
+	                                                 FALSE);
 
 	new_connections = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
 
@@ -311,10 +300,13 @@ reload_connections (NMSystemConfigInterface *config)
 				if (!nm_settings_connection_replace_settings (NM_SETTINGS_CONNECTION (old),
 				                                              NM_CONNECTION (new),
 				                                              FALSE,  /* don't set Unsaved */
+				                                              "ifnet-update",
 				                                              &error)) {
-					/* Shouldn't ever get here as 'new' was verified by the reader already */
-					g_assert_no_error (error);
+					/* Shouldn't ever get here as 'new' was verified by the reader already
+					 * and the UUID did not change. */
+					g_assert_not_reached ();
 				}
+				g_assert_no_error (error);
 				nm_log_info (LOGD_SETTINGS, "Connection %s updated",
 				             nm_connection_get_id (NM_CONNECTION (new)));
 			}
@@ -391,7 +383,7 @@ check_unmanaged (gpointer key, gpointer data, gpointer user_data)
 
 	conn_name = nm_ifnet_connection_get_conn_name (connection);
 
-	if (is_managed (conn_name))
+	if (!conn_name || is_managed (conn_name))
 		return;
 
 	nm_log_info (LOGD_SETTINGS, "Checking unmanaged: %s", conn_name);

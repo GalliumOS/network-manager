@@ -19,57 +19,45 @@
  * Copyright (C) 2007 - 2012 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
 
 #include <stdlib.h>
-#include <netinet/ether.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <dbus/dbus-glib-lowlevel.h>
 #include <dbus/dbus-glib.h>
 #include <gio/gio.h>
 #include <glib/gi18n.h>
 
+#include "gsystem-local-alloc.h"
 #include "nm-glib-compat.h"
 #include "nm-manager.h"
 #include "nm-logging.h"
 #include "nm-dbus-manager.h"
 #include "nm-vpn-manager.h"
 #include "nm-device.h"
-#include "nm-device-ethernet.h"
-#include "nm-device-infiniband.h"
-#include "nm-device-bond.h"
-#include "nm-device-team.h"
-#include "nm-device-bridge.h"
-#include "nm-device-vlan.h"
 #include "nm-device-generic.h"
-#include "nm-device-veth.h"
-#include "nm-device-tun.h"
-#include "nm-device-macvlan.h"
-#include "nm-device-vxlan.h"
-#include "nm-device-gre.h"
-#include "nm-setting-connection.h"
-#include "nm-setting-wireless.h"
-#include "nm-setting-vpn.h"
 #include "nm-dbus-glib-types.h"
 #include "nm-platform.h"
 #include "nm-rfkill-manager.h"
 #include "nm-dhcp-manager.h"
 #include "nm-settings.h"
 #include "nm-settings-connection.h"
-#include "nm-manager-auth.h"
+#include "nm-auth-utils.h"
+#include "nm-auth-manager.h"
 #include "NetworkManagerUtils.h"
-#include "nm-utils.h"
 #include "nm-device-factory.h"
 #include "nm-enum-types.h"
 #include "nm-sleep-monitor.h"
 #include "nm-connectivity.h"
 #include "nm-policy.h"
-
+#include "nm-connection-provider.h"
+#include "nm-session-monitor.h"
+#include "nm-activation-request.h"
+#include "nm-core-internal.h"
+#include "nm-config.h"
 
 #define NM_AUTOIP_DBUS_SERVICE "org.freedesktop.nm_avahi_autoipd"
 #define NM_AUTOIP_DBUS_IFACE   "org.freedesktop.nm_avahi_autoipd"
@@ -128,8 +116,7 @@ static void impl_manager_check_connectivity (NMManager *manager,
 
 #include "nm-manager-glue.h"
 
-static void add_device (NMManager *self, NMDevice *device, gboolean generate_con);
-static void remove_device (NMManager *self, NMDevice *device, gboolean quitting);
+static void add_device (NMManager *self, NMDevice *device, gboolean try_assume);
 
 static NMActiveConnection *_new_active_connection (NMManager *self,
                                                    NMConnection *connection,
@@ -139,8 +126,6 @@ static NMActiveConnection *_new_active_connection (NMManager *self,
                                                    GError **error);
 
 static void policy_activating_device_changed (GObject *object, GParamSpec *pspec, gpointer user_data);
-
-static NMDevice *find_device_by_ip_iface (NMManager *self, const gchar *iface);
 
 static void rfkill_change (const char *desc, RfKillType rtype, gboolean enabled);
 
@@ -172,24 +157,21 @@ typedef struct {
 	char *state_file;
 
 	GSList *active_connections;
+	GSList *authorizing_connections;
 	guint ac_cleanup_id;
 	NMActiveConnection *primary_connection;
 	NMActiveConnection *activating_connection;
 
 	GSList *devices;
 	NMState state;
+	NMConfig *config;
 	NMConnectivity *connectivity;
-
-	int ignore_link_added_cb;
 
 	NMPolicy *policy;
 
 	NMDBusManager *dbus_mgr;
 	gboolean       prop_filter_added;
 	NMRfkillManager *rfkill_mgr;
-
-	/* List of NMDeviceFactoryFunc pointers sorted in priority order */
-	GSList *factories;
 
 	NMSettings *settings;
 	char *hostname;
@@ -198,7 +180,7 @@ typedef struct {
 	gboolean sleeping;
 	gboolean net_enabled;
 
-	NMVPNManager *vpn_manager;
+	NMVpnManager *vpn_manager;
 
 	DBusGProxy *aipd_proxy;
 	NMSleepMonitor *sleep_monitor;
@@ -226,6 +208,7 @@ enum {
 	USER_PERMISSIONS_CHANGED,
 	ACTIVE_CONNECTION_ADDED,
 	ACTIVE_CONNECTION_REMOVED,
+	CONFIGURE_QUIT,
 
 	LAST_SIGNAL
 };
@@ -247,6 +230,7 @@ enum {
 	PROP_ACTIVE_CONNECTIONS,
 	PROP_CONNECTIVITY,
 	PROP_PRIMARY_CONNECTION,
+	PROP_PRIMARY_CONNECTION_TYPE,
 	PROP_ACTIVATING_CONNECTION,
 	PROP_DEVICES,
 
@@ -257,19 +241,6 @@ enum {
 	LAST_PROP
 };
 
-
-/************************************************************************/
-
-#define NM_MANAGER_ERROR (nm_manager_error_quark ())
-
-static GQuark
-nm_manager_error_quark (void)
-{
-	static GQuark quark = 0;
-	if (!quark)
-		quark = g_quark_from_static_string ("nm-manager-error");
-	return quark;
-}
 
 /************************************************************************/
 
@@ -291,11 +262,29 @@ active_connection_remove (NMManager *self, NMActiveConnection *active)
 	/* FIXME: switch to a GList for faster removal */
 	found = g_slist_find (priv->active_connections, active);
 	if (found) {
+		NMConnection *connection;
+
 		priv->active_connections = g_slist_remove (priv->active_connections, active);
 		g_signal_emit (self, signals[ACTIVE_CONNECTION_REMOVED], 0, active);
 		g_signal_handlers_disconnect_by_func (active, active_connection_state_changed, self);
 		g_signal_handlers_disconnect_by_func (active, active_connection_default_changed, self);
+
+		if (   nm_active_connection_get_assumed (active)
+		    && (connection = nm_active_connection_get_connection (active))
+		    && nm_settings_connection_get_nm_generated_assumed (NM_SETTINGS_CONNECTION (connection)))
+			g_object_ref (connection);
+		else
+			connection = NULL;
+
 		g_object_unref (active);
+
+		if (   connection
+		    && nm_settings_has_connection (priv->settings, connection)) {
+			nm_log_dbg (LOGD_DEVICE, "Assumed connection disconnected. Deleting generated connection '%s' (%s)",
+			            nm_connection_get_id (connection), nm_connection_get_uuid (connection));
+			nm_settings_connection_delete (NM_SETTINGS_CONNECTION (connection), NULL, NULL);
+			g_object_unref (connection);
+		}
 	}
 
 	return found && notify;
@@ -468,19 +457,17 @@ active_connection_get_by_path (NMManager *manager, const char *path)
 
 /************************************************************************/
 
-static NMDevice *
-nm_manager_get_device_by_udi (NMManager *manager, const char *udi)
+static void
+_config_changed_cb (NMConfig *config, NMConfigData *config_data, NMConfigChangeFlags changes, NMConfigData *old_data, NMManager *self)
 {
-	GSList *iter;
-
-	g_return_val_if_fail (udi != NULL, NULL);
-
-	for (iter = NM_MANAGER_GET_PRIVATE (manager)->devices; iter; iter = iter->next) {
-		if (!strcmp (nm_device_get_udi (NM_DEVICE (iter->data)), udi))
-			return NM_DEVICE (iter->data);
-	}
-	return NULL;
+	g_object_set (NM_MANAGER_GET_PRIVATE (self)->connectivity,
+	              NM_CONNECTIVITY_URI, nm_config_data_get_connectivity_uri (config_data),
+	              NM_CONNECTIVITY_INTERVAL, nm_config_data_get_connectivity_interval (config_data),
+	              NM_CONNECTIVITY_RESPONSE, nm_config_data_get_connectivity_response (config_data),
+	              NULL);
 }
+
+/************************************************************************/
 
 static NMDevice *
 nm_manager_get_device_by_path (NMManager *manager, const char *path)
@@ -497,24 +484,6 @@ nm_manager_get_device_by_path (NMManager *manager, const char *path)
 }
 
 NMDevice *
-nm_manager_get_device_by_master (NMManager *manager, const char *master, const char *driver)
-{
-	GSList *iter;
-
-	g_return_val_if_fail (master != NULL, NULL);
-
-	for (iter = NM_MANAGER_GET_PRIVATE (manager)->devices; iter; iter = iter->next) {
-		NMDevice *device = NM_DEVICE (iter->data);
-
-		if (!strcmp (nm_device_get_iface (device), master) &&
-		    (!driver || !strcmp (nm_device_get_driver (device), driver)))
-			return device;
-	}
-
-	return NULL;
-}
-
-NMDevice *
 nm_manager_get_device_by_ifindex (NMManager *manager, int ifindex)
 {
 	GSList *iter;
@@ -526,6 +495,50 @@ nm_manager_get_device_by_ifindex (NMManager *manager, int ifindex)
 			return device;
 	}
 
+	return NULL;
+}
+
+static NMDevice *
+find_device_by_hw_addr (NMManager *manager, const char *hwaddr)
+{
+	GSList *iter;
+	const char *device_addr;
+
+	g_return_val_if_fail (hwaddr != NULL, NULL);
+
+	if (nm_utils_hwaddr_valid (hwaddr, -1)) {
+		for (iter = NM_MANAGER_GET_PRIVATE (manager)->devices; iter; iter = iter->next) {
+			device_addr = nm_device_get_hw_address (NM_DEVICE (iter->data));
+			if (device_addr && nm_utils_hwaddr_matches (hwaddr, -1, device_addr, -1))
+				return NM_DEVICE (iter->data);
+		}
+	}
+	return NULL;
+}
+
+static NMDevice *
+find_device_by_ip_iface (NMManager *self, const gchar *iface)
+{
+	GSList *iter;
+
+	g_return_val_if_fail (iface != NULL, NULL);
+
+	for (iter = NM_MANAGER_GET_PRIVATE (self)->devices; iter; iter = g_slist_next (iter)) {
+		if (g_strcmp0 (nm_device_get_ip_iface (NM_DEVICE (iter->data)), iface) == 0)
+			return NM_DEVICE (iter->data);
+	}
+	return NULL;
+}
+
+static NMDevice *
+find_device_by_iface (NMManager *self, const gchar *iface)
+{
+	GSList *iter;
+
+	for (iter = NM_MANAGER_GET_PRIVATE (self)->devices; iter; iter = g_slist_next (iter)) {
+		if (g_strcmp0 (nm_device_get_iface (NM_DEVICE (iter->data)), iface) == 0)
+			return NM_DEVICE (iter->data);
+	}
 	return NULL;
 }
 
@@ -601,7 +614,7 @@ checked_connectivity (GObject *object, GAsyncResult *result, gpointer user_data)
 }
 
 static NMState
-find_best_device_state (NMManager *manager, gboolean *want_connectivity_check)
+find_best_device_state (NMManager *manager)
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (manager);
 	NMState best_state = NM_STATE_DISCONNECTED;
@@ -615,14 +628,10 @@ find_best_device_state (NMManager *manager, gboolean *want_connectivity_check)
 		case NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
 			if (   nm_active_connection_get_default (ac)
 			    || nm_active_connection_get_default6 (ac)) {
-				nm_connectivity_set_online (priv->connectivity, TRUE);
-				if (nm_connectivity_get_state (priv->connectivity) == NM_CONNECTIVITY_FULL) {
-					*want_connectivity_check = FALSE;
+				if (nm_connectivity_get_state (priv->connectivity) == NM_CONNECTIVITY_FULL)
 					return NM_STATE_CONNECTED_GLOBAL;
-				}
 
-				best_state = NM_STATE_CONNECTING;
-				*want_connectivity_check = TRUE;
+				best_state = NM_STATE_CONNECTED_SITE;
 			} else {
 				if (best_state < NM_STATE_CONNECTING)
 					best_state = NM_STATE_CONNECTED_LOCAL;
@@ -653,7 +662,6 @@ nm_manager_update_state (NMManager *manager)
 {
 	NMManagerPrivate *priv;
 	NMState new_state = NM_STATE_DISCONNECTED;
-	gboolean want_connectivity_check = FALSE;
 
 	g_return_if_fail (NM_IS_MANAGER (manager));
 
@@ -662,16 +670,16 @@ nm_manager_update_state (NMManager *manager)
 	if (manager_sleeping (manager))
 		new_state = NM_STATE_ASLEEP;
 	else
-		new_state = find_best_device_state (manager, &want_connectivity_check);
+		new_state = find_best_device_state (manager);
 
-	if (new_state == NM_STATE_CONNECTING && want_connectivity_check) {
+	nm_connectivity_set_online (priv->connectivity, new_state >= NM_STATE_CONNECTED_LOCAL);
+
+	if (new_state == NM_STATE_CONNECTED_SITE) {
 		nm_connectivity_check_async (priv->connectivity,
 		                             checked_connectivity,
 		                             g_object_ref (manager));
-		return;
 	}
 
-	nm_connectivity_set_online (priv->connectivity, new_state >= NM_STATE_CONNECTED_LOCAL);
 	set_state (manager, new_state);
 }
 
@@ -710,6 +718,11 @@ check_if_startup_complete (NMManager *self)
 	if (!priv->startup)
 		return;
 
+	if (!nm_settings_get_startup_complete (priv->settings)) {
+		nm_log_dbg (LOGD_CORE, "check_if_startup_complete returns FALSE because of NMSettings");
+		return;
+	}
+
 	for (iter = priv->devices; iter; iter = iter->next) {
 		NMDevice *dev = iter->data;
 
@@ -731,6 +744,9 @@ check_if_startup_complete (NMManager *self)
 
 		g_signal_handlers_disconnect_by_func (dev, G_CALLBACK (device_has_pending_action_changed), self);
 	}
+
+	if (nm_config_get_configure_and_quit (nm_config_get ()))
+		g_signal_emit (self, signals[CONFIGURE_QUIT], 0);
 }
 
 static void
@@ -742,11 +758,25 @@ device_has_pending_action_changed (NMDevice *device,
 }
 
 static void
-remove_device (NMManager *manager, NMDevice *device, gboolean quitting)
+settings_startup_complete_changed (NMSettings *settings,
+                                   GParamSpec *pspec,
+                                   NMManager *self)
+{
+	check_if_startup_complete (self);
+}
+
+static void
+remove_device (NMManager *manager,
+               NMDevice *device,
+               gboolean quitting,
+               gboolean allow_unmanage)
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (manager);
 
-	if (nm_device_get_managed (device)) {
+	nm_log_dbg (LOGD_DEVICE, "(%s): removing device (allow_unmanage %d, managed %d)",
+	            nm_device_get_iface (device), allow_unmanage, nm_device_get_managed (device));
+
+	if (allow_unmanage && nm_device_get_managed (device)) {
 		NMActRequest *req = nm_device_get_act_request (device);
 		gboolean unmanage = FALSE;
 
@@ -767,6 +797,8 @@ remove_device (NMManager *manager, NMDevice *device, gboolean quitting)
 				nm_device_set_unmanaged_quitting (device);
 			else
 				nm_device_set_unmanaged (device, NM_UNMANAGED_INTERNAL, TRUE, NM_DEVICE_STATE_REASON_REMOVED);
+		} else if (quitting && nm_config_get_configure_and_quit (nm_config_get ())) {
+			nm_device_spawn_iface_helper (device);
 		}
 	}
 
@@ -777,6 +809,7 @@ remove_device (NMManager *manager, NMDevice *device, gboolean quitting)
 
 	g_signal_emit (manager, signals[DEVICE_REMOVED], 0, device);
 	g_object_notify (G_OBJECT (manager), NM_MANAGER_DEVICES);
+	nm_device_removed (device);
 
 	nm_dbus_manager_unregister_object (priv->dbus_mgr, device);
 	g_object_unref (device);
@@ -787,7 +820,7 @@ remove_device (NMManager *manager, NMDevice *device, gboolean quitting)
 static void
 device_removed_cb (NMDevice *device, gpointer user_data)
 {
-	remove_device (NM_MANAGER (user_data), device, FALSE);
+	remove_device (NM_MANAGER (user_data), device, FALSE, TRUE);
 }
 
 static void
@@ -837,109 +870,56 @@ nm_manager_get_state (NMManager *manager)
 	return NM_MANAGER_GET_PRIVATE (manager)->state;
 }
 
-/*******************************************************************/
-/* Settings stuff via NMSettings                                   */
-/*******************************************************************/
+/***************************/
 
 static NMDevice *
-get_device_from_hwaddr (NMManager *self, const GByteArray *setting_mac)
+find_parent_device_for_connection (NMManager *self, NMConnection *connection)
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
-	const guint8 *device_mac;
-	guint device_mac_len;
+	NMDeviceFactory *factory;
+	const char *parent_name = NULL;
+	NMConnection *parent_connection;
+	NMDevice *parent, *first_compatible = NULL;
 	GSList *iter;
 
-	if (!setting_mac)
+	factory = nm_device_factory_manager_find_factory_for_connection (connection);
+	if (!factory)
 		return NULL;
 
-	for (iter = priv->devices; iter; iter = g_slist_next (iter)) {
-		NMDevice *device = iter->data;
+	parent_name = nm_device_factory_get_connection_parent (factory, connection);
+	if (!parent_name)
+		return NULL;
 
-		device_mac = nm_device_get_hw_address (iter->data, &device_mac_len);
-		if (   setting_mac->len == device_mac_len
-		    && memcmp (setting_mac->data, device_mac, device_mac_len) == 0)
-			return device;
-	}
-	return NULL;
-}
+	/* Try as an interface name */
+	parent = find_device_by_ip_iface (self, parent_name);
+	if (parent)
+		return parent;
 
-static NMDevice *
-find_vlan_parent (NMManager *self,
-                  NMConnection *connection)
-{
-	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
-	NMSettingVlan *s_vlan;
-	NMSettingWired *s_wired;
-	NMConnection *parent_connection;
-	const char *parent_iface;
-	NMDevice *parent = NULL;
-	const GByteArray *setting_mac;
-	GSList *iter;
+	/* Maybe a hardware address */
+	parent = find_device_by_hw_addr (self, parent_name);
+	if (parent)
+		return parent;
 
-	/* The 'parent' property could be given by an interface name, a
-	 * connection UUID, or the MAC address of an NMSettingWired.
+	/* Maybe a connection UUID */
+	parent_connection = (NMConnection *) nm_settings_get_connection_by_uuid (priv->settings, parent_name);
+	if (!parent_connection)
+		return NULL;
+
+	/* Check if the parent connection is currently activated or is comaptible
+	 * with some known device.
 	 */
-	s_vlan = nm_connection_get_setting_vlan (connection);
-	g_return_val_if_fail (s_vlan != NULL, NULL);
+	for (iter = priv->devices; iter; iter = iter->next) {
+		NMDevice *candidate = iter->data;
 
-	s_wired = nm_connection_get_setting_wired (connection);
-	setting_mac = s_wired ? nm_setting_wired_get_mac_address (s_wired) : NULL;
+		if (nm_device_get_connection (candidate) == parent_connection)
+			return candidate;
 
-	parent_iface = nm_setting_vlan_get_parent (s_vlan);
-	if (parent_iface) {
-		parent = find_device_by_ip_iface (self, parent_iface);
-		if (parent)
-			return parent;
-
-		if (nm_utils_is_uuid (parent_iface)) {
-			/* Try as a connection UUID */
-			parent_connection = (NMConnection *) nm_settings_get_connection_by_uuid (priv->settings, parent_iface);
-			if (parent_connection) {
-				/* Check if the parent connection is activated on some device already */
-				for (iter = priv->devices; iter; iter = g_slist_next (iter)) {
-					NMActRequest *req;
-					NMConnection *candidate;
-
-					req = nm_device_get_act_request (NM_DEVICE (iter->data));
-					if (req) {
-						candidate = nm_active_connection_get_connection (NM_ACTIVE_CONNECTION (req));
-						if (candidate == parent_connection)
-							return NM_DEVICE (iter->data);
-					}
-				}
-
-				/* Check the hardware address of the parent connection */
-				return get_device_from_hwaddr (self, setting_mac);
-			}
-			return NULL;
-		}
+		if (   !first_compatible
+		    && nm_device_check_connection_compatible (candidate, parent_connection))
+			first_compatible = candidate;
 	}
 
-	/* Try the hardware address from the VLAN connection's hardware setting */
-	return get_device_from_hwaddr (self, setting_mac);
-}
-
-static NMDevice *
-find_infiniband_parent (NMManager *self,
-                        NMConnection *connection)
-{
-	NMSettingInfiniband *s_infiniband;
-	const char *parent_iface;
-	NMDevice *parent = NULL;
-	const GByteArray *setting_mac;
-
-	s_infiniband = nm_connection_get_setting_infiniband (connection);
-	g_return_val_if_fail (s_infiniband != NULL, NULL);
-
-	parent_iface = nm_setting_infiniband_get_parent (s_infiniband);
-	if (parent_iface) {
-		parent = find_device_by_ip_iface (self, parent_iface);
-		if (parent)
-			return parent;
-	}
-
-	setting_mac = nm_setting_infiniband_get_mac_address (s_infiniband);
-	return get_device_from_hwaddr (self, setting_mac);
+	return first_compatible;
 }
 
 /**
@@ -947,123 +927,74 @@ find_infiniband_parent (NMManager *self,
  * @self: the #NMManager
  * @connection: the #NMConnection representing a virtual interface
  * @out_parent: on success, the parent device if any
+ * @error: an error if determining the virtual interface name failed
  *
  * Given @connection, returns the interface name that the connection
- * would represent.  If the interface name is not given by the connection,
- * this may require constructing it based on information in the connection
- * and existing network interfaces.
+ * would represent if it is a virtual connection.  %NULL is returned and
+ * @error is set if the connection is not virtual, or if the name could
+ * not be determined.
  *
  * Returns: the expected interface name (caller takes ownership), or %NULL
  */
 static char *
 get_virtual_iface_name (NMManager *self,
                         NMConnection *connection,
-                        NMDevice **out_parent)
+                        NMDevice **out_parent,
+                        GError **error)
 {
+	NMDeviceFactory *factory;
+	char *iface = NULL;
 	NMDevice *parent = NULL;
 
 	if (out_parent)
 		*out_parent = NULL;
 
-	if (nm_connection_is_type (connection, NM_SETTING_BOND_SETTING_NAME))
-		return g_strdup (nm_connection_get_virtual_iface_name (connection));
-
-	if (nm_connection_is_type (connection, NM_SETTING_TEAM_SETTING_NAME))
-		return g_strdup (nm_connection_get_virtual_iface_name (connection));
-
-	if (nm_connection_is_type (connection, NM_SETTING_BRIDGE_SETTING_NAME))
-		return g_strdup (nm_connection_get_virtual_iface_name (connection));
-
-	if (nm_connection_is_type (connection, NM_SETTING_VLAN_SETTING_NAME)) {
-		NMSettingVlan *s_vlan;
-		const char *ifname;
-		char *vname;
-
-		s_vlan = nm_connection_get_setting_vlan (connection);
-		g_return_val_if_fail (s_vlan != NULL, NULL);
-
-		parent = find_vlan_parent (self, connection);
-		if (parent) {
-			ifname = nm_connection_get_virtual_iface_name (connection);
-
-			if (!nm_device_supports_vlans (parent)) {
-				nm_log_warn (LOGD_DEVICE, "(%s): No support for VLANs on interface %s of type %s",
-				             ifname ? ifname : nm_connection_get_id (connection),
-				             nm_device_get_ip_iface (parent),
-				             nm_device_get_type_desc (parent));
-				return NULL;
-			}
-
-			/* If the connection doesn't specify the interface name for the VLAN
-			 * device, we create one for it using the VLAN ID and the parent
-			 * interface's name.
-			 */
-			if (ifname)
-				vname = g_strdup (ifname);
-			else {
-				vname = nm_utils_new_vlan_name (nm_device_get_ip_iface (parent),
-				                                nm_setting_vlan_get_id (s_vlan));
-			}
-			if (out_parent)
-				*out_parent = parent;
-			return vname;
-		}
+	if (!nm_connection_is_virtual (connection)) {
+		g_set_error (error,
+		             NM_MANAGER_ERROR,
+		             NM_MANAGER_ERROR_FAILED,
+		             "NetworkManager plugin for '%s' unavailable",
+		             nm_connection_get_connection_type (connection));
+		return NULL;
 	}
 
-	if (nm_connection_is_type (connection, NM_SETTING_INFINIBAND_SETTING_NAME)) {
-		const char *ifname;
-		char *name;
-
-		parent = find_infiniband_parent (self, connection);
-		if (parent) {
-			ifname = nm_connection_get_virtual_iface_name (connection);
-			if (ifname)
-				name = g_strdup (ifname);
-			else {
-				NMSettingInfiniband *s_infiniband;
-				int p_key;
-
-				ifname = nm_device_get_iface (parent);
-				s_infiniband = nm_connection_get_setting_infiniband (connection);
-				p_key = nm_setting_infiniband_get_p_key (s_infiniband);
-				name = g_strdup_printf ("%s.%04x", ifname, p_key);
-			}
-			if (out_parent)
-				*out_parent = parent;
-			return name;
-		}
+	factory = nm_device_factory_manager_find_factory_for_connection (connection);
+	if (!factory) {
+		nm_log_warn (LOGD_DEVICE, "(%s) NetworkManager plugin for '%s' unavailable",
+		             nm_connection_get_id (connection),
+		             nm_connection_get_connection_type (connection));
+		g_set_error (error,
+		             NM_MANAGER_ERROR,
+		             NM_MANAGER_ERROR_FAILED,
+		             "NetworkManager plugin for '%s' unavailable",
+		             nm_connection_get_connection_type (connection));
+		return NULL;
 	}
 
-	return NULL;
+	parent = find_parent_device_for_connection (self, connection);
+	iface = nm_device_factory_get_virtual_iface_name (factory,
+	                                                  connection,
+	                                                  parent ? nm_device_get_ip_iface (parent) : NULL);
+	if (!iface) {
+		nm_log_warn (LOGD_DEVICE, "(%s) failed to determine virtual interface name",
+		             nm_connection_get_id (connection));
+		g_set_error_literal (error,
+		                     NM_MANAGER_ERROR,
+		                     NM_MANAGER_ERROR_UNKNOWN_DEVICE,
+		                     "failed to determine virtual interface name");
+		return NULL;
+	}
+
+	if (out_parent)
+		*out_parent = parent;
+	return iface;
 }
-
-static gboolean
-connection_needs_virtual_device (NMConnection *connection)
-{
-	if (   nm_connection_is_type (connection, NM_SETTING_BOND_SETTING_NAME)
-	    || nm_connection_is_type (connection, NM_SETTING_TEAM_SETTING_NAME)
-	    || nm_connection_is_type (connection, NM_SETTING_BRIDGE_SETTING_NAME)
-	    || nm_connection_is_type (connection, NM_SETTING_VLAN_SETTING_NAME))
-		return TRUE;
-
-	if (nm_connection_is_type (connection, NM_SETTING_INFINIBAND_SETTING_NAME)) {
-		NMSettingInfiniband *s_infiniband;
-
-		s_infiniband = nm_connection_get_setting_infiniband (connection);
-		g_return_val_if_fail (s_infiniband != NULL, FALSE);
-		if (nm_setting_infiniband_get_p_key (s_infiniband) != -1)
-			return TRUE;
-	}
-
-	return FALSE;
-}
-
-/***************************/
 
 /**
  * system_create_virtual_device:
  * @self: the #NMManager
  * @connection: the connection which might require a virtual device
+ * @error: the error set when return value is NULL
  *
  * If @connection requires a virtual device and one does not yet exist for it,
  * creates that device.
@@ -1071,54 +1002,69 @@ connection_needs_virtual_device (NMConnection *connection)
  * Returns: the #NMDevice if successfully created, %NULL if not
  */
 static NMDevice *
-system_create_virtual_device (NMManager *self, NMConnection *connection)
+system_create_virtual_device (NMManager *self, NMConnection *connection, GError **error)
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
+	NMDeviceFactory *factory;
 	GSList *iter;
 	char *iface = NULL;
 	NMDevice *device = NULL, *parent = NULL;
+	gboolean nm_owned = FALSE;
 
-	iface = get_virtual_iface_name (self, connection, &parent);
-	if (!iface) {
-		nm_log_dbg (LOGD_DEVICE, "(%s) failed to determine virtual interface name",
-		            nm_connection_get_id (connection));
+	g_return_val_if_fail (NM_IS_MANAGER (self), NULL);
+	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
+	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+	iface = get_virtual_iface_name (self, connection, &parent, error);
+	if (!iface)
 		return NULL;
-	}
 
 	/* Make sure we didn't create a device for this connection already */
 	for (iter = priv->devices; iter; iter = g_slist_next (iter)) {
 		NMDevice *candidate = iter->data;
 
 		if (   g_strcmp0 (nm_device_get_iface (candidate), iface) == 0
-		    || nm_device_check_connection_compatible (candidate, connection))
+		    || nm_device_check_connection_compatible (candidate, connection)) {
+			nm_log_dbg (LOGD_DEVICE, "(%s) already created virtual interface name %s",
+			            nm_connection_get_id (connection), iface);
+			g_set_error (error,
+			             NM_MANAGER_ERROR,
+			             NM_MANAGER_ERROR_FAILED,
+			             "interface name '%s' already created", iface);
 			goto out;
+		}
 	}
 
-	/* Block notification of link added since we're creating the device
-	 * explicitly here, otherwise adding the platform/kernel device would
-	 * create it before this function can do the rest of the setup.
-	 */
-	priv->ignore_link_added_cb++;
-
-	if (nm_connection_is_type (connection, NM_SETTING_BOND_SETTING_NAME)) {
-		device = nm_device_bond_new_for_connection (connection);
-	} else if (nm_connection_is_type (connection, NM_SETTING_TEAM_SETTING_NAME)) {
-		device = nm_device_team_new_for_connection (connection);
-	} else if (nm_connection_is_type (connection, NM_SETTING_BRIDGE_SETTING_NAME)) {
-		device = nm_device_bridge_new_for_connection (connection);
-	} else if (nm_connection_is_type (connection, NM_SETTING_VLAN_SETTING_NAME)) {
-		device = nm_device_vlan_new_for_connection (connection, parent);
-	} else if (nm_connection_is_type (connection, NM_SETTING_INFINIBAND_SETTING_NAME)) {
-		device = nm_device_infiniband_new_partition (connection, parent);
+	factory = nm_device_factory_manager_find_factory_for_connection (connection);
+	if (!factory) {
+		nm_log_err (LOGD_DEVICE, "(%s:%s) NetworkManager plugin for '%s' unavailable",
+		            nm_connection_get_id (connection), iface,
+		            nm_connection_get_connection_type (connection));
+		g_set_error (error,
+		             NM_MANAGER_ERROR,
+		             NM_MANAGER_ERROR_FAILED,
+		             "NetworkManager plugin for '%s' unavailable",
+		             nm_connection_get_connection_type (connection));
+		goto out;
 	}
 
+	nm_owned = !nm_platform_link_get_by_ifname (NM_PLATFORM_GET, iface);
+
+	device = nm_device_factory_create_virtual_device_for_connection (factory,
+	                                                                 connection,
+	                                                                 parent,
+	                                                                 error);
 	if (device) {
-		nm_device_set_nm_owned (device);
-		add_device (self, device, FALSE);
+		if (nm_owned)
+			nm_device_set_nm_owned (device);
+
+		/* If it was created by NM there's no connection to assume, but if it
+		 * previously existed there might be one.
+		 */
+		add_device (self, device, !nm_owned);
+
 		g_object_unref (device);
 	}
-
-	priv->ignore_link_added_cb--;
 
 out:
 	g_free (iface);
@@ -1138,9 +1084,9 @@ system_create_virtual_devices (NMManager *self)
 		NMConnection *connection = iter->data;
 
 		/* We only create a virtual interface if the connection can autoconnect */
-		if (   connection_needs_virtual_device (connection)
+		if (   nm_connection_is_virtual (connection)
 		    && nm_settings_connection_can_autoconnect (NM_SETTINGS_CONNECTION (connection)))
-			system_create_virtual_device (self, connection);
+			system_create_virtual_device (self, connection, NULL);
 	}
 	g_slist_free (connections);
 }
@@ -1152,12 +1098,12 @@ connection_added (NMSettings *settings,
 {
 	NMConnection *connection = NM_CONNECTION (settings_connection);
 
-	if (connection_needs_virtual_device (connection)) {
+	if (nm_connection_is_virtual (connection)) {
 		NMSettingConnection *s_con = nm_connection_get_setting_connection (connection);
 
 		g_assert (s_con);
 		if (nm_setting_connection_get_autoconnect (s_con))
-			system_create_virtual_device (manager, connection);
+			system_create_virtual_device (manager, connection, NULL);
 	}
 }
 
@@ -1481,7 +1427,7 @@ device_auth_request_cb (NMDevice *device,
 	NMAuthChain *chain;
 
 	/* Validate the caller */
-	subject = nm_auth_subject_new_from_context (context);
+	subject = nm_auth_subject_new_unix_process_from_context (context);
 	if (!subject) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
@@ -1490,10 +1436,10 @@ device_auth_request_cb (NMDevice *device,
 	}
 
 	/* Ensure the subject has permissions for this connection */
-	if (connection && !nm_auth_uid_in_acl (connection,
-	                                       nm_session_monitor_get (),
-	                                       nm_auth_subject_get_uid (subject),
-	                                       &error_desc)) {
+	if (connection && !nm_auth_is_subject_in_acl (connection,
+	                                              nm_session_monitor_get (),
+	                                              subject,
+	                                              &error_desc)) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
 		                             error_desc);
@@ -1524,20 +1470,12 @@ done:
 	g_clear_error (&error);
 }
 
-/* This should really be moved to gsystem. */
-#define free_slist __attribute__ ((cleanup(local_slist_free)))
-static void
-local_slist_free (void *loc)
-{
-	GSList **location = loc;
-
-	if (location)
-		g_slist_free (*location);
-}
-
 static gboolean
 match_connection_filter (NMConnection *connection, gpointer user_data)
 {
+	if (nm_settings_connection_get_nm_generated_assumed (NM_SETTINGS_CONNECTION (connection)))
+		return FALSE;
+
 	return nm_device_check_connection_compatible (NM_DEVICE (user_data), connection);
 }
 
@@ -1545,20 +1483,44 @@ match_connection_filter (NMConnection *connection, gpointer user_data)
  * get_existing_connection:
  * @manager: #NMManager instance
  * @device: #NMDevice instance
+ * @out_generated: (allow-none): return TRUE, if the connection was generated.
  *
  * Returns: a #NMSettingsConnection to be assumed by the device, or %NULL if
  *   the device does not support assuming existing connections.
  */
 static NMConnection *
-get_existing_connection (NMManager *manager, NMDevice *device)
+get_existing_connection (NMManager *manager, NMDevice *device, gboolean *out_generated)
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (manager);
-	free_slist GSList *connections = nm_manager_get_activatable_connections (manager);
+	gs_free_slist GSList *connections = nm_manager_get_activatable_connections (manager);
 	NMConnection *connection = NULL, *matched;
 	NMSettingsConnection *added = NULL;
 	GError *error = NULL;
+	NMDevice *master = NULL;
+	int ifindex = nm_device_get_ifindex (device);
+
+	if (out_generated)
+		*out_generated = FALSE;
 
 	nm_device_capture_initial_config (device);
+
+	if (ifindex) {
+		int master_ifindex = nm_platform_link_get_master (NM_PLATFORM_GET, ifindex);
+
+		if (master_ifindex) {
+			master = nm_manager_get_device_by_ifindex (manager, master_ifindex);
+			if (!master) {
+				nm_log_dbg (LOGD_DEVICE, "(%s): cannot generate connection for slave before its master (%s/%d)",
+				            nm_device_get_iface (device), nm_platform_link_get_name (NM_PLATFORM_GET, master_ifindex), master_ifindex);
+				return NULL;
+			}
+			if (!nm_device_get_act_request (master)) {
+				nm_log_dbg (LOGD_DEVICE, "(%s): cannot generate connection for slave before master %s activates",
+				            nm_device_get_iface (device), nm_device_get_iface (master));
+				return NULL;
+			}
+		}
+	}
 
 	/* The core of the API is nm_device_generate_connection() function and
 	 * update_connection() virtual method and the convenient connection_type
@@ -1566,7 +1528,7 @@ get_existing_connection (NMManager *manager, NMDevice *device)
 	 * update_connection() implemented, otherwise nm_device_generate_connection()
 	 * returns NULL.
 	 */
-	connection = nm_device_generate_connection (device);
+	connection = nm_device_generate_connection (device, master);
 	if (!connection)
 		return NULL;
 
@@ -1598,9 +1560,14 @@ get_existing_connection (NMManager *manager, NMDevice *device)
 	            nm_connection_get_id (connection));
 
 	added = nm_settings_add_connection (priv->settings, connection, FALSE, &error);
-	if (added)
-		nm_settings_connection_set_nm_generated (added);
-	else {
+	if (added) {
+		nm_settings_connection_set_flags (NM_SETTINGS_CONNECTION (added),
+		                                  NM_SETTINGS_CONNECTION_FLAGS_NM_GENERATED |
+		                                  NM_SETTINGS_CONNECTION_FLAGS_NM_GENERATED_ASSUMED,
+		                                  TRUE);
+		if (out_generated)
+			*out_generated = TRUE;
+	} else {
 		nm_log_warn (LOGD_SETTINGS, "(%s) Couldn't save generated connection '%s': %s",
 		             nm_device_get_iface (device),
 		             nm_connection_get_id (connection),
@@ -1657,67 +1624,126 @@ assume_connection (NMManager *self, NMDevice *device, NMConnection *connection)
 	return TRUE;
 }
 
-static void
+static gboolean
 recheck_assume_connection (NMDevice *device, gpointer user_data)
 {
-	NMManager *self = user_data;
+	NMManager *self = NM_MANAGER (user_data);
 	NMConnection *connection;
-	gboolean was_unmanaged = FALSE;
+	gboolean was_unmanaged = FALSE, success, generated;
+	NMDeviceState state;
 
 	if (manager_sleeping (self))
-		return;
-	if (nm_device_get_unmanaged_flag (device, NM_UNMANAGED_USER))
-		return;
+		return FALSE;
+	if (nm_device_get_unmanaged_flag (device, NM_UNMANAGED_ALL & ~NM_UNMANAGED_DEFAULT))
+		return FALSE;
 
-	connection = get_existing_connection (self, device);
+	state = nm_device_get_state (device);
+	if (state > NM_DEVICE_STATE_DISCONNECTED)
+		return FALSE;
+
+	connection = get_existing_connection (self, device, &generated);
 	if (!connection) {
 		nm_log_dbg (LOGD_DEVICE, "(%s): can't assume; no connection",
 		            nm_device_get_iface (device));
-		return;
+		return FALSE;
 	}
 
-	if (nm_device_get_state (device) == NM_DEVICE_STATE_UNMANAGED) {
+	if (state == NM_DEVICE_STATE_UNMANAGED) {
 		was_unmanaged = TRUE;
 		nm_device_state_changed (device,
 		                         NM_DEVICE_STATE_UNAVAILABLE,
 		                         NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED);
 	}
 
-	if (!assume_connection (self, device, connection)) {
+	success = assume_connection (self, device, connection);
+	if (!success) {
 		if (was_unmanaged) {
 			nm_device_state_changed (device,
 			                         NM_DEVICE_STATE_UNAVAILABLE,
 			                         NM_DEVICE_STATE_REASON_CONFIG_FAILED);
-			nm_device_state_changed (device,
-			                         NM_DEVICE_STATE_UNMANAGED,
-			                         NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+
+			/* Return default-unmanaged devices to their original state */
+			if (nm_device_get_unmanaged_flag (device, NM_UNMANAGED_DEFAULT)) {
+				nm_device_state_changed (device,
+				                         NM_DEVICE_STATE_UNMANAGED,
+				                         NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+			}
+		}
+
+		if (generated) {
+			nm_log_dbg (LOGD_DEVICE, "(%s): connection assumption failed. Deleting generated connection",
+			            nm_device_get_iface (device));
+
+			nm_settings_connection_delete (NM_SETTINGS_CONNECTION (connection), NULL, NULL);
 		}
 	}
+
+	return success;
+}
+
+static void
+device_ip_iface_changed (NMDevice *device,
+                         GParamSpec *pspec,
+                         NMManager *self)
+{
+	const char *ip_iface = nm_device_get_ip_iface (device);
+	GSList *iter;
+
+	/* Remove NMDevice objects that are actually child devices of others,
+	 * when the other device finally knows its IP interface name.  For example,
+	 * remove the PPP interface that's a child of a WWAN device, since it's
+	 * not really a standalone NMDevice.
+	 */
+	for (iter = NM_MANAGER_GET_PRIVATE (self)->devices; iter; iter = iter->next) {
+		NMDevice *candidate = NM_DEVICE (iter->data);
+
+		if (   candidate != device
+		    && g_strcmp0 (nm_device_get_iface (candidate), ip_iface) == 0) {
+			remove_device (self, candidate, FALSE, FALSE);
+			break;
+		}
+	}
+}
+
+static gboolean
+notify_component_added (NMManager *self, GObject *component)
+{
+	GSList *iter;
+
+	for (iter = NM_MANAGER_GET_PRIVATE (self)->devices; iter; iter = iter->next) {
+		if (nm_device_notify_component_added (NM_DEVICE (iter->data), component))
+			return TRUE;
+	}
+	return FALSE;
 }
 
 /**
  * add_device:
  * @self: the #NMManager
  * @device: the #NMDevice to add
- * @generate_con: %TRUE if existing connection (if any) should be assumed
+ * @try_assume: %TRUE if existing connection (if any) should be assumed
  *
  * If successful, this function will increase the references count of @device.
  * Callers should decrease the reference count.
  */
 static void
-add_device (NMManager *self, NMDevice *device, gboolean generate_con)
+add_device (NMManager *self, NMDevice *device, gboolean try_assume)
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
 	const char *iface, *driver, *type_desc;
 	const GSList *unmanaged_specs;
 	gboolean user_unmanaged, sleeping;
-	NMConnection *connection = NULL;
 	gboolean enabled = FALSE;
 	RfKillType rtype;
 	GSList *iter, *remove = NULL;
+	gboolean connection_assumed = FALSE;
+	int ifindex;
 
 	/* No duplicates */
-	if (nm_manager_get_device_by_udi (self, nm_device_get_udi (device)))
+	ifindex = nm_device_get_ifindex (device);
+	if (ifindex > 0 && nm_manager_get_device_by_ifindex (self, ifindex))
+		return;
+	if (find_device_by_iface (self, nm_device_get_iface (device)))
 		return;
 
 	/* Remove existing devices owned by the new device; eg remove ethernet
@@ -1733,7 +1759,7 @@ add_device (NMManager *self, NMDevice *device, gboolean generate_con)
 			remove = g_slist_prepend (remove, iter->data);
 	}
 	for (iter = remove; iter; iter = iter->next)
-		remove_device (self, NM_DEVICE (iter->data), FALSE);
+		remove_device (self, NM_DEVICE (iter->data), FALSE, FALSE);
 	g_slist_free (remove);
 
 	priv->devices = g_slist_append (priv->devices, g_object_ref (device));
@@ -1748,6 +1774,10 @@ add_device (NMManager *self, NMDevice *device, gboolean generate_con)
 
 	g_signal_connect (device, NM_DEVICE_REMOVED,
 	                  G_CALLBACK (device_removed_cb),
+	                  self);
+
+	g_signal_connect (device, "notify::" NM_DEVICE_IP_IFACE,
+	                  G_CALLBACK (device_ip_iface_changed),
 	                  self);
 
 	if (priv->startup) {
@@ -1775,8 +1805,12 @@ add_device (NMManager *self, NMDevice *device, gboolean generate_con)
 	driver = nm_device_get_driver (device);
 	if (!driver)
 		driver = "unknown";
-	nm_log_info (LOGD_HW, "(%s): new %s device (driver: '%s' ifindex: %d)",
-	             iface, type_desc, driver, nm_device_get_ifindex (device));
+	nm_log_info (LOGD_HW, "(%s): new %s device (carrier: %s, driver: '%s', ifindex: %d)",
+	             iface, type_desc,
+	             nm_device_has_capability (device, NM_DEVICE_CAP_CARRIER_DETECT)
+	                ? (nm_device_has_carrier (device) ? "ON" : "OFF")
+	                : "UNKNOWN",
+	             driver, nm_device_get_ifindex (device));
 
 	unmanaged_specs = nm_settings_get_unmanaged_specs (priv->settings);
 	user_unmanaged = nm_device_spec_match_list (device, unmanaged_specs);
@@ -1786,78 +1820,40 @@ add_device (NMManager *self, NMDevice *device, gboolean generate_con)
 	nm_device_set_initial_unmanaged_flag (device, NM_UNMANAGED_INTERNAL, sleeping);
 
 	nm_device_dbus_export (device);
+	nm_device_finish_init (device);
 
-	/* Don't generate a connection e.g. for devices NM just created, or
-	 * for the loopback, or when we're sleeping. */
-	if (generate_con && !user_unmanaged && !sleeping)
-		connection = get_existing_connection (self, device);
+	if (try_assume) {
+		connection_assumed = recheck_assume_connection (device, self);
+		g_signal_connect (device, NM_DEVICE_RECHECK_ASSUME,
+		                  G_CALLBACK (recheck_assume_connection), self);
+	}
 
-	/* Start the device if it's supposed to be managed. Note that this will
-	 * manage default-unmanaged devices if they have a generated connection.
-	 */
-	if (nm_device_get_managed (device) || connection) {
+	if (!connection_assumed && nm_device_get_managed (device)) {
 		nm_device_state_changed (device,
 		                         NM_DEVICE_STATE_UNAVAILABLE,
-		                         connection ? NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED :
-		                                      NM_DEVICE_STATE_REASON_NOW_MANAGED);
+		                         NM_DEVICE_STATE_REASON_NOW_MANAGED);
 	}
 
 	nm_settings_device_added (priv->settings, device);
 	g_signal_emit (self, signals[DEVICE_ADDED], 0, device);
 	g_object_notify (G_OBJECT (self), NM_MANAGER_DEVICES);
 
+	notify_component_added (self, G_OBJECT (device));
+
 	/* New devices might be master interfaces for virtual interfaces; so we may
 	 * need to create new virtual interfaces now.
 	 */
 	system_create_virtual_devices (self);
-
-	/* If the device has a connection it can assume, do that now. If it's a
-	 * device that we might ever want to assume a connection on, then set that up.
-	 */
-	if (connection)
-		assume_connection (self, device, connection);
-	if (generate_con) {
-		g_signal_connect (device, NM_DEVICE_RECHECK_ASSUME,
-		                  G_CALLBACK (recheck_assume_connection), self);
-	}
 }
 
-static NMDevice *
-find_device_by_ip_iface (NMManager *self, const gchar *iface)
-{
-	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
-	GSList *iter;
-
-	for (iter = priv->devices; iter; iter = g_slist_next (iter)) {
-		NMDevice *candidate = iter->data;
-
-		if (g_strcmp0 (nm_device_get_ip_iface (candidate), iface) == 0)
-			return candidate;
-	}
-	return NULL;
-}
-
-static NMDevice *
-find_device_by_ifindex (NMManager *self, guint32 ifindex)
-{
-	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
-	GSList *iter;
-
-	for (iter = priv->devices; iter; iter = g_slist_next (iter)) {
-		NMDevice *candidate = NM_DEVICE (iter->data);
-
-		if (ifindex == nm_device_get_ifindex (candidate))
-			return candidate;
-	}
-	return NULL;
-}
+/*******************************************************************/
 
 static void
 factory_device_added_cb (NMDeviceFactory *factory,
                          NMDevice *device,
                          gpointer user_data)
 {
-	add_device (NM_MANAGER (user_data), device, FALSE);
+	add_device (NM_MANAGER (user_data), device, TRUE);
 }
 
 static gboolean
@@ -1865,236 +1861,66 @@ factory_component_added_cb (NMDeviceFactory *factory,
                             GObject *component,
                             gpointer user_data)
 {
-	NMManager *self = NM_MANAGER (user_data);
-	GSList *iter;
-
-	for (iter = NM_MANAGER_GET_PRIVATE (self)->devices; iter; iter = iter->next) {
-		if (nm_device_notify_component_added (NM_DEVICE (iter->data), component))
-			return TRUE;
-	}
-	return FALSE;
+	return notify_component_added (NM_MANAGER (user_data), component);
 }
-
-#define PLUGIN_PREFIX "libnm-device-plugin-"
-#define PLUGIN_PATH_TAG "NMManager-plugin-path"
-#define PLUGIN_TYPEFUNC_TAG "typefunc"
 
 static void
-load_device_factories (NMManager *self)
+_register_device_factory (NMDeviceFactory *factory, gpointer user_data)
 {
-	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
-	GDir *dir;
-	GError *error = NULL;
-	const char *item;
-	char *path;
-	GSList *iter;
+	NMManager *self = NM_MANAGER (user_data);
 
-	dir = g_dir_open (NMPLUGINDIR, 0, &error);
-	if (!dir) {
-		nm_log_warn (LOGD_HW, "Failed to open plugin directory %s: %s",
-		             NMPLUGINDIR,
-		             (error && error->message) ? error->message : "(unknown)");
-		g_clear_error (&error);
-		return;
-	}
-
-	while ((item = g_dir_read_name (dir))) {
-		GModule *plugin;
-		NMDeviceFactory *factory;
-		NMDeviceFactoryCreateFunc create_func;
-		NMDeviceFactoryDeviceTypeFunc type_func;
-		NMDeviceType dev_type;
-		const char *found = NULL;
-
-		if (!g_str_has_prefix (item, PLUGIN_PREFIX))
-			continue;
-		if (g_str_has_suffix (item, ".la"))
-			continue;
-
-		path = g_module_build_path (NMPLUGINDIR, item);
-		g_assert (path);
-		plugin = g_module_open (path, G_MODULE_BIND_LOCAL);
-		g_free (path);
-
-		if (!plugin) {
-			nm_log_warn (LOGD_HW, "(%s): failed to load plugin: %s", item, g_module_error ());
-			continue;
-		}
-
-		if (!g_module_symbol (plugin, "nm_device_factory_get_device_type", (gpointer) &type_func)) {
-			nm_log_warn (LOGD_HW, "(%s): failed to find device factory type: %s", item, g_module_error ());
-			g_module_close (plugin);
-			continue;
-		}
-
-		/* Make sure we don't double-load plugins */
-		dev_type = type_func ();
-		for (iter = priv->factories; iter; iter = iter->next) {
-			NMDeviceFactoryDeviceTypeFunc loaded_type_func;
-
-			loaded_type_func = g_object_get_data (G_OBJECT (iter->data), PLUGIN_TYPEFUNC_TAG);
-			if (dev_type == loaded_type_func ()) {
-				found = g_object_get_data (G_OBJECT (iter->data), PLUGIN_PATH_TAG);
-				break;
-			}
-		}
-		if (found) {
-			nm_log_warn (LOGD_HW, "Found multiple device plugins for same type: %s vs %s",
-			             found, g_module_name (plugin));
-			g_module_close (plugin);
-			continue;
-		}
-
-		if (!g_module_symbol (plugin, "nm_device_factory_create", (gpointer) &create_func)) {
-			nm_log_warn (LOGD_HW, "(%s): failed to find device factory creator: %s", item, g_module_error ());
-			g_module_close (plugin);
-			continue;
-		}
-
-		factory = create_func (&error);
-		if (!factory) {
-			nm_log_warn (LOGD_HW, "(%s): failed to initialize device factory: %s",
-			             item, error ? error->message : "unknown");
-			g_clear_error (&error);
-			g_module_close (plugin);
-			continue;
-		}
-		g_clear_error (&error);
-
-		g_module_make_resident (plugin);
-		priv->factories = g_slist_prepend (priv->factories, factory);
-
-		g_signal_connect (factory,
-		                  NM_DEVICE_FACTORY_DEVICE_ADDED,
-		                  G_CALLBACK (factory_device_added_cb),
-		                  self);
-		g_signal_connect (factory,
-		                  NM_DEVICE_FACTORY_COMPONENT_ADDED,
-		                  G_CALLBACK (factory_component_added_cb),
-		                  self);
-		g_object_set_data_full (G_OBJECT (factory), PLUGIN_PATH_TAG,
-		                        g_strdup (g_module_name (plugin)), g_free);
-		g_object_set_data (G_OBJECT (factory), PLUGIN_TYPEFUNC_TAG, type_func);
-
-		nm_log_info (LOGD_HW, "Loaded device plugin: %s", g_module_name (plugin));
-	};
-	g_dir_close (dir);
-
-	priv->factories = g_slist_reverse (priv->factories);
+	g_signal_connect (factory,
+	                  NM_DEVICE_FACTORY_DEVICE_ADDED,
+	                  G_CALLBACK (factory_device_added_cb),
+	                  self);
+	g_signal_connect (factory,
+	                  NM_DEVICE_FACTORY_COMPONENT_ADDED,
+	                  G_CALLBACK (factory_component_added_cb),
+	                  self);
 }
+
+/*******************************************************************/
 
 static void
 platform_link_added (NMManager *self,
                      int ifindex,
-                     NMPlatformLink *plink,
-                     NMPlatformReason reason)
+                     NMPlatformLink *plink)
 {
-	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
+	NMDeviceFactory *factory;
 	NMDevice *device = NULL;
-	GSList *iter;
 	GError *error = NULL;
 
 	g_return_if_fail (ifindex > 0);
 
-	if (priv->ignore_link_added_cb > 0)
-		return;
-
-	if (find_device_by_ifindex (self, ifindex))
+	if (nm_manager_get_device_by_ifindex (self, ifindex))
 		return;
 
 	/* Try registered device factories */
-	for (iter = priv->factories; iter; iter = iter->next) {
-		NMDeviceFactory *factory = NM_DEVICE_FACTORY (iter->data);
+	factory = nm_device_factory_manager_find_factory_for_link_type (plink->type);
+	if (factory) {
+		gboolean ignore = FALSE;
 
-		device = nm_device_factory_new_link (factory, plink, &error);
-		if (device && NM_IS_DEVICE (device)) {
-			g_assert_no_error (error);
-			break;  /* success! */
-		}
-
-		if (error) {
-			nm_log_warn (LOGD_HW, "%s: factory failed to create device: (%d) %s",
-			             plink->udi,
-			             error ? error->code : -1,
-			             error ? error->message : "(unknown)");
-			g_clear_error (&error);
+		device = nm_device_factory_new_link (factory, plink, &ignore, &error);
+		if (!device) {
+			if (!ignore) {
+				nm_log_warn (LOGD_HW, "%s: factory failed to create device: %s",
+				             plink->name, error->message);
+				g_clear_error (&error);
+			}
 			return;
 		}
 	}
 
-	/* Ignore Bluetooth PAN interfaces; they are handled by their NMDeviceBt
-	 * parent and don't get a separate interface.
-	 */
-	if (!strncmp (plink->name, "bnep", STRLEN ("bnep")))
-		return;
-
 	if (device == NULL) {
-		int parent_ifindex = -1;
-		NMDevice *parent;
-
 		switch (plink->type) {
-		case NM_LINK_TYPE_ETHERNET:
-			device = nm_device_ethernet_new (plink);
-			break;
-		case NM_LINK_TYPE_INFINIBAND:
-			device = nm_device_infiniband_new (plink);
-			break;
-		case NM_LINK_TYPE_BOND:
-			device = nm_device_bond_new (plink);
-			break;
-		case NM_LINK_TYPE_TEAM:
-			device = nm_device_team_new (plink);
-			break;
-		case NM_LINK_TYPE_BRIDGE:
-			device = nm_device_bridge_new (plink);
-			break;
-		case NM_LINK_TYPE_VLAN:
-			/* Have to find the parent device */
-			if (nm_platform_vlan_get_info (ifindex, &parent_ifindex, NULL)) {
-				parent = find_device_by_ifindex (self, parent_ifindex);
-				if (parent)
-					device = nm_device_vlan_new (plink, parent);
-				else {
-					/* If udev signaled the VLAN interface before it signaled
-					 * the VLAN's parent at startup we may not know about the
-					 * parent device yet.  But we'll find it on the second pass
-					 * from nm_manager_start().
-					 */
-					nm_log_dbg (LOGD_HW, "(%s): VLAN parent interface unknown", plink->name);
-				}
-			} else
-				nm_log_err (LOGD_HW, "(%s): failed to get VLAN parent ifindex", plink->name);
-			break;
-		case NM_LINK_TYPE_VETH:
-			device = nm_device_veth_new (plink);
-			break;
-		case NM_LINK_TYPE_TUN:
-		case NM_LINK_TYPE_TAP:
-			device = nm_device_tun_new (plink);
-			break;
-		case NM_LINK_TYPE_MACVLAN:
-		case NM_LINK_TYPE_MACVTAP:
-			device = nm_device_macvlan_new (plink);
-			break;
-		case NM_LINK_TYPE_VXLAN:
-			device = nm_device_vxlan_new (plink);
-			break;
-		case NM_LINK_TYPE_GRE:
-		case NM_LINK_TYPE_GRETAP:
-			device = nm_device_gre_new (plink);
-			break;
-
 		case NM_LINK_TYPE_WWAN_ETHERNET:
-			/* WWAN pseudo-ethernet interfaces are handled automatically by
-			 * their NMDeviceModem and don't get a separate NMDevice object.
-			 */
-			break;
-
+		case NM_LINK_TYPE_BNEP:
 		case NM_LINK_TYPE_OLPC_MESH:
+		case NM_LINK_TYPE_TEAM:
 		case NM_LINK_TYPE_WIFI:
 		case NM_LINK_TYPE_WIMAX:
 			nm_log_info (LOGD_HW, "(%s): '%s' plugin not available; creating generic device",
-			             plink->name, plink->type_name);
+			             plink->name, nm_link_type_to_string (plink->type));
 			/* fall through */
 		default:
 			device = nm_device_generic_new (plink);
@@ -2108,30 +1934,76 @@ platform_link_added (NMManager *self,
 	}
 }
 
+typedef struct {
+	NMManager *self;
+	int ifindex;
+} PlatformLinkCbData;
+
+static gboolean
+_platform_link_cb_idle (PlatformLinkCbData *data)
+{
+	NMManager *self = data->self;
+
+	if (self) {
+		const NMPlatformLink *l;
+
+		l = nm_platform_link_get (NM_PLATFORM_GET, data->ifindex);
+		if (l) {
+			NMPlatformLink pllink;
+
+			pllink = *l; /* make a copy of the link instance */
+			platform_link_added (self, data->ifindex, &pllink);
+		} else {
+			NMDevice *device;
+
+			device = nm_manager_get_device_by_ifindex (self, data->ifindex);
+			if (device)
+				remove_device (self, device, FALSE, TRUE);
+		}
+		g_object_remove_weak_pointer (G_OBJECT (self), (gpointer *) &data->self);
+	}
+	g_slice_free (PlatformLinkCbData, data);
+	return G_SOURCE_REMOVE;
+}
+
 static void
 platform_link_cb (NMPlatform *platform,
+                  NMPObjectType obj_type,
                   int ifindex,
                   NMPlatformLink *plink,
                   NMPlatformSignalChangeType change_type,
                   NMPlatformReason reason,
                   gpointer user_data)
 {
+	PlatformLinkCbData *data;
+
 	switch (change_type) {
 	case NM_PLATFORM_SIGNAL_ADDED:
-		platform_link_added (NM_MANAGER (user_data), ifindex, plink, reason);
+	case NM_PLATFORM_SIGNAL_REMOVED:
+		data = g_slice_new (PlatformLinkCbData);
+		data->self = NM_MANAGER (user_data);
+		data->ifindex = ifindex;
+		g_object_add_weak_pointer (G_OBJECT (data->self), (gpointer *) &data->self);
+		g_idle_add ((GSourceFunc) _platform_link_cb_idle, data);
 		break;
-	case NM_PLATFORM_SIGNAL_REMOVED: {
-		NMManager *self = NM_MANAGER (user_data);
-		NMDevice *device;
+	default:
+		break;
+	}
+}
 
-		device = find_device_by_ifindex (self, ifindex);
-		if (device)
-			remove_device (self, device, FALSE);
-		break;
-	 }
-	 default:
-		break;
-	 }
+static void
+platform_query_devices (NMManager *self)
+{
+	GArray *links_array;
+	NMPlatformLink *links;
+	int i;
+
+	links_array = nm_platform_link_get_all (NM_PLATFORM_GET);
+	links = (NMPlatformLink *) links_array->data;
+	for (i = 0; i < links_array->len; i++)
+		platform_link_added (self, links[i].ifindex, &links[i]);
+
+	g_array_unref (links_array);
 }
 
 static void
@@ -2149,6 +2021,40 @@ nm_manager_get_devices (NMManager *manager)
 	g_return_val_if_fail (NM_IS_MANAGER (manager), NULL);
 
 	return NM_MANAGER_GET_PRIVATE (manager)->devices;
+}
+
+static NMDevice *
+nm_manager_get_connection_device (NMManager *self,
+                                  NMConnection *connection)
+{
+	NMActiveConnection *ac = find_ac_for_connection (self, connection);
+	if (ac == NULL)
+		return NULL;
+
+	return nm_active_connection_get_device (ac);
+}
+
+static NMDevice *
+nm_manager_get_best_device_for_connection (NMManager *self,
+                                           NMConnection *connection)
+{
+	const GSList *devices, *iter;
+	NMDevice *act_device = nm_manager_get_connection_device (self, connection);
+
+	if (act_device)
+		return act_device;
+
+	/* Pick the first device that's compatible with the connection. */
+	devices = nm_manager_get_devices (self);
+	for (iter = devices; iter; iter = g_slist_next (iter)) {
+		NMDevice *device = NM_DEVICE (iter->data);
+
+		if (nm_device_check_connection_available (device, connection, NM_DEVICE_CHECK_CON_AVAILABLE_NONE, NULL))
+			return device;
+	}
+
+	/* No luck. :( */
+	return NULL;
 }
 
 static gboolean
@@ -2314,13 +2220,10 @@ find_master (NMManager *self,
 				NMConnection *candidate = iter->data;
 				char *vname;
 
-				if (connection_needs_virtual_device (candidate)) {
-					vname = get_virtual_iface_name (self, candidate, NULL);
-					if (   g_strcmp0 (master, vname) == 0
-					    && is_compatible_with_slave (candidate, connection))
-						master_connection = candidate;
-					g_free (vname);
-				}
+				vname = get_virtual_iface_name (self, candidate, NULL, NULL);
+				if (g_strcmp0 (master, vname) == 0 && is_compatible_with_slave (candidate, connection))
+					master_connection = candidate;
+				g_free (vname);
 			}
 			g_slist_free (connections);
 		}
@@ -2432,7 +2335,7 @@ ensure_master_active_connection (NMManager *self,
 				if (!is_compatible_with_slave (candidate, connection))
 					continue;
 
-				if (nm_device_connection_is_available (master_device, candidate, TRUE)) {
+				if (nm_device_check_connection_available (master_device, candidate, NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST, NULL)) {
 					master_ac = nm_manager_activate_connection (self,
 					                                            candidate,
 					                                            NULL,
@@ -2458,7 +2361,7 @@ ensure_master_active_connection (NMManager *self,
 		/* Otherwise, the device is unmanaged, unavailable, or disconnecting */
 		g_set_error (error,
 		             NM_MANAGER_ERROR,
-		             NM_MANAGER_ERROR_UNMANAGED_DEVICE,
+		             NM_MANAGER_ERROR_DEPENDENCY_FAILED,
 		             "Master device %s unmanaged or not available for activation",
 		             nm_device_get_iface (master_device));
 	} else if (master_connection) {
@@ -2473,7 +2376,7 @@ ensure_master_active_connection (NMManager *self,
 				continue;
 			}
 
-			if (!nm_device_connection_is_available (candidate, master_connection, TRUE))
+			if (!nm_device_check_connection_available (candidate, master_connection, NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST, NULL))
 				continue;
 
 			found_device = TRUE;
@@ -2495,7 +2398,7 @@ ensure_master_active_connection (NMManager *self,
 		/* Device described by master_connection may be a virtual one that's
 		 * not created yet.
 		 */
-		if (!found_device && connection_needs_virtual_device (master_connection)) {
+		if (!found_device && nm_connection_is_virtual (master_connection)) {
 			master_ac = nm_manager_activate_connection (self,
 			                                            master_connection,
 			                                            NULL,
@@ -2518,6 +2421,127 @@ ensure_master_active_connection (NMManager *self,
 	return NULL;
 }
 
+/**
+ * find_slaves:
+ * @manager: #NMManager object
+ * @connection: the master #NMConnection to find slave connections for
+ * @device: the master #NMDevice for the @connection
+ *
+ * Given an #NMConnection, attempts to find its slaves. If @connection is not
+ * master, or has not any slaves, this will return %NULL.
+ *
+ * Returns: list of slave connections for given master @connection, or %NULL
+ **/
+static GSList *
+find_slaves (NMManager *manager,
+             NMConnection *connection,
+             NMDevice *device)
+{
+	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (manager);
+	GSList *all_connections, *iter;
+	GSList *slaves = NULL;
+	NMSettingConnection *s_con;
+	const char *master;
+
+	s_con = nm_connection_get_setting_connection (connection);
+	g_assert (s_con);
+	master = nm_setting_connection_get_master (s_con);
+
+	if (master != NULL)
+		return NULL;  /* connection is not master */
+
+	/* Search through all connections, not only inactive ones, because
+	 * even if a slave was already active, it might be deactivated during
+	 * master reactivation.
+	 */
+	all_connections = nm_settings_get_connections (priv->settings);
+	for (iter = all_connections; iter; iter = iter->next) {
+		NMConnection *master_connection = NULL;
+		NMDevice *master_device = NULL;
+		NMConnection *candidate = iter->data;
+
+		find_master (manager, candidate, NULL, &master_connection, &master_device, NULL, NULL);
+		if (   (master_connection && master_connection == connection)
+		    || (master_device && master_device == device)) {
+			slaves = g_slist_prepend (slaves, candidate);
+		}
+	}
+	g_slist_free (all_connections);
+
+	return g_slist_reverse (slaves);
+}
+
+static gboolean
+should_connect_slaves (NMConnection *connection, NMDevice *device)
+{
+	NMSettingConnection *s_con;
+	NMSettingConnectionAutoconnectSlaves autoconnect_slaves;
+	gs_free char *value = NULL;
+
+	s_con = nm_connection_get_setting_connection (connection);
+	g_assert (s_con);
+
+	/* Check autoconnect-slaves property */
+	autoconnect_slaves = nm_setting_connection_get_autoconnect_slaves (s_con);
+	if (autoconnect_slaves != NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_DEFAULT)
+		goto out;
+
+	/* Check configuration default for autoconnect-slaves property */
+	value = nm_config_data_get_connection_default (NM_CONFIG_GET_DATA,
+	                                               "connection.autoconnect-slaves", device);
+	if (value)
+		autoconnect_slaves = _nm_utils_ascii_str_to_int64 (value, 10, 0, 1, -1);
+
+out:
+	if (autoconnect_slaves == NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_NO)
+		return FALSE;
+	if (autoconnect_slaves == NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_YES)
+		return TRUE;
+	return FALSE;
+}
+
+static gboolean
+autoconnect_slaves (NMManager *manager,
+                    NMConnection *master_connection,
+                    NMDevice *master_device,
+                    NMAuthSubject *subject)
+{
+	GError *local_err = NULL;
+	gboolean ret = FALSE;
+
+	if (should_connect_slaves (master_connection, master_device)) {
+		GSList *slaves, *iter;
+
+		iter = slaves = find_slaves (manager, master_connection, master_device);
+		ret = slaves != NULL;
+
+		while (iter) {
+			NMConnection *slave_connection = iter->data;
+
+			iter = iter->next;
+			nm_log_dbg (LOGD_CORE, "will activate slave connection '%s' (%s) as a dependency for master '%s' (%s)",
+			            nm_connection_get_id (slave_connection),
+			            nm_connection_get_uuid (slave_connection),
+			            nm_connection_get_id (master_connection),
+			            nm_connection_get_uuid (master_connection));
+
+			/* Schedule slave activation */
+			nm_manager_activate_connection (manager,
+			                                slave_connection,
+			                                NULL,
+			                                nm_manager_get_best_device_for_connection (manager, slave_connection),
+			                                subject,
+			                                &local_err);
+			if (local_err) {
+				nm_log_warn (LOGD_CORE, "Slave connection activation failed: %s", local_err->message);
+				g_error_free (local_err);
+			}
+		}
+		g_slist_free (slaves);
+	}
+	return ret;
+}
+
 static gboolean
 _internal_activate_vpn (NMManager *self, NMActiveConnection *active, GError **error)
 {
@@ -2538,10 +2562,11 @@ _internal_activate_vpn (NMManager *self, NMActiveConnection *active, GError **er
 static gboolean
 _internal_activate_device (NMManager *self, NMActiveConnection *active, GError **error)
 {
-	NMDevice *device, *master_device = NULL;
+	NMDevice *device, *existing, *master_device = NULL;
 	NMConnection *connection;
 	NMConnection *master_connection = NULL;
 	NMActiveConnection *master_ac = NULL;
+	GError *local_err = NULL;
 
 	g_return_val_if_fail (NM_IS_MANAGER (self), FALSE);
 	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (active), FALSE);
@@ -2554,7 +2579,7 @@ _internal_activate_device (NMManager *self, NMActiveConnection *active, GError *
 
 	device = nm_active_connection_get_device (active);
 	if (!device) {
-		if (!connection_needs_virtual_device (connection)) {
+		if (!nm_connection_is_virtual (connection)) {
 			NMSettingConnection *s_con = nm_connection_get_setting_connection (connection);
 
 			g_assert (s_con);
@@ -2566,12 +2591,14 @@ _internal_activate_device (NMManager *self, NMActiveConnection *active, GError *
 			return FALSE;
 		}
 
-		device = system_create_virtual_device (self, connection);
+		device = system_create_virtual_device (self, connection, &local_err);
 		if (!device) {
-			g_set_error_literal (error,
-			                     NM_MANAGER_ERROR,
-			                     NM_MANAGER_ERROR_UNKNOWN_DEVICE,
-			                     "Failed to create virtual interface");
+			g_set_error (error,
+			             NM_MANAGER_ERROR,
+			             NM_MANAGER_ERROR_UNKNOWN_DEVICE,
+			             "Failed to create virtual interface: %s",
+			             local_err ? local_err->message : "(unknown)");
+			g_clear_error (&local_err);
 			return FALSE;
 		}
 
@@ -2587,7 +2614,7 @@ _internal_activate_device (NMManager *self, NMActiveConnection *active, GError *
 		 * in the UNAVAILABLE state here.  To ensure it can be activated
 		 * immediately, we transition it to DISCONNECTED.
 		 */
-		if (   nm_device_is_available (device)
+		if (   nm_device_is_available (device, NM_DEVICE_CHECK_DEV_AVAILABLE_NONE)
 			&& (nm_device_get_state (device) == NM_DEVICE_STATE_UNAVAILABLE)) {
 			nm_device_state_changed (device,
 			                         NM_DEVICE_STATE_DISCONNECTED,
@@ -2606,10 +2633,10 @@ _internal_activate_device (NMManager *self, NMActiveConnection *active, GError *
 		existing_connection = nm_device_get_connection (device);
 		subject = nm_active_connection_get_subject (active);
 		if (existing_connection &&
-		    !nm_auth_uid_in_acl (existing_connection,
-			                     nm_session_monitor_get (),
-			                     nm_auth_subject_get_uid (subject),
-			                     &error_desc)) {
+		    !nm_auth_is_subject_in_acl (existing_connection,
+			                            nm_session_monitor_get (),
+			                            subject,
+			                            &error_desc)) {
 			g_set_error (error,
 					     NM_MANAGER_ERROR,
 					     NM_MANAGER_ERROR_PERMISSION_DENIED,
@@ -2621,7 +2648,7 @@ _internal_activate_device (NMManager *self, NMActiveConnection *active, GError *
 	}
 
 	/* Final connection must be available on device */
-	if (!nm_device_connection_is_available (device, connection, TRUE)) {
+	if (!nm_device_check_connection_available (device, connection, NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST, NULL)) {
 		g_set_error (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_UNKNOWN_CONNECTION,
 		             "Connection '%s' is not available on the device %s at this time.",
 		             nm_connection_get_id (connection), nm_device_get_iface (device));
@@ -2633,7 +2660,7 @@ _internal_activate_device (NMManager *self, NMActiveConnection *active, GError *
 	 */
 	if (!nm_active_connection_get_user_requested (active) &&
 	    !nm_device_autoconnect_allowed (device)) {
-		g_set_error (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_AUTOCONNECT_NOT_ALLOWED,
+		g_set_error (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_CONNECTION_NOT_AVAILABLE,
 		             "%s does not allow automatic connections at this time",
 		             nm_device_get_iface (device));
 		return FALSE;
@@ -2683,10 +2710,18 @@ _internal_activate_device (NMManager *self, NMActiveConnection *active, GError *
 		}
 
 		nm_active_connection_set_master (active, master_ac);
-		nm_log_dbg (LOGD_CORE, "Activation of '%s' depends on active connection %s",
+		nm_log_dbg (LOGD_CORE, "Activation of '%s' depends on active connection %p",
 		            nm_connection_get_id (connection),
-		            nm_active_connection_get_path (master_ac));
+		            master_ac);
 	}
+
+	/* Check slaves for master connection and possibly activate them */
+	autoconnect_slaves (self, connection, device, nm_active_connection_get_subject (active));
+
+	/* Disconnect the connection if connected or queued on another device */
+	existing = nm_manager_get_connection_device (self, connection);
+	if (existing)
+		nm_device_steal_connection (existing, connection);
 
 	/* Export the new ActiveConnection to clients and start it on the device */
 	nm_active_connection_export (active);
@@ -2725,6 +2760,7 @@ _internal_activate_generic (NMManager *self, NMActiveConnection *active, GError 
 		 * is exported, make sure the manager's activating-connection property
 		 * is up-to-date.
 		 */
+		active_connection_add (self, active);
 		policy_activating_device_changed (G_OBJECT (priv->policy), NULL, self);
 	}
 
@@ -2794,18 +2830,6 @@ _new_active_connection (NMManager *self,
 		return NULL;
 	}
 
-	if (existing_ac) {
-		NMDevice *existing_device = nm_active_connection_get_device (existing_ac);
-
-		if (existing_device != device) {
-			g_set_error (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_CONNECTION_ALREADY_ACTIVE,
-			             "Connection '%s' is already active on %s",
-			             nm_connection_get_id (connection),
-			             nm_device_get_iface (existing_device));
-			return NULL;
-		}
-	}
-
 	/* Normalize the specific object */
 	if (specific_object && g_strcmp0 (specific_object, "/") == 0)
 		specific_object = NULL;
@@ -2829,15 +2853,14 @@ _internal_activation_failed (NMManager *self,
                              NMActiveConnection *active,
                              const char *error_desc)
 {
-	nm_log_warn (LOGD_CORE, "Failed to activate '%s': %s",
-	             nm_connection_get_id (nm_active_connection_get_connection (active)),
-	             error_desc);
+	nm_log_dbg (LOGD_CORE, "Failed to activate '%s': %s",
+	            nm_connection_get_id (nm_active_connection_get_connection (active)),
+	            error_desc);
 
 	if (nm_active_connection_get_state (active) <= NM_ACTIVE_CONNECTION_STATE_ACTIVATED) {
 		nm_active_connection_set_state (active, NM_ACTIVE_CONNECTION_STATE_DEACTIVATING);
 		nm_active_connection_set_state (active, NM_ACTIVE_CONNECTION_STATE_DEACTIVATED);
 	}
-	active_connection_remove (self, active);
 }
 
 static void
@@ -2848,7 +2871,10 @@ _internal_activation_auth_done (NMActiveConnection *active,
                                 gpointer user_data2)
 {
 	NMManager *self = user_data1;
+	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
 	GError *error = NULL;
+
+	priv->authorizing_connections = g_slist_remove (priv->authorizing_connections, active);
 
 	if (success) {
 		if (_internal_activate_generic (self, active, &error)) {
@@ -2889,8 +2915,10 @@ nm_manager_activate_connection (NMManager *self,
                                 NMAuthSubject *subject,
                                 GError **error)
 {
+	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
 	NMActiveConnection *active;
 	char *error_desc = NULL;
+	GSList *iter;
 
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (connection != NULL, NULL);
@@ -2898,16 +2926,32 @@ nm_manager_activate_connection (NMManager *self,
 	g_return_val_if_fail (*error == NULL, NULL);
 
 	/* Ensure the subject has permissions for this connection */
-	if (!nm_auth_uid_in_acl (connection,
-	                         nm_session_monitor_get (),
-	                         nm_auth_subject_get_uid (subject),
-	                         &error_desc)) {
+	if (!nm_auth_is_subject_in_acl (connection,
+	                                nm_session_monitor_get (),
+	                                subject,
+	                                &error_desc)) {
 		g_set_error_literal (error,
 		                     NM_MANAGER_ERROR,
 		                     NM_MANAGER_ERROR_PERMISSION_DENIED,
 		                     error_desc);
 		g_free (error_desc);
 		return NULL;
+	}
+
+	/* Look for a active connection that's equivalent and is already pending authorization
+	 * and eventual activation. This is used to de-duplicate concurrent activations which would
+	 * otherwise race and cause the device to disconnect and reconnect repeatedly.
+	 * In particular, this allows the master and multiple slaves to concurrently auto-activate
+	 * while all the slaves would use the same active-connection. */
+	for (iter = priv->authorizing_connections; iter; iter = g_slist_next (iter)) {
+		active = iter->data;
+
+		if (   connection == nm_active_connection_get_connection (active)
+		    && g_strcmp0 (nm_active_connection_get_specific_object (active), specific_object) == 0
+		    && nm_active_connection_get_device (active) == device
+		    && nm_auth_subject_is_internal (nm_active_connection_get_subject (active))
+		    && nm_auth_subject_is_internal (subject))
+			return active;
 	}
 
 	active = _new_active_connection (self,
@@ -2917,8 +2961,8 @@ nm_manager_activate_connection (NMManager *self,
 	                                 subject,
 	                                 error);
 	if (active) {
+		priv->authorizing_connections = g_slist_prepend (priv->authorizing_connections, active);
 		nm_active_connection_authorize (active, _internal_activation_auth_done, self, NULL);
-		active_connection_add (self, active);
 	}
 	return active;
 }
@@ -2942,7 +2986,7 @@ validate_activation_request (NMManager *self,
 	g_assert (out_vpn);
 
 	/* Validate the caller */
-	subject = nm_auth_subject_new_from_context (context);
+	subject = nm_auth_subject_new_unix_process_from_context (context);
 	if (!subject) {
 		g_set_error_literal (error,
 		                     NM_MANAGER_ERROR,
@@ -2952,16 +2996,28 @@ validate_activation_request (NMManager *self,
 	}
 
 	/* Ensure the subject has permissions for this connection */
-	if (!nm_auth_uid_in_acl (connection,
-	                         nm_session_monitor_get (),
-	                         nm_auth_subject_get_uid (subject),
-	                         &error_desc)) {
+	if (!nm_auth_is_subject_in_acl (connection,
+	                                nm_session_monitor_get (),
+	                                subject,
+	                                &error_desc)) {
 		g_set_error_literal (error,
 		                     NM_MANAGER_ERROR,
 		                     NM_MANAGER_ERROR_PERMISSION_DENIED,
 		                     error_desc);
 		g_free (error_desc);
 		goto error;
+	}
+
+	/* Not implemented yet, we want to fail early */
+	if (   nm_connection_get_setting_connection (connection)
+	    && nm_connection_get_setting_ip6_config (connection)
+	    && !strcmp (nm_utils_get_ip_config_method (connection, NM_TYPE_SETTING_IP6_CONFIG),
+	                NM_SETTING_IP6_CONFIG_METHOD_SHARED)) {
+		g_set_error_literal (error,
+		                     NM_MANAGER_ERROR,
+		                     NM_MANAGER_ERROR_CONNECTION_NOT_AVAILABLE,
+		                     "Sharing IPv6 connections is not supported yet.");
+		return NULL;
 	}
 
 	/* Check whether it's a VPN or not */
@@ -2983,30 +3039,28 @@ validate_activation_request (NMManager *self,
 			                     "Device not found");
 			goto error;
 		}
-	} else {
-		gboolean is_software = connection_needs_virtual_device (connection);
+	} else
+		device = nm_manager_get_best_device_for_connection (self, connection);
+
+	if (!device) {
+		gboolean is_software = nm_connection_is_virtual (connection);
 
 		/* VPN and software-device connections don't need a device yet */
 		if (!vpn && !is_software) {
 			g_set_error_literal (error,
 			                     NM_MANAGER_ERROR,
 			                     NM_MANAGER_ERROR_UNKNOWN_DEVICE,
-			                     "This connection requires an existing device.");
+			                     "No suitable device found for this connection.");
 			goto error;
 		}
 
 		if (is_software) {
-			/* Look for an existing device with the connection's interface name */
 			char *iface;
 
-			iface = get_virtual_iface_name (self, connection, NULL);
-			if (!iface) {
-				g_set_error_literal (error,
-				                     NM_MANAGER_ERROR,
-				                     NM_MANAGER_ERROR_UNKNOWN_DEVICE,
-				                     "Failed to determine connection's virtual interface name");
+			/* Look for an existing device with the connection's interface name */
+			iface = get_virtual_iface_name (self, connection, NULL, error);
+			if (!iface)
 				goto error;
-			}
 
 			device = find_device_by_ip_iface (self, iface);
 			g_free (iface);
@@ -3152,7 +3206,6 @@ impl_manager_activate_connection (NMManager *self,
 		goto error;
 
 	nm_active_connection_authorize (active, _activation_auth_done, self, context);
-	active_connection_add (self, active);
 	g_clear_object (&subject);
 	return;
 
@@ -3230,8 +3283,6 @@ _add_and_activate_auth_done (NMActiveConnection *active,
 		                                 activation_add_done,
 		                                 info);
 	} else {
-		active_connection_remove (self, active);
-
 		g_assert (error_desc);
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
@@ -3272,9 +3323,13 @@ impl_manager_add_and_activate_connection (NMManager *self,
 	 * specific data being in the connection till then (especially in
 	 * validate_activation_request()).
 	 */
-	connection = nm_connection_new ();
-	if (settings && g_hash_table_size (settings))
-		nm_connection_replace_settings (connection, settings, NULL);
+	connection = nm_simple_connection_new ();
+	if (settings && g_hash_table_size (settings)) {
+		GVariant *settings_dict = nm_utils_connection_hash_to_dict (settings);
+
+		nm_connection_replace_settings (connection, settings_dict, NULL);
+		g_variant_unref (settings_dict);
+	}
 
 	subject = validate_activation_request (self,
 	                                       context,
@@ -3298,16 +3353,18 @@ impl_manager_add_and_activate_connection (NMManager *self,
 	if (vpn) {
 		/* Try to fill the VPN's connection setting and name at least */
 		if (!nm_connection_get_setting_vpn (connection)) {
-			error = g_error_new_literal (NM_MANAGER_ERROR,
-			                             NM_MANAGER_ERROR_UNSUPPORTED_CONNECTION_TYPE,
+			error = g_error_new_literal (NM_CONNECTION_ERROR,
+			                             NM_CONNECTION_ERROR_MISSING_SETTING,
 			                             "VPN connections require a 'vpn' setting");
+			g_prefix_error (&error, "%s: ", NM_SETTING_VPN_SETTING_NAME);
 			goto error;
 		}
 
 		nm_utils_complete_generic (connection,
 		                           NM_SETTING_VPN_SETTING_NAME,
 		                           all_connections,
-		                           _("VPN connection %d"),
+		                           NULL,
+		                           _("VPN connection"),
 		                           NULL,
 		                           FALSE); /* No IPv6 by default for now */
 	} else {
@@ -3332,7 +3389,6 @@ impl_manager_add_and_activate_connection (NMManager *self,
 		goto error;
 
 	nm_active_connection_authorize (active, _add_and_activate_auth_done, self, context);
-	active_connection_add (self, active);
 	g_object_unref (connection);
 	g_object_unref (subject);
 	return;
@@ -3368,7 +3424,7 @@ nm_manager_deactivate_connection (NMManager *manager,
 	}
 
 	if (NM_IS_VPN_CONNECTION (active)) {
-		NMVPNConnectionStateReason vpn_reason = NM_VPN_CONNECTION_STATE_REASON_USER_DISCONNECTED;
+		NMVpnConnectionStateReason vpn_reason = NM_VPN_CONNECTION_STATE_REASON_USER_DISCONNECTED;
 
 		if (reason == NM_DEVICE_STATE_REASON_CONNECTION_REMOVED)
 			vpn_reason = NM_VPN_CONNECTION_STATE_REASON_CONNECTION_REMOVED;
@@ -3467,7 +3523,7 @@ impl_manager_deactivate_connection (NMManager *self,
 	}
 
 	/* Validate the caller */
-	subject = nm_auth_subject_new_from_context (context);
+	subject = nm_auth_subject_new_unix_process_from_context (context);
 	if (!subject) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
@@ -3476,10 +3532,10 @@ impl_manager_deactivate_connection (NMManager *self,
 	}
 
 	/* Ensure the subject has permissions for this connection */
-	if (!nm_auth_uid_in_acl (connection,
-	                         nm_session_monitor_get (),
-	                         nm_auth_subject_get_uid (subject),
-	                         &error_desc)) {
+	if (!nm_auth_is_subject_in_acl (connection,
+	                                nm_session_monitor_get (),
+	                                subject,
+	                                &error_desc)) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
 		                             error_desc);
@@ -3510,7 +3566,7 @@ done:
 static gboolean
 device_is_wake_on_lan (NMDevice *device)
 {
-	return nm_platform_link_get_wake_on_lan (nm_device_get_ip_ifindex (device));
+	return nm_platform_link_get_wake_on_lan (NM_PLATFORM_GET, nm_device_get_ip_ifindex (device));
 }
 
 static void
@@ -3524,7 +3580,7 @@ do_sleep_wake (NMManager *self, gboolean sleeping_changed)
 	waking_from_suspend = sleeping_changed && !priv->sleeping;
 
 	if (manager_sleeping (self)) {
-		nm_log_info (LOGD_SUSPEND, suspending ? "sleeping..." : "disabling...");
+		nm_log_info (LOGD_SUSPEND, "%s...", suspending ? "sleeping" : "disabling");
 
 		/* FIXME: are there still hardware devices that need to be disabled around
 		 * suspend/resume?
@@ -3542,7 +3598,7 @@ do_sleep_wake (NMManager *self, gboolean sleeping_changed)
 			nm_device_set_unmanaged (device, NM_UNMANAGED_INTERNAL, TRUE, NM_DEVICE_STATE_REASON_SLEEPING);
 		}
 	} else {
-		nm_log_info (LOGD_SUSPEND, waking_from_suspend ? "waking up..." : "re-enabling...");
+		nm_log_info (LOGD_SUSPEND, "%s...", waking_from_suspend ? "waking up" : "re-enabling");
 
 		if (waking_from_suspend) {
 			/* Belatedly take down Wake-on-LAN devices; ideally we wouldn't have to do this
@@ -3965,13 +4021,8 @@ impl_manager_set_logging (NMManager *manager,
 	}
 
 	if (nm_logging_setup (level, domains, NULL, &error)) {
-		char *new_level = nm_logging_level_to_string ();
-		char *new_domains = nm_logging_domains_to_string ();
-
 		nm_log_info (LOGD_CORE, "logging: level '%s' domains '%s'",
-		             new_level, new_domains);
-		g_free (new_level);
-		g_free (new_domains);
+		             nm_logging_level_to_string (), nm_logging_domains_to_string ());
 	}
 
 done:
@@ -3987,8 +4038,8 @@ impl_manager_get_logging (NMManager *manager,
                           char **level,
                           char **domains)
 {
-	*level = nm_logging_level_to_string ();
-	*domains = nm_logging_domains_to_string ();
+	*level = g_strdup (nm_logging_level_to_string ());
+	*domains = g_strdup (nm_logging_domains_to_string ());
 }
 
 static void
@@ -4071,6 +4122,12 @@ impl_manager_check_connectivity (NMManager *manager,
 	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_NETWORK_CONTROL, TRUE);
 }
 
+static void
+start_factory (NMDeviceFactory *factory, gpointer user_data)
+{
+	nm_device_factory_start (factory);
+}
+
 void
 nm_manager_start (NMManager *self)
 {
@@ -4105,7 +4162,10 @@ nm_manager_start (NMManager *self)
 	system_unmanaged_devices_changed_cb (priv->settings, NULL, self);
 	system_hostname_changed_cb (priv->settings, NULL, self);
 
-	nm_platform_query_devices ();
+	/* Start device factories */
+	nm_device_factory_manager_for_each_factory (start_factory, NULL);
+
+	platform_query_devices (self);
 
 	/*
 	 * Connections added before the manager is started do not emit
@@ -4114,6 +4174,16 @@ nm_manager_start (NMManager *self)
 	system_create_virtual_devices (self);
 
 	check_if_startup_complete (self);
+}
+
+void
+nm_manager_stop (NMManager *self)
+{
+	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
+
+	/* Remove all devices */
+	while (priv->devices)
+		remove_device (self, NM_DEVICE (priv->devices->data), TRUE, TRUE);
 }
 
 static gboolean
@@ -4154,12 +4224,9 @@ connectivity_changed (NMConnectivity *connectivity,
                       gpointer user_data)
 {
 	NMManager *self = NM_MANAGER (user_data);
-	NMConnectivityState state;
-	static const char *connectivity_states[] = { "UNKNOWN", "NONE", "PORTAL", "LIMITED", "FULL" };
 
-	state = nm_connectivity_get_state (connectivity);
 	nm_log_dbg (LOGD_CORE, "connectivity checking indicates %s",
-	            connectivity_states[state]);
+	            nm_connectivity_state_to_string (nm_connectivity_get_state (connectivity)));
 
 	nm_manager_update_state (self);
 	g_object_notify (G_OBJECT (self), NM_MANAGER_CONNECTIVITY);
@@ -4218,6 +4285,7 @@ policy_default_device_changed (GObject *object, GParamSpec *pspec, gpointer user
 		priv->primary_connection = ac ? g_object_ref (ac) : NULL;
 		nm_log_dbg (LOGD_CORE, "PrimaryConnection now %s", ac ? nm_active_connection_get_id (ac) : "(none)");
 		g_object_notify (G_OBJECT (self), NM_MANAGER_PRIMARY_CONNECTION);
+		g_object_notify (G_OBJECT (self), NM_MANAGER_PRIMARY_CONNECTION_TYPE);
 	}
 }
 
@@ -4373,7 +4441,7 @@ prop_filter (DBusConnection *connection,
 		goto out;
 	}
 
-	subject = nm_auth_subject_new_from_message (connection, message);
+	subject = nm_auth_subject_new_unix_process_from_message (connection, message);
 	if (!subject) {
 		reply = dbus_message_new_error (message, NM_PERM_DENIED_ERROR,
 		                                "Could not determine request UID.");
@@ -4408,7 +4476,7 @@ out:
 }
 
 static void
-authority_changed_cb (gpointer user_data)
+authority_changed_cb (NMAuthManager *auth_manager, gpointer user_data)
 {
 	/* Let clients know they should re-check their authorization */
 	g_signal_emit (NM_MANAGER (user_data), signals[CHECK_PERMISSIONS], 0);
@@ -4601,6 +4669,7 @@ nm_manager_new (NMSettings *settings,
 	NMManagerPrivate *priv;
 	DBusGConnection *bus;
 	DBusConnection *dbus_connection;
+	NMConfigData *config_data;
 
 	g_assert (settings);
 
@@ -4613,7 +4682,7 @@ nm_manager_new (NMSettings *settings,
 
 	bus = nm_dbus_manager_get_connection (priv->dbus_mgr);
 	if (!bus) {
-		g_set_error_literal (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_INTERNAL,
+		g_set_error_literal (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_FAILED,
 		                     "Failed to initialize D-Bus connection");
 		g_object_unref (singleton);
 		return NULL;
@@ -4632,12 +4701,21 @@ nm_manager_new (NMSettings *settings,
 	g_signal_connect (priv->policy, "notify::" NM_POLICY_ACTIVATING_IP6_DEVICE,
 	                  G_CALLBACK (policy_activating_device_changed), singleton);
 
-	priv->connectivity = nm_connectivity_new ();
+	priv->config = g_object_ref (nm_config_get ());
+	g_signal_connect (G_OBJECT (priv->config),
+	                  NM_CONFIG_SIGNAL_CONFIG_CHANGED,
+	                  G_CALLBACK (_config_changed_cb),
+	                  singleton);
+
+	config_data = nm_config_get_data (priv->config);
+	priv->connectivity = nm_connectivity_new (nm_config_data_get_connectivity_uri (config_data),
+	                                          nm_config_data_get_connectivity_interval (config_data),
+	                                          nm_config_data_get_connectivity_response (config_data));
 	g_signal_connect (priv->connectivity, "notify::" NM_CONNECTIVITY_STATE,
 	                  G_CALLBACK (connectivity_changed), singleton);
 
 	if (!dbus_connection_add_filter (dbus_connection, prop_filter, singleton, NULL)) {
-		g_set_error_literal (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_INTERNAL,
+		g_set_error_literal (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_FAILED,
 		                     "Failed to register DBus connection filter");
 		g_object_unref (singleton);
 		return NULL;
@@ -4645,6 +4723,8 @@ nm_manager_new (NMSettings *settings,
 	priv->prop_filter_added = TRUE;
 
 	priv->settings = g_object_ref (settings);
+	g_signal_connect (priv->settings, "notify::" NM_SETTINGS_STARTUP_COMPLETE,
+	                  G_CALLBACK (settings_startup_complete_changed), singleton);
 
 	priv->state_file = g_strdup (state_file);
 
@@ -4688,7 +4768,7 @@ nm_manager_new (NMSettings *settings,
 	rfkill_change (priv->radio_states[RFKILL_TYPE_WLAN].desc, RFKILL_TYPE_WLAN, initial_wifi_enabled);
 	rfkill_change (priv->radio_states[RFKILL_TYPE_WWAN].desc, RFKILL_TYPE_WWAN, initial_wwan_enabled);
 
-	load_device_factories (singleton);
+	nm_device_factory_manager_load_factories (_register_device_factory, singleton);
 
 	return singleton;
 }
@@ -4719,7 +4799,7 @@ nm_manager_init (NMManager *manager)
 	priv->radio_states[RFKILL_TYPE_WWAN].rtype = RFKILL_TYPE_WWAN;
 
 	priv->radio_states[RFKILL_TYPE_WIMAX].user_enabled = TRUE;
-	priv->radio_states[RFKILL_TYPE_WIMAX].key = "WiMAXEnabled";
+	priv->radio_states[RFKILL_TYPE_WIMAX].key = "WimaxEnabled";
 	priv->radio_states[RFKILL_TYPE_WIMAX].prop = NM_MANAGER_WIMAX_ENABLED;
 	priv->radio_states[RFKILL_TYPE_WIMAX].hw_prop = NM_MANAGER_WIMAX_HARDWARE_ENABLED;
 	priv->radio_states[RFKILL_TYPE_WIMAX].desc = "WiMAX";
@@ -4773,7 +4853,11 @@ nm_manager_init (NMManager *manager)
 	                  G_CALLBACK (resuming_cb), manager);
 
 	/* Listen for authorization changes */
-	nm_auth_changed_func_register (authority_changed_cb, manager);
+	g_signal_connect (nm_auth_manager_get (),
+	                  NM_AUTH_MANAGER_SIGNAL_CHANGED,
+	                  G_CALLBACK (authority_changed_cb),
+	                  manager);
+
 
 	/* Monitor the firmware directory */
 	if (strlen (KERNEL_FIRMWARE_DIR)) {
@@ -4806,6 +4890,7 @@ get_property (GObject *object, guint prop_id,
 	GSList *iter;
 	GPtrArray *array;
 	const char *path;
+	const char *type;
 
 	switch (prop_id) {
 	case PROP_VERSION:
@@ -4854,6 +4939,10 @@ get_property (GObject *object, guint prop_id,
 	case PROP_PRIMARY_CONNECTION:
 		path = priv->primary_connection ? nm_active_connection_get_path (priv->primary_connection) : NULL;
 		g_value_set_boxed (value, path ? path : "/");
+		break;
+	case PROP_PRIMARY_CONNECTION_TYPE:
+		type = priv->primary_connection ? nm_active_connection_get_connection_type (priv->primary_connection) : NULL;
+		g_value_set_string (value, type ? type : "");
 		break;
 	case PROP_ACTIVATING_CONNECTION:
 		path = priv->activating_connection ? nm_active_connection_get_path (priv->activating_connection) : NULL;
@@ -4914,22 +5003,27 @@ set_property (GObject *object, guint prop_id,
 }
 
 static void
+_deinit_device_factory (NMDeviceFactory *factory, gpointer user_data)
+{
+	g_signal_handlers_disconnect_matched (factory, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, NM_MANAGER (user_data));
+}
+
+static void
 dispose (GObject *object)
 {
 	NMManager *manager = NM_MANAGER (object);
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (manager);
 	DBusGConnection *bus;
 	DBusConnection *dbus_connection;
-	GSList *iter;
 
 	g_slist_free_full (priv->auth_chains, (GDestroyNotify) nm_auth_chain_unref);
 	priv->auth_chains = NULL;
 
-	nm_auth_changed_func_unregister (authority_changed_cb, manager);
+	g_signal_handlers_disconnect_by_func (nm_auth_manager_get (),
+	                                      G_CALLBACK (authority_changed_cb),
+	                                      manager);
 
-	/* Remove all devices */
-	while (priv->devices)
-		remove_device (manager, NM_DEVICE (priv->devices->data), TRUE);
+	g_assert (priv->devices == NULL);
 
 	if (priv->ac_cleanup_id) {
 		g_source_remove (priv->ac_cleanup_id);
@@ -4942,7 +5036,14 @@ dispose (GObject *object)
 	g_clear_object (&priv->primary_connection);
 	g_clear_object (&priv->activating_connection);
 
-	g_clear_object (&priv->connectivity);
+	if (priv->config) {
+		g_signal_handlers_disconnect_by_func (priv->config, _config_changed_cb, manager);
+		g_clear_object (&priv->config);
+	}
+	if (priv->connectivity) {
+		g_signal_handlers_disconnect_by_func (priv->connectivity, connectivity_changed, manager);
+		g_clear_object (&priv->connectivity);
+	}
 
 	g_free (priv->hostname);
 
@@ -4953,6 +5054,7 @@ dispose (GObject *object)
 	}
 
 	g_clear_object (&priv->settings);
+	g_free (priv->state_file);
 	g_clear_object (&priv->vpn_manager);
 
 	/* Unregister property filter */
@@ -4984,14 +5086,8 @@ dispose (GObject *object)
 		g_clear_object (&priv->fw_monitor);
 	}
 
-	for (iter = priv->factories; iter; iter = iter->next) {
-		NMDeviceFactory *factory = iter->data;
-
-		g_signal_handlers_disconnect_matched (factory, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, manager);
-		g_object_unref (factory);
-	}
-	g_clear_pointer (&priv->factories, g_slist_free);
-
+	nm_device_factory_manager_for_each_factory (_deinit_device_factory, manager);
+	
 	if (priv->timestamp_update_id) {
 		g_source_remove (priv->timestamp_update_id);
 		priv->timestamp_update_id = 0;
@@ -5015,141 +5111,132 @@ nm_manager_class_init (NMManagerClass *manager_class)
 	/* properties */
 	g_object_class_install_property
 		(object_class, PROP_VERSION,
-		 g_param_spec_string (NM_MANAGER_VERSION,
-		                      "Version",
-		                      "NetworkManager version",
+		 g_param_spec_string (NM_MANAGER_VERSION, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_STATE,
-		 g_param_spec_uint (NM_MANAGER_STATE,
-		                    "State",
-		                    "Current state",
+		 g_param_spec_uint (NM_MANAGER_STATE, "", "",
 		                    0, NM_STATE_DISCONNECTED, 0,
-		                    G_PARAM_READABLE));
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_STARTUP,
-		 g_param_spec_boolean (NM_MANAGER_STARTUP,
-		                       "Startup",
-		                       "Is NetworkManager still starting up",
+		 g_param_spec_boolean (NM_MANAGER_STARTUP, "", "",
 		                       TRUE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_NETWORKING_ENABLED,
-		 g_param_spec_boolean (NM_MANAGER_NETWORKING_ENABLED,
-		                       "NetworkingEnabled",
-		                       "Is networking enabled",
+		 g_param_spec_boolean (NM_MANAGER_NETWORKING_ENABLED, "", "",
 		                       TRUE,
-		                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+		                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_WIRELESS_ENABLED,
-		 g_param_spec_boolean (NM_MANAGER_WIRELESS_ENABLED,
-		                       "WirelessEnabled",
-		                       "Is wireless enabled",
+		 g_param_spec_boolean (NM_MANAGER_WIRELESS_ENABLED, "", "",
 		                       TRUE,
-		                       G_PARAM_READWRITE));
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_WIRELESS_HARDWARE_ENABLED,
-		 g_param_spec_boolean (NM_MANAGER_WIRELESS_HARDWARE_ENABLED,
-		                       "WirelessHardwareEnabled",
-		                       "RF kill state",
+		 g_param_spec_boolean (NM_MANAGER_WIRELESS_HARDWARE_ENABLED, "", "",
 		                       TRUE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_WWAN_ENABLED,
-		 g_param_spec_boolean (NM_MANAGER_WWAN_ENABLED,
-		                       "WwanEnabled",
-		                       "Is mobile broadband enabled",
+		 g_param_spec_boolean (NM_MANAGER_WWAN_ENABLED, "", "",
 		                       TRUE,
-		                       G_PARAM_READWRITE));
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_WWAN_HARDWARE_ENABLED,
-		 g_param_spec_boolean (NM_MANAGER_WWAN_HARDWARE_ENABLED,
-		                       "WwanHardwareEnabled",
-		                       "Whether WWAN is disabled by a hardware switch or not",
+		 g_param_spec_boolean (NM_MANAGER_WWAN_HARDWARE_ENABLED, "", "",
 		                       TRUE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_WIMAX_ENABLED,
-		 g_param_spec_boolean (NM_MANAGER_WIMAX_ENABLED,
-		                       "WimaxEnabled",
-		                       "Is WiMAX enabled",
+		 g_param_spec_boolean (NM_MANAGER_WIMAX_ENABLED, "", "",
 		                       TRUE,
-		                       G_PARAM_READWRITE));
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_WIMAX_HARDWARE_ENABLED,
-		 g_param_spec_boolean (NM_MANAGER_WIMAX_HARDWARE_ENABLED,
-		                       "WimaxHardwareEnabled",
-		                       "Whether WiMAX is disabled by a hardware switch or not",
+		 g_param_spec_boolean (NM_MANAGER_WIMAX_HARDWARE_ENABLED, "", "",
 		                       TRUE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_ACTIVE_CONNECTIONS,
-		 g_param_spec_boxed (NM_MANAGER_ACTIVE_CONNECTIONS,
-		                     "Active connections",
-		                     "Active connections",
+		 g_param_spec_boxed (NM_MANAGER_ACTIVE_CONNECTIONS, "", "",
 		                     DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_CONNECTIVITY,
-		 g_param_spec_uint (NM_MANAGER_CONNECTIVITY,
-		                    "Connectivity",
-		                    "Connectivity state",
+		 g_param_spec_uint (NM_MANAGER_CONNECTIVITY, "", "",
 		                    NM_CONNECTIVITY_UNKNOWN, NM_CONNECTIVITY_FULL, NM_CONNECTIVITY_UNKNOWN,
-		                    G_PARAM_READABLE));
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_PRIMARY_CONNECTION,
-		 g_param_spec_boxed (NM_MANAGER_PRIMARY_CONNECTION,
-		                     "Primary connection",
-		                     "Primary connection",
+		 g_param_spec_boxed (NM_MANAGER_PRIMARY_CONNECTION, "", "",
 		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_PRIMARY_CONNECTION_TYPE,
+		 g_param_spec_string (NM_MANAGER_PRIMARY_CONNECTION_TYPE, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
+
 
 	g_object_class_install_property
 		(object_class, PROP_ACTIVATING_CONNECTION,
-		 g_param_spec_boxed (NM_MANAGER_ACTIVATING_CONNECTION,
-		                     "Activating connection",
-		                     "Activating connection",
+		 g_param_spec_boxed (NM_MANAGER_ACTIVATING_CONNECTION, "", "",
 		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	/* Hostname is not exported over D-Bus */
 	g_object_class_install_property
 		(object_class, PROP_HOSTNAME,
-		 g_param_spec_string (NM_MANAGER_HOSTNAME,
-		                      "Hostname",
-		                      "Hostname",
+		 g_param_spec_string (NM_MANAGER_HOSTNAME, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/* Sleeping is not exported over D-Bus */
 	g_object_class_install_property
 		(object_class, PROP_SLEEPING,
-		 g_param_spec_boolean (NM_MANAGER_SLEEPING,
-		                       "Sleeping",
-		                       "Sleeping",
+		 g_param_spec_boolean (NM_MANAGER_SLEEPING, "", "",
 		                       FALSE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_DEVICES,
-		 g_param_spec_boxed (NM_MANAGER_DEVICES,
-		                     "Devices",
-		                     "Devices",
+		 g_param_spec_boxed (NM_MANAGER_DEVICES, "", "",
 		                     DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	/* signals */
 	signals[DEVICE_ADDED] =
@@ -5204,11 +5291,17 @@ nm_manager_class_init (NMManagerClass *manager_class)
 		              0, NULL, NULL, NULL,
 		              G_TYPE_NONE, 1, G_TYPE_OBJECT);
 
+	signals[CONFIGURE_QUIT] =
+		g_signal_new (NM_MANAGER_CONFIGURE_QUIT,
+		              G_OBJECT_CLASS_TYPE (object_class),
+		              G_SIGNAL_RUN_FIRST,
+		              0, NULL, NULL, NULL,
+		              G_TYPE_NONE, 0);
+
 	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
 	                                        G_TYPE_FROM_CLASS (manager_class),
 	                                        &dbus_glib_nm_manager_object_info);
 
-	dbus_g_error_domain_register (NM_MANAGER_ERROR, NULL, NM_TYPE_MANAGER_ERROR);
-	dbus_g_error_domain_register (NM_LOGGING_ERROR, "org.freedesktop.NetworkManager.Logging", NM_TYPE_LOGGING_ERROR);
+	dbus_g_error_domain_register (NM_MANAGER_ERROR, NM_DBUS_INTERFACE, NM_TYPE_MANAGER_ERROR);
 }
 

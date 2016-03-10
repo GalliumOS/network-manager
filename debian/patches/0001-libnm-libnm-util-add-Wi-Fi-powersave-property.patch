@@ -4,16 +4,19 @@ Date: Thu, 30 Oct 2014 09:49:38 -0500
 Subject: [PATCH 1/5] libnm/libnm-util: add Wi-Fi 'powersave' property
 
 ---
+ libnm-core/nm-setting-wireless.c |   34 ++++++++++++++++++++++++++++++
+ libnm-core/nm-setting-wireless.h |    2 +
  libnm-util/libnm-util.ver        |    1 
  libnm-util/nm-setting-wireless.c |   44 +++++++++++++++++++++++++++++++++++++++
  libnm-util/nm-setting-wireless.h |    2 +
- 3 files changed, 47 insertions(+)
+ libnm/libnm.ver                  |    1 
+ 6 files changed, 84 insertions(+)
 
 Index: b/libnm-util/libnm-util.ver
 ===================================================================
 --- a/libnm-util/libnm-util.ver
 +++ b/libnm-util/libnm-util.ver
-@@ -558,6 +558,7 @@ global:
+@@ -562,6 +562,7 @@ global:
  	nm_setting_wireless_get_mtu;
  	nm_setting_wireless_get_num_mac_blacklist_items;
  	nm_setting_wireless_get_num_seen_bssids;
@@ -25,7 +28,7 @@ Index: b/libnm-util/nm-setting-wireless.c
 ===================================================================
 --- a/libnm-util/nm-setting-wireless.c
 +++ b/libnm-util/nm-setting-wireless.c
-@@ -88,6 +88,7 @@ typedef struct {
+@@ -87,6 +87,7 @@ typedef struct {
  	GSList *seen_bssids;
  	char *security;
  	gboolean hidden;
@@ -33,7 +36,7 @@ Index: b/libnm-util/nm-setting-wireless.c
  } NMSettingWirelessPrivate;
  
  enum {
-@@ -106,6 +107,7 @@ enum {
+@@ -105,6 +106,7 @@ enum {
  	PROP_SEEN_BSSIDS,
  	PROP_SEC,
  	PROP_HIDDEN,
@@ -41,7 +44,7 @@ Index: b/libnm-util/nm-setting-wireless.c
  
  	LAST_PROP
  };
-@@ -665,6 +667,20 @@ nm_setting_wireless_get_hidden (NMSettin
+@@ -662,6 +664,20 @@ nm_setting_wireless_get_hidden (NMSettin
  }
  
  /**
@@ -62,7 +65,7 @@ Index: b/libnm-util/nm-setting-wireless.c
   * nm_setting_wireless_add_seen_bssid:
   * @setting: the #NMSettingWireless
   * @bssid: the new BSSID to add to the list
-@@ -863,6 +879,16 @@ verify (NMSetting *setting, GSList *all_
+@@ -860,6 +876,16 @@ verify (NMSetting *setting, GSList *all_
  		}
  	}
  
@@ -79,7 +82,7 @@ Index: b/libnm-util/nm-setting-wireless.c
  	return TRUE;
  }
  
-@@ -956,6 +982,9 @@ set_property (GObject *object, guint pro
+@@ -953,6 +979,9 @@ set_property (GObject *object, guint pro
  	case PROP_HIDDEN:
  		priv->hidden = g_value_get_boolean (value);
  		break;
@@ -89,7 +92,7 @@ Index: b/libnm-util/nm-setting-wireless.c
  	default:
  		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
  		break;
-@@ -1011,6 +1040,9 @@ get_property (GObject *object, guint pro
+@@ -1008,6 +1037,9 @@ get_property (GObject *object, guint pro
  	case PROP_HIDDEN:
  		g_value_set_boolean (value, nm_setting_wireless_get_hidden (setting));
  		break;
@@ -99,10 +102,10 @@ Index: b/libnm-util/nm-setting-wireless.c
  	default:
  		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
  		break;
-@@ -1304,4 +1336,16 @@ nm_setting_wireless_class_init (NMSettin
- 		                       "hidden SSID networks should be used with caution.",
+@@ -1244,4 +1276,16 @@ nm_setting_wireless_class_init (NMSettin
  		                       FALSE,
- 		                       G_PARAM_READWRITE));
+ 		                       G_PARAM_READWRITE |
+ 		                       G_PARAM_STATIC_STRINGS));
 +
 +	/**
 +	 * NMSettingWireless:powersave:
@@ -120,7 +123,7 @@ Index: b/libnm-util/nm-setting-wireless.h
 ===================================================================
 --- a/libnm-util/nm-setting-wireless.h
 +++ b/libnm-util/nm-setting-wireless.h
-@@ -76,6 +76,7 @@ GQuark nm_setting_wireless_error_quark (
+@@ -73,6 +73,7 @@ GQuark nm_setting_wireless_error_quark (
  #define NM_SETTING_WIRELESS_MTU         "mtu"
  #define NM_SETTING_WIRELESS_SEEN_BSSIDS "seen-bssids"
  #define NM_SETTING_WIRELESS_HIDDEN      "hidden"
@@ -128,11 +131,123 @@ Index: b/libnm-util/nm-setting-wireless.h
  
  /* Deprecated */
  #define NM_SETTING_WIRELESS_SEC         "security"
-@@ -153,6 +154,7 @@ void              nm_setting_wireless_cl
+@@ -150,6 +151,7 @@ void              nm_setting_wireless_cl
  
  guint32           nm_setting_wireless_get_mtu                (NMSettingWireless *setting);
  gboolean          nm_setting_wireless_get_hidden             (NMSettingWireless *setting);
 +guint32           nm_setting_wireless_get_powersave          (NMSettingWireless *setting);
  
  gboolean          nm_setting_wireless_add_seen_bssid         (NMSettingWireless *setting,
- 															  const char *bssid);
+                                                               const char *bssid);
+Index: b/libnm-core/nm-setting-wireless.c
+===================================================================
+--- a/libnm-core/nm-setting-wireless.c
++++ b/libnm-core/nm-setting-wireless.c
+@@ -60,6 +60,7 @@ typedef struct {
+ 	guint32 mtu;
+ 	GSList *seen_bssids;
+ 	gboolean hidden;
++	guint32 powersave;
+ } NMSettingWirelessPrivate;
+ 
+ enum {
+@@ -77,6 +78,7 @@ enum {
+ 	PROP_MTU,
+ 	PROP_SEEN_BSSIDS,
+ 	PROP_HIDDEN,
++	PROP_POWERSAVE,
+ 
+ 	LAST_PROP
+ };
+@@ -602,6 +604,20 @@ nm_setting_wireless_get_hidden (NMSettin
+ }
+ 
+ /**
++ * nm_setting_wireless_get_powersave:
++ * @setting: the #NMSettingWireless
++ *
++ * Returns: the #NMSettingWireless:powersave property of the setting
++ **/
++guint32
++nm_setting_wireless_get_powersave (NMSettingWireless *setting)
++{
++	g_return_val_if_fail (NM_IS_SETTING_WIRELESS (setting), 0);
++
++	return NM_SETTING_WIRELESS_GET_PRIVATE (setting)->powersave;
++}
++
++/**
+  * nm_setting_wireless_add_seen_bssid:
+  * @setting: the #NMSettingWireless
+  * @bssid: the new BSSID to add to the list
+@@ -916,6 +932,9 @@ set_property (GObject *object, guint pro
+ 	case PROP_HIDDEN:
+ 		priv->hidden = g_value_get_boolean (value);
+ 		break;
++	case PROP_POWERSAVE:
++		priv->powersave = g_value_get_uint (value);
++		break;
+ 	default:
+ 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+ 		break;
+@@ -969,6 +988,9 @@ get_property (GObject *object, guint pro
+ 	case PROP_HIDDEN:
+ 		g_value_set_boolean (value, nm_setting_wireless_get_hidden (setting));
+ 		break;
++	case PROP_POWERSAVE:
++		g_value_set_uint (value, nm_setting_wireless_get_powersave (setting));
++		break;
+ 	default:
+ 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+ 		break;
+@@ -1315,6 +1337,18 @@ nm_setting_wireless_class_init (NMSettin
+ 		                       G_PARAM_READWRITE |
+ 		                       G_PARAM_STATIC_STRINGS));
+ 
++	/**
++	 * NMSettingWireless:powersave:
++	 *
++	 * If set to 0, Wi-Fi power saving behavior is disabled.  If set to 1,
++	 * Wi-Fi power saving behavior is enabled.  All other values are reserved.
++	 **/
++	g_object_class_install_property
++		(object_class, PROP_POWERSAVE,
++		 g_param_spec_uint (NM_SETTING_WIRELESS_POWERSAVE, "", "",
++		                    0, G_MAXUINT32, 0,
++		                    G_PARAM_READWRITE));
++
+ 	/* Compatibility for deprecated property */
+ 	/* ---ifcfg-rh---
+ 	 * property: security
+Index: b/libnm-core/nm-setting-wireless.h
+===================================================================
+--- a/libnm-core/nm-setting-wireless.h
++++ b/libnm-core/nm-setting-wireless.h
+@@ -55,6 +55,7 @@ G_BEGIN_DECLS
+ #define NM_SETTING_WIRELESS_MTU         "mtu"
+ #define NM_SETTING_WIRELESS_SEEN_BSSIDS "seen-bssids"
+ #define NM_SETTING_WIRELESS_HIDDEN      "hidden"
++#define NM_SETTING_WIRELESS_POWERSAVE   "powersave"
+ 
+ /**
+  * NM_SETTING_WIRELESS_MODE_ADHOC:
+@@ -118,6 +119,7 @@ void              nm_setting_wireless_cl
+ 
+ guint32           nm_setting_wireless_get_mtu                (NMSettingWireless *setting);
+ gboolean          nm_setting_wireless_get_hidden             (NMSettingWireless *setting);
++guint32           nm_setting_wireless_get_powersave          (NMSettingWireless *setting);
+ 
+ gboolean          nm_setting_wireless_add_seen_bssid         (NMSettingWireless *setting,
+                                                               const char *bssid);
+Index: b/libnm/libnm.ver
+===================================================================
+--- a/libnm/libnm.ver
++++ b/libnm/libnm.ver
+@@ -705,6 +705,7 @@ global:
+ 	nm_setting_wireless_get_mtu;
+ 	nm_setting_wireless_get_num_mac_blacklist_items;
+ 	nm_setting_wireless_get_num_seen_bssids;
++	nm_setting_wireless_get_powersave;
+ 	nm_setting_wireless_get_rate;
+ 	nm_setting_wireless_get_seen_bssid;
+ 	nm_setting_wireless_get_ssid;

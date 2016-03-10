@@ -19,6 +19,8 @@
  * Copyright (C) 1999-2010 Gentoo Foundation, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
@@ -172,9 +174,9 @@ init_block_by_line (gchar * buf)
 			/* ignored connection */
 			conn = add_new_connection_config ("ignore", pos);
 		} else {
-			int ifindex = nm_platform_link_get_ifindex (pos);
+			int ifindex = nm_platform_link_get_ifindex (NM_PLATFORM_GET, pos);
 
-			if (ifindex && nm_platform_link_get_type (ifindex) != NM_LINK_TYPE_WIFI)
+			if (ifindex && nm_platform_link_get_type (NM_PLATFORM_GET, ifindex) != NM_LINK_TYPE_WIFI)
 				/* wired connection */
 				conn = add_new_connection_config ("wired", pos);
 			else
@@ -394,7 +396,11 @@ ifnet_init (gchar * config_file)
 const char *
 ifnet_get_data (const char *conn_name, const char *key)
 {
-	GHashTable *conn = g_hash_table_lookup (conn_table, conn_name);
+	GHashTable *conn;
+
+	g_return_val_if_fail (conn_name && key, NULL);
+
+	conn = g_hash_table_lookup (conn_table, conn_name);
 
 	if (conn)
 		return g_hash_table_lookup (conn, key);

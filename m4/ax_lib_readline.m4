@@ -87,11 +87,14 @@ AC_DEFUN([AX_LIB_READLINE], [
   ])
 
   if test -z "$ax_cv_lib_readline"; then
-    AC_MSG_ERROR([readline library with terminfo support is required (one of ncurses, curses, or termcap)])
+    AC_MSG_ERROR([readline library with terminfo support is required (one of readline, edit, or editline, AND one of ncurses, curses, or termcap)])
   fi
 
+  ORIG_LIBS="$LIBS"
   LIBS="$LIBS $ax_cv_lib_readline"
   AC_CHECK_HEADERS(readline.h readline/readline.h)
+
+  # Check history
   AC_CACHE_CHECK([whether readline supports history],
                  ax_cv_lib_readline_history, [
     ax_cv_lib_readline_history="no"
@@ -101,6 +104,18 @@ AC_DEFUN([AX_LIB_READLINE], [
     AC_MSG_ERROR(readline history support is required)
   fi
   AC_CHECK_HEADERS(history.h readline/history.h)
+
+  # check rl_echo_signal_char()
+  AC_CACHE_CHECK([whether readline supports rl_echo_signal_char()],
+                 ax_cv_lib_readline_echo_signal_char, [
+    ax_cv_lib_readline_echo_signal_char="no"
+    AC_TRY_LINK_FUNC(rl_echo_signal_char, ax_cv_lib_readline_echo_signal_char="yes")
+  ])
+  if test "$ax_cv_lib_readline_echo_signal_char" != "yes"; then
+    AC_MSG_ERROR(rl_echo_signal_char() is required (install readline6?))
+  fi
+
+  LIBS="$ORIG_LIBS"
   READLINE_LIBS="$ax_cv_lib_readline"
   AC_SUBST(READLINE_LIBS)
 ])dnl

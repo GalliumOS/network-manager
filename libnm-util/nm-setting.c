@@ -1,9 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -19,11 +16,14 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2011 Red Hat, Inc.
- * (C) Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2011 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting.h"
 #include "nm-setting-private.h"
@@ -99,7 +99,7 @@ _nm_gtype_hash (gconstpointer v)
 	return *((const GType *) v);
 }
 
-static void __attribute__((constructor))
+static void
 _ensure_registered (void)
 {
 	if (G_UNLIKELY (registered_settings == NULL)) {
@@ -110,6 +110,12 @@ _ensure_registered (void)
 		registered_settings = g_hash_table_new (g_str_hash, g_str_equal);
 		registered_settings_by_type = g_hash_table_new (_nm_gtype_hash, _nm_gtype_equal);
 	}
+}
+
+static void __attribute__((constructor))
+_ensure_registered_constructor (void)
+{
+	_ensure_registered ();
 }
 
 #define _ensure_setting_info(self, priv) \
@@ -211,6 +217,17 @@ _get_setting_type_priority (GType type)
 	return info->priority;
 }
 
+guint32
+_nm_setting_get_setting_priority (NMSetting *setting)
+{
+	NMSettingPrivate *priv;
+
+	g_return_val_if_fail (NM_IS_SETTING (setting), G_MAXUINT32);
+	priv = NM_SETTING_GET_PRIVATE (setting);
+	_ensure_setting_info (setting, priv);
+	return priv->info->priority;
+}
+
 gboolean
 _nm_setting_type_is_base_type (GType type)
 {
@@ -262,8 +279,8 @@ _nm_setting_compare_priority (gconstpointer a, gconstpointer b)
 {
 	guint32 prio_a, prio_b;
 
-	prio_a = _get_setting_type_priority (G_OBJECT_TYPE (a));
-	prio_b = _get_setting_type_priority (G_OBJECT_TYPE (b));
+	prio_a = _nm_setting_get_setting_priority ((NMSetting *) a);
+	prio_b = _nm_setting_get_setting_priority ((NMSetting *) b);
 
 	if (prio_a < prio_b)
 		return -1;
@@ -291,7 +308,7 @@ destroy_gvalue (gpointer data)
  * Converts the #NMSetting into a #GHashTable mapping each setting property
  * name to a GValue describing that property, suitable for marshalling over
  * D-Bus or serializing.  The mapping is string to GValue.
- * 
+ *
  * Returns: (transfer full) (element-type utf8 GObject.Value): a new #GHashTable
  * describing the setting's properties
  **/
@@ -306,11 +323,6 @@ nm_setting_to_hash (NMSetting *setting, NMSettingHashFlags flags)
 	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
 
 	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
-	if (!property_specs) {
-		g_warning ("%s: couldn't find property specs for object of type '%s'",
-		           __func__, g_type_name (G_OBJECT_TYPE (setting)));
-		return NULL;
-	}
 
 	hash = g_hash_table_new_full (g_str_hash, g_str_equal,
 	                              (GDestroyNotify) g_free, destroy_gvalue);
@@ -343,12 +355,6 @@ nm_setting_to_hash (NMSetting *setting, NMSettingHashFlags flags)
 	}
 	g_free (property_specs);
 
-	/* Don't return empty hashes, except for base types */
-	if (g_hash_table_size (hash) < 1 && !_nm_setting_is_base_type (setting)) {
-		g_hash_table_destroy (hash);
-		hash = NULL;
-	}
-
 	return hash;
 }
 
@@ -364,7 +370,7 @@ nm_setting_to_hash (NMSetting *setting, NMSettingHashFlags flags)
  * are strongly typed, thus the GValue type of the hash value must be correct.
  * See the documentation on each #NMSetting object subclass for the correct
  * property names and value types.
- * 
+ *
  * Returns: a new #NMSetting object populated with the properties from the
  * hash table, or %NULL on failure
  **/
@@ -396,19 +402,16 @@ nm_setting_new_from_hash (GType setting_type, GHashTable *hash)
 
 		param_spec = g_object_class_find_property (class, prop_name);
 		if (!param_spec) {
-			/* Oh, we're so nice and only warn, maybe it should be a fatal error? */
-			g_warning ("Ignoring invalid property '%s'", prop_name);
+			/* Assume that any unrecognized property either can be ignored, or
+			 * else has a backward-compatibility equivalent.
+			 */
+			g_debug ("Ignoring unrecognized property '%s'", prop_name);
 			continue;
 		}
 
 		g_value_init (dst_value, G_VALUE_TYPE (src_value));
-		if (g_value_transform (src_value, dst_value))
-			params[n_params++].name = prop_name;
-		else {
-			g_warning ("Ignoring property '%s' with invalid type (%s)",
-				       prop_name, G_VALUE_TYPE_NAME (src_value));
-			g_value_unset (dst_value);
-		}
+		g_value_copy (src_value, dst_value);
+		params[n_params++].name = prop_name;
 	}
 
 	setting = (NMSetting *) g_object_newv (setting_type, n_params, params);
@@ -420,6 +423,27 @@ nm_setting_new_from_hash (GType setting_type, GHashTable *hash)
 	g_type_class_unref (class);
 
 	return setting;
+}
+
+gboolean
+_nm_setting_get_property (NMSetting *setting, const char *property_name, GValue *value)
+{
+	GParamSpec *prop_spec;
+
+	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
+	g_return_val_if_fail (property_name, FALSE);
+	g_return_val_if_fail (value, FALSE);
+
+	prop_spec = g_object_class_find_property (G_OBJECT_GET_CLASS (setting), property_name);
+
+	if (!prop_spec) {
+		g_value_unset (value);
+		return FALSE;
+	}
+
+	g_value_init (value, prop_spec->value_type);
+	g_object_get_property (G_OBJECT (setting), property_name, value);
+	return TRUE;
 }
 
 static void
@@ -517,20 +541,31 @@ nm_setting_get_name (NMSetting *setting)
 gboolean
 nm_setting_verify (NMSetting *setting, GSList *all_settings, GError **error)
 {
-	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
-	g_return_val_if_fail (!error || *error == NULL, FALSE);
+	NMSettingVerifyResult result = _nm_setting_verify (setting, all_settings, error);
+
+	if (result == NM_SETTING_VERIFY_NORMALIZABLE)
+		g_clear_error (error);
+
+	return result == NM_SETTING_VERIFY_SUCCESS || result == NM_SETTING_VERIFY_NORMALIZABLE;
+}
+
+NMSettingVerifyResult
+_nm_setting_verify (NMSetting *setting, GSList *all_settings, GError **error)
+{
+	g_return_val_if_fail (NM_IS_SETTING (setting), NM_SETTING_VERIFY_ERROR);
+	g_return_val_if_fail (!error || *error == NULL, NM_SETTING_VERIFY_ERROR);
 
 	if (NM_SETTING_GET_CLASS (setting)->verify)
 		return NM_SETTING_GET_CLASS (setting)->verify (setting, all_settings, error);
 
-	return TRUE;
+	return NM_SETTING_VERIFY_SUCCESS;
 }
 
 static gboolean
 compare_property (NMSetting *setting,
-	              NMSetting *other,
-	              const GParamSpec *prop_spec,
-	              NMSettingCompareFlags flags)
+                  NMSetting *other,
+                  const GParamSpec *prop_spec,
+                  NMSettingCompareFlags flags)
 {
 	GValue value1 = G_VALUE_INIT;
 	GValue value2 = G_VALUE_INIT;
@@ -541,8 +576,12 @@ compare_property (NMSetting *setting,
 		NMSettingSecretFlags a_secret_flags = NM_SETTING_SECRET_FLAG_NONE;
 		NMSettingSecretFlags b_secret_flags = NM_SETTING_SECRET_FLAG_NONE;
 
-		nm_setting_get_secret_flags (setting, prop_spec->name, &a_secret_flags, NULL);
-		nm_setting_get_secret_flags (other, prop_spec->name, &b_secret_flags, NULL);
+		g_return_val_if_fail (!NM_IS_SETTING_VPN (setting), FALSE);
+
+		if (!nm_setting_get_secret_flags (setting, prop_spec->name, &a_secret_flags, NULL))
+			g_return_val_if_reached (FALSE);
+		if (!nm_setting_get_secret_flags (other, prop_spec->name, &b_secret_flags, NULL))
+			g_return_val_if_reached (FALSE);
 
 		/* If the secret flags aren't the same the settings aren't the same */
 		if (a_secret_flags != b_secret_flags)
@@ -610,7 +649,7 @@ nm_setting_compare (NMSetting *a,
 
 		/* Fuzzy compare ignores secrets and properties defined with the FUZZY_IGNORE flag */
 		if (   (flags & NM_SETTING_COMPARE_FLAG_FUZZY)
-			&& (prop_spec->flags & (NM_SETTING_PARAM_FUZZY_IGNORE | NM_SETTING_PARAM_SECRET)))
+		    && (prop_spec->flags & (NM_SETTING_PARAM_FUZZY_IGNORE | NM_SETTING_PARAM_SECRET)))
 			continue;
 
 		if ((flags & NM_SETTING_COMPARE_FLAG_INFERRABLE) && !(prop_spec->flags & NM_SETTING_PARAM_INFERRABLE))
@@ -647,7 +686,16 @@ should_compare_prop (NMSetting *setting,
 		if (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS)
 			return FALSE;
 
-		nm_setting_get_secret_flags (setting, prop_name, &secret_flags, NULL);
+		if (   NM_IS_SETTING_VPN (setting)
+		    && g_strcmp0 (prop_name, NM_SETTING_VPN_SECRETS) == 0) {
+			/* FIXME: NMSettingVPN:NM_SETTING_VPN_SECRETS has NM_SETTING_PARAM_SECRET.
+			 * nm_setting_get_secret_flags() quite possibly fails, but it might succeed if the
+			 * setting accidently uses a key "secrets". */
+			return FALSE;
+		}
+
+		if (!nm_setting_get_secret_flags (setting, prop_name, &secret_flags, NULL))
+			g_return_val_if_reached (FALSE);
 
 		if (   (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS)
 		    && (secret_flags & NM_SETTING_SECRET_FLAG_AGENT_OWNED))
@@ -699,6 +747,8 @@ nm_setting_diff (NMSetting *a,
 	guint i;
 	NMSettingDiffResult a_result = NM_SETTING_DIFF_RESULT_IN_A;
 	NMSettingDiffResult b_result = NM_SETTING_DIFF_RESULT_IN_B;
+	NMSettingDiffResult a_result_default = NM_SETTING_DIFF_RESULT_IN_A_DEFAULT;
+	NMSettingDiffResult b_result_default = NM_SETTING_DIFF_RESULT_IN_B_DEFAULT;
 	gboolean results_created = FALSE;
 
 	g_return_val_if_fail (results != NULL, FALSE);
@@ -706,6 +756,12 @@ nm_setting_diff (NMSetting *a,
 	if (b) {
 		g_return_val_if_fail (NM_IS_SETTING (b), FALSE);
 		g_return_val_if_fail (G_OBJECT_TYPE (a) == G_OBJECT_TYPE (b), FALSE);
+	}
+
+	if ((flags & (NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT | NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT)) ==
+	             (NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT | NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT)) {
+		/* conflicting flags: default to WITH_DEFAULT (clearing NO_DEFAULT). */
+		flags &= ~NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT;
 	}
 
 	/* If the caller is calling this function in a pattern like this to get
@@ -720,6 +776,8 @@ nm_setting_diff (NMSetting *a,
 	if (invert_results) {
 		a_result = NM_SETTING_DIFF_RESULT_IN_B;
 		b_result = NM_SETTING_DIFF_RESULT_IN_A;
+		a_result_default = NM_SETTING_DIFF_RESULT_IN_B_DEFAULT;
+		b_result_default = NM_SETTING_DIFF_RESULT_IN_A_DEFAULT;
 	}
 
 	if (*results == NULL) {
@@ -732,8 +790,7 @@ nm_setting_diff (NMSetting *a,
 
 	for (i = 0; i < n_property_specs; i++) {
 		GParamSpec *prop_spec = property_specs[i];
-		NMSettingDiffResult r = NM_SETTING_DIFF_RESULT_UNKNOWN, tmp;
-		gboolean different = TRUE;
+		NMSettingDiffResult r = NM_SETTING_DIFF_RESULT_UNKNOWN;
 
 		/* Handle compare flags */
 		if (!should_compare_prop (a, prop_spec->name, flags, prop_spec->flags))
@@ -742,28 +799,58 @@ nm_setting_diff (NMSetting *a,
 			continue;
 
 		if (b) {
+			gboolean different;
+
 			different = !NM_SETTING_GET_CLASS (a)->compare_property (a, b, prop_spec, flags);
 			if (different) {
+				gboolean a_is_default, b_is_default;
 				GValue value = G_VALUE_INIT;
 
 				g_value_init (&value, prop_spec->value_type);
 				g_object_get_property (G_OBJECT (a), prop_spec->name, &value);
-				if (!g_param_value_defaults (prop_spec, &value))
-					r |= a_result;
+				a_is_default = g_param_value_defaults (prop_spec, &value);
 
 				g_value_reset (&value);
 				g_object_get_property (G_OBJECT (b), prop_spec->name, &value);
-				if (!g_param_value_defaults (prop_spec, &value))
-					r |= b_result;
+				b_is_default = g_param_value_defaults (prop_spec, &value);
 
 				g_value_unset (&value);
+				if ((flags & NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT) == 0) {
+					if (!a_is_default)
+						r |= a_result;
+					if (!b_is_default)
+						r |= b_result;
+				} else {
+					r |= a_result | b_result;
+					if (a_is_default)
+						r |= a_result_default;
+					if (b_is_default)
+						r |= b_result_default;
+				}
 			}
-		} else
+		} else if ((flags & (NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT | NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT)) == 0)
 			r = a_result;  /* only in A */
+		else {
+			GValue value = G_VALUE_INIT;
 
-		if (different) {
-			tmp = GPOINTER_TO_UINT (g_hash_table_lookup (*results, prop_spec->name));
-			g_hash_table_insert (*results, g_strdup (prop_spec->name), GUINT_TO_POINTER (tmp | r));
+			g_value_init (&value, prop_spec->value_type);
+			g_object_get_property (G_OBJECT (a), prop_spec->name, &value);
+			if (!g_param_value_defaults (prop_spec, &value))
+				r |= a_result;
+			else if (flags & NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT)
+				r |= a_result | a_result_default;
+
+			g_value_unset (&value);
+		}
+
+		if (r != NM_SETTING_DIFF_RESULT_UNKNOWN) {
+			void *p;
+
+			if (g_hash_table_lookup_extended (*results, prop_spec->name, NULL, &p)) {
+				if ((r & GPOINTER_TO_UINT (p)) != r)
+					g_hash_table_insert (*results, g_strdup (prop_spec->name), GUINT_TO_POINTER (r | GPOINTER_TO_UINT (p)));
+			} else
+				g_hash_table_insert (*results, g_strdup (prop_spec->name), GUINT_TO_POINTER (r));
 		}
 	}
 	g_free (property_specs);
@@ -788,8 +875,8 @@ nm_setting_diff (NMSetting *a,
  **/
 void
 nm_setting_enumerate_values (NMSetting *setting,
-					    NMSettingValueIterFn func,
-					    gpointer user_data)
+                             NMSettingValueIterFn func,
+                             gpointer user_data)
 {
 	GParamSpec **property_specs;
 	guint n_property_specs;
@@ -862,15 +949,19 @@ _nm_setting_clear_secrets (NMSetting *setting)
 
 static gboolean
 clear_secrets_with_flags (NMSetting *setting,
-	                      GParamSpec *pspec,
-	                      NMSettingClearSecretsWithFlagsFn func,
-	                      gpointer user_data)
+                          GParamSpec *pspec,
+                          NMSettingClearSecretsWithFlagsFn func,
+                          gpointer user_data)
 {
 	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
 	gboolean changed = FALSE;
 
+	g_return_val_if_fail (!NM_IS_SETTING_VPN (setting), FALSE);
+
 	/* Clear the secret if the user function says to do so */
-	nm_setting_get_secret_flags (setting, pspec->name, &flags, NULL);
+	if (!nm_setting_get_secret_flags (setting, pspec->name, &flags, NULL))
+		g_return_val_if_reached (FALSE);
+
 	if (func (setting, pspec->name, flags, user_data) == TRUE) {
 		GValue value = G_VALUE_INIT;
 
@@ -963,7 +1054,6 @@ static int
 update_one_secret (NMSetting *setting, const char *key, GValue *value, GError **error)
 {
 	GParamSpec *prop_spec;
-	GValue transformed_value = G_VALUE_INIT;
 
 	prop_spec = g_object_class_find_property (G_OBJECT_GET_CLASS (setting), key);
 	if (!prop_spec) {
@@ -995,11 +1085,6 @@ update_one_secret (NMSetting *setting, const char *key, GValue *value, GError **
 		g_object_set_property (G_OBJECT (setting), prop_spec->name, value);
 		return NM_SETTING_UPDATE_SECRET_SUCCESS_MODIFIED;
 	}
-	if (g_value_transform (value, &transformed_value)) {
-		g_object_set_property (G_OBJECT (setting), prop_spec->name, &transformed_value);
-		g_value_unset (&transformed_value);
-		return NM_SETTING_UPDATE_SECRET_SUCCESS_MODIFIED;
-	}
 	g_set_error (error,
 	             NM_SETTING_ERROR,
 	             NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH,
@@ -1016,7 +1101,7 @@ update_one_secret (NMSetting *setting, const char *key, GValue *value, GError **
  *
  * Update the setting's secrets, given a hash table of secrets intended for that
  * setting (deserialized from D-Bus for example).
- * 
+ *
  * Returns: %TRUE if the secrets were successfully updated, %FALSE on failure to
  * update one or more of the secrets.
  **/
@@ -1095,8 +1180,11 @@ get_secret_flags (NMSetting *setting,
 	char *flags_prop;
 	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
 
-	if (verify_secret)
-		g_return_val_if_fail (is_secret_prop (setting, secret_name, error), FALSE);
+	if (verify_secret && !is_secret_prop (setting, secret_name, error)) {
+		if (out_flags)
+			*out_flags = NM_SETTING_SECRET_FLAG_NONE;
+		return FALSE;
+	}
 
 	flags_prop = g_strdup_printf ("%s-flags", secret_name);
 	g_object_get (G_OBJECT (setting), flags_prop, &flags, NULL);
@@ -1199,8 +1287,6 @@ nm_setting_to_string (NMSetting *setting)
 	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
 
 	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
-	if (!property_specs)
-		return NULL;
 
 	string = g_string_new (nm_setting_get_name (setting));
 	g_string_append_c (string, '\n');
@@ -1257,6 +1343,87 @@ nm_setting_get_virtual_iface_name (NMSetting *setting)
 		return NM_SETTING_GET_CLASS (setting)->get_virtual_iface_name (setting);
 
 	return NULL;
+}
+
+
+NMSettingVerifyResult
+_nm_setting_verify_deprecated_virtual_iface_name (const char *interface_name,
+                                                  gboolean allow_missing,
+                                                  const char *setting_name,
+                                                  const char *setting_property,
+                                                  GQuark error_quark,
+                                                  gint e_invalid_property,
+                                                  gint e_missing_property,
+                                                  GSList *all_settings,
+                                                  GError **error)
+{
+	NMSettingConnection *s_con;
+	const char *con_name;
+
+	s_con = NM_SETTING_CONNECTION (nm_setting_find_in_list (all_settings, NM_SETTING_CONNECTION_SETTING_NAME));
+	con_name = s_con ? nm_setting_connection_get_interface_name (s_con) : NULL;
+	if (!interface_name && !con_name) {
+		if (allow_missing)
+			return NM_SETTING_VERIFY_SUCCESS;
+
+		g_set_error_literal (error,
+		                     NM_SETTING_CONNECTION_ERROR,
+		                     NM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
+		                     _("property is missing"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
+		return NM_SETTING_VERIFY_ERROR;
+	}
+	if (!con_name && !nm_utils_iface_valid_name (interface_name)) {
+		/* the interface_name is invalid, we cannot normalize it. Only do this if !con_name,
+		 * because if con_name is set, it can overwrite interface_name. */
+		g_set_error_literal (error,
+		                     error_quark,
+		                     e_invalid_property,
+		                     _("property is invalid"));
+		g_prefix_error (error, "%s.%s: ", setting_name, setting_property);
+		return NM_SETTING_VERIFY_ERROR;
+	}
+	if (!con_name) {
+		/* NMSettingConnection has interface not set, it should be normalized to interface_name */
+		g_set_error_literal (error,
+		                     NM_SETTING_CONNECTION_ERROR,
+		                     NM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
+		                     _("property is missing"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
+		return NM_SETTING_VERIFY_NORMALIZABLE;
+	}
+	if (!nm_utils_iface_valid_name (con_name)) {
+		/* NMSettingConnection:interface_name is invalid, we cannot normalize it. */
+		g_set_error_literal (error,
+		                     NM_SETTING_CONNECTION_ERROR,
+		                     NM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property is invalid"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
+		return NM_SETTING_VERIFY_ERROR;
+	}
+	if (!interface_name) {
+		/* Normalize by setting NMSettingConnection:interface_name. */
+		g_set_error_literal (error,
+		                     error_quark,
+		                     e_missing_property,
+		                     _("property is missing"));
+		g_prefix_error (error, "%s.%s: ", setting_name, setting_property);
+		return NM_SETTING_VERIFY_NORMALIZABLE;
+	}
+	if (strcmp (con_name, interface_name) != 0) {
+		/* con_name and interface_name are different. It can be normalized by setting interface_name
+		 * to con_name. */
+		g_set_error_literal (error,
+		                     error_quark,
+		                     e_invalid_property,
+		                     _("property is invalid"));
+		g_prefix_error (error, "%s.%s: ", setting_name, setting_property);
+		/* we would like to make this a NORMALIZEABLE_ERROR, but that might
+		 * break older connections. */
+		return NM_SETTING_VERIFY_NORMALIZABLE;
+	}
+
+	return NM_SETTING_VERIFY_SUCCESS;
 }
 
 /*****************************************************************************/
@@ -1348,13 +1515,8 @@ nm_setting_class_init (NMSettingClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NAME,
-		 g_param_spec_string (NM_SETTING_NAME,
-						  "Name",
-						  "The setting's name; these names are defined by the "
-						  "specification and cannot be changed after the object "
-						  "has been created.  Each setting class has a name, and "
-						  "all objects of that class share the same name.",
-						  NULL,
-						  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_NAME, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 }
-

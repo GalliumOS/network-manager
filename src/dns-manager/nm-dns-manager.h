@@ -21,29 +21,18 @@
  *   and others
  */
 
-#ifndef NM_DNS_MANAGER_H
-#define NM_DNS_MANAGER_H
+#ifndef __NETWORKMANAGER_DNS_MANAGER_H__
+#define __NETWORKMANAGER_DNS_MANAGER_H__
 
 #include <glib-object.h>
-#include <dbus/dbus.h>
 #include "nm-ip4-config.h"
 #include "nm-ip6-config.h"
-
-typedef enum {
-	NM_DNS_MANAGER_ERROR_SYSTEM,
-	NM_DNS_MANAGER_ERROR_INVALID_NAMESERVER,
-	NM_DNS_MANAGER_ERROR_INVALID_HOST,
-	NM_DNS_MANAGER_ERROR_INVALID_ID
-} NMDnsManagerError;
 
 typedef enum {
 	NM_DNS_IP_CONFIG_TYPE_DEFAULT = 0,
 	NM_DNS_IP_CONFIG_TYPE_BEST_DEVICE,
 	NM_DNS_IP_CONFIG_TYPE_VPN
 } NMDnsIPConfigType;
-
-#define NM_DNS_MANAGER_ERROR nm_dns_manager_error_quark ()
-GQuark nm_dns_manager_error_quark (void);
 
 G_BEGIN_DECLS
 
@@ -114,4 +103,4 @@ NMDnsManagerResolvConfMode nm_dns_manager_get_resolv_conf_mode (NMDnsManager *mg
 
 G_END_DECLS
 
-#endif /* NM_DNS_MANAGER_H */
+#endif /* __NETWORKMANAGER_DNS_MANAGER_H__ */

@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * Copyright (C) 2013 Jiri Pirko <jiri@resnulli.us>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -16,12 +14,16 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
+ *
+ * Copyright 2013 Jiri Pirko <jiri@resnulli.us>
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-team.h"
 #include "nm-param-spec-specialized.h"
@@ -134,25 +136,13 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 {
 	NMSettingTeamPrivate *priv = NM_SETTING_TEAM_GET_PRIVATE (setting);
 
-	if (!priv->interface_name || !strlen(priv->interface_name)) {
-		g_set_error_literal (error,
-		                     NM_SETTING_TEAM_ERROR,
-		                     NM_SETTING_TEAM_ERROR_MISSING_PROPERTY,
-		                     _("property is missing"));
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_TEAM_SETTING_NAME, NM_SETTING_TEAM_INTERFACE_NAME);
-		return FALSE;
-	}
-
-	if (!nm_utils_iface_valid_name (priv->interface_name)) {
-		g_set_error_literal (error,
-		                     NM_SETTING_TEAM_ERROR,
-		                     NM_SETTING_TEAM_ERROR_INVALID_PROPERTY,
-		                     _("property is invalid"));
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_TEAM_SETTING_NAME, NM_SETTING_TEAM_INTERFACE_NAME);
-		return FALSE;
-	}
-
-	return TRUE;
+	return _nm_setting_verify_deprecated_virtual_iface_name (
+	         priv->interface_name, FALSE,
+	         NM_SETTING_TEAM_SETTING_NAME, NM_SETTING_TEAM_INTERFACE_NAME,
+	         NM_SETTING_TEAM_ERROR,
+	         NM_SETTING_TEAM_ERROR_INVALID_PROPERTY,
+	         NM_SETTING_TEAM_ERROR_MISSING_PROPERTY,
+	         all_settings, error);
 }
 
 static const char *
@@ -242,11 +232,11 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_INTERFACE_NAME,
-		 g_param_spec_string (NM_SETTING_TEAM_INTERFACE_NAME,
-		                      "InterfaceName",
-		                      "The name of the virtual in-kernel team network interface",
+		 g_param_spec_string (NM_SETTING_TEAM_INTERFACE_NAME, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingTeam:config:
@@ -258,13 +248,9 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CONFIG,
-		 g_param_spec_string (NM_SETTING_TEAM_CONFIG,
-		                      "Config",
-		                      "JSON configuration for the team network interface. "
-		                      "The property should contain raw JSON configuration data "
-		                      "suitable for teamd, because the value is passed directly to "
-		                      "teamd. If not specified, the default configuration is used. "
-		                      "See man teamd.conf for the format details.",
+		 g_param_spec_string (NM_SETTING_TEAM_CONFIG, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 }

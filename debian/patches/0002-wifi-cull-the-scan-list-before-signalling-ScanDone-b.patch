@@ -11,36 +11,73 @@ reflects the result of the scan, and don't retain some old APs.
 
 Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
 ---
- src/devices/wifi/nm-device-wifi.c |   33 +++++++++++++++++++++++++++------
- 1 file changed, 27 insertions(+), 6 deletions(-)
+ src/devices/wifi/nm-device-wifi.c |   35 +++++++++++++++++++++++++++++------
+ 1 file changed, 29 insertions(+), 6 deletions(-)
 
-Index: b/src/devices/wifi/nm-device-wifi.c
+Index: network-manager-1.0.4/src/devices/wifi/nm-device-wifi.c
 ===================================================================
---- a/src/devices/wifi/nm-device-wifi.c
-+++ b/src/devices/wifi/nm-device-wifi.c
-@@ -183,6 +183,10 @@ static void supplicant_iface_notify_scan
+--- network-manager-1.0.4.orig/src/devices/wifi/nm-device-wifi.c
++++ network-manager-1.0.4/src/devices/wifi/nm-device-wifi.c
+@@ -123,7 +123,6 @@ struct _NMDeviceWifiPrivate {
+ 	gint32            scheduled_scan_time;
+ 	guint8            scan_interval; /* seconds */
+ 	guint             pending_scan_id;
+-	guint             scanlist_cull_id;
+ 	gboolean          requested_scan;
+ 
+ 	NMSupplicantManager   *sup_mgr;
+@@ -160,11 +159,6 @@ static void supplicant_iface_new_bss_cb
+                                          GVariant *properties,
+                                          NMDeviceWifi * self);
+ 
+-static void supplicant_iface_bss_updated_cb (NMSupplicantInterface *iface,
+-                                             const char *object_path,
+-                                             GHashTable *properties,
+-                                             NMDeviceWifi *self);
+-
+ static void supplicant_iface_bss_removed_cb (NMSupplicantInterface *iface,
+                                              const char *object_path,
+                                              NMDeviceWifi *self);
+@@ -177,7 +171,7 @@ static void supplicant_iface_notify_scan
                                                   GParamSpec * pspec,
                                                   NMDeviceWifi * self);
  
-+static void remove_outstanding_scanlist_cull(NMDeviceWifi *self);
-+
+-static void schedule_scanlist_cull (NMDeviceWifi *self);
 +static gboolean cull_scan_list(NMDeviceWifi *self);
-+
- static void schedule_scanlist_cull (NMDeviceWifi *self);
  
  static gboolean request_wireless_scan (gpointer user_data);
-@@ -1609,14 +1613,20 @@ supplicant_iface_scan_done_cb (NMSupplic
- 	            nm_device_get_iface (NM_DEVICE (self)),
- 	            success ? "successful" : "failed");
+ 
+@@ -252,10 +246,6 @@ supplicant_interface_acquire (NMDeviceWi
+ 	                  G_CALLBACK (supplicant_iface_new_bss_cb),
+ 	                  self);
+ 	g_signal_connect (priv->sup_iface,
+-	                  NM_SUPPLICANT_INTERFACE_BSS_UPDATED,
+-	                  G_CALLBACK (supplicant_iface_bss_updated_cb),
+-	                  self);
+-	g_signal_connect (priv->sup_iface,
+ 	                  NM_SUPPLICANT_INTERFACE_BSS_REMOVED,
+ 	                  G_CALLBACK (supplicant_iface_bss_removed_cb),
+ 	                  self);
+@@ -287,11 +277,6 @@ supplicant_interface_release (NMDeviceWi
+ 	_LOGD (LOGD_WIFI_SCAN, "reset scanning interval to %d seconds",
+ 	       priv->scan_interval);
+ 
+-	if (priv->scanlist_cull_id) {
+-		g_source_remove (priv->scanlist_cull_id);
+-		priv->scanlist_cull_id = 0;
+-	}
+-
+ 	if (priv->sup_iface) {
+ 		remove_supplicant_interface_error_handler (self);
+ 
+@@ -1607,14 +1592,17 @@ supplicant_iface_scan_done_cb (NMSupplic
+ 
+ 	_LOGD (LOGD_WIFI_SCAN, "scan %s", success ? "successful" : "failed");
  
 -	g_signal_emit (self, signals[SCAN_DONE], 0, NULL);
 -
 -	schedule_scan (self, success);
-+	/* Make sure that scheduled and not yet run scanlist cull
-+	 * requests are aborted.
-+	 */
-+	remove_outstanding_scanlist_cull (self);
- 
+-
  	/* Ensure that old APs get removed, which otherwise only
  	 * happens when there are new BSSes.
  	 */
@@ -51,10 +88,21 @@ Index: b/src/devices/wifi/nm-device-wifi.c
 +	 * all last-seen timestamps being updated.
 +	 */
 +	g_signal_emit (self, signals[SCAN_DONE], 0, NULL);
++
++	schedule_scan (self, success);
  
  	if (priv->requested_scan) {
  		priv->requested_scan = FALSE;
-@@ -1793,8 +1803,10 @@ cull_scan_list (NMDeviceWifi *self)
+@@ -1761,8 +1749,6 @@ cull_scan_list (NMDeviceWifi *self)
+ 	GSList *elt;
+ 	guint32 removed = 0, total = 0;
+ 
+-	priv->scanlist_cull_id = 0;
+-
+ 	_LOGD (LOGD_WIFI_SCAN, "checking scan list for outdated APs");
+ 
+ 	/* Walk the access point list and remove any access points older than
+@@ -1786,8 +1772,10 @@ cull_scan_list (NMDeviceWifi *self)
  		 * supplicant in the last scan.
  		 */
  		if (   nm_ap_get_supplicant_path (ap)
@@ -66,27 +114,58 @@ Index: b/src/devices/wifi/nm-device-wifi.c
  
  		last_seen = nm_ap_get_last_seen (ap);
  		if (!last_seen || last_seen + prune_interval_s < boottime_now)
-@@ -1836,13 +1848,22 @@ cull_scan_list (NMDeviceWifi *self)
+@@ -1824,17 +1812,6 @@ cull_scan_list (NMDeviceWifi *self)
  }
  
  static void
 -schedule_scanlist_cull (NMDeviceWifi *self)
-+remove_outstanding_scanlist_cull (NMDeviceWifi *self)
- {
- 	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
- 
- 	/* Cull the scan list after the last request for it has come in */
- 	if (priv->scanlist_cull_id)
- 		g_source_remove (priv->scanlist_cull_id);
-+}
-+
-+static void
-+schedule_scanlist_cull (NMDeviceWifi *self)
-+{
-+	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
-+
-+	remove_outstanding_scanlist_cull(self);
-+
- 	priv->scanlist_cull_id = g_timeout_add_seconds (4, (GSourceFunc) cull_scan_list, self);
+-{
+-	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
+-
+-	/* Cull the scan list after the last request for it has come in */
+-	if (priv->scanlist_cull_id)
+-		g_source_remove (priv->scanlist_cull_id);
+-	priv->scanlist_cull_id = g_timeout_add_seconds (4, (GSourceFunc) cull_scan_list, self);
+-}
+-
+-static void
+ supplicant_iface_new_bss_cb (NMSupplicantInterface *iface,
+                              const char *object_path,
+                              GVariant *properties,
+@@ -1863,36 +1840,6 @@ supplicant_iface_new_bss_cb (NMSupplican
+ 		g_object_unref (ap);
+ 	} else
+ 		_LOGW (LOGD_WIFI_SCAN, "invalid AP properties received");
+-
+-	/* Remove outdated access points */
+-	schedule_scanlist_cull (self);
+-}
+-
+-static void
+-supplicant_iface_bss_updated_cb (NMSupplicantInterface *iface,
+-                                 const char *object_path,
+-                                 GHashTable *properties,
+-                                 NMDeviceWifi *self)
+-{
+-	NMDeviceState state;
+-	NMAccessPoint *ap;
+-
+-	g_return_if_fail (self != NULL);
+-	g_return_if_fail (object_path != NULL);
+-	g_return_if_fail (properties != NULL);
+-
+-	/* Ignore new APs when unavailable or unamnaged */
+-	state = nm_device_get_state (NM_DEVICE (self));
+-	if (state <= NM_DEVICE_STATE_UNAVAILABLE)
+-		return;
+-
+-	/* Update the AP's last-seen property */
+-	ap = get_ap_by_supplicant_path (self, object_path);
+-	if (ap)
+-		nm_ap_update_last_seen (ap);
+-
+-	/* Remove outdated access points */
+-	schedule_scanlist_cull (self);
  }
  
+ static void

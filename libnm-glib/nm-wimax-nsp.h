@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,8 +15,8 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2011 Red Hat, Inc.
- * Copyright (C) 2009 Novell, Inc.
+ * Copyright 2011 Red Hat, Inc.
+ * Copyright 2009 Novell, Inc.
  */
 
 #ifndef NM_WIMAX_NSP_H
@@ -42,6 +40,15 @@ G_BEGIN_DECLS
 #define NM_WIMAX_NSP_SIGNAL_QUALITY "signal-quality"
 #define NM_WIMAX_NSP_NETWORK_TYPE   "network-type"
 
+/**
+ * NMWimaxNspNetworkType:
+ * @NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN: unknown network type
+ * @NM_WIMAX_NSP_NETWORK_TYPE_HOME: home network
+ * @NM_WIMAX_NSP_NETWORK_TYPE_PARTNER: partner network
+ * @NM_WIMAX_NSP_NETWORK_TYPE_ROAMING_PARTNER: roaming partner network
+ *
+ * WiMAX network type.
+ */
 typedef enum {
 	NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN         = 0,
 	NM_WIMAX_NSP_NETWORK_TYPE_HOME            = 1,

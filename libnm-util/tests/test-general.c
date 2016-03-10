@@ -15,17 +15,22 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 - 2011 Red Hat, Inc.
+ * Copyright 2008 - 2011 Red Hat, Inc.
  *
  */
+
+#include "config.h"
 
 #include <glib.h>
 #include <dbus/dbus-glib.h>
 #include <string.h>
 #include <netinet/ether.h>
 #include <linux/if_infiniband.h>
+#include <sys/wait.h>
+#include <sys/resource.h>
 
 #include <nm-utils.h>
+#include "gsystem-local-alloc.h"
 
 #include "nm-setting-private.h"
 #include "nm-setting-connection.h"
@@ -41,7 +46,6 @@
 #include "nm-setting-vlan.h"
 #include "nm-setting-bond.h"
 #include "nm-utils.h"
-#include "nm-utils-private.h"
 #include "nm-dbus-glib-types.h"
 
 #include "nm-test-utils.h"
@@ -308,153 +312,10 @@ test_setting_vpn_modify_during_foreach (void)
 }
 
 static void
-test_setting_ip4_config_labels (void)
+_g_value_array_free (void *ptr)
 {
-	NMSettingIP4Config *s_ip4;
-	NMIP4Address *addr;
-	const char *label;
-	GPtrArray *addrs;
-	GSList *labels;
-	GError *error = NULL;
-
-	s_ip4 = (NMSettingIP4Config *) nm_setting_ip4_config_new ();
-	g_object_set (G_OBJECT (s_ip4),
-	              NM_SETTING_IP4_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_MANUAL,
-	              NULL);
-
-	/* addr 1 */
-	addr = nm_ip4_address_new ();
-	nm_ip4_address_set_address (addr, 0x01010101);
-	nm_ip4_address_set_prefix (addr, 24);
-
-	nm_setting_ip4_config_add_address (s_ip4, addr);
-	nm_ip4_address_unref (addr);
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_no_error (error);
-
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 0));
-	g_assert_cmpstr (label, ==, NULL);
-
-	/* addr 2 */
-	addr = nm_ip4_address_new ();
-	nm_ip4_address_set_address (addr, 0x02020202);
-	nm_ip4_address_set_prefix (addr, 24);
-
-	NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_add_address_with_label (s_ip4, addr, "eth0:1"));
-	nm_ip4_address_unref (addr);
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_no_error (error);
-
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 1));
-	g_assert_cmpstr (label, ==, "eth0:1");
-
-	/* addr 3 */
-	addr = nm_ip4_address_new ();
-	nm_ip4_address_set_address (addr, 0x03030303);
-	nm_ip4_address_set_prefix (addr, 24);
-
-	NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_add_address_with_label (s_ip4, addr, NULL));
-	nm_ip4_address_unref (addr);
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_no_error (error);
-
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 2));
-	g_assert_cmpstr (label, ==, NULL);
-
-	/* Remove addr 1 and re-verify remaining addresses */
-	nm_setting_ip4_config_remove_address (s_ip4, 0);
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_no_error (error);
-
-	addr = nm_setting_ip4_config_get_address (s_ip4, 0);
-	g_assert_cmpint (nm_ip4_address_get_address (addr), ==, 0x02020202);
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 0));
-	g_assert_cmpstr (label, ==, "eth0:1");
-
-	addr = nm_setting_ip4_config_get_address (s_ip4, 1);
-	g_assert_cmpint (nm_ip4_address_get_address (addr), ==, 0x03030303);
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 1));
-	g_assert_cmpstr (label, ==, NULL);
-
-
-	/* Test explicit property assignment */
-	g_object_get (G_OBJECT (s_ip4),
-	              NM_SETTING_IP4_CONFIG_ADDRESSES, &addrs,
-	              "address-labels", &labels,
-	              NULL);
-
-	nm_setting_ip4_config_clear_addresses (s_ip4);
-	g_assert_cmpint (nm_setting_ip4_config_get_num_addresses (s_ip4), ==, 0);
-
-	/* Setting addrs but not labels will result in empty labels */
-	g_object_set (G_OBJECT (s_ip4),
-	              NM_SETTING_IP4_CONFIG_ADDRESSES, addrs,
-	              NULL);
-	g_boxed_free (DBUS_TYPE_G_ARRAY_OF_ARRAY_OF_UINT, addrs);
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_no_error (error);
-	g_assert_cmpint (nm_setting_ip4_config_get_num_addresses (s_ip4), ==, 2);
-
-	addr = nm_setting_ip4_config_get_address (s_ip4, 0);
-	g_assert_cmpint (nm_ip4_address_get_address (addr), ==, 0x02020202);
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 0));
-	g_assert_cmpstr (label, ==, NULL);
-
-	addr = nm_setting_ip4_config_get_address (s_ip4, 1);
-	g_assert_cmpint (nm_ip4_address_get_address (addr), ==, 0x03030303);
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 1));
-	g_assert_cmpstr (label, ==, NULL);
-
-	/* Setting labels now will leave addresses untouched */
-	g_object_set (G_OBJECT (s_ip4),
-	              "address-labels", labels,
-	              NULL);
-	g_boxed_free (DBUS_TYPE_G_LIST_OF_STRING, labels);
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_no_error (error);
-	g_assert_cmpint (nm_setting_ip4_config_get_num_addresses (s_ip4), ==, 2);
-
-	addr = nm_setting_ip4_config_get_address (s_ip4, 0);
-	g_assert_cmpint (nm_ip4_address_get_address (addr), ==, 0x02020202);
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 0));
-	g_assert_cmpstr (label, ==, "eth0:1");
-
-	addr = nm_setting_ip4_config_get_address (s_ip4, 1);
-	g_assert_cmpint (nm_ip4_address_get_address (addr), ==, 0x03030303);
-	label = NM_UTILS_PRIVATE_CALL (nm_setting_ip4_config_get_address_label (s_ip4, 1));
-	g_assert_cmpstr (label, ==, NULL);
-
-	/* Setting labels to a value that's too short or too long will result in
-	 * the setting not verifying.
-	 */
-	labels = g_slist_append (NULL, "eth0:2");
-	g_object_set (G_OBJECT (s_ip4),
-	              "address-labels", labels,
-	              NULL);
-
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_error (error, NM_SETTING_IP4_CONFIG_ERROR, NM_SETTING_IP4_CONFIG_ERROR_INVALID_PROPERTY);
-	g_assert (g_str_has_prefix (error->message, "ipv4.address-labels:"));
-	g_clear_error (&error);
-
-	labels = g_slist_append (labels, "eth0:3");
-	g_object_set (G_OBJECT (s_ip4),
-	              "address-labels", labels,
-	              NULL);
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_no_error (error);
-
-	labels = g_slist_append (labels, "eth0:4");
-	g_object_set (G_OBJECT (s_ip4),
-	              "address-labels", labels,
-	              NULL);
-	nm_setting_verify (NM_SETTING (s_ip4), NULL, &error);
-	g_assert_error (error, NM_SETTING_IP4_CONFIG_ERROR, NM_SETTING_IP4_CONFIG_ERROR_INVALID_PROPERTY);
-	g_assert (g_str_has_prefix (error->message, "ipv4.address-labels:"));
-	g_clear_error (&error);
-
-
-	g_object_unref (s_ip4);
+	if (ptr)
+		g_value_array_free ((GValueArray *) ptr);
 }
 
 #define OLD_DBUS_TYPE_G_IP6_ADDRESS (dbus_g_type_get_struct ("GValueArray", DBUS_TYPE_G_UCHAR_ARRAY, G_TYPE_UINT, G_TYPE_INVALID))
@@ -485,7 +346,7 @@ test_setting_ip6_config_old_address_array (void)
 
 	g_value_init (&written_value, OLD_DBUS_TYPE_G_ARRAY_OF_IP6_ADDRESS);
 
-	addresses = g_ptr_array_new ();
+	addresses = g_ptr_array_new_full (0, _g_value_array_free);
 	array = g_value_array_new (3);
 
 	/* IP address */
@@ -545,6 +406,7 @@ test_setting_ip6_config_old_address_array (void)
 	ASSERT (memcmp (ba->data, &gw[0], sizeof (gw)) == 0,
 	        "ip6-old-addr", "unexpected failure comparing gateways");
 
+	g_ptr_array_unref (addresses);
 	g_value_unset (&written_value);
 	g_value_unset (&read_value);
 	g_object_unref (s_ip6);
@@ -553,7 +415,7 @@ test_setting_ip6_config_old_address_array (void)
 static void
 test_setting_gsm_apn_spaces (void)
 {
-	NMSettingGsm *s_gsm;
+	gs_unref_object NMSettingGsm *s_gsm = NULL;
 	const char *tmp;
 
 	s_gsm = (NMSettingGsm *) nm_setting_gsm_new ();
@@ -581,7 +443,7 @@ test_setting_gsm_apn_spaces (void)
 static void
 test_setting_gsm_apn_bad_chars (void)
 {
-	NMSettingGsm *s_gsm;
+	gs_unref_object NMSettingGsm *s_gsm = NULL;
 
 	s_gsm = (NMSettingGsm *) nm_setting_gsm_new ();
 	ASSERT (s_gsm != NULL,
@@ -619,7 +481,7 @@ test_setting_gsm_apn_bad_chars (void)
 static void
 test_setting_gsm_apn_underscore (void)
 {
-	NMSettingGsm *s_gsm;
+	gs_unref_object NMSettingGsm *s_gsm = NULL;
 	GError *error = NULL;
 	gboolean success;
 
@@ -638,7 +500,7 @@ test_setting_gsm_apn_underscore (void)
 static void
 test_setting_gsm_without_number (void)
 {
-	NMSettingGsm *s_gsm;
+	gs_unref_object NMSettingGsm *s_gsm = NULL;
 	GError *error = NULL;
 	gboolean success;
 
@@ -893,7 +755,7 @@ new_connection_hash (char **out_uuid,
 }
 
 static void
-test_connection_replace_settings ()
+test_connection_replace_settings (void)
 {
 	NMConnection *connection;
 	GHashTable *new_settings;
@@ -932,7 +794,7 @@ test_connection_replace_settings ()
 }
 
 static void
-test_connection_replace_settings_from_connection ()
+test_connection_replace_settings_from_connection (void)
 {
 	NMConnection *connection, *replacement;
 	GError *error = NULL;
@@ -994,7 +856,7 @@ test_connection_replace_settings_from_connection ()
 }
 
 static void
-test_connection_new_from_hash ()
+test_connection_new_from_hash (void)
 {
 	NMConnection *connection;
 	GHashTable *new_settings;
@@ -1416,8 +1278,8 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_IP4_CONFIG_DNS,                NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_DNS_SEARCH,         NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_ADDRESSES,          NM_SETTING_DIFF_RESULT_IN_A },
-			{ "address-labels",                         NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_ROUTES,             NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_IP4_CONFIG_ROUTE_METRIC,       NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_IGNORE_AUTO_ROUTES, NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_IGNORE_AUTO_DNS,    NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID,     NM_SETTING_DIFF_RESULT_IN_A },
@@ -1720,6 +1582,7 @@ test_connection_good_base_types (void)
 	              NM_SETTING_GSM_APN, "metered.billing.sucks",
 	              NULL);
 	nm_connection_add_setting (connection, setting);
+	g_clear_object (&connection);
 
 	/* CDMA connection */
 	connection = nm_connection_new ();
@@ -1818,7 +1681,7 @@ test_connection_bad_base_types (void)
 static void
 test_setting_compare_id (void)
 {
-	NMSetting *old, *new;
+	gs_unref_object NMSetting *old = NULL, *new = NULL;
 	gboolean success;
 
 	old = nm_setting_connection_new ();
@@ -1840,11 +1703,11 @@ test_setting_compare_id (void)
 }
 
 static void
-test_setting_compare_secrets (NMSettingSecretFlags secret_flags,
-                              NMSettingCompareFlags comp_flags,
-                              gboolean remove_secret)
+_compare_secrets (NMSettingSecretFlags secret_flags,
+                  NMSettingCompareFlags comp_flags,
+                  gboolean remove_secret)
 {
-	NMSetting *old, *new;
+	gs_unref_object NMSetting *old = NULL, *new = NULL;
 	gboolean success;
 
 	/* Make sure that a connection with transient/unsaved secrets compares
@@ -1872,11 +1735,20 @@ test_setting_compare_secrets (NMSettingSecretFlags secret_flags,
 }
 
 static void
-test_setting_compare_vpn_secrets (NMSettingSecretFlags secret_flags,
-                                  NMSettingCompareFlags comp_flags,
-                                  gboolean remove_secret)
+test_setting_compare_secrets (void)
 {
-	NMSetting *old, *new;
+	_compare_secrets (NM_SETTING_SECRET_FLAG_AGENT_OWNED, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, TRUE);
+	_compare_secrets (NM_SETTING_SECRET_FLAG_NOT_SAVED, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, TRUE);
+	_compare_secrets (NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, TRUE);
+	_compare_secrets (NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_EXACT, FALSE);
+}
+
+static void
+_compare_vpn_secrets (NMSettingSecretFlags secret_flags,
+                      NMSettingCompareFlags comp_flags,
+                      gboolean remove_secret)
+{
+	gs_unref_object NMSetting *old = NULL, *new = NULL;
 	gboolean success;
 
 	/* Make sure that a connection with transient/unsaved secrets compares
@@ -1902,6 +1774,15 @@ test_setting_compare_vpn_secrets (NMSettingSecretFlags secret_flags,
 
 	success = nm_setting_compare (old, new, comp_flags);
 	g_assert (success);
+}
+
+static void
+test_setting_compare_vpn_secrets (void)
+{
+	_compare_vpn_secrets (NM_SETTING_SECRET_FLAG_AGENT_OWNED, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, TRUE);
+	_compare_vpn_secrets (NM_SETTING_SECRET_FLAG_NOT_SAVED, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, TRUE);
+	_compare_vpn_secrets (NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, TRUE);
+	_compare_vpn_secrets (NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_EXACT, FALSE);
 }
 
 static void
@@ -1980,9 +1861,9 @@ test_ip4_netmask_to_prefix (void)
 {
 	int i, j;
 
-	GRand *rand = g_rand_new ();
+	GRand *r = g_rand_new ();
 
-	g_rand_set_seed (rand, 1);
+	g_rand_set_seed (r, 1);
 
 	for (i = 2; i<=32; i++) {
 		guint32 netmask = nm_utils_ip4_prefix_to_netmask (i);
@@ -1991,11 +1872,11 @@ test_ip4_netmask_to_prefix (void)
 		g_assert_cmpint (i, ==, nm_utils_ip4_netmask_to_prefix (netmask));
 
 		for (j = 0; j < 2*i; j++) {
-			guint32 r = g_rand_int (rand);
+			guint32 n = g_rand_int (r);
 			guint32 netmask_holey;
 			guint32 prefix_holey;
 
-			netmask_holey = (netmask & r) | netmask_lowest_bit;
+			netmask_holey = (netmask & n) | netmask_lowest_bit;
 
 			if (netmask_holey == netmask)
 				continue;
@@ -2008,7 +1889,7 @@ test_ip4_netmask_to_prefix (void)
 		}
 	}
 
-	g_rand_free (rand);
+	g_rand_free (r);
 }
 
 #define ASSERT_CHANGED(statement) \
@@ -2055,7 +1936,7 @@ test_setting_connection_changed_signal (void)
 	NMConnection *connection;
 	gboolean changed = FALSE;
 	NMSettingConnection *s_con;
-	char *uuid;
+	gs_free char *uuid = NULL;
 
 	connection = nm_connection_new ();
 	g_signal_connect (connection,
@@ -2153,7 +2034,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip4_config_add_address (s_ip4, addr));
 	ASSERT_CHANGED (nm_setting_ip4_config_remove_address (s_ip4, 0));
 
-	g_test_expect_message ("libnm-util", G_LOG_LEVEL_CRITICAL, "*addr != NULL && label != NULL*");
+	g_test_expect_message ("libnm-util", G_LOG_LEVEL_CRITICAL, "*elt != NULL*");
 	ASSERT_UNCHANGED (nm_setting_ip4_config_remove_address (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -2465,7 +2346,7 @@ static void
 test_setting_old_uuid (void)
 {
 	GError *error = NULL;
-	NMSetting *setting;
+	gs_unref_object NMSetting *setting = NULL;
 	gboolean success;
 
 	/* NetworkManager-0.9.4.0 generated 40-character UUIDs with no dashes,
@@ -2484,83 +2365,272 @@ test_setting_old_uuid (void)
 	g_assert (success == TRUE);
 }
 
+/*
+ * nm_connection_verify() modifies the connection by setting
+ * the interface-name property to the virtual_iface_name of
+ * the type specific settings.
+ *
+ * It would be preferable of verify() not to touch the connection,
+ * but as it is now, stick with it and test it.
+ **/
+static void
+test_connection_verify_sets_interface_name (void)
+{
+	NMConnection *con;
+	NMSettingConnection *s_con;
+	NMSettingBond *s_bond;
+	GError *error = NULL;
+	gboolean success;
+
+	s_con = (NMSettingConnection *) nm_setting_connection_new ();
+	g_object_set (G_OBJECT (s_con),
+	              NM_SETTING_CONNECTION_ID, "test1",
+	              NM_SETTING_CONNECTION_UUID, "22001632-bbb4-4616-b277-363dce3dfb5b",
+	              NM_SETTING_CONNECTION_TYPE, NM_SETTING_BOND_SETTING_NAME,
+	              NULL);
+	s_bond = (NMSettingBond *) nm_setting_bond_new ();
+	g_object_set (G_OBJECT (s_bond),
+	              NM_SETTING_BOND_INTERFACE_NAME, "bond-x",
+	              NULL);
+
+	con = nm_connection_new ();
+	nm_connection_add_setting (con, NM_SETTING (s_con));
+	nm_connection_add_setting (con, NM_SETTING (s_bond));
+
+	g_assert_cmpstr (nm_connection_get_interface_name (con), ==, NULL);
+
+	/* for backward compatiblity, normalizes the interface name */
+	success = nm_connection_verify (con, &error);
+	g_assert (success && !error);
+
+	g_assert_cmpstr (nm_connection_get_interface_name (con), ==, "bond-x");
+
+	g_object_unref (con);
+}
+
+/*
+ * Test normalization of interface-name
+ **/
+static void
+test_connection_normalize_virtual_iface_name (void)
+{
+	NMConnection *con;
+	NMSettingConnection *s_con;
+	NMSettingVlan *s_vlan;
+	NMSetting *setting;
+	GError *error = NULL;
+	gboolean success;
+	const char *IFACE_NAME = "iface";
+	const char *IFACE_VIRT = "iface-X";
+	gboolean modified = FALSE;
+
+	con = nm_connection_new ();
+
+	setting = nm_setting_ip4_config_new ();
+	g_object_set (setting,
+	              NM_SETTING_IP4_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
+	              NULL);
+	nm_connection_add_setting (con, setting);
+
+	setting = nm_setting_ip6_config_new ();
+	g_object_set (setting,
+	              NM_SETTING_IP6_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_AUTO,
+	              NM_SETTING_IP6_CONFIG_MAY_FAIL, TRUE,
+	              NULL);
+	nm_connection_add_setting (con, setting);
+
+	s_con = (NMSettingConnection *) nm_setting_connection_new ();
+	g_object_set (G_OBJECT (s_con),
+	              NM_SETTING_CONNECTION_ID, "test1",
+	              NM_SETTING_CONNECTION_UUID, "22001632-bbb4-4616-b277-363dce3dfb5b",
+	              NM_SETTING_CONNECTION_TYPE, NM_SETTING_VLAN_SETTING_NAME,
+	              NM_SETTING_CONNECTION_INTERFACE_NAME, IFACE_NAME,
+	              NULL);
+	s_vlan = (NMSettingVlan *) nm_setting_vlan_new ();
+	g_object_set (G_OBJECT (s_vlan),
+	              NM_SETTING_VLAN_INTERFACE_NAME, IFACE_VIRT,
+	              NM_SETTING_VLAN_PARENT, "eth0",
+	              NULL);
+
+	nm_connection_add_setting (con, NM_SETTING (s_con));
+	nm_connection_add_setting (con, NM_SETTING (s_vlan));
+
+	g_assert_cmpstr (nm_connection_get_interface_name (con), ==, IFACE_NAME);
+	g_assert_cmpstr (nm_setting_vlan_get_interface_name (s_vlan), ==, IFACE_VIRT);
+
+	/* for backward compatiblity, normalizes the interface name */
+	success = nm_connection_verify (con, &error);
+	g_assert (success && !error);
+
+	g_assert_cmpstr (nm_connection_get_interface_name (con), ==, IFACE_NAME);
+	g_assert_cmpstr (nm_setting_vlan_get_interface_name (s_vlan), ==, IFACE_VIRT);
+
+	success = nm_connection_normalize (con, NULL, &modified, &error);
+	g_assert (success && !error);
+	g_assert (modified);
+
+	g_assert_cmpstr (nm_connection_get_interface_name (con), ==, IFACE_NAME);
+	g_assert_cmpstr (nm_setting_vlan_get_interface_name (s_vlan), ==, IFACE_NAME);
+
+	success = nm_connection_verify (con, &error);
+	g_assert (success && !error);
+
+	g_object_unref (con);
+}
+
+static void
+_test_libnm_linking_setup_child_process (gpointer user_data)
+{
+	int val;
+	struct rlimit limit;
+
+	/* the child process is supposed to crash. We don't want it
+	 * to write a core dump. */
+
+	val = getrlimit (RLIMIT_CORE, &limit);
+	if (val == 0) {
+		limit.rlim_cur = 0;
+		val = setrlimit (RLIMIT_CORE, &limit);
+		if (val == 0)
+			return;
+	}
+	/* on error, do not crash or fail assertion. Instead just exit */
+	exit (1);
+}
+
+static void
+test_libnm_linking (void)
+{
+	char *argv[] = { "./test-libnm-linking", NULL };
+	char *out, *err;
+	int status;
+	GError *error = NULL;
+
+	g_spawn_sync (BUILD_DIR, argv, NULL, 0 /*G_SPAWN_DEFAULT*/,
+	              _test_libnm_linking_setup_child_process, NULL,
+	              &out, &err, &status, &error);
+	g_assert_no_error (error);
+
+	g_assert (WIFSIGNALED (status));
+
+	g_assert (strstr (err, "Mixing libnm") != NULL);
+	g_free (out);
+	g_free (err);
+}
+
+/******************************************************************************/
+
+static void
+_test_uuid (const char *expected_uuid, const char *str)
+{
+	gs_free char *uuid_test = NULL;
+
+	g_assert (str);
+
+	uuid_test = nm_utils_uuid_generate_from_string (str);
+
+	g_assert (uuid_test);
+	g_assert (nm_utils_is_uuid (uuid_test));
+
+	if (strcmp (uuid_test, expected_uuid)) {
+		g_error ("UUID test failed: text=%s, uuid=%s, expected=%s",
+		         str, uuid_test, expected_uuid);
+	}
+}
+
+static void
+test_nm_utils_uuid_generate_from_string (void)
+{
+	gs_free char *uuid_test = NULL;
+
+	_test_uuid ("0cc175b9-c0f1-b6a8-31c3-99e269772661", "a");
+	_test_uuid ("098f6bcd-4621-d373-cade-4e832627b4f6", "test");
+	_test_uuid ("59c0547b-7fe2-1c15-2cce-e328e8bf6742", "/etc/NetworkManager/system-connections/em1");
+
+	g_test_expect_message ("libnm-util", G_LOG_LEVEL_CRITICAL, "*nm_utils_uuid_generate_from_string*: *s && *s*");
+	uuid_test = nm_utils_uuid_generate_from_string ("");
+	g_assert (uuid_test == NULL);
+	g_test_assert_expected_messages ();
+
+	g_test_expect_message ("libnm-util", G_LOG_LEVEL_CRITICAL, "*nm_utils_uuid_generate_from_string*: *s && *s*");
+	uuid_test = nm_utils_uuid_generate_from_string (NULL);
+	g_assert (uuid_test == NULL);
+	g_test_assert_expected_messages ();
+}
+
+/******************************************************************************/
+
 NMTST_DEFINE ();
 
 int main (int argc, char **argv)
 {
-	char *base;
-
 	nmtst_init (&argc, &argv, TRUE);
 
 	/* The tests */
-	test_setting_vpn_items ();
-	test_setting_vpn_update_secrets ();
-	test_setting_vpn_modify_during_foreach ();
-	test_setting_ip4_config_labels ();
-	test_setting_ip6_config_old_address_array ();
-	test_setting_gsm_apn_spaces ();
-	test_setting_gsm_apn_bad_chars ();
-	test_setting_gsm_apn_underscore ();
-	test_setting_gsm_without_number ();
-	test_setting_to_hash_all ();
-	test_setting_to_hash_no_secrets ();
-	test_setting_to_hash_only_secrets ();
-	test_setting_compare_id ();
-	test_setting_compare_secrets (NM_SETTING_SECRET_FLAG_AGENT_OWNED, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, TRUE);
-	test_setting_compare_secrets (NM_SETTING_SECRET_FLAG_NOT_SAVED, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, TRUE);
-	test_setting_compare_secrets (NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, TRUE);
-	test_setting_compare_secrets (NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_EXACT, FALSE);
-	test_setting_compare_vpn_secrets (NM_SETTING_SECRET_FLAG_AGENT_OWNED, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, TRUE);
-	test_setting_compare_vpn_secrets (NM_SETTING_SECRET_FLAG_NOT_SAVED, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, TRUE);
-	test_setting_compare_vpn_secrets (NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, TRUE);
-	test_setting_compare_vpn_secrets (NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_EXACT, FALSE);
-	test_setting_old_uuid ();
+	g_test_add_func ("/libnm/setting_vpn_items", test_setting_vpn_items);
+	g_test_add_func ("/libnm/setting_vpn_update_secrets", test_setting_vpn_update_secrets);
+	g_test_add_func ("/libnm/setting_vpn_modify_during_foreach", test_setting_vpn_modify_during_foreach);
+	g_test_add_func ("/libnm/setting_ip6_config_old_address_array", test_setting_ip6_config_old_address_array);
+	g_test_add_func ("/libnm/setting_gsm_apn_spaces", test_setting_gsm_apn_spaces);
+	g_test_add_func ("/libnm/setting_gsm_apn_bad_chars", test_setting_gsm_apn_bad_chars);
+	g_test_add_func ("/libnm/setting_gsm_apn_underscore", test_setting_gsm_apn_underscore);
+	g_test_add_func ("/libnm/setting_gsm_without_number", test_setting_gsm_without_number);
+	g_test_add_func ("/libnm/setting_to_hash_all", test_setting_to_hash_all);
+	g_test_add_func ("/libnm/setting_to_hash_no_secrets", test_setting_to_hash_no_secrets);
+	g_test_add_func ("/libnm/setting_to_hash_only_secrets", test_setting_to_hash_only_secrets);
+	g_test_add_func ("/libnm/setting_compare_id", test_setting_compare_id);
+	g_test_add_func ("/libnm/setting_compare_secrets", test_setting_compare_secrets);
+	g_test_add_func ("/libnm/setting_compare_vpn_secrets", test_setting_compare_vpn_secrets);
+	g_test_add_func ("/libnm/setting_old_uuid", test_setting_old_uuid);
 
-	test_connection_to_hash_setting_name ();
-	test_setting_new_from_hash ();
-	test_connection_replace_settings ();
-	test_connection_replace_settings_from_connection ();
-	test_connection_new_from_hash ();
+	g_test_add_func ("/libnm/connection_to_hash_setting_name", test_connection_to_hash_setting_name);
+	g_test_add_func ("/libnm/setting_new_from_hash", test_setting_new_from_hash);
+	g_test_add_func ("/libnm/connection_replace_settings", test_connection_replace_settings);
+	g_test_add_func ("/libnm/connection_replace_settings_from_connection", test_connection_replace_settings_from_connection);
+	g_test_add_func ("/libnm/connection_new_from_hash", test_connection_new_from_hash);
+	g_test_add_func ("/libnm/connection_verify_sets_interface_name", test_connection_verify_sets_interface_name);
+	g_test_add_func ("/libnm/connection_normalize_virtual_iface_name", test_connection_normalize_virtual_iface_name);
 
-	test_setting_connection_permissions_helpers ();
-	test_setting_connection_permissions_property ();
+	g_test_add_func ("/libnm/setting_connection_permissions_helpers", test_setting_connection_permissions_helpers);
+	g_test_add_func ("/libnm/setting_connection_permissions_property", test_setting_connection_permissions_property);
 
-	test_connection_compare_same ();
-	test_connection_compare_key_only_in_a ();
-	test_connection_compare_setting_only_in_a ();
-	test_connection_compare_key_only_in_b ();
-	test_connection_compare_setting_only_in_b ();
+	g_test_add_func ("/libnm/connection_compare_same", test_connection_compare_same);
+	g_test_add_func ("/libnm/connection_compare_key_only_in_a", test_connection_compare_key_only_in_a);
+	g_test_add_func ("/libnm/connection_compare_setting_only_in_a", test_connection_compare_setting_only_in_a);
+	g_test_add_func ("/libnm/connection_compare_key_only_in_b", test_connection_compare_key_only_in_b);
+	g_test_add_func ("/libnm/connection_compare_setting_only_in_b", test_connection_compare_setting_only_in_b);
 
-	test_connection_diff_a_only ();
-	test_connection_diff_same ();
-	test_connection_diff_different ();
-	test_connection_diff_no_secrets ();
-	test_connection_diff_inferrable ();
-	test_connection_good_base_types ();
-	test_connection_bad_base_types ();
+	g_test_add_func ("/libnm/connection_diff_a_only", test_connection_diff_a_only);
+	g_test_add_func ("/libnm/connection_diff_same", test_connection_diff_same);
+	g_test_add_func ("/libnm/connection_diff_different", test_connection_diff_different);
+	g_test_add_func ("/libnm/connection_diff_no_secrets", test_connection_diff_no_secrets);
+	g_test_add_func ("/libnm/connection_diff_inferrable", test_connection_diff_inferrable);
+	g_test_add_func ("/libnm/connection_good_base_types", test_connection_good_base_types);
+	g_test_add_func ("/libnm/connection_bad_base_types", test_connection_bad_base_types);
 
-	test_hwaddr_aton_ether_normal ();
-	test_hwaddr_aton_ib_normal ();
-	test_hwaddr_aton_no_leading_zeros ();
-	test_hwaddr_aton_malformed ();
-	test_ip4_prefix_to_netmask ();
-	test_ip4_netmask_to_prefix ();
+	g_test_add_func ("/libnm/hwaddr_aton_ether_normal", test_hwaddr_aton_ether_normal);
+	g_test_add_func ("/libnm/hwaddr_aton_ib_normal", test_hwaddr_aton_ib_normal);
+	g_test_add_func ("/libnm/hwaddr_aton_no_leading_zeros", test_hwaddr_aton_no_leading_zeros);
+	g_test_add_func ("/libnm/hwaddr_aton_malformed", test_hwaddr_aton_malformed);
+	g_test_add_func ("/libnm/ip4_prefix_to_netmask", test_ip4_prefix_to_netmask);
+	g_test_add_func ("/libnm/ip4_netmask_to_prefix", test_ip4_netmask_to_prefix);
 
-	test_connection_changed_signal ();
-	test_setting_connection_changed_signal ();
-	test_setting_bond_changed_signal ();
-	test_setting_ip4_changed_signal ();
-	test_setting_ip6_changed_signal ();
-	test_setting_vlan_changed_signal ();
-	test_setting_vpn_changed_signal ();
-	test_setting_wired_changed_signal ();
-	test_setting_wireless_changed_signal ();
-	test_setting_wireless_security_changed_signal ();
-	test_setting_802_1x_changed_signal ();
+	g_test_add_func ("/libnm/connection_changed_signal", test_connection_changed_signal);
+	g_test_add_func ("/libnm/setting_connection_changed_signal", test_setting_connection_changed_signal);
+	g_test_add_func ("/libnm/setting_bond_changed_signal", test_setting_bond_changed_signal);
+	g_test_add_func ("/libnm/setting_ip4_changed_signal", test_setting_ip4_changed_signal);
+	g_test_add_func ("/libnm/setting_ip6_changed_signal", test_setting_ip6_changed_signal);
+	g_test_add_func ("/libnm/setting_vlan_changed_signal", test_setting_vlan_changed_signal);
+	g_test_add_func ("/libnm/setting_vpn_changed_signal", test_setting_vpn_changed_signal);
+	g_test_add_func ("/libnm/setting_wired_changed_signal", test_setting_wired_changed_signal);
+	g_test_add_func ("/libnm/setting_wireless_changed_signal", test_setting_wireless_changed_signal);
+	g_test_add_func ("/libnm/setting_wireless_security_changed_signal", test_setting_wireless_security_changed_signal);
+	g_test_add_func ("/libnm/setting_802_1x_changed_signal", test_setting_802_1x_changed_signal);
 
-	base = g_path_get_basename (argv[0]);
-	fprintf (stdout, "%s: SUCCESS\n", base);
-	g_free (base);
-	return 0;
+	g_test_add_func ("/libnm/libnm_linking", test_libnm_linking);
+
+	g_test_add_func ("/libnm/nm_utils_uuid_generate_from_string", test_nm_utils_uuid_generate_from_string);
+
+	return g_test_run ();
 }
 

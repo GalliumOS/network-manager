@@ -3,17 +3,17 @@ include $(GLIB_MAKEFILE)
 SUBDIRS = \
 	. \
 	include \
+	introspection \
+	libnm-core \
+	libnm \
 	libnm-util \
 	libnm-glib \
-	introspection \
 	src \
 	callouts \
-	cli \
-	tui \
+	clients \
 	tools \
 	policy \
 	data \
-	test \
 	po \
 	docs \
 	man \
@@ -36,7 +36,7 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-tests=yes \
 	--with-valgrind=no \
 	--enable-gtk-doc \
-	--enable-more-warnings=yes \
+	--enable-more-warnings=error \
 	--with-udev-dir=$$dc_install_base/lib/udev \
 	--with-wext=no \
 	--enable-ifcfg-rh \
@@ -44,22 +44,24 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-ifupdown \
 	--enable-ifnet
 
+if BUILD_SETTING_DOCS
+dist-check-setting-docs:
+else
+dist-check-setting-docs:
+	@echo "*** gobject-introspection and pygobject are needed to run 'make dist'. ***"
+	@false
+endif
+
+dist: dist-check-setting-docs
+
 DISTCLEANFILES = intltool-extract intltool-merge intltool-update
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = NetworkManager.pc
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
 cscope:
-	cscope -b -q -R -Iinclude -ssrc -slibnm-glib -slibnm-util -scli/src;
-
-libgsystem_srcpath := libgsystem
-libgsystem_cflags := $(filter-out -DGLIB_VERSION%,$(GLIB_CFLAGS)) -I$(srcdir)/libgsystem
-libgsystem_libs = $(GLIB_LIBS)
-include libgsystem/Makefile-libgsystem.am
-noinst_LTLIBRARIES = libgsystem.la
+	cscope -b -q -R -Iinclude -ssrc -slibnm-core -slibnm -slibnm-glib -slibnm-util -sclients;
 
 .PHONY: cscope

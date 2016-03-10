@@ -24,27 +24,18 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include <netinet/ether.h>
 #include <errno.h>
 #include <glib/gi18n.h>
 
-#include <nm-setting-connection.h>
-#include <nm-setting-ip4-config.h>
-#include <nm-setting-ip6-config.h>
-#include <nm-setting-ppp.h>
-#include <nm-setting-pppoe.h>
-#include <nm-setting-wired.h>
-#include <nm-setting-wireless.h>
-#include <nm-setting-8021x.h>
-#include <nm-system-config-interface.h>
-#include <nm-logging.h>
-#include <nm-utils.h>
+#include "nm-system-config-interface.h"
+#include "nm-logging.h"
+#include "nm-core-internal.h"
+#include "NetworkManagerUtils.h"
 
 #include "net_utils.h"
 #include "wpa_parser.h"
 #include "connection_parser.h"
 #include "nm-ifnet-connection.h"
-#include "errors.h"
 
 static char *
 connection_id_from_ifnet_name (const char *conn_name)
@@ -52,8 +43,16 @@ connection_id_from_ifnet_name (const char *conn_name)
 	int name_len = strlen (conn_name);
 
 	/* Convert a hex-encoded conn_name (only used for wifi SSIDs) to human-readable one */
-	if ((name_len > 2) && (g_str_has_prefix (conn_name, "0x")))
-		return nm_utils_hexstr2bin (conn_name + 2, name_len - 2);
+	if ((name_len > 2) && (g_str_has_prefix (conn_name, "0x"))) {
+		GBytes *bytes = nm_utils_hexstr2bin (conn_name);
+		char *buf;
+
+		if (bytes) {
+			buf = g_strndup (g_bytes_get_data (bytes, NULL), g_bytes_get_size (bytes));
+			g_bytes_unref (bytes);
+			return buf;
+		}
+	}
 
 	return g_strdup (conn_name);
 }
@@ -125,7 +124,7 @@ eap_simple_reader (const char *eap_method,
 	/* identity */
 	value = wpa_get_value (ssid, "identity");
 	if (!value) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing IEEE_8021X_IDENTITY for EAP method '%s'.",
 			     eap_method);
 		return FALSE;
@@ -135,7 +134,7 @@ eap_simple_reader (const char *eap_method,
 	/* password */
 	value = wpa_get_value (ssid, "password");
 	if (!value) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing IEEE_8021X_PASSWORD for EAP method '%s'.",
 			     eap_method);
 		return FALSE;
@@ -177,7 +176,7 @@ eap_tls_reader (const char *eap_method,
 	/* identity */
 	value = wpa_get_value (ssid, "identity");
 	if (!value) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing IEEE_8021X_IDENTITY for EAP method '%s'.",
 			     eap_method);
 		return FALSE;
@@ -208,11 +207,11 @@ eap_tls_reader (const char *eap_method,
 
 	/* Private key password */
 	privkey_password = wpa_get_value (ssid,
-					  phase2 ? "private_key_passwd2" :
+					  phase2 ? "private_key2_passwd" :
 					  "private_key_passwd");
 
 	if (!privkey_password) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing %s for EAP method '%s'.",
 			     phase2 ? "IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD" :
 			     "IEEE_8021X_PRIVATE_KEY_PASSWORD", eap_method);
@@ -222,7 +221,7 @@ eap_tls_reader (const char *eap_method,
 	/* The private key itself */
 	privkey = get_cert (ssid, phase2 ? "private_key2" : "private_key", basepath);
 	if (!privkey) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing %s for EAP method '%s'.",
 			     phase2 ? "IEEE_8021X_INNER_PRIVATE_KEY" :
 			     "IEEE_8021X_PRIVATE_KEY", eap_method);
@@ -255,7 +254,7 @@ eap_tls_reader (const char *eap_method,
 	    || privkey_format == NM_SETTING_802_1X_CK_FORMAT_X509) {
 		client_cert = get_cert (ssid, phase2 ? "client_cert2" : "client_cert", basepath);
 		if (!client_cert) {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Missing %s for EAP method '%s'.",
 				     phase2 ? "IEEE_8021X_INNER_CLIENT_CERT" :
 				     "IEEE_8021X_CLIENT_CERT", eap_method);
@@ -323,7 +322,7 @@ eap_peap_reader (const char *eap_method,
 			g_object_set (s_8021x, NM_SETTING_802_1X_PHASE1_PEAPVER,
 				      "1", NULL);
 		else {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Unknown IEEE_8021X_PEAP_VERSION value '%s'",
 				     peapver);
 			goto done;
@@ -337,7 +336,7 @@ eap_peap_reader (const char *eap_method,
 
 	inner_auth = wpa_get_value (ssid, "phase2");
 	if (!inner_auth) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing IEEE_8021X_INNER_AUTH_METHODS.");
 		goto done;
 	}
@@ -358,7 +357,7 @@ eap_peap_reader (const char *eap_method,
 			if (!eap_tls_reader (pos, ssid, s_8021x, TRUE, basepath, error))
 				goto done;
 		} else {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Unknown IEEE_8021X_INNER_AUTH_METHOD '%s'.",
 				     *iter);
 			goto done;
@@ -374,7 +373,7 @@ eap_peap_reader (const char *eap_method,
 	}
 
 	if (!nm_setting_802_1x_get_phase2_auth (s_8021x)) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "No valid IEEE_8021X_INNER_AUTH_METHODS found.");
 		goto done;
 	}
@@ -423,7 +422,7 @@ eap_ttls_reader (const char *eap_method,
 
 	tmp = wpa_get_value (ssid, "phase2");
 	if (!tmp) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing IEEE_8021X_INNER_AUTH_METHODS.");
 		goto done;
 	}
@@ -458,7 +457,7 @@ eap_ttls_reader (const char *eap_method,
 			g_object_set (s_8021x, NM_SETTING_802_1X_PHASE2_AUTHEAP,
 				      pos, NULL);
 		} else {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Unknown IEEE_8021X_INNER_AUTH_METHOD '%s'.",
 				     *iter);
 			goto done;
@@ -499,20 +498,20 @@ guess_connection_type (const char *conn_name)
 /* Reading mac address for setting connection option.
  * Unmanaged device mac address is required by NetworkManager*/
 static gboolean
-read_mac_address (const char *conn_name, GByteArray **array, GError **error)
+read_mac_address (const char *conn_name, const char **mac, GError **error)
 {
 	const char *value = ifnet_get_data (conn_name, "mac");
 
 	if (!value || !strlen (value))
 		return TRUE;
 
-	*array = nm_utils_hwaddr_atoba (value, ARPHRD_ETHER);
-	if (!*array) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
-					 "The MAC address '%s' was invalid.", value);
+	if (!nm_utils_hwaddr_valid (value, ETH_ALEN)) {
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
+		             "The MAC address '%s' was invalid.", value);
 		return FALSE;
 	}
 
+	*mac = value;
 	return TRUE;
 }
 
@@ -521,7 +520,7 @@ make_wired_connection_setting (NMConnection *connection,
                                const char *conn_name,
                                GError **error)
 {
-	GByteArray *mac = NULL;
+	const char *mac = NULL;
 	NMSettingWired *s_wired = NULL;
 	const char *value = NULL;
 
@@ -545,7 +544,6 @@ make_wired_connection_setting (NMConnection *connection,
 		if (mac) {
 			g_object_set (s_wired, NM_SETTING_WIRED_MAC_ADDRESS,
 				      mac, NULL);
-			g_byte_array_free (mac, TRUE);
 		}
 	} else {
 		g_object_unref (s_wired);
@@ -555,56 +553,56 @@ make_wired_connection_setting (NMConnection *connection,
 		nm_connection_add_setting (connection, NM_SETTING (s_wired));
 }
 
-/* add NM_SETTING_IP4_CONFIG_DHCP_HOSTNAME,
- * NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID in future*/
+/* add NM_SETTING_IP_CONFIG_DHCP_HOSTNAME,
+ * NM_SETTING_IP_CONFIG_DHCP_CLIENT_ID in future*/
 static void
 make_ip4_setting (NMConnection *connection,
                   const char *conn_name,
                   GError **error)
 {
 
-	NMSettingIP4Config *ip4_setting =
-	    NM_SETTING_IP4_CONFIG (nm_setting_ip4_config_new ());
+	NMSettingIPConfig *ip4_setting =
+	    NM_SETTING_IP_CONFIG (nm_setting_ip4_config_new ());
 	const char *value, *method = NULL;
 	gboolean is_static_block = is_static_ip4 (conn_name);
 	ip_block *iblock = NULL;
 
 	/* set dhcp options (dhcp_xxx) */
 	value = ifnet_get_data (conn_name, "dhcp");
-	g_object_set (ip4_setting, NM_SETTING_IP4_CONFIG_IGNORE_AUTO_DNS, value
+	g_object_set (ip4_setting, NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, value
 		      && strstr (value, "nodns") ? TRUE : FALSE,
-		      NM_SETTING_IP4_CONFIG_IGNORE_AUTO_ROUTES, value
+		      NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES, value
 		      && strstr (value, "nogateway") ? TRUE : FALSE, NULL);
 
 	if (!is_static_block) {
 		method = ifnet_get_data (conn_name, "config");
 		if (!method){
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 						 "Unknown config for %s", conn_name);
 			g_object_unref (ip4_setting);
 			return;
 		}
 		if (strstr (method, "dhcp"))
 			g_object_set (ip4_setting,
-						  NM_SETTING_IP4_CONFIG_METHOD,
+						  NM_SETTING_IP_CONFIG_METHOD,
 						  NM_SETTING_IP4_CONFIG_METHOD_AUTO,
-						  NM_SETTING_IP4_CONFIG_NEVER_DEFAULT, FALSE, NULL);
+						  NM_SETTING_IP_CONFIG_NEVER_DEFAULT, FALSE, NULL);
 		else if (strstr (method, "autoip")) {
 			g_object_set (ip4_setting,
-						  NM_SETTING_IP4_CONFIG_METHOD,
+						  NM_SETTING_IP_CONFIG_METHOD,
 						  NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL,
-						  NM_SETTING_IP4_CONFIG_NEVER_DEFAULT, FALSE, NULL);
+						  NM_SETTING_IP_CONFIG_NEVER_DEFAULT, FALSE, NULL);
 			nm_connection_add_setting (connection, NM_SETTING (ip4_setting));
 			return;
 		} else if (strstr (method, "shared")) {
 			g_object_set (ip4_setting,
-						  NM_SETTING_IP4_CONFIG_METHOD,
+						  NM_SETTING_IP_CONFIG_METHOD,
 						  NM_SETTING_IP4_CONFIG_METHOD_SHARED,
-						  NM_SETTING_IP4_CONFIG_NEVER_DEFAULT, FALSE, NULL);
+						  NM_SETTING_IP_CONFIG_NEVER_DEFAULT, FALSE, NULL);
 			nm_connection_add_setting (connection, NM_SETTING (ip4_setting));
 			return;
 		} else {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 						 "Unknown config for %s", conn_name);
 			g_object_unref (ip4_setting);
 			return;
@@ -613,7 +611,7 @@ make_ip4_setting (NMConnection *connection,
 	}else {
 		iblock = convert_ip4_config_block (conn_name);
 		if (!iblock) {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Ifnet plugin: can't aquire ip configuration for %s",
 				     conn_name);
 			g_object_unref (ip4_setting);
@@ -622,29 +620,32 @@ make_ip4_setting (NMConnection *connection,
 		/************** add all ip settings to the connection**********/
 		while (iblock) {
 			ip_block *current_iblock;
-			NMIP4Address *ip4_addr = nm_ip4_address_new ();
+			NMIPAddress *ip4_addr;
+			GError *local = NULL;
 
-			nm_ip4_address_set_address (ip4_addr, iblock->ip);
-			nm_ip4_address_set_prefix (ip4_addr,
-						   nm_utils_ip4_netmask_to_prefix
-						   (iblock->netmask));
-			/* currently all the IPs has the same gateway */
-			nm_ip4_address_set_gateway (ip4_addr, iblock->gateway);
-			if (iblock->gateway)
+			ip4_addr = nm_ip_address_new (AF_INET, iblock->ip, iblock->prefix, &local);
+			if (iblock->next_hop)
 				g_object_set (ip4_setting,
-					      NM_SETTING_IP4_CONFIG_IGNORE_AUTO_ROUTES,
+					      NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES,
 					      TRUE, NULL);
-			if (!nm_setting_ip4_config_add_address (ip4_setting, ip4_addr))
-				nm_log_warn (LOGD_SETTINGS, "ignoring duplicate IP4 address");
-			nm_ip4_address_unref (ip4_addr);
+
+			if (ip4_addr) {
+				if (!nm_setting_ip_config_add_address (ip4_setting, ip4_addr))
+					nm_log_warn (LOGD_SETTINGS, "ignoring duplicate IP4 address");
+				nm_ip_address_unref (ip4_addr);
+			} else {
+				nm_log_warn (LOGD_SETTINGS, "    ignoring invalid address entry: %s", local->message);
+				g_clear_error (&local);
+			}
+
 			current_iblock = iblock;
 			iblock = iblock->next;
 			destroy_ip_block (current_iblock);
 
 		}
 		g_object_set (ip4_setting,
-		              NM_SETTING_IP4_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_MANUAL,
-		              NM_SETTING_IP4_CONFIG_NEVER_DEFAULT, !has_default_ip4_route (conn_name),
+		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_MANUAL,
+		              NM_SETTING_IP_CONFIG_NEVER_DEFAULT, !has_default_ip4_route (conn_name),
 		              NULL);
 	}
 
@@ -655,7 +656,7 @@ make_ip4_setting (NMConnection *connection,
 		get_dhcp_hostname_and_client_id (&dhcp_hostname, &client_id);
 		if (dhcp_hostname) {
 			g_object_set (ip4_setting,
-				      NM_SETTING_IP4_CONFIG_DHCP_HOSTNAME,
+				      NM_SETTING_IP_CONFIG_DHCP_HOSTNAME,
 				      dhcp_hostname, NULL);
 			nm_log_info (LOGD_SETTINGS, "DHCP hostname: %s", dhcp_hostname);
 			g_free (dhcp_hostname);
@@ -686,7 +687,7 @@ make_ip4_setting (NMConnection *connection,
 
 			for (item = searches; *item; item++) {
 				if (strlen (*item)) {
-					if (!nm_setting_ip4_config_add_dns_search (ip4_setting, *item))
+					if (!nm_setting_ip_config_add_dns_search (ip4_setting, *item))
 						nm_log_warn (LOGD_SETTINGS, "    duplicate DNS domain '%s'", *item);
 				}
 			}
@@ -700,34 +701,34 @@ make_ip4_setting (NMConnection *connection,
 		ip_block *current_iblock = iblock;
 		const char *metric_str;
 		char *stripped;
-		long int metric;
-		NMIP4Route *route = nm_ip4_route_new ();
+		gint64 metric;
+		NMIPRoute *route;
+		GError *local = NULL;
 
-		nm_ip4_route_set_dest (route, iblock->ip);
-		nm_ip4_route_set_next_hop (route, iblock->gateway);
-		nm_ip4_route_set_prefix (route,
-					 nm_utils_ip4_netmask_to_prefix
-					 (iblock->netmask));
 		if ((metric_str = ifnet_get_data (conn_name, "metric")) != NULL) {
-			metric = strtol (metric_str, NULL, 10);
-			nm_ip4_route_set_metric (route, (guint32) metric);
+			metric = _nm_utils_ascii_str_to_int64 (metric_str, 10, 0, G_MAXUINT32, -1);
 		} else {
 			metric_str = ifnet_get_global_data ("metric");
 			if (metric_str) {
 				stripped = g_strdup (metric_str);
 				strip_string (stripped, '"');
-				metric = strtol (metric_str, NULL, 10);
-				nm_ip4_route_set_metric (route,
-							 (guint32) metric);
+				metric = _nm_utils_ascii_str_to_int64 (metric_str, 10, 0, G_MAXUINT32, -1);
 				g_free (stripped);
-			}
+			} else
+				metric = -1;
 		}
 
-		if (!nm_setting_ip4_config_add_route (ip4_setting, route))
-			nm_log_warn (LOGD_SETTINGS, "duplicate IP4 route");
-		nm_log_info (LOGD_SETTINGS, "new IP4 route:%d\n", iblock->ip);
-
-		nm_ip4_route_unref (route);
+		route = nm_ip_route_new (AF_INET, iblock->ip, iblock->prefix, iblock->next_hop, metric, &local);
+		if (route) {
+			if (nm_setting_ip_config_add_route (ip4_setting, route))
+				nm_log_info (LOGD_SETTINGS, "new IP4 route:%s\n", iblock->ip);
+			else
+				nm_log_warn (LOGD_SETTINGS, "duplicate IP4 route");
+			nm_ip_route_unref (route);
+		} else {
+			nm_log_warn (LOGD_SETTINGS, "    ignoring invalid route entry: %s", local->message);
+			g_clear_error (&local);
+		}
 
 		current_iblock = iblock;
 		iblock = iblock->next;
@@ -743,17 +744,17 @@ make_ip6_setting (NMConnection *connection,
                   const char *conn_name,
                   GError **error)
 {
-	NMSettingIP6Config *s_ip6 = NULL;
+	NMSettingIPConfig *s_ip6 = NULL;
 	gboolean is_static_block = is_static_ip6 (conn_name);
 
 	// used to disable IPv6
 	gboolean ipv6_enabled = FALSE;
 	gchar *method = NM_SETTING_IP6_CONFIG_METHOD_MANUAL;
 	const char *value;
-	ip6_block *iblock;
+	ip_block *iblock;
 	gboolean never_default = !has_default_ip6_route (conn_name);
 
-	s_ip6 = (NMSettingIP6Config *) nm_setting_ip6_config_new ();
+	s_ip6 = (NMSettingIPConfig *) nm_setting_ip6_config_new ();
 
 	value = ifnet_get_data (conn_name, "enable_ipv6");
 	if (value && is_true (value))
@@ -763,7 +764,7 @@ make_ip6_setting (NMConnection *connection,
 	// Currently only Manual and DHCP are supported
 	if (!ipv6_enabled) {
 		g_object_set (s_ip6,
-			      NM_SETTING_IP6_CONFIG_METHOD,
+			      NM_SETTING_IP_CONFIG_METHOD,
 			      NM_SETTING_IP6_CONFIG_METHOD_IGNORE, NULL);
 		goto done;
 	} else if (!is_static_block) {
@@ -780,91 +781,98 @@ make_ip6_setting (NMConnection *connection,
 	nm_log_info (LOGD_SETTINGS, "IPv6 for %s enabled, using %s", conn_name, method);
 
 	g_object_set (s_ip6,
-		      NM_SETTING_IP6_CONFIG_METHOD, method,
-		      NM_SETTING_IP6_CONFIG_IGNORE_AUTO_DNS, FALSE,
-		      NM_SETTING_IP6_CONFIG_IGNORE_AUTO_ROUTES, FALSE,
-		      NM_SETTING_IP6_CONFIG_NEVER_DEFAULT, never_default, NULL);
+		      NM_SETTING_IP_CONFIG_METHOD, method,
+		      NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, FALSE,
+		      NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES, FALSE,
+		      NM_SETTING_IP_CONFIG_NEVER_DEFAULT, never_default, NULL);
 
 	/* Make manual settings */
 	if (!strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_MANUAL)) {
-		ip6_block *current_iblock;
+		ip_block *current_iblock;
 
 		iblock = convert_ip6_config_block (conn_name);
 		if (!iblock) {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Ifnet plugin: can't aquire ip6 configuration for %s",
 				     conn_name);
 			goto error;
 		}
 		/* add all IPv6 addresses */
 		while (iblock) {
-			NMIP6Address *ip6_addr = nm_ip6_address_new ();
+			NMIPAddress *ip6_addr;
+			GError *local = NULL;
 
-			nm_ip6_address_set_address (ip6_addr, iblock->ip);
-			nm_ip6_address_set_prefix (ip6_addr, iblock->prefix);
-			if (nm_setting_ip6_config_add_address (s_ip6, ip6_addr)) {
-				nm_log_info (LOGD_SETTINGS, "ipv6 addresses count: %d",
-				             nm_setting_ip6_config_get_num_addresses (s_ip6));
+			ip6_addr = nm_ip_address_new (AF_INET6, iblock->ip, iblock->prefix, &local);
+			if (ip6_addr) {
+				if (nm_setting_ip_config_add_address (s_ip6, ip6_addr)) {
+					nm_log_info (LOGD_SETTINGS, "ipv6 addresses count: %d",
+					             nm_setting_ip_config_get_num_addresses (s_ip6));
+				} else {
+					nm_log_warn (LOGD_SETTINGS, "ignoring duplicate IP6 address");
+				}
+				nm_ip_address_unref (ip6_addr);
 			} else {
-				nm_log_warn (LOGD_SETTINGS, "ignoring duplicate IP4 address");
+				nm_log_warn (LOGD_SETTINGS, "    ignoring invalid address entry: %s", local->message);
+				g_clear_error (&local);
 			}
-			nm_ip6_address_unref (ip6_addr);
+
 			current_iblock = iblock;
 			iblock = iblock->next;
-			destroy_ip6_block (current_iblock);
+			destroy_ip_block (current_iblock);
 		}
 
 	} else if (!strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_AUTO)) {
 		/* - autoconf or DHCPv6 stuff goes here */
 	}
-	// DNS Servers, set NM_SETTING_IP6_CONFIG_IGNORE_AUTO_DNS TRUE here
+	// DNS Servers, set NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS TRUE here
 	set_ip6_dns_servers (s_ip6, conn_name);
 
-	/* DNS searches ('DOMAIN' key) are read by make_ip4_setting() and included in NMSettingIP4Config */
+	/* DNS searches ('DOMAIN' key) are read by make_ip4_setting() and included in NMSettingIPConfig */
 
 	// Add routes
 	iblock = convert_ip6_routes_block (conn_name);
 	if (iblock)
-		g_object_set (s_ip6, NM_SETTING_IP6_CONFIG_IGNORE_AUTO_ROUTES,
+		g_object_set (s_ip6, NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES,
 			      TRUE, NULL);
 	/* Add all IPv6 routes */
 	while (iblock) {
-		ip6_block *current_iblock = iblock;
+		ip_block *current_iblock = iblock;
 		const char *metric_str;
 		char *stripped;
-		long int metric = 1;
-		NMIP6Route *route = nm_ip6_route_new ();
+		gint64 metric;
+		NMIPRoute *route;
+		GError *local = NULL;
 
-		nm_ip6_route_set_dest (route, iblock->ip);
-		nm_ip6_route_set_next_hop (route, iblock->next_hop);
-		nm_ip6_route_set_prefix (route, iblock->prefix);
 		/* metric is not per routes configuration right now
 		 * global metric is also supported (metric="x") */
-		if ((metric_str = ifnet_get_data (conn_name, "metric")) != NULL) {
-			metric = strtol (metric_str, NULL, 10);
-			nm_ip6_route_set_metric (route, (guint32) metric);
-		} else {
+		if ((metric_str = ifnet_get_data (conn_name, "metric")) != NULL)
+			metric = _nm_utils_ascii_str_to_int64 (metric_str, 10, 0, G_MAXUINT32, -1);
+		else {
 			metric_str = ifnet_get_global_data ("metric");
 			if (metric_str) {
 				stripped = g_strdup (metric_str);
 				strip_string (stripped, '"');
-				metric = strtol (metric_str, NULL, 10);
-				nm_ip6_route_set_metric (route,
-							 (guint32) metric);
+				metric = _nm_utils_ascii_str_to_int64 (metric_str, 10, 0, G_MAXUINT32, -1);
 				g_free (stripped);
 			} else
-				nm_ip6_route_set_metric (route, (guint32) 1);
+				metric = 1;
 		}
 
-		if (nm_setting_ip6_config_add_route (s_ip6, route))
-			nm_log_info (LOGD_SETTINGS, "    new IP6 route");
-		else
-			nm_log_warn (LOGD_SETTINGS, "    duplicate IP6 route");
-		nm_ip6_route_unref (route);
+		route = nm_ip_route_new (AF_INET6, iblock->ip, iblock->prefix, iblock->next_hop, metric, &local);
+		if (route) {
+			if (nm_setting_ip_config_add_route (s_ip6, route))
+				nm_log_info (LOGD_SETTINGS, "    new IP6 route");
+			else
+				nm_log_warn (LOGD_SETTINGS, "    duplicate IP6 route");
+			nm_ip_route_unref (route);
+		} else {
+			nm_log_warn (LOGD_SETTINGS, "    ignoring invalid route entry: %s", local->message);
+			g_clear_error (&local);
+		}
 
 		current_iblock = iblock;
 		iblock = iblock->next;
-		destroy_ip6_block (current_iblock);
+		destroy_ip_block (current_iblock);
 	}
 
 done:
@@ -882,7 +890,7 @@ make_wireless_connection_setting (const char *conn_name,
                                   NMSetting8021x **s_8021x,
                                   GError **error)
 {
-	GByteArray *array, *mac = NULL;
+	const char *mac = NULL;
 	NMSettingWireless *wireless_setting = NULL;
 	gboolean adhoc = FALSE;
 	const char *value;
@@ -904,8 +912,6 @@ make_wireless_connection_setting (const char *conn_name,
 			g_object_set (wireless_setting,
 				      NM_SETTING_WIRELESS_MAC_ADDRESS, mac,
 				      NULL);
-			g_byte_array_free (mac, TRUE);
-
 		}
 	} else {
 		g_object_unref (wireless_setting);
@@ -914,51 +920,41 @@ make_wireless_connection_setting (const char *conn_name,
 
 	/* handle ssid (hex and ascii) */
 	if (conn_name) {
+		GBytes *bytes;
 		gsize ssid_len = 0, value_len = strlen (conn_name);
-		const char *p;
-		char *tmp, *converted = NULL;
 
 		ssid_len = value_len;
 		if ((value_len > 2) && (g_str_has_prefix (conn_name, "0x"))) {
 			/* Hex representation */
 			if (value_len % 2) {
-				g_set_error (error, ifnet_plugin_error_quark (),
-					     0,
+				g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 					     "Invalid SSID '%s' size (looks like hex but length not multiple of 2)",
 					     conn_name);
 				goto error;
 			}
-			// ignore "0x"
-			p = conn_name + 2;
-			if (!is_hex (p)) {
-				g_set_error (error,
-					     ifnet_plugin_error_quark (),
-					     0,
-					     "Invalid SSID '%s' character (looks like hex SSID but '%c' isn't a hex digit)",
-					     conn_name, *p);
+
+			bytes = nm_utils_hexstr2bin (conn_name);
+			if (!bytes) {
+				g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
+				             "Invalid SSID '%s' (looks like hex SSID but isn't)",
+				             conn_name);
 				goto error;
-
 			}
-			tmp = nm_utils_hexstr2bin (p, value_len - 2);
-			ssid_len = (value_len - 2) / 2;
-			converted = g_malloc0 (ssid_len + 1);
-			memcpy (converted, tmp, ssid_len);
-			g_free (tmp);
-		}
+		} else
+			bytes = g_bytes_new (conn_name, value_len);
 
+		ssid_len = g_bytes_get_size (bytes);
 		if (ssid_len > 32 || ssid_len == 0) {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Invalid SSID '%s' (size %zu not between 1 and 32 inclusive)",
 				     conn_name, ssid_len);
 			goto error;
 		}
-		array = g_byte_array_sized_new (ssid_len);
-		g_byte_array_append (array, (const guint8 *) (converted ? converted : conn_name), ssid_len);
-		g_object_set (wireless_setting, NM_SETTING_WIRELESS_SSID, array, NULL);
-		g_byte_array_free (array, TRUE);
-		g_free (converted);
+
+		g_object_set (wireless_setting, NM_SETTING_WIRELESS_SSID, bytes, NULL);
+		g_bytes_unref (bytes);
 	} else {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing SSID");
 		goto error;
 	}
@@ -980,18 +976,14 @@ make_wireless_connection_setting (const char *conn_name,
 	/* BSSID setting */
 	value = wpa_get_value (conn_name, "bssid");
 	if (value) {
-		GByteArray *bssid;
-
-		bssid = nm_utils_hwaddr_atoba (value, ARPHRD_ETHER);
-		if (!bssid) {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+		if (!nm_utils_hwaddr_valid (value, ETH_ALEN)) {
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 						 "Invalid BSSID '%s'", value);
 			goto error;
 		}
 
 		g_object_set (wireless_setting, NM_SETTING_WIRELESS_BSSID,
-			      bssid, NULL);
-		g_byte_array_free (bssid, TRUE);
+			      value, NULL);
 
 	}
 
@@ -1043,7 +1035,7 @@ make_leap_setting (const char *ssid, GError **error)
 
 	value = wpa_get_value (ssid, "identity");
 	if (!value || !strlen (value)) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing LEAP identity");
 		goto error;
 	}
@@ -1085,8 +1077,8 @@ add_one_wep_key (const char *ssid,
 	if (strlen (value) == 10 || strlen (value) == 26) {
 		/* Hexadecimal WEP key */
 		if (!is_hex (value)) {
-			g_set_error (error, ifnet_plugin_error_quark (),
-				     0, "Invalid hexadecimal WEP key.");
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
+			             "Invalid hexadecimal WEP key.");
 			goto out;
 		}
 		converted = g_strdup (value);
@@ -1097,17 +1089,17 @@ add_one_wep_key (const char *ssid,
 		char *p = strip_string (tmp, '"');
 
 		if (!is_ascii (p)) {
-			g_set_error (error, ifnet_plugin_error_quark (),
-				     0, "Invalid ASCII WEP passphrase.");
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
+			             "Invalid ASCII WEP passphrase.");
 			g_free (tmp);
 			goto out;
 
 		}
 
-		converted = nm_utils_bin2hexstr (tmp, strlen (tmp), strlen (tmp) * 2);
+		converted = nm_utils_bin2hexstr (tmp, strlen (tmp), -1);
 		g_free (tmp);
 	} else {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Invalid WEP key length. Key: %s", value);
 		goto out;
 	}
@@ -1161,7 +1153,7 @@ make_wep_setting (const char *ssid, GError **error)
 				      default_key_idx, NULL);
 			nm_log_info (LOGD_SETTINGS, "Default key index: %d", default_key_idx);
 		} else {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Invalid default WEP key '%s'", value);
 			goto error;
 		}
@@ -1173,19 +1165,19 @@ make_wep_setting (const char *ssid, GError **error)
 	/* If there's a default key, ensure that key exists */
 	if ((default_key_idx == 1)
 	    && !nm_setting_wireless_security_get_wep_key (s_wireless_sec, 1)) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Default WEP key index was 2, but no valid KEY2 exists.");
 		goto error;
 	} else if ((default_key_idx == 2)
 		   && !nm_setting_wireless_security_get_wep_key (s_wireless_sec,
 								 2)) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Default WEP key index was 3, but no valid KEY3 exists.");
 		goto error;
 	} else if ((default_key_idx == 3)
 		   && !nm_setting_wireless_security_get_wep_key (s_wireless_sec,
 								 3)) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Default WEP key index was 4, but no valid KEY4 exists.");
 		goto error;
 	}
@@ -1204,7 +1196,7 @@ make_wep_setting (const char *ssid, GError **error)
 				      "shared", NULL);
 			nm_log_info (LOGD_SETTINGS, "WEP: Use shared system authentication");
 		} else {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Invalid WEP authentication algorithm '%s'",
 				     auth_alg);
 			goto error;
@@ -1218,7 +1210,7 @@ make_wep_setting (const char *ssid, GError **error)
 	    && !nm_setting_wireless_security_get_wep_key (s_wireless_sec, 3)
 	    && !nm_setting_wireless_security_get_wep_tx_keyidx (s_wireless_sec)) {
 		if (auth_alg && !strcmp (auth_alg, "shared")) {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "WEP Shared Key authentication is invalid for "
 				     "unencrypted connections.");
 			goto error;
@@ -1242,7 +1234,7 @@ parse_wpa_psk (const char *psk, GError **error)
 	gboolean quoted = FALSE;
 
 	if (!psk) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing WPA_PSK for WPA-PSK key management");
 		return NULL;
 	}
@@ -1258,9 +1250,8 @@ parse_wpa_psk (const char *psk, GError **error)
 	if (!quoted && (strlen (psk) == 64)) {
 		/* Verify the hex PSK; 64 digits */
 		if (!is_hex (psk)) {
-			g_set_error (error, ifnet_plugin_error_quark (),
-				     0,
-				     "Invalid WPA_PSK (contains non-hexadecimal characters)");
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
+			             "Invalid WPA_PSK (contains non-hexadecimal characters)");
 			goto out;
 		}
 		hashed = g_strdup (psk);
@@ -1271,7 +1262,7 @@ parse_wpa_psk (const char *psk, GError **error)
 
 		/* Length check */
 		if (strlen (stripped) < 8 || strlen (stripped) > 63) {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Invalid WPA_PSK (passphrases must be between "
 				     "8 and 63 characters long (inclusive))");
 			g_free (stripped);
@@ -1283,7 +1274,7 @@ parse_wpa_psk (const char *psk, GError **error)
 	}
 
 	if (!hashed) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Invalid WPA_PSK (doesn't look like a passphrase or hex key)");
 		goto out;
 	}
@@ -1367,7 +1358,7 @@ fill_8021x (const char *ssid,
 
 	value = wpa_get_value (ssid, "eap");
 	if (!value) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing IEEE_8021X_EAP_METHODS for key management '%s'",
 			     key_mgmt);
 		return NULL;
@@ -1383,7 +1374,7 @@ fill_8021x (const char *ssid,
 		char *lower = NULL;
 
 		lower = g_ascii_strdown (*iter, -1);
-		while (eap->method && !found) {
+		while (eap->method) {
 			if (strcmp (eap->method, lower))
 				goto next;
 
@@ -1404,6 +1395,7 @@ fill_8021x (const char *ssid,
 			}
 			nm_setting_802_1x_add_eap_method (s_8021x, lower);
 			found = TRUE;
+			break;
 
 		next:
 			eap++;
@@ -1417,7 +1409,7 @@ fill_8021x (const char *ssid,
 	g_strfreev (list);
 
 	if (nm_setting_802_1x_get_num_eap_methods (s_8021x) == 0) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "No valid EAP methods found in IEEE_8021X_EAP_METHODS.");
 		goto error;
 	}
@@ -1441,7 +1433,7 @@ make_wpa_setting (const char *ssid,
 	gboolean adhoc = FALSE;
 
 	if (!exist_ssid (ssid)) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "No security info found for ssid: %s", ssid);
 		return NULL;
 	}
@@ -1493,7 +1485,7 @@ make_wpa_setting (const char *ssid,
 				      "wpa-psk", NULL);
 	} else if (!strcmp (value, "WPA-EAP") || !strcmp (value, "IEEE8021X")) {
 		if (adhoc) {
-			g_set_error (error, ifnet_plugin_error_quark (), 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				     "Ad-Hoc mode cannot be used with KEY_MGMT type '%s'",
 				     value);
 			goto error;
@@ -1507,7 +1499,7 @@ make_wpa_setting (const char *ssid,
 			      lower, NULL);
 		g_free (lower);
 	} else {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Unknown wireless KEY_MGMT type '%s'", value);
 		goto error;
 	}
@@ -1558,7 +1550,7 @@ make_wireless_security_setting (const char *conn_name,
 	}
 
 	if (!wsec) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Can't handle security information for ssid: %s",
 			     conn_name);
 	}
@@ -1574,8 +1566,8 @@ make_pppoe_connection_setting (NMConnection *connection,
                                const char *conn_name,
                                GError **error)
 {
-	NMSettingPPPOE *s_pppoe;
-	NMSettingPPP *s_ppp;
+	NMSettingPppoe *s_pppoe;
+	NMSettingPpp *s_ppp;
 	const char *value;
 
 	s_pppoe = NM_SETTING_PPPOE (nm_setting_pppoe_new ());
@@ -1583,7 +1575,7 @@ make_pppoe_connection_setting (NMConnection *connection,
 	/* username */
 	value = ifnet_get_data (conn_name, "username");
 	if (!value) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "ppp requires at lease a username");
 		return;
 	}
@@ -1599,7 +1591,7 @@ make_pppoe_connection_setting (NMConnection *connection,
 	nm_connection_add_setting (connection, NM_SETTING (s_pppoe));
 
 	/* PPP setting */
-	s_ppp = (NMSettingPPP *) nm_setting_ppp_new ();
+	s_ppp = (NMSettingPpp *) nm_setting_ppp_new ();
 	nm_connection_add_setting (connection, NM_SETTING (s_ppp));
 }
 
@@ -1618,7 +1610,7 @@ ifnet_update_connection_from_config_block (const char *conn_name,
 	gchar *id, *uuid;
 	gboolean success = FALSE;
 
-	connection = nm_connection_new ();
+	connection = nm_simple_connection_new ();
 	setting = nm_connection_get_setting_connection (connection);
 	if (!setting) {
 		setting = NM_SETTING_CONNECTION (nm_setting_connection_new ());
@@ -1637,7 +1629,7 @@ ifnet_update_connection_from_config_block (const char *conn_name,
 	id = connection_id_from_ifnet_name (conn_name);
 	uuid = g_strdup (ifnet_get_data (conn_name, "uuid"));
 	if (!uuid)
-		uuid = nm_utils_uuid_generate_from_string (id);
+		uuid = nm_utils_uuid_generate_from_string (id, -1, NM_UTILS_UUID_TYPE_LEGACY, NULL);
 
 	g_object_set (setting,
 	              NM_SETTING_CONNECTION_TYPE, type,
@@ -1727,7 +1719,7 @@ error:
 
 typedef NMSetting8021xCKScheme (*SchemeFunc) (NMSetting8021x * setting);
 typedef const char *(*PathFunc) (NMSetting8021x * setting);
-typedef const GByteArray *(*BlobFunc) (NMSetting8021x * setting);
+typedef GBytes *(*BlobFunc) (NMSetting8021x * setting);
 
 typedef struct ObjectType {
 	const char *setting_key;
@@ -1813,13 +1805,13 @@ static const ObjectType phase2_p12_type = {
 static gboolean
 write_object (NMSetting8021x *s_8021x,
               const char *conn_name,
-              const GByteArray *override_data,
+              GBytes *override_data,
               const ObjectType *objtype,
               GError **error)
 {
 	NMSetting8021xCKScheme scheme;
 	const char *path = NULL;
-	const GByteArray *blob = NULL;
+	GBytes *blob = NULL;
 
 	g_return_val_if_fail (conn_name != NULL, FALSE);
 	g_return_val_if_fail (objtype != NULL, FALSE);
@@ -1867,8 +1859,8 @@ write_8021x_certs (NMSetting8021x *s_8021x,
 	char *password = NULL;
 	const ObjectType *otype = NULL;
 	gboolean is_pkcs12 = FALSE, success = FALSE;
-	const GByteArray *blob = NULL;
-	GByteArray *enc_key = NULL;
+	GBytes *blob = NULL;
+	GBytes *enc_key = NULL;
 	gchar *generated_pw = NULL;
 
 	/* CA certificate */
@@ -1915,12 +1907,16 @@ write_8021x_certs (NMSetting8021x *s_8021x,
 	 * private key file, it'll be encrypted, so we don't need to re-encrypt.
 	 */
 	if (blob && !is_pkcs12) {
+		GByteArray *tmp_enc_key;
+
 		/* Encrypt the unencrypted private key with the fake password */
-		enc_key =
-		    nm_utils_rsa_key_encrypt (blob, password, &generated_pw,
-					      error);
-		if (!enc_key)
+		tmp_enc_key =
+		    nm_utils_rsa_key_encrypt (g_bytes_get_data (blob, NULL), g_bytes_get_size (blob),
+					      password, &generated_pw, error);
+		if (!tmp_enc_key)
 			goto out;
+
+		enc_key = g_byte_array_free_to_bytes (tmp_enc_key);
 
 		if (generated_pw)
 			password = generated_pw;
@@ -1932,7 +1928,7 @@ write_8021x_certs (NMSetting8021x *s_8021x,
 		goto out;
 
 	if (phase2)
-		wpa_set_data (conn_name, "private_key_passwd2", password);
+		wpa_set_data (conn_name, "private_key2_passwd", password);
 	else
 		wpa_set_data (conn_name, "private_key_passwd", password);
 
@@ -1958,8 +1954,8 @@ out:
 		g_free (generated_pw);
 	}
 	if (enc_key) {
-		memset (enc_key->data, 0, enc_key->len);
-		g_byte_array_free (enc_key, TRUE);
+		memset ((gpointer) g_bytes_get_data (enc_key, NULL), 0, g_bytes_get_size (enc_key));
+		g_bytes_unref (enc_key);
 	}
 	return success;
 }
@@ -2073,7 +2069,7 @@ write_wireless_security_setting (NMConnection * connection,
 
 	s_wsec = nm_connection_get_setting_wireless_security (connection);
 	if (!s_wsec) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing '%s' setting",
 			     NM_SETTING_WIRELESS_SECURITY_SETTING_NAME);
 		return FALSE;
@@ -2230,8 +2226,10 @@ write_wireless_setting (NMConnection *connection,
                         GError **error)
 {
 	NMSettingWireless *s_wireless;
-	const GByteArray *ssid, *mac, *bssid;
-	const char *mode;
+	GBytes *ssid;
+	const guint8 *ssid_data;
+	gsize ssid_len;
+	const char *mac, *bssid, *mode;
 	char buf[33];
 	guint32 mtu, i;
 	gboolean adhoc = FALSE, hex_ssid = FALSE;
@@ -2239,7 +2237,7 @@ write_wireless_setting (NMConnection *connection,
 
 	s_wireless = nm_connection_get_setting_wireless (connection);
 	if (!s_wireless) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing '%s' setting",
 			     NM_SETTING_WIRELESS_SETTING_NAME);
 		return FALSE;
@@ -2247,13 +2245,14 @@ write_wireless_setting (NMConnection *connection,
 
 	ssid = nm_setting_wireless_get_ssid (s_wireless);
 	if (!ssid) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing SSID in '%s' setting",
 			     NM_SETTING_WIRELESS_SETTING_NAME);
 		return FALSE;
 	}
-	if (!ssid->len || ssid->len > 32) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+	ssid_data = g_bytes_get_data (ssid, &ssid_len);
+	if (!ssid_len || ssid_len > 32) {
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Invalid SSID in '%s' setting",
 			     NM_SETTING_WIRELESS_SETTING_NAME);
 		return FALSE;
@@ -2263,8 +2262,8 @@ write_wireless_setting (NMConnection *connection,
 	 * the hex notation of the SSID instead. (Because openrc doesn't
 	 * support these characters, see bug #356337)
 	 */
-	for (i = 0; i < ssid->len; i++) {
-		if (!g_ascii_isalnum (ssid->data[i])) {
+	for (i = 0; i < ssid_len; i++) {
+		if (!g_ascii_isalnum (ssid_data[i])) {
 			hex_ssid = TRUE;
 			break;
 		}
@@ -2274,16 +2273,16 @@ write_wireless_setting (NMConnection *connection,
 		GString *str;
 
 		/* Hex SSIDs don't get quoted */
-		str = g_string_sized_new (ssid->len * 2 + 3);
+		str = g_string_sized_new (ssid_len * 2 + 3);
 		g_string_append (str, "0x");
-		for (i = 0; i < ssid->len; i++)
-			g_string_append_printf (str, "%02X", ssid->data[i]);
+		for (i = 0; i < ssid_len; i++)
+			g_string_append_printf (str, "%02X", ssid_data[i]);
 		update_wireless_ssid (connection, conn_name, str->str, hex_ssid);
 		ssid_str = g_string_free (str, FALSE);
 	} else {
 		/* Printable SSIDs get quoted */
 		memset (buf, 0, sizeof (buf));
-		memcpy (buf, ssid->data, ssid->len);
+		memcpy (buf, ssid_data, ssid_len);
 		g_strstrip (buf);
 		update_wireless_ssid (connection, conn_name, buf, hex_ssid);
 		ssid_str = g_strdup (buf);
@@ -2291,11 +2290,8 @@ write_wireless_setting (NMConnection *connection,
 
 	ifnet_set_data (ssid_str, "mac", NULL);
 	mac = nm_setting_wireless_get_mac_address (s_wireless);
-	if (mac) {
-		tmp = nm_utils_hwaddr_ntoa_len (mac->data, mac->len);
-		ifnet_set_data (ssid_str, "mac", tmp);
-		g_free (tmp);
-	}
+	if (mac)
+		ifnet_set_data (ssid_str, "mac", mac);
 
 	ifnet_set_data (ssid_str, "mtu", NULL);
 	mtu = nm_setting_wireless_get_mtu (s_wireless);
@@ -2320,11 +2316,8 @@ write_wireless_setting (NMConnection *connection,
 
 	wpa_set_data (ssid_str, "bssid", NULL);
 	bssid = nm_setting_wireless_get_bssid (s_wireless);
-	if (bssid) {
-		tmp = nm_utils_hwaddr_ntoa_len (bssid->data, bssid->len);
-		wpa_set_data (ssid_str, "bssid", tmp);
-		g_free (tmp);
-	}
+	if (bssid)
+		wpa_set_data (ssid_str, "bssid", bssid);
 
 	if (nm_connection_get_setting_wireless_security (connection)) {
 		if (!write_wireless_security_setting
@@ -2345,13 +2338,13 @@ write_wired_setting (NMConnection *connection,
                      GError **error)
 {
 	NMSettingWired *s_wired;
-	const GByteArray *mac;
+	const char *mac;
 	char *tmp;
 	guint32 mtu;
 
 	s_wired = nm_connection_get_setting_wired (connection);
 	if (!s_wired) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing '%s' setting",
 			     NM_SETTING_WIRED_SETTING_NAME);
 		return FALSE;
@@ -2359,11 +2352,8 @@ write_wired_setting (NMConnection *connection,
 
 	ifnet_set_data (conn_name, "mac", NULL);
 	mac = nm_setting_wired_get_mac_address (s_wired);
-	if (mac) {
-		tmp = nm_utils_hwaddr_ntoa_len (mac->data, mac->len);
-		ifnet_set_data (conn_name, "mac", tmp);
-		g_free (tmp);
-	}
+	if (mac)
+		ifnet_set_data (conn_name, "mac", mac);
 
 	ifnet_set_data (conn_name, "mtu", NULL);
 	mtu = nm_setting_wired_get_mtu (s_wired);
@@ -2381,62 +2371,45 @@ write_wired_setting (NMConnection *connection,
 static gboolean
 write_ip4_setting (NMConnection *connection, const char *conn_name, GError **error)
 {
-	NMSettingIP4Config *s_ip4;
+	NMSettingIPConfig *s_ip4;
 	const char *value;
-	char *tmp;
 	guint32 i, num;
 	GString *searches;
 	GString *ips;
 	GString *routes;
 	GString *dns;
-	gboolean has_def_route = FALSE;
 	gboolean success = FALSE;
 
 	s_ip4 = nm_connection_get_setting_ip4_config (connection);
 	if (!s_ip4) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing '%s' setting",
 			     NM_SETTING_IP4_CONFIG_SETTING_NAME);
 		return FALSE;
 	}
 	routes = g_string_new (NULL);
 
-	value = nm_setting_ip4_config_get_method (s_ip4);
+	value = nm_setting_ip_config_get_method (s_ip4);
 	g_assert (value);
 	if (!strcmp (value, NM_SETTING_IP4_CONFIG_METHOD_MANUAL)) {
 
-		num = nm_setting_ip4_config_get_num_addresses (s_ip4);
+		num = nm_setting_ip_config_get_num_addresses (s_ip4);
 		ips = g_string_new (NULL);
 		/* IPv4 addresses */
 		for (i = 0; i < num; i++) {
-			char buf[INET_ADDRSTRLEN + 1];
-			NMIP4Address *addr;
-			guint32 ip;
+			NMIPAddress *addr;
 
-			addr = nm_setting_ip4_config_get_address (s_ip4, i);
+			addr = nm_setting_ip_config_get_address (s_ip4, i);
 
-			memset (buf, 0, sizeof (buf));
-			ip = nm_ip4_address_get_address (addr);
-			inet_ntop (AF_INET, (const void *) &ip, &buf[0],
-				   sizeof (buf));
-			g_string_append_printf (ips, "\"%s", &buf[0]);
-
-			tmp =
-			    g_strdup_printf ("%u",
-					     nm_ip4_address_get_prefix (addr));
-			g_string_append_printf (ips, "/%s\" ", tmp);
-			g_free (tmp);
+			g_string_append_printf (ips, "\"%s/%u",
+			                        nm_ip_address_get_address (addr),
+			                        nm_ip_address_get_prefix (addr));
 
 			/* only the first gateway will be written */
-			if (!has_def_route && nm_ip4_address_get_gateway (addr)) {
-				memset (buf, 0, sizeof (buf));
-				ip = nm_ip4_address_get_gateway (addr);
-				inet_ntop (AF_INET, (const void *) &ip, &buf[0],
-					   sizeof (buf));
+			if (i == 0 && nm_setting_ip_config_get_gateway (s_ip4)) {
 				g_string_append_printf (routes,
-							"\"default via %s\" ",
-							&buf[0]);
-				has_def_route = TRUE;
+				                        "\"default via %s\" ",
+				                        nm_setting_ip_config_get_gateway (s_ip4));
 			}
 		}
 		ifnet_set_data (conn_name, "config", ips->str);
@@ -2449,19 +2422,14 @@ write_ip4_setting (NMConnection *connection, const char *conn_name, GError **err
 		ifnet_set_data (conn_name, "config", "dhcp");
 
 	/* DNS Servers */
-	num = nm_setting_ip4_config_get_num_dns (s_ip4);
+	num = nm_setting_ip_config_get_num_dns (s_ip4);
 	if (num > 0) {
 		dns = g_string_new (NULL);
 		for (i = 0; i < num; i++) {
-			char buf[INET_ADDRSTRLEN + 1];
-			guint32 ip;
+			const char *ip;
 
-			ip = nm_setting_ip4_config_get_dns (s_ip4, i);
-
-			memset (buf, 0, sizeof (buf));
-			inet_ntop (AF_INET, (const void *) &ip, &buf[0],
-				   sizeof (buf));
-			g_string_append_printf (dns, " %s", buf);
+			ip = nm_setting_ip_config_get_dns (s_ip4, i);
+			g_string_append_printf (dns, " %s", ip);
 		}
 		ifnet_set_data (conn_name, "dns_servers", dns->str);
 		g_string_free (dns, TRUE);
@@ -2469,14 +2437,14 @@ write_ip4_setting (NMConnection *connection, const char *conn_name, GError **err
 		ifnet_set_data (conn_name, "dns_servers", NULL);
 
 	/* DNS Searches */
-	num = nm_setting_ip4_config_get_num_dns_searches (s_ip4);
+	num = nm_setting_ip_config_get_num_dns_searches (s_ip4);
 	if (num > 0) {
 		searches = g_string_new (NULL);
 		for (i = 0; i < num; i++) {
 			if (i > 0)
 				g_string_append_c (searches, ' ');
 			g_string_append (searches,
-					 nm_setting_ip4_config_get_dns_search
+					 nm_setting_ip_config_get_dns_search
 					 (s_ip4, i));
 		}
 		ifnet_set_data (conn_name, "dns_search", searches->str);
@@ -2485,12 +2453,12 @@ write_ip4_setting (NMConnection *connection, const char *conn_name, GError **err
 		ifnet_set_data (conn_name, "dns_search", NULL);
 	/* FIXME Will be implemented when configuration supports it
 	   if (!strcmp(value, NM_SETTING_IP4_CONFIG_METHOD_AUTO)) {
-	   value = nm_setting_ip4_config_get_dhcp_hostname(s_ip4);
+	   value = nm_setting_ip_config_get_dhcp_hostname(s_ip4);
 	   if (value)
 	   ifnet_set_data(conn_name, "DHCP_HOSTNAME", value,
 	   FALSE);
 
-	   value = nm_setting_ip4_config_get_dhcp_client_id(s_ip4);
+	   value = nm_setting_ip_config_get_dhcp_client_id(s_ip4);
 	   if (value)
 	   ifnet_set_data(conn_name, "DHCP_CLIENT_ID", value,
 	   FALSE);
@@ -2498,32 +2466,22 @@ write_ip4_setting (NMConnection *connection, const char *conn_name, GError **err
 	 */
 
 	/* Static routes */
-	num = nm_setting_ip4_config_get_num_routes (s_ip4);
+	num = nm_setting_ip_config_get_num_routes (s_ip4);
 	if (num > 0) {
 		for (i = 0; i < num; i++) {
-			char buf[INET_ADDRSTRLEN + 1];
-			NMIP4Route *route;
-			guint32 ip;
+			NMIPRoute *route;
+			const char *next_hop;
 
-			route = nm_setting_ip4_config_get_route (s_ip4, i);
+			route = nm_setting_ip_config_get_route (s_ip4, i);
 
-			memset (buf, 0, sizeof (buf));
-			ip = nm_ip4_route_get_dest (route);
-			inet_ntop (AF_INET, (const void *) &ip, &buf[0],
-				   sizeof (buf));
-			g_string_append_printf (routes, "\"%s", buf);
+			next_hop = nm_ip_route_get_next_hop (route);
+			if (!next_hop)
+				next_hop = "0.0.0.0";
 
-			tmp =
-			    g_strdup_printf ("%u",
-					     nm_ip4_route_get_prefix (route));
-			g_string_append_printf (routes, "/%s via ", tmp);
-			g_free (tmp);
-
-			memset (buf, 0, sizeof (buf));
-			ip = nm_ip4_route_get_next_hop (route);
-			inet_ntop (AF_INET, (const void *) &ip, &buf[0],
-				   sizeof (buf));
-			g_string_append_printf (routes, "%s\" ", buf);
+			g_string_append_printf (routes, "\"%s/%u via %s\" ",
+			                        nm_ip_route_get_dest (route),
+			                        nm_ip_route_get_prefix (route),
+			                        next_hop);
 		}
 	}
 	if (routes->len > 0)
@@ -2538,19 +2496,16 @@ write_ip4_setting (NMConnection *connection, const char *conn_name, GError **err
 }
 
 static gboolean
-write_route6_file (NMSettingIP6Config *s_ip6, const char *conn_name, GError **error)
+write_route6_file (NMSettingIPConfig *s_ip6, const char *conn_name, GError **error)
 {
-	char dest[INET6_ADDRSTRLEN + 1];
-	char next_hop[INET6_ADDRSTRLEN + 1];
-	NMIP6Route *route;
-	const struct in6_addr *ip;
-	guint32 prefix;
+	NMIPRoute *route;
+	const char *next_hop;
 	guint32 i, num;
 	GString *routes_string;
 	const char *old_routes;
 
 	g_return_val_if_fail (s_ip6 != NULL, FALSE);
-	num = nm_setting_ip6_config_get_num_routes (s_ip6);
+	num = nm_setting_ip_config_get_num_routes (s_ip6);
 	if (num == 0) {
 		return TRUE;
 	}
@@ -2560,22 +2515,16 @@ write_route6_file (NMSettingIP6Config *s_ip6, const char *conn_name, GError **er
 	if (old_routes)
 		g_string_append (routes_string, "\" ");
 	for (i = 0; i < num; i++) {
-		route = nm_setting_ip6_config_get_route (s_ip6, i);
+		route = nm_setting_ip_config_get_route (s_ip6, i);
 
-		memset (dest, 0, sizeof (dest));
-		ip = nm_ip6_route_get_dest (route);
-		inet_ntop (AF_INET6, (const void *) ip, &dest[0],
-			   sizeof (dest));
-
-		prefix = nm_ip6_route_get_prefix (route);
-
-		memset (next_hop, 0, sizeof (next_hop));
-		ip = nm_ip6_route_get_next_hop (route);
-		inet_ntop (AF_INET6, (const void *) ip, &next_hop[0],
-			   sizeof (next_hop));
+		next_hop = nm_ip_route_get_next_hop (route);
+		if (!next_hop)
+			next_hop = "::";
 
 		g_string_append_printf (routes_string, "\"%s/%u via %s\" ",
-					dest, prefix, next_hop);
+		                        nm_ip_route_get_dest (route),
+		                        nm_ip_route_get_prefix (route),
+		                        next_hop);
 	}
 	if (num > 0)
 		ifnet_set_data (conn_name, "routes", routes_string->str);
@@ -2587,24 +2536,21 @@ write_route6_file (NMSettingIP6Config *s_ip6, const char *conn_name, GError **er
 static gboolean
 write_ip6_setting (NMConnection *connection, const char *conn_name, GError **error)
 {
-	NMSettingIP6Config *s_ip6;
+	NMSettingIPConfig *s_ip6;
 	const char *value;
-	char *prefix;
 	guint32 i, num;
 	GString *searches;
-	char buf[INET6_ADDRSTRLEN + 1];
-	NMIP6Address *addr;
-	const struct in6_addr *ip;
+	NMIPAddress *addr;
 
 	s_ip6 = nm_connection_get_setting_ip6_config (connection);
 	if (!s_ip6) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing '%s' setting",
 			     NM_SETTING_IP6_CONFIG_SETTING_NAME);
 		return FALSE;
 	}
 
-	value = nm_setting_ip6_config_get_method (s_ip6);
+	value = nm_setting_ip_config_get_method (s_ip6);
 	g_assert (value);
 	if (!strcmp (value, NM_SETTING_IP6_CONFIG_METHOD_IGNORE)) {
 		ifnet_set_data (conn_name, "enable_ipv6", "false");
@@ -2638,22 +2584,16 @@ write_ip6_setting (NMConnection *connection, const char *conn_name, GError **err
 
 		if (!config)
 			config = "";
-		num = nm_setting_ip6_config_get_num_addresses (s_ip6);
+		num = nm_setting_ip_config_get_num_addresses (s_ip6);
 
 		/* IPv6 addresses */
 		ip_str = g_string_new (NULL);
 		for (i = 0; i < num; i++) {
-			addr = nm_setting_ip6_config_get_address (s_ip6, i);
-			ip = nm_ip6_address_get_address (addr);
-			prefix =
-			    g_strdup_printf ("%u",
-					     nm_ip6_address_get_prefix (addr));
-			memset (buf, 0, sizeof (buf));
-			inet_ntop (AF_INET6, (const void *) ip, buf,
-				   sizeof (buf));
-			g_string_append_printf (ip_str, "\"%s/", buf);
-			g_string_append_printf (ip_str, "%s\" ", prefix);
-			g_free (prefix);
+			addr = nm_setting_ip_config_get_address (s_ip6, i);
+
+			g_string_append_printf (ip_str, "\"%s/%u\"",
+			                        nm_ip_address_get_address (addr),
+			                        nm_ip_address_get_prefix (addr));
 		}
 		tmp = g_strdup_printf ("%s\" %s", config, ip_str->str);
 		ifnet_set_data (conn_name, "config", tmp);
@@ -2662,22 +2602,20 @@ write_ip6_setting (NMConnection *connection, const char *conn_name, GError **err
 	}
 
 	/* DNS Servers */
-	num = nm_setting_ip6_config_get_num_dns (s_ip6);
+	num = nm_setting_ip_config_get_num_dns (s_ip6);
 	if (num > 0) {
 		const char *dns_servers = ifnet_get_data (conn_name, "dns_servers");
 		gchar *tmp;
 		GString *dns_string = g_string_new (NULL);
+		const char *dns;
 
 		if (!dns_servers)
 			dns_servers = "";
 		for (i = 0; i < num; i++) {
-			ip = nm_setting_ip6_config_get_dns (s_ip6, i);
+			dns = nm_setting_ip_config_get_dns (s_ip6, i);
 
-			memset (buf, 0, sizeof (buf));
-			inet_ntop (AF_INET6, (const void *) ip, buf,
-				   sizeof (buf));
-			if (!strstr (dns_servers, buf))
-				g_string_append_printf (dns_string, "%s ", buf);
+			if (!strstr (dns_servers, dns))
+				g_string_append_printf (dns_string, "%s ", dns);
 		}
 		tmp = g_strdup_printf ("%s %s", dns_servers, dns_string->str);
 		ifnet_set_data (conn_name, "dns_servers", tmp);
@@ -2686,7 +2624,7 @@ write_ip6_setting (NMConnection *connection, const char *conn_name, GError **err
 
 	} else
 		/* DNS Searches */
-		num = nm_setting_ip6_config_get_num_dns_searches (s_ip6);
+		num = nm_setting_ip_config_get_num_dns_searches (s_ip6);
 	if (num > 0) {
 		const char *ip4_domains;
 
@@ -2698,7 +2636,7 @@ write_ip6_setting (NMConnection *connection, const char *conn_name, GError **err
 			const gchar *search = NULL;
 
 			search =
-			    nm_setting_ip6_config_get_dns_search (s_ip6, i);
+			    nm_setting_ip_config_get_dns_search (s_ip6, i);
 			if (search && !strstr (searches->str, search)) {
 				if (searches->len > 0)
 					g_string_append_c (searches, ' ');
@@ -2716,7 +2654,7 @@ write_ip6_setting (NMConnection *connection, const char *conn_name, GError **err
 }
 
 static gboolean
-write_pppoe_setting (const char *conn_name, NMSettingPPPOE * s_pppoe)
+write_pppoe_setting (const char *conn_name, NMSettingPppoe * s_pppoe)
 {
 	const gchar *value;
 
@@ -2744,7 +2682,7 @@ ifnet_update_parsers_by_connection (NMConnection *connection,
                                     GError **error)
 {
 	NMSettingConnection *s_con;
-	NMSettingIP6Config *s_ip6;
+	NMSettingIPConfig *s_ip6;
 	gboolean success = FALSE;
 	const char *type;
 	gboolean no_8021x = FALSE;
@@ -2759,7 +2697,7 @@ ifnet_update_parsers_by_connection (NMConnection *connection,
 
 	type = nm_setting_connection_get_connection_type (s_con);
 	if (!type) {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			     "Missing connection type!");
 		goto out;
 	}
@@ -2775,7 +2713,7 @@ ifnet_update_parsers_by_connection (NMConnection *connection,
 		if (!write_wireless_setting (connection, conn_name, &no_8021x, &new_name, error))
 			goto out;
 	} else if (!strcmp (type, NM_SETTING_PPPOE_SETTING_NAME)) {
-		NMSettingPPPOE *s_pppoe;
+		NMSettingPppoe *s_pppoe;
 
 		/* Writing pppoe setting */
 		s_pppoe = nm_connection_get_setting_pppoe (connection);
@@ -2785,7 +2723,7 @@ ifnet_update_parsers_by_connection (NMConnection *connection,
 		wired = TRUE;
 		no_8021x = TRUE;
 	} else {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_NOT_SUPPORTED,
 			     "Can't write connection type '%s'", type);
 		goto out;
 	}
@@ -2862,7 +2800,8 @@ check_unsupported_secrets (NMSetting  *setting,
 	if (flags & NM_SETTING_PARAM_SECRET) {
 		NMSettingSecretFlags secret_flags = NM_SETTING_SECRET_FLAG_NONE;
 
-		nm_setting_get_secret_flags (setting, key, &secret_flags, NULL);
+		if (!nm_setting_get_secret_flags (setting, key, &secret_flags, NULL))
+			g_return_if_reached ();
 		if (secret_flags != NM_SETTING_SECRET_FLAG_NONE)
 			*unsupported_secret = TRUE;
 	}
@@ -2880,8 +2819,19 @@ ifnet_can_write_connection (NMConnection *connection, GError **error)
 	/* If the connection is not available for all users, ignore
 	 * it as this plugin only deals with System Connections */
 	if (nm_setting_connection_get_num_permissions (s_con)) {
-		g_set_error_literal (error, IFNET_PLUGIN_ERROR, 0,
+		g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_NOT_SUPPORTED,
 		                     "The ifnet plugin does not support non-system-wide connections.");
+		return FALSE;
+	}
+
+	/* Only support wired, wifi, and PPPoE */
+	if (   !nm_connection_is_type (connection, NM_SETTING_WIRED_SETTING_NAME)
+	    && !nm_connection_is_type (connection, NM_SETTING_WIRELESS_SETTING_NAME)
+	    && !nm_connection_is_type (connection, NM_SETTING_PPPOE_SETTING_NAME)) {
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_NOT_SUPPORTED,
+		             "The ifnet plugin cannot write the connection '%s' (type '%s')",
+		             nm_connection_get_id (connection),
+		             nm_setting_connection_get_connection_type (s_con));
 		return FALSE;
 	}
 
@@ -2891,19 +2841,8 @@ ifnet_can_write_connection (NMConnection *connection, GError **error)
 	                                      check_unsupported_secrets,
 	                                      &has_unsupported_secrets);
 	if (has_unsupported_secrets) {
-		g_set_error_literal (error, IFNET_PLUGIN_ERROR, 0,
+		g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_NOT_SUPPORTED,
 		                     "The ifnet plugin only supports persistent system secrets.");
-		return FALSE;
-	}
-
-	/* Only support wired, wifi, and PPPoE */
-	if (   !nm_connection_is_type (connection, NM_SETTING_WIRED_SETTING_NAME)
-	    && !nm_connection_is_type (connection, NM_SETTING_WIRELESS_SETTING_NAME)
-	    && !nm_connection_is_type (connection, NM_SETTING_PPPOE_SETTING_NAME)) {
-		g_set_error (error, IFNET_PLUGIN_ERROR, 0,
-		             "The ifnet plugin cannot write the connection '%s' (type '%s')",
-		             nm_connection_get_id (connection),
-		             nm_setting_connection_get_connection_type (s_con));
 		return FALSE;
 	}
 
@@ -2912,7 +2851,7 @@ ifnet_can_write_connection (NMConnection *connection, GError **error)
 
 /* get the available wired name(eth*). */
 static gchar *
-get_wired_name ()
+get_wired_name (void)
 {
 	int i = 0;
 
@@ -2929,7 +2868,7 @@ get_wired_name ()
 
 /* get the available pppoe name(ppp*). */
 static gchar *
-get_ppp_name ()
+get_ppp_name (void)
 {
 	int i = 0;
 
@@ -2949,7 +2888,9 @@ static gchar *
 get_wireless_name (NMConnection * connection)
 {
 	NMSettingWireless *s_wireless;
-	const GByteArray *ssid;
+	GBytes *ssid;
+	const guint8 *ssid_data;
+	gsize ssid_len;
 	gboolean hex_ssid = FALSE;
 	gchar *result = NULL;
 	char buf[33];
@@ -2960,12 +2901,13 @@ get_wireless_name (NMConnection * connection)
 		return NULL;
 
 	ssid = nm_setting_wireless_get_ssid (s_wireless);
-	if (!ssid->len || ssid->len > 32) {
+	ssid_data = g_bytes_get_data (ssid, &ssid_len);
+	if (!ssid_len || ssid_len > 32) {
 		return NULL;
 	}
 
-	for (i = 0; i < ssid->len; i++) {
-		if (!g_ascii_isprint (ssid->data[i])) {
+	for (i = 0; i < ssid_len; i++) {
+		if (!g_ascii_isprint (ssid_data[i])) {
 			hex_ssid = TRUE;
 			break;
 		}
@@ -2974,15 +2916,15 @@ get_wireless_name (NMConnection * connection)
 	if (hex_ssid) {
 		GString *str;
 
-		str = g_string_sized_new (ssid->len * 2 + 3);
+		str = g_string_sized_new (ssid_len * 2 + 3);
 		g_string_append (str, "0x");
-		for (i = 0; i < ssid->len; i++)
-			g_string_append_printf (str, "%02X", ssid->data[i]);
+		for (i = 0; i < ssid_len; i++)
+			g_string_append_printf (str, "%02X", ssid_data[i]);
 		result = g_strdup (str->str);
 		g_string_free (str, TRUE);
 	} else {
 		memset (buf, 0, sizeof (buf));
-		memcpy (buf, ssid->data, ssid->len);
+		memcpy (buf, ssid_data, ssid_len);
 		result = g_strdup_printf ("%s", buf);
 		g_strstrip (result);
 	}
@@ -3031,7 +2973,7 @@ ifnet_add_new_connection (NMConnection *connection,
 			goto out;
 		new_type = "ppp";
 	} else {
-		g_set_error (error, ifnet_plugin_error_quark (), 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_NOT_SUPPORTED,
 			     "Can't write connection type '%s'", type);
 		goto out;
 	}

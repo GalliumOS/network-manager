@@ -5,12 +5,12 @@ Subject: Don't make NetworkManager D-Bus activatable
 If the NetworkManager daemon has been stopped manually we don't want it
 to be autostarted by a client request.
 ---
- data/Makefile.am               | 7 -------
- data/NetworkManager.service.in | 1 -
+ data/Makefile.am               |    7 -------
+ data/NetworkManager.service.in |    1 -
  2 files changed, 8 deletions(-)
 
-diff --git a/data/Makefile.am b/data/Makefile.am
-index e91361a..a7c8070 100644
+Index: b/data/Makefile.am
+===================================================================
 --- a/data/Makefile.am
 +++ b/data/Makefile.am
 @@ -19,13 +19,6 @@ endif
@@ -27,11 +27,11 @@ index e91361a..a7c8070 100644
  install-exec-local:
  	install -d $(DESTDIR)$(systemdsystemunitdir)/network-online.target.wants
  	ln -sf $(systemdsystemunitdir)/NetworkManager-wait-online.service $(DESTDIR)$(systemdsystemunitdir)/network-online.target.wants
-diff --git a/data/NetworkManager.service.in b/data/NetworkManager.service.in
-index 1883b40..5282e5b 100644
+Index: b/data/NetworkManager.service.in
+===================================================================
 --- a/data/NetworkManager.service.in
 +++ b/data/NetworkManager.service.in
-@@ -11,6 +11,5 @@ KillMode=process
+@@ -13,6 +13,5 @@ KillMode=process
  
  [Install]
  WantedBy=multi-user.target

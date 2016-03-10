@@ -1,8 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* vim: set ft=c ts=4 sts=4 sw=4 noexpandtab smartindent: */
 /*
- * libnm-glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -18,10 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2012 Red Hat, Inc.
+ * Copyright 2012 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 
 #include "nm-glib-compat.h"
@@ -90,9 +88,9 @@ nm_device_olpc_mesh_new (DBusGConnection *connection, const char *path)
 	g_return_val_if_fail (path != NULL, NULL);
 
 	device = g_object_new (NM_TYPE_DEVICE_OLPC_MESH,
-	                     NM_OBJECT_DBUS_CONNECTION, connection,
-	                     NM_OBJECT_DBUS_PATH, path,
-	                     NULL);
+	                       NM_OBJECT_DBUS_CONNECTION, connection,
+	                       NM_OBJECT_DBUS_PATH, path,
+	                       NULL);
 
 	_nm_object_ensure_inited (NM_OBJECT (device));
 	return device;
@@ -297,11 +295,10 @@ nm_device_olpc_mesh_class_init (NMDeviceOlpcMeshClass *olpc_mesh_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_OLPC_MESH_HW_ADDRESS,
-		                      "MAC Address",
-		                      "Hardware MAC address",
+		 g_param_spec_string (NM_DEVICE_OLPC_MESH_HW_ADDRESS, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceOlpcMesh:companion:
@@ -310,11 +307,10 @@ nm_device_olpc_mesh_class_init (NMDeviceOlpcMeshClass *olpc_mesh_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_COMPANION,
-		 g_param_spec_object (NM_DEVICE_OLPC_MESH_COMPANION,
-		                     "Companion device",
-		                     "Companion device",
-		                     NM_TYPE_DEVICE_WIFI,
-		                     G_PARAM_READABLE));
+		 g_param_spec_object (NM_DEVICE_OLPC_MESH_COMPANION, "", "",
+		                      NM_TYPE_DEVICE_WIFI,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceOlpcMesh:active-channel:
@@ -323,11 +319,9 @@ nm_device_olpc_mesh_class_init (NMDeviceOlpcMeshClass *olpc_mesh_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ACTIVE_CHANNEL,
-		 g_param_spec_uint (NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL,
-		                    "Active channel",
-		                    "Active channel",
+		 g_param_spec_uint (NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL, "", "",
 		                    0, G_MAXUINT32, 0,
-		                    G_PARAM_READABLE));
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 }
-

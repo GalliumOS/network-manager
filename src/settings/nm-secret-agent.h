@@ -18,26 +18,14 @@
  * Copyright (C) 2010 - 2011 Red Hat, Inc.
  */
 
-#ifndef NM_SECRET_AGENT_H
-#define NM_SECRET_AGENT_H
+#ifndef __NETWORKMANAGER_SECRET_AGENT_H__
+#define __NETWORKMANAGER_SECRET_AGENT_H__
 
 #include <glib.h>
 #include <glib-object.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
 
 #include <nm-connection.h>
-#include "nm-dbus-manager.h"
-#include "nm-settings-flags.h"
-#include "nm-auth-subject.h"
-
-/* NOTE: ensure these capabilities match those in introspection/nm-secret-agent.xml and
- * libnm-glib/nm-secret-agent.h.
- */
-typedef enum {
-	NM_SECRET_AGENT_CAPABILITY_NONE = 0x0,
-	NM_SECRET_AGENT_CAPABILITY_VPN_HINTS = 0x1,
-} NMSecretAgentCapabilities;
+#include "nm-types.h"
 
 #define NM_TYPE_SECRET_AGENT            (nm_secret_agent_get_type ())
 #define NM_SECRET_AGENT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SECRET_AGENT, NMSecretAgent))
@@ -46,9 +34,9 @@ typedef enum {
 #define NM_IS_SECRET_AGENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_SECRET_AGENT))
 #define NM_SECRET_AGENT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SECRET_AGENT, NMSecretAgentClass))
 
-typedef struct {
+struct _NMSecretAgent {
 	GObject parent;
-} NMSecretAgent;
+};
 
 typedef struct {
 	GObjectClass parent;
@@ -96,7 +84,7 @@ gconstpointer nm_secret_agent_get_secrets  (NMSecretAgent *agent,
                                             NMConnection *connection,
                                             const char *setting_name,
                                             const char **hints,
-                                            NMSettingsGetSecretsFlags flags,
+                                            NMSecretAgentGetSecretsFlags flags,
                                             NMSecretAgentCallback callback,
                                             gpointer callback_data);
 
@@ -113,4 +101,4 @@ gconstpointer nm_secret_agent_delete_secrets (NMSecretAgent *agent,
                                               NMSecretAgentCallback callback,
                                               gpointer callback_data);
 
-#endif /* NM_SECRET_AGENT_H */
+#endif /* __NETWORKMANAGER_SECRET_AGENT_H__ */

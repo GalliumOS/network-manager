@@ -19,11 +19,10 @@
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#ifndef NM_POLICY_H
-#define NM_POLICY_H
+#ifndef __NETWORKMANAGER_POLICY_H__
+#define __NETWORKMANAGER_POLICY_H__
 
-#include "nm-manager.h"
-#include "nm-settings.h"
+#include "nm-types.h"
 
 #define NM_TYPE_POLICY            (nm_policy_get_type ())
 #define NM_POLICY(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_POLICY, NMPolicy))
@@ -37,9 +36,9 @@
 #define NM_POLICY_ACTIVATING_IP4_DEVICE "activating-ip4-device"
 #define NM_POLICY_ACTIVATING_IP6_DEVICE "activating-ip6-device"
 
-typedef struct {
+struct _NMPolicy {
 	GObject parent;
-} NMPolicy;
+};
 
 typedef struct {
 	GObjectClass parent;
@@ -55,4 +54,4 @@ NMDevice *nm_policy_get_default_ip6_device (NMPolicy *policy);
 NMDevice *nm_policy_get_activating_ip4_device (NMPolicy *policy);
 NMDevice *nm_policy_get_activating_ip6_device (NMPolicy *policy);
 
-#endif /* NM_POLICY_H */
+#endif /* __NETWORKMANAGER_POLICY_H__ */

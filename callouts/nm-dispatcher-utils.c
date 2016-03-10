@@ -18,13 +18,13 @@
  * Copyright (C) 2008 - 2011 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 
 #include <glib-object.h>
 
-#include <NetworkManager.h>
-#include <nm-dbus-glib-types.h>
+#include <nm-dbus-interface.h>
 #include <nm-connection.h>
 #include <nm-setting-ip4-config.h>
 #include <nm-setting-ip6-config.h>
@@ -53,51 +53,62 @@ construct_basic_items (GSList *list,
 	return list;
 }
 
+static GSList *_list_append_val_strv (GSList *items, char **values, const char *format, ...) G_GNUC_PRINTF(3, 4);
+
 static GSList *
-add_domains (GSList *items,
-             GHashTable *hash,
-             const char *prefix,
-             const char four_or_six)
+_list_append_val_strv (GSList *items, char **values, const char *format, ...)
 {
-	GValue *val;
-	char **domains = NULL;
-	GString *tmp;
-	guint i;
+	if (!values)
+		g_return_val_if_reached (items);
 
-	/* Search domains */
-	val = g_hash_table_lookup (hash, "domains");
-	if (!val)
-		return items;
+	/*  Only add an item if the list of @values is not empty */
+	if (values[0]) {
+		va_list args;
+		guint i;
+		GString *str = g_string_new (NULL);
 
-	g_return_val_if_fail (G_VALUE_HOLDS (val, G_TYPE_STRV), items);
+		va_start (args, format);
+		g_string_append_vprintf (str, format, args);
+		va_end (args);
 
-	domains = (char **) g_value_get_boxed (val);
-	if (!domains || !domains[0])
-		return items;
-
-	tmp = g_string_new (NULL);
-	g_string_append_printf (tmp, "%sIP%c_DOMAINS=", prefix, four_or_six);
-	for (i = 0; domains[i]; i++) {
-		if (i > 0)
-			g_string_append_c (tmp, ' ');
-		g_string_append (tmp, domains[i]);
+		g_string_append (str, values[0]);
+		for (i = 1; values[i]; i++) {
+			g_string_append_c (str, ' ');
+			g_string_append (str, values[i]);
+		}
+		items = g_slist_prepend (items, g_string_free (str, FALSE));
 	}
-	items = g_slist_prepend (items, tmp->str);
-	g_string_free (tmp, FALSE);
 
+	/* we take ownership of the values array and free it. */
+	g_strfreev (values);
 	return items;
 }
 
 static GSList *
-construct_ip4_items (GSList *items, GHashTable *ip4_config, const char *prefix)
+add_domains (GSList *items,
+             GVariant *dict,
+             const char *prefix,
+             const char four_or_six)
 {
-	GSList *addresses = NULL, *routes = NULL, *iter;
-	GArray *dns = NULL, *wins = NULL;
-	guint32 num, i;
-	GString *tmp;
-	GValue *val;
-	char str_addr[INET_ADDRSTRLEN];
-	char str_gw[INET_ADDRSTRLEN];
+	GVariant *val;
+
+	/* Search domains */
+	val = g_variant_lookup_value (dict, "domains", G_VARIANT_TYPE_STRING_ARRAY);
+	if (val) {
+		items = _list_append_val_strv (items, g_variant_dup_strv (val, NULL),
+		                               "%sIP%c_DOMAINS=", prefix, four_or_six);
+		g_variant_unref (val);
+	}
+	return items;
+}
+
+static GSList *
+construct_ip4_items (GSList *items, GVariant *ip4_config, const char *prefix)
+{
+	GPtrArray *addresses, *routes;
+	char *gateway;
+	GVariant *val;
+	int i;
 
 	if (ip4_config == NULL)
 		return items;
@@ -106,129 +117,111 @@ construct_ip4_items (GSList *items, GHashTable *ip4_config, const char *prefix)
 		prefix = "";
 
 	/* IP addresses */
-	val = g_hash_table_lookup (ip4_config, "addresses");
-	if (val)
-		addresses = nm_utils_ip4_addresses_from_gvalue (val);
+	val = g_variant_lookup_value (ip4_config, "addresses", G_VARIANT_TYPE ("aau"));
+	if (val) {
+		addresses = nm_utils_ip4_addresses_from_variant (val, &gateway);
+		if (!gateway)
+			gateway = g_strdup ("0.0.0.0");
 
-	for (iter = addresses, num = 0; iter; iter = g_slist_next (iter)) {
-		NMIP4Address *addr = (NMIP4Address *) iter->data;
-		guint32 ip_prefix = nm_ip4_address_get_prefix (addr);
-		char *addrtmp;
+		for (i = 0; i < addresses->len; i++) {
+			NMIPAddress *addr = addresses->pdata[i];
+			char *addrtmp;
 
-		nm_utils_inet4_ntop (nm_ip4_address_get_address (addr), str_addr);
-		nm_utils_inet4_ntop (nm_ip4_address_get_gateway (addr), str_gw);
+			addrtmp = g_strdup_printf ("%sIP4_ADDRESS_%d=%s/%d %s", prefix, i,
+			                           nm_ip_address_get_address (addr),
+			                           nm_ip_address_get_prefix (addr),
+			                           gateway);
+			items = g_slist_prepend (items, addrtmp);
+		}
+		if (addresses->len)
+			items = g_slist_prepend (items, g_strdup_printf ("%sIP4_NUM_ADDRESSES=%d", prefix, addresses->len));
 
-		addrtmp = g_strdup_printf ("%sIP4_ADDRESS_%d=%s/%d %s", prefix, num++, str_addr, ip_prefix, str_gw);
-		items = g_slist_prepend (items, addrtmp);
+		/* Write gateway to a separate variable, too. */
+		items = g_slist_prepend (items, g_strdup_printf ("%sIP4_GATEWAY=%s", prefix, gateway));
+
+		g_ptr_array_unref (addresses);
+		g_free (gateway);
+		g_variant_unref (val);
 	}
-	if (num)
-		items = g_slist_prepend (items, g_strdup_printf ("%sIP4_NUM_ADDRESSES=%d", prefix, num));
-	if (addresses)
-		g_slist_free_full (addresses, (GDestroyNotify) nm_ip4_address_unref);
 
 	/* DNS servers */
-	val = g_hash_table_lookup (ip4_config, "nameservers");
-	if (val && G_VALUE_HOLDS (val, DBUS_TYPE_G_UINT_ARRAY))
-		dns = (GArray *) g_value_get_boxed (val);
-
-	if (dns && (dns->len > 0)) {
-		gboolean first = TRUE;
-
-		tmp = g_string_new (NULL);
-		g_string_append_printf (tmp, "%sIP4_NAMESERVERS=", prefix);
-		for (i = 0; i < dns->len; i++) {
-			guint32 addr;
-
-			addr = g_array_index (dns, guint32, i);
-			if (!first)
-				g_string_append_c (tmp, ' ');
-			g_string_append (tmp, nm_utils_inet4_ntop (addr, NULL));
-			first = FALSE;
-		}
-		items = g_slist_prepend (items, tmp->str);
-		g_string_free (tmp, FALSE);
+	val = g_variant_lookup_value (ip4_config, "nameservers", G_VARIANT_TYPE ("au"));
+	if (val) {
+		items = _list_append_val_strv (items, nm_utils_ip4_dns_from_variant (val),
+		                               "%sIP4_NAMESERVERS=", prefix);
+		g_variant_unref (val);
 	}
 
 	/* Search domains */
 	items = add_domains (items, ip4_config, prefix, '4');
 
 	/* WINS servers */
-	val = g_hash_table_lookup (ip4_config, "wins-servers");
-	if (val && G_VALUE_HOLDS (val, DBUS_TYPE_G_UINT_ARRAY))
-		wins = (GArray *) g_value_get_boxed (val);
-
-	if (wins && wins->len) {
-		gboolean first = TRUE;
-
-		tmp = g_string_new (NULL);
-		g_string_append_printf (tmp, "%sIP4_WINS_SERVERS=", prefix);
-		for (i = 0; i < wins->len; i++) {
-			guint32 addr;
-
-			addr = g_array_index (wins, guint32, i);
-			if (!first)
-				g_string_append_c (tmp, ' ');
-			g_string_append (tmp, nm_utils_inet4_ntop (addr, NULL));
-			first = FALSE;
-		}
-		items = g_slist_prepend (items, tmp->str);
-		g_string_free (tmp, FALSE);
+	val = g_variant_lookup_value (ip4_config, "wins-servers", G_VARIANT_TYPE ("au"));
+	if (val) {
+		items = _list_append_val_strv (items, nm_utils_ip4_dns_from_variant (val),
+		                               "%sIP4_WINS_SERVERS=", prefix);
+		g_variant_unref (val);
 	}
 
 	/* Static routes */
-	val = g_hash_table_lookup (ip4_config, "routes");
-	if (val)
-		routes = nm_utils_ip4_routes_from_gvalue (val);
+	val = g_variant_lookup_value (ip4_config, "routes", G_VARIANT_TYPE ("aau"));
+	if (val) {
+		routes = nm_utils_ip4_routes_from_variant (val);
 
-	for (iter = routes, num = 0; iter; iter = g_slist_next (iter)) {
-		NMIP4Route *route = (NMIP4Route *) iter->data;
-		guint32 ip_prefix = nm_ip4_route_get_prefix (route);
-		guint32 metric = nm_ip4_route_get_metric (route);
-		char *routetmp;
+		for (i = 0; i < routes->len; i++) {
+			NMIPRoute *route = routes->pdata[i];
+			const char *next_hop;
+			char *routetmp;
 
-		nm_utils_inet4_ntop (nm_ip4_route_get_dest (route), str_addr);
-		nm_utils_inet4_ntop (nm_ip4_route_get_next_hop (route), str_gw);
+			next_hop = nm_ip_route_get_next_hop (route);
+			if (!next_hop)
+				next_hop = "0.0.0.0";
 
-		routetmp = g_strdup_printf ("%sIP4_ROUTE_%d=%s/%d %s %d", prefix, num++, str_addr, ip_prefix, str_gw, metric);
-		items = g_slist_prepend (items, routetmp);
-	}
-	items = g_slist_prepend (items, g_strdup_printf ("%sIP4_NUM_ROUTES=%d", prefix, num));
-	if (routes)
-		g_slist_free_full (routes, (GDestroyNotify) nm_ip4_route_unref);
+			routetmp = g_strdup_printf ("%sIP4_ROUTE_%d=%s/%d %s %u", prefix, i,
+			                            nm_ip_route_get_dest (route),
+			                            nm_ip_route_get_prefix (route),
+			                            next_hop,
+			                            (guint32) MAX (0, nm_ip_route_get_metric (route)));
+			items = g_slist_prepend (items, routetmp);
+		}
+		items = g_slist_prepend (items, g_strdup_printf ("%sIP4_NUM_ROUTES=%d", prefix, routes->len));
+		g_ptr_array_unref (routes);
+		g_variant_unref (val);
+	} else
+		items = g_slist_prepend (items, g_strdup_printf ("%sIP4_NUM_ROUTES=0", prefix));
 
 	return items;
 }
 
 static GSList *
-construct_device_dhcp4_items (GSList *items, GHashTable *dhcp4_config)
+construct_device_dhcp4_items (GSList *items, GVariant *dhcp4_config)
 {
-	GHashTableIter iter;
+	GVariantIter iter;
 	const char *key, *tmp;
-	GValue *val;
+	GVariant *val;
 	char *ucased;
 
 	if (dhcp4_config == NULL)
 		return items;
 
-	g_hash_table_iter_init (&iter, dhcp4_config);
-	while (g_hash_table_iter_next (&iter, (gpointer) &key, (gpointer) &val)) {
+	g_variant_iter_init (&iter, dhcp4_config);
+	while (g_variant_iter_next (&iter, "{&sv}", &key, &val)) {
 		ucased = g_ascii_strup (key, -1);
-		tmp = g_value_get_string (val);
+		tmp = g_variant_get_string (val, NULL);
 		items = g_slist_prepend (items, g_strdup_printf ("DHCP4_%s=%s", ucased, tmp));
 		g_free (ucased);
+		g_variant_unref (val);
 	}
 	return items;
 }
 
 static GSList *
-construct_ip6_items (GSList *items, GHashTable *ip6_config, const char *prefix)
+construct_ip6_items (GSList *items, GVariant *ip6_config, const char *prefix)
 {
-	GSList *addresses = NULL, *routes = NULL, *dns = NULL, *iter;
-	guint32 num;
-	GString *tmp;
-	GValue *val;
-	char str_addr[INET6_ADDRSTRLEN];
-	char str_gw[INET6_ADDRSTRLEN];
+	GPtrArray *addresses, *routes;
+	char *gateway = NULL;
+	GVariant *val;
+	int i;
 
 	if (ip6_config == NULL)
 		return items;
@@ -237,93 +230,89 @@ construct_ip6_items (GSList *items, GHashTable *ip6_config, const char *prefix)
 		prefix = "";
 
 	/* IP addresses */
-	val = g_hash_table_lookup (ip6_config, "addresses");
-	if (val)
-		addresses = nm_utils_ip6_addresses_from_gvalue (val);
+	val = g_variant_lookup_value (ip6_config, "addresses", G_VARIANT_TYPE ("a(ayuay)"));
+	if (val) {
+		addresses = nm_utils_ip6_addresses_from_variant (val, &gateway);
+		if (!gateway)
+			gateway = g_strdup ("::");
 
-	for (iter = addresses, num = 0; iter; iter = g_slist_next (iter)) {
-		NMIP6Address *addr = (NMIP6Address *) iter->data;
-		guint32 ip_prefix = nm_ip6_address_get_prefix (addr);
-		char *addrtmp;
+		for (i = 0; i < addresses->len; i++) {
+			NMIPAddress *addr = addresses->pdata[i];
+			char *addrtmp;
 
-		nm_utils_inet6_ntop (nm_ip6_address_get_address (addr), str_addr);
-		nm_utils_inet6_ntop (nm_ip6_address_get_gateway (addr), str_gw);
+			addrtmp = g_strdup_printf ("%sIP6_ADDRESS_%d=%s/%d %s", prefix, i,
+			                           nm_ip_address_get_address (addr),
+			                           nm_ip_address_get_prefix (addr),
+			                           gateway);
+			items = g_slist_prepend (items, addrtmp);
+		}
+		if (addresses->len)
+			items = g_slist_prepend (items, g_strdup_printf ("%sIP6_NUM_ADDRESSES=%d", prefix, addresses->len));
 
-		addrtmp = g_strdup_printf ("%sIP6_ADDRESS_%d=%s/%d %s", prefix, num++, str_addr, ip_prefix, str_gw);
-		items = g_slist_prepend (items, addrtmp);
+		/* Write gateway to a separate variable, too. */
+		items = g_slist_prepend (items, g_strdup_printf ("%sIP6_GATEWAY=%s", prefix, gateway));
+
+		g_ptr_array_unref (addresses);
+		g_free (gateway);
+		g_variant_unref (val);
 	}
-	if (num)
-		items = g_slist_prepend (items, g_strdup_printf ("%sIP6_NUM_ADDRESSES=%d", prefix, num));
-	if (addresses)
-		g_slist_free_full (addresses, (GDestroyNotify) nm_ip6_address_unref);
 
 	/* DNS servers */
-	val = g_hash_table_lookup (ip6_config, "nameservers");
-	if (val)
-		dns = nm_utils_ip6_dns_from_gvalue (val);
-
-	if (g_slist_length (dns)) {
-		gboolean first = TRUE;
-
-		tmp = g_string_new (NULL);
-		g_string_append_printf (tmp, "%sIP6_NAMESERVERS=", prefix);
-
-		for (iter = dns; iter; iter = g_slist_next (iter)) {
-			const struct in6_addr *addr = iter->data;
-
-			if (!first)
-				g_string_append_c (tmp, ' ');
-			g_string_append (tmp, nm_utils_inet6_ntop (addr, NULL));
-			first = FALSE;
-		}
-
-		items = g_slist_prepend (items, tmp->str);
-		g_string_free (tmp, FALSE);
+	val = g_variant_lookup_value (ip6_config, "nameservers", G_VARIANT_TYPE ("aay"));
+	if (val) {
+		items = _list_append_val_strv (items, nm_utils_ip6_dns_from_variant (val),
+		                               "%sIP6_NAMESERVERS=", prefix);
+		g_variant_unref (val);
 	}
 
 	/* Search domains */
 	items = add_domains (items, ip6_config, prefix, '6');
 
 	/* Static routes */
-	val = g_hash_table_lookup (ip6_config, "routes");
-	if (val)
-		routes = nm_utils_ip6_routes_from_gvalue (val);
+	val = g_variant_lookup_value (ip6_config, "routes", G_VARIANT_TYPE ("a(ayuayu)"));
+	if (val) {
+		routes = nm_utils_ip6_routes_from_variant (val);
 
-	for (iter = routes, num = 0; iter; iter = g_slist_next (iter)) {
-		NMIP6Route *route = (NMIP6Route *) iter->data;
-		guint32 ip_prefix = nm_ip6_route_get_prefix (route);
-		guint32 metric = nm_ip6_route_get_metric (route);
-		char *routetmp;
+		for (i = 0; i < routes->len; i++) {
+			NMIPRoute *route = routes->pdata[i];
+			const char *next_hop;
+			char *routetmp;
 
-		nm_utils_inet6_ntop (nm_ip6_route_get_dest (route), str_addr);
-		nm_utils_inet6_ntop (nm_ip6_route_get_next_hop (route), str_gw);
+			next_hop = nm_ip_route_get_next_hop (route);
+			if (!next_hop)
+				next_hop = "::";
 
-		routetmp = g_strdup_printf ("%sIP6_ROUTE_%d=%s/%d %s %d", prefix, num++, str_addr, ip_prefix, str_gw, metric);
-		items = g_slist_prepend (items, routetmp);
+			routetmp = g_strdup_printf ("%sIP6_ROUTE_%d=%s/%d %s %u", prefix, i,
+			                            nm_ip_route_get_dest (route),
+			                            nm_ip_route_get_prefix (route),
+			                            next_hop,
+			                            (guint32) MAX (0, nm_ip_route_get_metric (route)));
+			items = g_slist_prepend (items, routetmp);
+		}
+		if (routes->len)
+			items = g_slist_prepend (items, g_strdup_printf ("%sIP6_NUM_ROUTES=%d", prefix, routes->len));
+		g_ptr_array_unref (routes);
+		g_variant_unref (val);
 	}
-	if (num)
-		items = g_slist_prepend (items, g_strdup_printf ("%sIP6_NUM_ROUTES=%d", prefix, num));
-	if (routes)
-		g_slist_free_full (routes, (GDestroyNotify) nm_ip6_route_unref);
 
 	return items;
 }
 
 static GSList *
-construct_device_dhcp6_items (GSList *items, GHashTable *dhcp6_config)
+construct_device_dhcp6_items (GSList *items, GVariant *dhcp6_config)
 {
-	GHashTableIter iter;
+	GVariantIter iter;
 	const char *key, *tmp;
-	GValue *val;
+	GVariant *val;
 	char *ucased;
 
 	if (dhcp6_config == NULL)
 		return items;
 
-	g_hash_table_iter_init (&iter, dhcp6_config);
-	while (g_hash_table_iter_next (&iter, (gpointer) &key, (gpointer) &val)) {
+	g_variant_iter_init (&iter, dhcp6_config);
+	while (g_variant_iter_next (&iter, "{&sv}", &key, &val)) {
 		ucased = g_ascii_strup (key, -1);
-		tmp = g_value_get_string (val);
+		tmp = g_variant_get_string (val, NULL);
 		items = g_slist_prepend (items, g_strdup_printf ("DHCP6_%s=%s", ucased, tmp));
 		g_free (ucased);
 	}
@@ -332,26 +321,27 @@ construct_device_dhcp6_items (GSList *items, GHashTable *dhcp6_config)
 
 char **
 nm_dispatcher_utils_construct_envp (const char *action,
-                                    GHashTable *connection_hash,
-                                    GHashTable *connection_props,
-                                    GHashTable *device_props,
-                                    GHashTable *device_ip4_props,
-                                    GHashTable *device_ip6_props,
-                                    GHashTable *device_dhcp4_props,
-                                    GHashTable *device_dhcp6_props,
+                                    GVariant *connection_dict,
+                                    GVariant *connection_props,
+                                    GVariant *device_props,
+                                    GVariant *device_ip4_props,
+                                    GVariant *device_ip6_props,
+                                    GVariant *device_dhcp4_props,
+                                    GVariant *device_dhcp6_props,
                                     const char *vpn_ip_iface,
-                                    GHashTable *vpn_ip4_props,
-                                    GHashTable *vpn_ip6_props,
+                                    GVariant *vpn_ip4_props,
+                                    GVariant *vpn_ip6_props,
                                     char **out_iface)
 {
 	const char *iface = NULL, *ip_iface = NULL;
 	const char *uuid = NULL, *id = NULL, *path;
+	const char *filename = NULL;
 	NMDeviceState dev_state = NM_DEVICE_STATE_UNKNOWN;
-	GValue *value;
+	GVariant *value;
 	char **envp = NULL, *path_item;
 	GSList *items = NULL, *iter;
 	guint i;
-	GHashTable *con_setting_hash;
+	GVariant *con_setting;
 
 	g_return_val_if_fail (action != NULL, NULL);
 	g_return_val_if_fail (out_iface != NULL, NULL);
@@ -361,75 +351,77 @@ nm_dispatcher_utils_construct_envp (const char *action,
 	if (!strcmp (action, "hostname"))
 		goto done;
 
+	/* config filename */
+	if (g_variant_lookup (connection_props, NMD_CONNECTION_PROPS_FILENAME, "&s", &filename))
+		items = g_slist_prepend (items, g_strdup_printf ("CONNECTION_FILENAME=%s", filename));
+
 	/* Canonicalize the VPN interface name; "" is used when passing it through
 	 * D-Bus so make sure that's fixed up here.
 	 */
 	if (vpn_ip_iface && !strlen (vpn_ip_iface))
 		vpn_ip_iface = NULL;
 
-	con_setting_hash = g_hash_table_lookup (connection_hash, NM_SETTING_CONNECTION_SETTING_NAME);
-	if (!con_setting_hash) {
-		g_warning ("Failed to read connection setting");
-		return NULL;
-	}
-
-	value = g_hash_table_lookup (con_setting_hash, NM_SETTING_CONNECTION_UUID);
-	if (!value || !G_VALUE_HOLDS (value, G_TYPE_STRING)) {
-		g_warning ("Connection hash did not contain the UUID");
-		return NULL;
-	}
-	uuid = g_value_get_string (value);
-
-	value = g_hash_table_lookup (con_setting_hash, NM_SETTING_CONNECTION_ID);
-	if (!value || !G_VALUE_HOLDS (value, G_TYPE_STRING)) {
-		g_warning ("Connection hash did not contain the ID");
-		return NULL;
-	}
-	id = g_value_get_string (value);
-
 	/* interface name */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_INTERFACE);
-	if (!value || !G_VALUE_HOLDS_STRING (value)) {
+	if (!g_variant_lookup (device_props, NMD_DEVICE_PROPS_INTERFACE, "&s", &iface)) {
 		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_INTERFACE "!");
 		return NULL;
 	}
-	iface = g_value_get_string (value);
-	if (iface && !strlen (iface))
+	if (!*iface)
 		iface = NULL;
 
 	/* IP interface name */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_IP_INTERFACE);
+	value = g_variant_lookup_value (device_props, NMD_DEVICE_PROPS_IP_INTERFACE, NULL);
 	if (value) {
-		if (!G_VALUE_HOLDS_STRING (value)) {
-			g_warning ("Invalid required value " NMD_DEVICE_PROPS_IP_INTERFACE "!");
+		if (!g_variant_is_of_type (value, G_VARIANT_TYPE_STRING)) {
+			g_warning ("Invalid value " NMD_DEVICE_PROPS_IP_INTERFACE "!");
 			return NULL;
 		}
-		ip_iface = g_value_get_string (value);
+		g_variant_unref (value);
+		(void) g_variant_lookup (device_props, NMD_DEVICE_PROPS_IP_INTERFACE, "&s", &ip_iface);
 	}
 
 	/* Device type */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_TYPE);
-	if (!value || !G_VALUE_HOLDS_UINT (value)) {
+	if (!g_variant_lookup (device_props, NMD_DEVICE_PROPS_TYPE, "u", NULL)) {
 		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_TYPE "!");
 		return NULL;
 	}
 
 	/* Device state */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_STATE);
-	if (!value || !G_VALUE_HOLDS_UINT (value)) {
+	value = g_variant_lookup_value (device_props, NMD_DEVICE_PROPS_STATE, G_VARIANT_TYPE_UINT32);
+	if (!value) {
 		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_STATE "!");
 		return NULL;
 	}
-	dev_state = g_value_get_uint (value);
+	dev_state = g_variant_get_uint32 (value);
+	g_variant_unref (value);
 
 	/* device itself */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_PATH);
-	if (!value || (G_VALUE_TYPE (value) != DBUS_TYPE_G_OBJECT_PATH)) {
+	if (!g_variant_lookup (device_props, NMD_DEVICE_PROPS_PATH, "o", NULL)) {
 		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_PATH "!");
 		return NULL;
 	}
 
+	/* UUID and ID */
+	con_setting = g_variant_lookup_value (connection_dict, NM_SETTING_CONNECTION_SETTING_NAME, NM_VARIANT_TYPE_SETTING);
+	if (!con_setting) {
+		g_warning ("Failed to read connection setting");
+		return NULL;
+	}
+
+	if (!g_variant_lookup (con_setting, NM_SETTING_CONNECTION_UUID, "&s", &uuid)) {
+		g_warning ("Connection hash did not contain the UUID");
+		g_variant_unref (con_setting);
+		return NULL;
+	}
+
+	if (!g_variant_lookup (con_setting, NM_SETTING_CONNECTION_ID, "&s", &id)) {
+		g_warning ("Connection hash did not contain the ID");
+		g_variant_unref (con_setting);
+		return NULL;
+	}
+
 	items = construct_basic_items (items, uuid, id, iface, ip_iface);
+	g_variant_unref (con_setting);
 
 	/* Device it's aren't valid if the device isn't activated */
 	if (iface && (dev_state == NM_DEVICE_STATE_ACTIVATED)) {

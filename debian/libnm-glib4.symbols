@@ -103,6 +103,7 @@ libnm-glib.so.4 libnm-glib4 #MINVER#
  nm_device_bt_new@Base 0.7.999
  nm_device_connection_compatible@Base 0.9.4.0
  nm_device_connection_valid@Base 0.8.999
+ nm_device_delete@Base 1.0.0
  nm_device_disambiguate_names@Base 0.9.10.0
  nm_device_disconnect@Base 0.7.999
  nm_device_error_get_type@Base 0.9.10.0
@@ -155,6 +156,7 @@ libnm-glib.so.4 libnm-glib4 #MINVER#
  nm_device_infiniband_get_hw_address@Base 0.9.4.0
  nm_device_infiniband_get_type@Base 0.9.4.0
  nm_device_infiniband_new@Base 0.9.4.0
+ nm_device_is_software@Base 1.0.0
  nm_device_modem_error_get_type@Base 0.9.4.0
  nm_device_modem_error_quark@Base 0.9.4.0
  nm_device_modem_get_current_capabilities@Base 0.8.998
@@ -180,6 +182,7 @@ libnm-glib.so.4 libnm-glib4 #MINVER#
  nm_device_vlan_error_quark@Base 0.9.4.0
  nm_device_vlan_get_carrier@Base 0.9.4.0
  nm_device_vlan_get_hw_address@Base 0.9.4.0
+ nm_device_vlan_get_parent@Base 1.0.0
  nm_device_vlan_get_type@Base 0.9.4.0
  nm_device_vlan_get_vlan_id@Base 0.9.4.0
  nm_device_vlan_new@Base 0.9.4.0

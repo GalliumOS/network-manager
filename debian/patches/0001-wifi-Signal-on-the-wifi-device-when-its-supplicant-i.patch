@@ -13,14 +13,14 @@ Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
  introspection/nm-device-wifi.xml                 |    6 ++++++
  src/devices/wifi/nm-device-wifi.c                |   11 +++++++++++
  src/devices/wifi/nm-device-wifi.h                |    1 +
- src/supplicant-manager/nm-supplicant-interface.c |    5 +++--
- 4 files changed, 21 insertions(+), 2 deletions(-)
+ src/supplicant-manager/nm-supplicant-interface.c |    6 ++++--
+ 4 files changed, 22 insertions(+), 2 deletions(-)
 
 Index: b/introspection/nm-device-wifi.xml
 ===================================================================
 --- a/introspection/nm-device-wifi.xml
 +++ b/introspection/nm-device-wifi.xml
-@@ -118,6 +118,12 @@
+@@ -120,6 +120,12 @@
          </tp:docstring>
      </signal>
  
@@ -37,7 +37,7 @@ Index: b/src/devices/wifi/nm-device-wifi.c
 ===================================================================
 --- a/src/devices/wifi/nm-device-wifi.c
 +++ b/src/devices/wifi/nm-device-wifi.c
-@@ -106,6 +106,7 @@ enum {
+@@ -103,6 +103,7 @@ enum {
  	ACCESS_POINT_ADDED,
  	ACCESS_POINT_REMOVED,
  	SCANNING_ALLOWED,
@@ -45,16 +45,16 @@ Index: b/src/devices/wifi/nm-device-wifi.c
  
  	LAST_SIGNAL
  };
-@@ -1608,6 +1609,8 @@ supplicant_iface_scan_done_cb (NMSupplic
- 	            nm_device_get_iface (NM_DEVICE (self)),
- 	            success ? "successful" : "failed");
+@@ -1606,6 +1607,8 @@ supplicant_iface_scan_done_cb (NMSupplic
+ 
+ 	_LOGD (LOGD_WIFI_SCAN, "scan %s", success ? "successful" : "failed");
  
 +	g_signal_emit (self, signals[SCAN_DONE], 0, NULL);
 +
  	schedule_scan (self, success);
  
  	/* Ensure that old APs get removed, which otherwise only
-@@ -3437,6 +3440,14 @@ nm_device_wifi_class_init (NMDeviceWifiC
+@@ -3361,6 +3364,14 @@ nm_device_wifi_class_init (NMDeviceWifiC
  		              scanning_allowed_accumulator, NULL, NULL,
  		              G_TYPE_BOOLEAN, 0);
  
@@ -73,7 +73,7 @@ Index: b/src/devices/wifi/nm-device-wifi.h
 ===================================================================
 --- a/src/devices/wifi/nm-device-wifi.h
 +++ b/src/devices/wifi/nm-device-wifi.h
-@@ -82,6 +82,7 @@ struct _NMDeviceWifiClass
+@@ -70,6 +70,7 @@ struct _NMDeviceWifiClass
  	void (*access_point_added)   (NMDeviceWifi *device, NMAccessPoint *ap);
  	void (*access_point_removed) (NMDeviceWifi *device, NMAccessPoint *ap);
  	gboolean (*scanning_allowed) (NMDeviceWifi *device);
@@ -85,17 +85,24 @@ Index: b/src/supplicant-manager/nm-supplicant-interface.c
 ===================================================================
 --- a/src/supplicant-manager/nm-supplicant-interface.c
 +++ b/src/supplicant-manager/nm-supplicant-interface.c
-@@ -1177,10 +1177,11 @@ scan_request_cb (DBusGProxy *proxy, DBus
- 	GError *err = NULL;
+@@ -1086,6 +1086,7 @@ nm_supplicant_interface_set_config (NMSu
+ static void
+ scan_request_cb (GDBusProxy *proxy, GAsyncResult *result, gpointer user_data)
+ {
++	NMSupplicantInterface *self = NM_SUPPLICANT_INTERFACE (user_data);
+ 	gs_unref_variant GVariant *reply = NULL;
+ 	gs_free_error GError *error = NULL;
  
- 	nm_call_store_remove (priv->other_pcalls, proxy, call_id);
--	if (!dbus_g_proxy_end_call (proxy, call_id, &err, G_TYPE_INVALID))
-+	if (!dbus_g_proxy_end_call (proxy, call_id, &err, G_TYPE_INVALID)) {
- 		nm_log_warn (LOGD_SUPPLICANT, "Could not get scan request result: %s", err->message);
+@@ -1093,9 +1094,10 @@ scan_request_cb (GDBusProxy *proxy, GAsy
+ 	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+ 		return;
+ 
+-	if (error)
++	if (error) {
+ 		nm_log_warn (LOGD_SUPPLICANT, "Could not get scan request result: %s", error->message);
+-	g_signal_emit (NM_SUPPLICANT_INTERFACE (user_data), signals[SCAN_DONE], 0, error ? FALSE : TRUE);
 +		g_signal_emit (self, signals[SCAN_DONE], 0, FALSE);
 +	}
- 
--	g_signal_emit (self, signals[SCAN_DONE], 0, err ? FALSE : TRUE);
- 	g_clear_error (&err);
  }
  
+ gboolean

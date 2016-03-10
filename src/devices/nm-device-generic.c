@@ -24,9 +24,9 @@
 #include "nm-device-private.h"
 #include "nm-enum-types.h"
 #include "nm-platform.h"
-#include "nm-utils.h"
 #include "nm-glib-compat.h"
 #include "nm-dbus-manager.h"
+#include "nm-core-internal.h"
 
 #include "nm-device-generic-glue.h"
 
@@ -45,26 +45,21 @@ enum {
 	LAST_PROP
 };
 
-#define NM_DEVICE_GENERIC_ERROR (nm_device_generic_error_quark ())
-
-static GQuark
-nm_device_generic_error_quark (void)
-{
-	static GQuark quark = 0;
-	if (!quark)
-		quark = g_quark_from_static_string ("nm-device-generic-error");
-	return quark;
-}
-
-/**************************************************************/
-
-static guint32
+static NMDeviceCapabilities
 get_generic_capabilities (NMDevice *dev)
 {
-	if (nm_platform_link_supports_carrier_detect (nm_device_get_ifindex (dev)))
+	if (nm_platform_link_supports_carrier_detect (NM_PLATFORM_GET, nm_device_get_ifindex (dev)))
 		return NM_DEVICE_CAP_CARRIER_DETECT;
 	else
 		return NM_DEVICE_CAP_NONE;
+}
+
+static const char *
+get_type_description (NMDevice *device)
+{
+	if (NM_DEVICE_GENERIC_GET_PRIVATE (device)->type_description)
+		return NM_DEVICE_GENERIC_GET_PRIVATE (device)->type_description;
+	return NM_DEVICE_CLASS (nm_device_generic_parent_class)->get_type_description (device);
 }
 
 static gboolean
@@ -130,7 +125,7 @@ constructed (GObject *object)
 		int ifindex = nm_device_get_ip_ifindex (NM_DEVICE (self));
 
 		if (ifindex != 0)
-			priv->type_description = g_strdup (nm_platform_link_get_type_name (ifindex));
+			priv->type_description = g_strdup (nm_platform_link_get_type_name (NM_PLATFORM_GET, ifindex));
 	}
 
 	G_OBJECT_CLASS (nm_device_generic_parent_class)->constructed (object);
@@ -197,21 +192,19 @@ nm_device_generic_class_init (NMDeviceGenericClass *klass)
 	object_class->set_property = set_property;
 
 	parent_class->get_generic_capabilities = get_generic_capabilities;
+	parent_class->get_type_description = get_type_description;
 	parent_class->check_connection_compatible = check_connection_compatible;
 	parent_class->update_connection = update_connection;
 
 	/* properties */
 	g_object_class_install_property
 		(object_class, PROP_TYPE_DESCRIPTION,
-		 g_param_spec_string (NM_DEVICE_GENERIC_TYPE_DESCRIPTION,
-		                      "Type Description",
-		                      "Type description",
+		 g_param_spec_string (NM_DEVICE_GENERIC_TYPE_DESCRIPTION, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+		                      G_PARAM_STATIC_STRINGS));
 
 	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
 	                                        G_TYPE_FROM_CLASS (klass),
 	                                        &dbus_glib_nm_device_generic_object_info);
-
-	dbus_g_error_domain_register (NM_DEVICE_GENERIC_ERROR, NULL, NM_TYPE_DEVICE_GENERIC_ERROR);
 }

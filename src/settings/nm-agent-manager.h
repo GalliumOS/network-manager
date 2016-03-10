@@ -18,14 +18,14 @@
  * Copyright (C) 2010 - 2011 Red Hat, Inc.
  */
 
-#ifndef NM_AGENT_MANAGER_H
-#define NM_AGENT_MANAGER_H
+#ifndef __NETWORKMANAGER_AGENT_MANAGER_H__
+#define __NETWORKMANAGER_AGENT_MANAGER_H__
 
 #include <glib.h>
 #include <glib-object.h>
 #include <nm-connection.h>
-#include "nm-settings-flags.h"
 #include "nm-secret-agent.h"
+#include "nm-types.h"
 
 #define NM_TYPE_AGENT_MANAGER            (nm_agent_manager_get_type ())
 #define NM_AGENT_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_AGENT_MANAGER, NMAgentManager))
@@ -34,20 +34,9 @@
 #define NM_IS_AGENT_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_AGENT_MANAGER))
 #define NM_AGENT_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_AGENT_MANAGER, NMAgentManagerClass))
 
-typedef enum {
-	NM_AGENT_MANAGER_ERROR_SENDER_UNKNOWN = 0, /*< nick=SenderUnknown >*/
-	NM_AGENT_MANAGER_ERROR_PERMISSION_DENIED,  /*< nick=PermissionDenied >*/
-	NM_AGENT_MANAGER_ERROR_SESSION_NOT_FOUND,  /*< nick=SessionNotFound >*/
-	NM_AGENT_MANAGER_ERROR_INVALID_IDENTIFIER, /*< nick=InvalidIdentifier >*/
-	NM_AGENT_MANAGER_ERROR_NOT_REGISTERED,     /*< nick=NotRegistered >*/
-	NM_AGENT_MANAGER_ERROR_INTERNAL_ERROR,     /*< nick=InternalError >*/
-	NM_AGENT_MANAGER_ERROR_NO_SECRETS,         /*< nick=NoSecrets >*/
-	NM_AGENT_MANAGER_ERROR_USER_CANCELED       /*< nick=UserCanceled >*/
-} NMAgentManagerError;
-
-typedef struct {
+struct _NMAgentManager {
 	GObject parent;
-} NMAgentManager;
+};
 
 typedef struct {
 	GObjectClass parent;
@@ -67,7 +56,7 @@ typedef void (*NMAgentSecretsResultFunc) (NMAgentManager *manager,
                                           const char *agent_uname,
                                           gboolean agent_has_modify,
                                           const char *setting_name,
-                                          NMSettingsGetSecretsFlags flags,
+                                          NMSecretAgentGetSecretsFlags flags,
                                           GHashTable *secrets,
                                           GError *error,
                                           gpointer user_data,
@@ -79,7 +68,7 @@ guint32 nm_agent_manager_get_secrets (NMAgentManager *manager,
                                       NMAuthSubject *subject,
                                       GHashTable *existing_secrets,
                                       const char *setting_name,
-                                      NMSettingsGetSecretsFlags flags,
+                                      NMSecretAgentGetSecretsFlags flags,
                                       const char **hints,
                                       NMAgentSecretsResultFunc callback,
                                       gpointer callback_data,
@@ -103,4 +92,4 @@ gboolean nm_agent_manager_all_agents_have_capability (NMAgentManager *manager,
                                                       NMAuthSubject *subject,
                                                       NMSecretAgentCapabilities capability);
 
-#endif /* NM_AGENT_MANAGER_H */
+#endif /* __NETWORKMANAGER_AGENT_MANAGER_H__ */

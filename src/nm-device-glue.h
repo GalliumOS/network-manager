@@ -66,12 +66,13 @@ G_END_DECLS
 #include <dbus/dbus-glib.h>
 static const DBusGMethodInfo dbus_glib_nm_device_methods[] = {
   { (GCallback) impl_device_disconnect, dbus_glib_marshal_nm_device_NONE__POINTER, 0 },
+  { (GCallback) impl_device_delete, dbus_glib_marshal_nm_device_NONE__POINTER, 52 },
 };
 
 const DBusGObjectInfo dbus_glib_nm_device_object_info = {  1,
   dbus_glib_nm_device_methods,
-  1,
-"org.freedesktop.NetworkManager.Device\0Disconnect\0A\0\0\0",
+  2,
+"org.freedesktop.NetworkManager.Device\0Disconnect\0A\0\0org.freedesktop.NetworkManager.Device\0Delete\0A\0\0\0",
 "org.freedesktop.NetworkManager.Device\0StateChanged\0\0",
 "org.freedesktop.NetworkManager.Device\0Udi\0udi\0read\0org.freedesktop.NetworkManager.Device\0Interface\0interface\0read\0org.freedesktop.NetworkManager.Device\0IpInterface\0ip_interface\0read\0org.freedesktop.NetworkManager.Device\0Driver\0driver\0read\0org.freedesktop.NetworkManager.Device\0DriverVersion\0driver_version\0read\0org.freedesktop.NetworkManager.Device\0FirmwareVersion\0firmware_version\0read\0org.freedesktop.NetworkManager.Device\0Capabilities\0capabilities\0read\0org.freedesktop.NetworkManager.Device\0Ip4Address\0ip4_address\0read\0org.freedesktop.NetworkManager.Device\0State\0state\0read\0org.freedesktop.NetworkManager.Device\0StateReason\0state_reason\0read\0org.freedesktop.NetworkManager.Device\0ActiveConnection\0active_connection\0read\0org.freedesktop.NetworkManager.Device\0Ip4Config\0ip4_config\0read\0org.freedesktop.NetworkManager.Device\0Dhcp4Config\0dhcp4_config\0read\0org.freedesktop.NetworkManager.Device\0Ip6Config\0ip6_config\0read\0org.freedesktop.NetworkManager.Device\0Dhcp6Config\0dhcp6_config\0read\0org.freedesktop.NetworkManager.Device\0Managed\0managed\0read\0org.freedesktop.NetworkManager.Device\0Autoconnect\0autoconnect\0readwrite\0org.freedesktop.NetworkManager.Device\0FirmwareMissing\0firmware_missing\0read\0org.freedesktop.NetworkManager.Device\0DeviceType\0device_type\0read\0org.freedesktop.NetworkManager.Device\0AvailableConnections\0available_connections\0read\0org.freedesktop.NetworkManager.Device\0PhysicalPortId\0physical_port_id\0read\0org.freedesktop.NetworkManager.Device\0Mtu\0mtu\0read\0\0"
 };

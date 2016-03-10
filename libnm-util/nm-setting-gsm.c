@@ -1,9 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -19,12 +16,14 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2013 Red Hat, Inc.
- * (C) Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2013 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-gsm.h"
 #include "nm-utils.h"
@@ -343,15 +342,6 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		return FALSE;
 	}
 
-	if (priv->password && !strlen (priv->password)) {
-		g_set_error_literal (error,
-		                     NM_SETTING_GSM_ERROR,
-		                     NM_SETTING_GSM_ERROR_INVALID_PROPERTY,
-		                     _("property is empty"));
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_GSM_SETTING_NAME, NM_SETTING_GSM_USERNAME);
-		return FALSE;
-	}
-
 	if (priv->network_id) {
 		guint32 nid_len = strlen (priv->network_id);
 		guint32 i;
@@ -389,7 +379,7 @@ need_secrets (NMSetting *setting)
 	NMSettingGsmPrivate *priv = NM_SETTING_GSM_GET_PRIVATE (setting);
 	GPtrArray *secrets = NULL;
 
-	if (priv->password)
+	if (priv->password && *priv->password)
 		return NULL;
 
 	if (priv->username) {
@@ -424,7 +414,7 @@ finalize (GObject *object)
 
 static void
 set_property (GObject *object, guint prop_id,
-		    const GValue *value, GParamSpec *pspec)
+              const GValue *value, GParamSpec *pspec)
 {
 	NMSettingGsmPrivate *priv = NM_SETTING_GSM_GET_PRIVATE (object);
 	char *tmp;
@@ -483,7 +473,7 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-		    GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMSettingGsm *setting = NM_SETTING_GSM (object);
 
@@ -554,16 +544,10 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NUMBER,
-		 g_param_spec_string (NM_SETTING_GSM_NUMBER,
-						  "Number",
-		                  "Number to dial when establishing a PPP data session "
-		                  "with the GSM-based mobile broadband network.  Many "
-		                  "modems do not require PPP for connections to the "
-		                  "mobile network and thus this property should be left "
-		                  "blank, which allows NetworkManager to select the "
-		                  "appropriate settings automatically.",
-						  NULL,
-						  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_GSM_NUMBER, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:username:
@@ -574,13 +558,10 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_USERNAME,
-		 g_param_spec_string (NM_SETTING_GSM_USERNAME,
-						  "Username",
-						  "Username used to authenticate with the network, if "
-						  "required.  Note that many providers do not require "
-						  "a username or accept any username.",
-						  NULL,
-						  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_GSM_USERNAME, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:password:
@@ -591,27 +572,25 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PASSWORD,
-		 g_param_spec_string (NM_SETTING_GSM_PASSWORD,
-						  "Password",
-						  "Password used to authenticate with the network, if "
-						  "required.  Note that many providers do not require "
-						  "a password or accept any password.",
-						  NULL,
-						  G_PARAM_READWRITE | NM_SETTING_PARAM_SECRET));
+		 g_param_spec_string (NM_SETTING_GSM_PASSWORD, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_SECRET |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:password-flags:
 	 *
 	 * Flags indicating how to handle the #NMSettingGsm:password property.
 	 **/
-	g_object_class_install_property (object_class, PROP_PASSWORD_FLAGS,
-		 g_param_spec_uint (NM_SETTING_GSM_PASSWORD_FLAGS,
-		                    "Password Flags",
-		                    "Flags indicating how to handle the GSM password.",
+	g_object_class_install_property
+		(object_class, PROP_PASSWORD_FLAGS,
+		 g_param_spec_uint (NM_SETTING_GSM_PASSWORD_FLAGS, "", "",
 		                    NM_SETTING_SECRET_FLAG_NONE,
 		                    NM_SETTING_SECRET_FLAGS_ALL,
 		                    NM_SETTING_SECRET_FLAG_NONE,
-		                    G_PARAM_READWRITE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:apn:
@@ -626,19 +605,10 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_APN,
-		 g_param_spec_string (NM_SETTING_GSM_APN,
-						  "APN",
-						  "The GPRS Access Point Name specifying the APN used "
-						  "when establishing a data session with the GSM-based "
-						  "network.  The APN often determines how the user will "
-						  "be billed for their network usage and whether the "
-						  "user has access to the Internet or just a provider-"
-						  "specific walled-garden, so it is important to use "
-						  "the correct APN for the user's mobile broadband "
-						  "plan.  The APN may only be composed of the characters "
-						  "a-z, 0-9, ., and - per GSM 03.60 Section 14.9.",
-						  NULL,
-						  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_GSM_APN, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:network-id:
@@ -651,17 +621,10 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NETWORK_ID,
-		 g_param_spec_string (NM_SETTING_GSM_NETWORK_ID,
-						  "Network ID",
-						  "The Network ID (GSM LAI format, ie MCC-MNC) to force "
-						  "specific network registration.  If the Network ID is "
-						  "specified, NetworkManager will attempt to force the "
-						  "device to register only on the specified network.  "
-						  "This can be used to ensure that the device does not "
-						  "roam when direct roaming control of the device is "
-						  "not otherwise possible.",
-						  NULL,
-						  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_GSM_NETWORK_ID, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:network-type:
@@ -681,19 +644,13 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NETWORK_TYPE,
-		 g_param_spec_int (NM_SETTING_GSM_NETWORK_TYPE,
-		                   "Network type",
-		                   "Network preference to force the device to only use "
-		                   "specific network technologies.  The permitted values "
-		                   "are: -1: any, 0: 3G only, 1: GPRS/EDGE only, "
-		                   "2: prefer 3G, 3: prefer 2G, 4: prefer 4G/LTE, 5: 4G/LTE only. "
-		                   "Notes: This property is deprecated and NetworkManager from 0.9.10 "
-		                   "onwards doesn't use this property when talking to ModemManager."
-		                   "Also, not all devices allow network preference control.",
+		 g_param_spec_int (NM_SETTING_GSM_NETWORK_TYPE, "", "",
 		                   NM_SETTING_GSM_NETWORK_TYPE_ANY,
 		                   NM_SETTING_GSM_NETWORK_TYPE_4G,
 		                   NM_SETTING_GSM_NETWORK_TYPE_ANY,
-		                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+		                   G_PARAM_READWRITE |
+		                   G_PARAM_CONSTRUCT |
+		                   G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:allowed-bands:
@@ -707,16 +664,13 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ALLOWED_BANDS,
-		 g_param_spec_uint (NM_SETTING_GSM_ALLOWED_BANDS,
-		                    "Allowed Bands",
-		                    "Bitfield of allowed frequency bands."
-		                    "Notes: This property is deprecated and NetworkManager from 0.9.10 "
-		                    "onwards doesn't use this property when talking to ModemManager."
-		                    "Also, not all devices allow frequency band control.",
+		 g_param_spec_uint (NM_SETTING_GSM_ALLOWED_BANDS, "", "",
 		                    NM_SETTING_GSM_BAND_UNKNOWN,
 		                    NM_SETTING_GSM_BANDS_MAX,
 		                    NM_SETTING_GSM_BAND_ANY,
-		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:pin:
@@ -727,27 +681,25 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PIN,
-		 g_param_spec_string (NM_SETTING_GSM_PIN,
-						  "PIN",
-						  "If the SIM is locked with a PIN it must be unlocked "
-						  "before any other operations are requested.  Specify "
-						  "the PIN here to allow operation of the device.",
-						  NULL,
-						  G_PARAM_READWRITE | NM_SETTING_PARAM_SECRET));
+		 g_param_spec_string (NM_SETTING_GSM_PIN, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_SECRET |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:pin-flags:
 	 *
 	 * Flags indicating how to handle the #NMSettingGsm:pin property.
 	 **/
-	g_object_class_install_property (object_class, PROP_PIN_FLAGS,
-		 g_param_spec_uint (NM_SETTING_GSM_PIN_FLAGS,
-		                    "PIN Flags",
-		                    "Flags indicating how to handle the GSM SIM PIN.",
+	g_object_class_install_property
+		(object_class, PROP_PIN_FLAGS,
+		 g_param_spec_uint (NM_SETTING_GSM_PIN_FLAGS, "", "",
 		                    NM_SETTING_SECRET_FLAG_NONE,
 		                    NM_SETTING_SECRET_FLAGS_ALL,
 		                    NM_SETTING_SECRET_FLAG_NONE,
-		                    G_PARAM_READWRITE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingGsm:home-only:
@@ -757,11 +709,8 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HOME_ONLY,
-		 g_param_spec_boolean (NM_SETTING_GSM_HOME_ONLY,
-						  "Home Only",
-						  "When TRUE, only connections to the home network will "
-						  "be allowed.  Connections to roaming networks will "
-						  "not be made.",
-						  FALSE,
-						  G_PARAM_READWRITE));
+		 g_param_spec_boolean (NM_SETTING_GSM_HOME_ONLY, "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_STATIC_STRINGS));
 }

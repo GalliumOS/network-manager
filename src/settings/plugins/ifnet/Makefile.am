@@ -4,21 +4,15 @@ SUBDIRS = . tests
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/src/config \
-	-I$(top_srcdir)/src/logging \
 	-I$(top_srcdir)/src/platform \
 	-I$(top_srcdir)/src/settings \
 	-I$(top_srcdir)/include \
-	-I$(top_builddir)/include \
-	-I$(top_srcdir)/libnm-glib \
-	-I$(top_srcdir)/libnm-util \
-	-I$(top_builddir)/libnm-util \
+	-I$(top_srcdir)/libnm-core \
+	-I$(top_builddir)/libnm-core \
 	-DG_LOG_DOMAIN=\""NetworkManager-ifnet"\" \
+	-DNETWORKMANAGER_COMPILATION \
 	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	$(GLIB_CFLAGS) \
-	$(DBUS_CFLAGS) \
-	$(POLKIT_CFLAGS) \
-	$(GUDEV_CFLAGS) \
 	-DSYSCONFDIR=\"$(sysconfdir)\"
 	-DSBINDIR=\"$(sbindir)\"
 
@@ -34,12 +28,7 @@ libnm_settings_plugin_ifnet_la_SOURCES = \
 
 libnm_settings_plugin_ifnet_la_LDFLAGS = -module -avoid-version
 
-libnm_settings_plugin_ifnet_la_LIBADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(top_builddir)/libnm-glib/libnm-glib.la \
-	lib-ifnet-io.la\
-	$(GLIB_LIBS) \
-	$(GUDEV_LIBS)
+libnm_settings_plugin_ifnet_la_LIBADD = lib-ifnet-io.la
 
 lib_ifnet_io_la_SOURCES = \
 	net_parser.c\
@@ -49,10 +38,4 @@ lib_ifnet_io_la_SOURCES = \
 	net_utils.h\
 	net_utils.c\
 	wpa_parser.h\
-	wpa_parser.c \
-	errors.h \
-	errors.c
-
-lib_ifnet_io_la_LIBADD = \
-	 $(top_builddir)/libnm-util/libnm-util.la \
-	 $(GLIB_LIBS)
+	wpa_parser.c

@@ -9,8 +9,10 @@
 #include <glib-object.h>
 
 G_BEGIN_DECLS
-GType nm_modem_error_get_type (void) G_GNUC_CONST;
-#define NM_TYPE_MODEM_ERROR (nm_modem_error_get_type ())
+GType nm_modem_ip_method_get_type (void) G_GNUC_CONST;
+#define NM_TYPE_MODEM_IP_METHOD (nm_modem_ip_method_get_type ())
+GType nm_modem_ip_type_get_type (void) G_GNUC_CONST;
+#define NM_TYPE_MODEM_IP_TYPE (nm_modem_ip_type_get_type ())
 GType nm_modem_state_get_type (void) G_GNUC_CONST;
 #define NM_TYPE_MODEM_STATE (nm_modem_state_get_type ())
 G_END_DECLS

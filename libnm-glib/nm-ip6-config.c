@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,9 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2008 - 2014 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2008 - 2014 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 
@@ -70,9 +70,9 @@ GObject *
 nm_ip6_config_new (DBusGConnection *connection, const char *object_path)
 {
 	return (GObject *) g_object_new (NM_TYPE_IP6_CONFIG,
-									 NM_OBJECT_DBUS_CONNECTION, connection,
-									 NM_OBJECT_DBUS_PATH, object_path,
-									 NULL);
+	                                 NM_OBJECT_DBUS_CONNECTION, connection,
+	                                 NM_OBJECT_DBUS_PATH, object_path,
+	                                 NULL);
 }
 
 static gboolean
@@ -179,7 +179,7 @@ nm_ip6_config_get_gateway (NMIP6Config *config)
  *
  * Gets the IP6 addresses (containing the address, prefix, and gateway).
  *
- * Returns: (element-type NetworkManager.IP6Address): the #GSList containing
+ * Returns: (element-type NMIP6Address): the #GSList containing
  * #NMIP6Address<!-- -->es. This is the internal copy used by the configuration
  * and must not be modified.
  **/
@@ -306,7 +306,7 @@ nm_ip6_config_get_searches (NMIP6Config *config)
  *
  * Gets the routes.
  *
- * Returns: (element-type NetworkManager.IP6Route): the #GSList containing
+ * Returns: (element-type NMIP6Route): the #GSList containing
  * #NMIP6Routes. This is the internal copy used by the configuration,
  * and must not be modified.
  **/
@@ -420,11 +420,10 @@ nm_ip6_config_class_init (NMIP6ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_GATEWAY,
-	     g_param_spec_string (NM_IP6_CONFIG_GATEWAY,
-	                          "Gateway",
-	                          "Gateway",
+	     g_param_spec_string (NM_IP6_CONFIG_GATEWAY, "", "",
 	                          NULL,
-	                          G_PARAM_READABLE));
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP6Config:addresses:
@@ -435,11 +434,10 @@ nm_ip6_config_class_init (NMIP6ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_ADDRESSES,
-	     g_param_spec_boxed (NM_IP6_CONFIG_ADDRESSES,
-	                         "Addresses",
-	                         "Addresses",
+	     g_param_spec_boxed (NM_IP6_CONFIG_ADDRESSES, "", "",
 	                         NM_TYPE_IP6_ADDRESS_OBJECT_ARRAY,
-	                         G_PARAM_READABLE));
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP6Config:routes:
@@ -450,11 +448,10 @@ nm_ip6_config_class_init (NMIP6ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_ROUTES,
-	     g_param_spec_boxed (NM_IP6_CONFIG_ROUTES,
-	                         "Routes",
-	                         "Routes",
+	     g_param_spec_boxed (NM_IP6_CONFIG_ROUTES, "", "",
 	                         NM_TYPE_IP6_ROUTE_OBJECT_ARRAY,
-	                         G_PARAM_READABLE));
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP6Config:nameservers:
@@ -464,11 +461,10 @@ nm_ip6_config_class_init (NMIP6ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_NAMESERVERS,
-	     g_param_spec_boxed (NM_IP6_CONFIG_NAMESERVERS,
-	                        "Nameservers",
-	                        "Nameservers",
-	                        NM_TYPE_IP6_ADDRESS_ARRAY,
-	                        G_PARAM_READABLE));
+	     g_param_spec_boxed (NM_IP6_CONFIG_NAMESERVERS, "", "",
+	                         NM_TYPE_IP6_ADDRESS_ARRAY,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP6Config:domains:
@@ -477,11 +473,10 @@ nm_ip6_config_class_init (NMIP6ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_DOMAINS,
-	     g_param_spec_boxed (NM_IP6_CONFIG_DOMAINS,
-	                        "Domains",
-	                        "Domains",
-	                        NM_TYPE_STRING_ARRAY,
-	                        G_PARAM_READABLE));
+	     g_param_spec_boxed (NM_IP6_CONFIG_DOMAINS, "", "",
+	                         NM_TYPE_STRING_ARRAY,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMIP6Config:searches:
@@ -492,11 +487,9 @@ nm_ip6_config_class_init (NMIP6ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_SEARCHES,
-	     g_param_spec_boxed (NM_IP6_CONFIG_SEARCHES,
-	                        "Searches",
-	                        "DNS Searches",
-	                        NM_TYPE_STRING_ARRAY,
-	                        G_PARAM_READABLE));
+	     g_param_spec_boxed (NM_IP6_CONFIG_SEARCHES, "", "",
+	                         NM_TYPE_STRING_ARRAY,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 }
-

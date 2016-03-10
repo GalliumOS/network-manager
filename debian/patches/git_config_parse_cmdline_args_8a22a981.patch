@@ -1,0 +1,33 @@
+From 8a22a98157f7f6773f3d1f295419569c6c880a47 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ulrich=20=C3=96lmann?= <u.oelmann@pengutronix.de>
+Date: Thu, 27 Aug 2015 22:18:55 +0200
+Subject: config: bugfix: parse commandline options into correct object
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Config related commandline options should be parsed into a function argument but
+were instead parsed into an object with local scope. As a result none of them
+had any impact.
+
+Signed-off-by: Ulrich Ölmann <u.oelmann@pengutronix.de>
+
+Fixes: b4ad7434a87c165a77b615accbe1868a9df9221b
+
+https://mail.gnome.org/archives/networkmanager-list/2015-August/msg00033.html
+
+diff --git a/src/main.c b/src/main.c
+index 495262e..a9bc479 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -246,7 +246,6 @@ do_early_setup (int *argc, char **argv[], NMConfigCmdLineOptions *config_cli)
+ 		{NULL}
+ 	};
+ 
+-	config_cli = nm_config_cmd_line_options_new ();
+ 	if (!nm_main_utils_early_setup ("NetworkManager",
+ 	                                argc,
+ 	                                argv,
+-- 
+cgit v0.10.2
+

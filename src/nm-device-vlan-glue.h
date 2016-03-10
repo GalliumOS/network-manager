@@ -68,6 +68,6 @@ const DBusGObjectInfo dbus_glib_nm_device_vlan_object_info = {  1,
   0,
 "\0",
 "org.freedesktop.NetworkManager.Device.Vlan\0PropertiesChanged\0\0",
-"org.freedesktop.NetworkManager.Device.Vlan\0HwAddress\0hw_address\0read\0org.freedesktop.NetworkManager.Device.Vlan\0Carrier\0carrier\0read\0org.freedesktop.NetworkManager.Device.Vlan\0VlanId\0vlan_id\0read\0\0"
+"org.freedesktop.NetworkManager.Device.Vlan\0HwAddress\0hw_address\0read\0org.freedesktop.NetworkManager.Device.Vlan\0Carrier\0carrier\0read\0org.freedesktop.NetworkManager.Device.Vlan\0Parent\0parent\0read\0org.freedesktop.NetworkManager.Device.Vlan\0VlanId\0vlan_id\0read\0\0"
 };
 

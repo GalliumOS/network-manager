@@ -18,19 +18,24 @@
  * Copyright (C) 2008 - 2014 Red Hat, Inc.
  */
 
+#include "config.h"
+
 #include <glib.h>
+
 #include "nm-types.h"
 #include "nm-active-connection.h"
-#include "NetworkManager.h"
+#include "nm-dbus-interface.h"
 #include "nm-logging.h"
 #include "nm-dbus-glib-types.h"
 #include "nm-dbus-manager.h"
 #include "nm-device.h"
 #include "nm-settings-connection.h"
-#include "nm-manager-auth.h"
+#include "nm-auth-utils.h"
+#include "nm-auth-subject.h"
 #include "NetworkManagerUtils.h"
-
+#include "gsystem-local-alloc.h"
 #include "nm-active-connection-glue.h"
+#include "nm-glib-compat.h"
 
 /* Base class for anything implementing the Connection.Active D-Bus interface */
 G_DEFINE_ABSTRACT_TYPE (NMActiveConnection, nm_active_connection, G_TYPE_OBJECT)
@@ -50,6 +55,7 @@ typedef struct {
 	gboolean is_default;
 	gboolean is_default6;
 	NMActiveConnectionState state;
+	gboolean state_set;
 	gboolean vpn;
 
 	NMAuthSubject *subject;
@@ -91,6 +97,12 @@ enum {
 
 	LAST_PROP
 };
+
+enum {
+	DEVICE_CHANGED,
+	LAST_SIGNAL
+};
+static guint signals[LAST_SIGNAL] = { 0 };
 
 static void check_master_ready (NMActiveConnection *self);
 static void _device_cleanup (NMActiveConnection *self);
@@ -137,6 +149,7 @@ nm_active_connection_set_state (NMActiveConnection *self,
 
 	old_state = priv->state;
 	priv->state = new_state;
+	priv->state_set = TRUE;
 	g_object_notify (G_OBJECT (self), NM_ACTIVE_CONNECTION_STATE);
 
 	check_master_ready (self);
@@ -197,6 +210,17 @@ nm_active_connection_get_connection (NMActiveConnection *self)
 	return NM_ACTIVE_CONNECTION_GET_PRIVATE (self)->connection;
 }
 
+const char *
+nm_active_connection_get_connection_type (NMActiveConnection *self)
+{
+	NMActiveConnectionPrivate *priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (self);
+
+	if (priv->connection == NULL)
+		return NULL;
+
+	return nm_connection_get_connection_type (priv->connection);
+}
+
 void
 nm_active_connection_set_connection (NMActiveConnection *self,
                                      NMConnection *connection)
@@ -250,6 +274,8 @@ nm_active_connection_set_default (NMActiveConnection *self, gboolean is_default)
 
 	g_return_if_fail (NM_IS_ACTIVE_CONNECTION (self));
 
+	is_default = !!is_default;
+
 	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (self);
 	if (priv->is_default == is_default)
 		return;
@@ -272,6 +298,8 @@ nm_active_connection_set_default6 (NMActiveConnection *self, gboolean is_default
 	NMActiveConnectionPrivate *priv;
 
 	g_return_if_fail (NM_IS_ACTIVE_CONNECTION (self));
+
+	is_default6 = !!is_default6;
 
 	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (self);
 	if (priv->is_default6 == is_default6)
@@ -314,7 +342,7 @@ nm_active_connection_get_user_requested (NMActiveConnection *self)
 {
 	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (self), FALSE);
 
-	return !nm_auth_subject_get_internal (NM_ACTIVE_CONNECTION_GET_PRIVATE (self)->subject);
+	return nm_auth_subject_is_unix_process (NM_ACTIVE_CONNECTION_GET_PRIVATE (self)->subject);
 }
 
 NMDevice *
@@ -360,11 +388,11 @@ device_master_changed (GObject *object,
 		return;
 	if (!nm_device_get_master (device))
 		return;
+	if (!nm_active_connection_get_master (self))
+		return;
 	g_signal_handlers_disconnect_by_func (device, G_CALLBACK (device_master_changed), self);
 
 	master = nm_active_connection_get_master (self);
-	g_assert (master);
-
 	master_state = nm_active_connection_get_state (master);
 	if (master_state >= NM_ACTIVE_CONNECTION_STATE_DEACTIVATING) {
 		/* Master failed before attaching the slave */
@@ -377,20 +405,23 @@ gboolean
 nm_active_connection_set_device (NMActiveConnection *self, NMDevice *device)
 {
 	NMActiveConnectionPrivate *priv;
+	gs_unref_object NMDevice *old_device = NULL;
 
 	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (self), FALSE);
 	g_return_val_if_fail (!device || NM_IS_DEVICE (device), FALSE);
 
 	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (self);
+	if (device == priv->device)
+		return TRUE;
+
+	old_device = priv->device ? g_object_ref (priv->device) : NULL;
+	_device_cleanup (self);
 
 	if (device) {
-		g_return_val_if_fail (priv->device == NULL, FALSE);
-
 		/* Device obviously can't be its own master */
 		g_return_val_if_fail (!priv->master || device != nm_active_connection_get_device (priv->master), FALSE);
 
 		priv->device = g_object_ref (device);
-		g_object_notify (G_OBJECT (self), NM_ACTIVE_CONNECTION_INT_DEVICE);
 
 		g_signal_connect (device, "state-changed",
 		                  G_CALLBACK (device_state_changed), self);
@@ -401,7 +432,14 @@ nm_active_connection_set_device (NMActiveConnection *self, NMDevice *device)
 			priv->pending_activation_id = g_strdup_printf ("activation::%p", (void *)self);
 			nm_device_add_pending_action (device, priv->pending_activation_id, TRUE);
 		}
-	}
+	} else
+		priv->device = NULL;
+	g_object_notify (G_OBJECT (self), NM_ACTIVE_CONNECTION_INT_DEVICE);
+
+	g_signal_emit (self, signals[DEVICE_CHANGED], 0, priv->device, old_device);
+
+	g_object_notify (G_OBJECT (self), NM_ACTIVE_CONNECTION_DEVICES);
+
 	return TRUE;
 }
 
@@ -477,6 +515,7 @@ master_state_cb (NMActiveConnection *master,
                  gpointer user_data)
 {
 	NMActiveConnection *self = NM_ACTIVE_CONNECTION (user_data);
+	NMActiveConnectionPrivate *priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (self);
 	NMActiveConnectionState master_state = nm_active_connection_get_state (master);
 
 	check_master_ready (self);
@@ -484,8 +523,8 @@ master_state_cb (NMActiveConnection *master,
 	nm_log_dbg (LOGD_DEVICE, "(%p): master ActiveConnection [%p] state now '%s' (%d)",
 	            self, master, state_to_string (master_state), master_state);
 
-	if (master_state == NM_ACTIVE_CONNECTION_STATE_DEACTIVATING &&
-	    nm_active_connection_get_device (master) == NULL) {
+	if (   master_state >= NM_ACTIVE_CONNECTION_STATE_DEACTIVATING
+	    && !priv->master_ready) {
 		/* Master failed without ever creating its device */
 		if (NM_ACTIVE_CONNECTION_GET_CLASS (self)->master_failed)
 			NM_ACTIVE_CONNECTION_GET_CLASS (self)->master_failed (self);
@@ -696,10 +735,10 @@ set_property (GObject *object, guint prop_id,
 			priv->specific_object = g_value_dup_boxed (value);
 		break;
 	case PROP_DEFAULT:
-		priv->is_default = g_value_get_boolean (value);
+		priv->is_default = !!g_value_get_boolean (value);
 		break;
 	case PROP_DEFAULT6:
-		priv->is_default6 = g_value_get_boolean (value);
+		priv->is_default6 = !!g_value_get_boolean (value);
 		break;
 	case PROP_VPN:
 		priv->vpn = g_value_get_boolean (value);
@@ -743,7 +782,14 @@ get_property (GObject *object, guint prop_id,
 		g_value_take_boxed (value, devices);
 		break;
 	case PROP_STATE:
-		g_value_set_uint (value, priv->state);
+		if (priv->state_set)
+			g_value_set_uint (value, priv->state);
+		else {
+			/* When the AC has just been created, its externally-visible state should
+			 * be "ACTIVATING", even though internally it is "UNKNOWN".
+			 */
+			g_value_set_uint (value, NM_ACTIVE_CONNECTION_STATE_ACTIVATING);
+		}
 		break;
 	case PROP_DEFAULT:
 		g_value_set_boolean (value, priv->is_default);
@@ -847,147 +893,155 @@ nm_active_connection_class_init (NMActiveConnectionClass *ac_class)
 	object_class->dispose = dispose;
 
 	/* D-Bus exported properties */
-	g_object_class_install_property (object_class, PROP_CONNECTION,
-		g_param_spec_boxed (NM_ACTIVE_CONNECTION_CONNECTION,
-		                    "Connection",
-		                    "Connection",
-		                    DBUS_TYPE_G_OBJECT_PATH,
-		                    G_PARAM_READABLE));
-
-	g_object_class_install_property (object_class, PROP_ID,
-		g_param_spec_string (NM_ACTIVE_CONNECTION_ID,
-		                     "Connection ID",
-		                     "Connection ID",
-		                     NULL,
-		                     G_PARAM_READABLE));
-
-	g_object_class_install_property (object_class, PROP_UUID,
-		g_param_spec_string (NM_ACTIVE_CONNECTION_UUID,
-		                     "Connection UUID",
-		                     "Connection UUID",
-		                     NULL,
-		                     G_PARAM_READABLE));
-
-	g_object_class_install_property (object_class, PROP_TYPE,
-		g_param_spec_string (NM_ACTIVE_CONNECTION_TYPE,
-		                     "Connection Type",
-		                     "Connection Type",
-		                     NULL,
-		                     G_PARAM_READABLE));
-
-	g_object_class_install_property (object_class, PROP_SPECIFIC_OBJECT,
-		g_param_spec_boxed (NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT,
-		                    "Specific object",
-		                    "Specific object",
-		                    DBUS_TYPE_G_OBJECT_PATH,
-		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-
-	g_object_class_install_property (object_class, PROP_DEVICES,
-		g_param_spec_boxed (NM_ACTIVE_CONNECTION_DEVICES,
-		                    "Devices",
-		                    "Devices",
-		                    DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH,
-		                    G_PARAM_READABLE));
-
-	g_object_class_install_property (object_class, PROP_STATE,
-		g_param_spec_uint (NM_ACTIVE_CONNECTION_STATE,
-		                   "State",
-		                   "State",
-		                   NM_ACTIVE_CONNECTION_STATE_UNKNOWN,
-		                   NM_ACTIVE_CONNECTION_STATE_DEACTIVATING,
-		                   NM_ACTIVE_CONNECTION_STATE_UNKNOWN,
-		                   G_PARAM_READABLE));
-
-	g_object_class_install_property (object_class, PROP_DEFAULT,
-		g_param_spec_boolean (NM_ACTIVE_CONNECTION_DEFAULT,
-		                      "Default",
-		                      "Is the default IPv4 active connection",
-		                      FALSE,
-		                      G_PARAM_READWRITE));
-
-	g_object_class_install_property (object_class, PROP_IP4_CONFIG,
-		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_IP4_CONFIG,
-		                     "IP4 Config",
-		                     "IP4 Config",
+	g_object_class_install_property
+		(object_class, PROP_CONNECTION,
+		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_CONNECTION, "", "",
 		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_DHCP4_CONFIG,
-		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_DHCP4_CONFIG,
-		                     "DHCP4 Config",
-		                     "DHCP4 Config",
+	g_object_class_install_property
+		(object_class, PROP_ID,
+		 g_param_spec_string (NM_ACTIVE_CONNECTION_ID, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_UUID,
+		 g_param_spec_string (NM_ACTIVE_CONNECTION_UUID, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_TYPE,
+		 g_param_spec_string (NM_ACTIVE_CONNECTION_TYPE, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_SPECIFIC_OBJECT,
+		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT, "", "",
 		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+		                     G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_DEFAULT6,
-		g_param_spec_boolean (NM_ACTIVE_CONNECTION_DEFAULT6,
-		                      "Default6",
-		                      "Is the default IPv6 active connection",
-		                      FALSE,
-		                      G_PARAM_READWRITE));
+	g_object_class_install_property
+		(object_class, PROP_DEVICES,
+		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_DEVICES, "", "",
+		                     DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH,
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_IP6_CONFIG,
-		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_IP6_CONFIG,
-		                     "IP6 Config",
-		                     "IP6 Config",
+	g_object_class_install_property
+		(object_class, PROP_STATE,
+		 g_param_spec_uint (NM_ACTIVE_CONNECTION_STATE, "", "",
+		                    NM_ACTIVE_CONNECTION_STATE_UNKNOWN,
+		                    NM_ACTIVE_CONNECTION_STATE_DEACTIVATING,
+		                    NM_ACTIVE_CONNECTION_STATE_UNKNOWN,
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_DEFAULT,
+		 g_param_spec_boolean (NM_ACTIVE_CONNECTION_DEFAULT, "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_IP4_CONFIG,
+		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_IP4_CONFIG, "", "",
 		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_DHCP6_CONFIG,
-		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_DHCP6_CONFIG,
-		                     "DHCP6 Config",
-		                     "DHCP6 Config",
+	g_object_class_install_property
+		(object_class, PROP_DHCP4_CONFIG,
+		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_DHCP4_CONFIG, "", "",
 		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_VPN,
-		g_param_spec_boolean (NM_ACTIVE_CONNECTION_VPN,
-		                      "VPN",
-		                      "Is a VPN connection",
-		                      FALSE,
-		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+	g_object_class_install_property
+		(object_class, PROP_DEFAULT6,
+		 g_param_spec_boolean (NM_ACTIVE_CONNECTION_DEFAULT6, "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_MASTER,
-		g_param_spec_boxed (NM_ACTIVE_CONNECTION_MASTER,
-		                    "Master",
-		                    "Path of master device",
-		                    DBUS_TYPE_G_OBJECT_PATH,
-		                    G_PARAM_READABLE));
+	g_object_class_install_property
+		(object_class, PROP_IP6_CONFIG,
+		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_IP6_CONFIG, "", "",
+		                     DBUS_TYPE_G_OBJECT_PATH,
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_DHCP6_CONFIG,
+		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_DHCP6_CONFIG, "", "",
+		                     DBUS_TYPE_G_OBJECT_PATH,
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_VPN,
+		 g_param_spec_boolean (NM_ACTIVE_CONNECTION_VPN, "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+		                       G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property
+		(object_class, PROP_MASTER,
+		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_MASTER, "", "",
+		                     DBUS_TYPE_G_OBJECT_PATH,
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	/* Internal properties */
-	g_object_class_install_property (object_class, PROP_INT_CONNECTION,
-		g_param_spec_object (NM_ACTIVE_CONNECTION_INT_CONNECTION,
-		                     "Internal Connection",
-		                     "Internal connection",
-		                     NM_TYPE_CONNECTION,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+	g_object_class_install_property
+		(object_class, PROP_INT_CONNECTION,
+		 g_param_spec_object (NM_ACTIVE_CONNECTION_INT_CONNECTION, "", "",
+		                      NM_TYPE_CONNECTION,
+		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+		                      G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_INT_DEVICE,
-		g_param_spec_object (NM_ACTIVE_CONNECTION_INT_DEVICE,
-		                     "Internal device",
-		                     "Internal device",
-		                     NM_TYPE_DEVICE,
-		                     G_PARAM_READWRITE));
+	g_object_class_install_property
+		(object_class, PROP_INT_DEVICE,
+		 g_param_spec_object (NM_ACTIVE_CONNECTION_INT_DEVICE, "", "",
+		                      NM_TYPE_DEVICE,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_INT_SUBJECT,
-		g_param_spec_object (NM_ACTIVE_CONNECTION_INT_SUBJECT,
-		                     "Subject",
-		                     "Subject",
-		                     NM_TYPE_AUTH_SUBJECT,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+	g_object_class_install_property
+		(object_class, PROP_INT_SUBJECT,
+		 g_param_spec_object (NM_ACTIVE_CONNECTION_INT_SUBJECT, "", "",
+		                      NM_TYPE_AUTH_SUBJECT,
+		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+		                      G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_INT_MASTER,
-		g_param_spec_object (NM_ACTIVE_CONNECTION_INT_MASTER,
-		                     "Internal master active connection",
-		                     "Internal active connection",
-		                     NM_TYPE_ACTIVE_CONNECTION,
-		                     G_PARAM_READWRITE));
+	g_object_class_install_property
+		(object_class, PROP_INT_MASTER,
+		 g_param_spec_object (NM_ACTIVE_CONNECTION_INT_MASTER, "", "",
+		                      NM_TYPE_ACTIVE_CONNECTION,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (object_class, PROP_INT_MASTER_READY,
-		g_param_spec_boolean (NM_ACTIVE_CONNECTION_INT_MASTER_READY,
-		                      "Internal master active connection ready for slaves",
-		                      "Internal active connection ready",
-		                      FALSE, G_PARAM_READABLE));
+	g_object_class_install_property
+		(object_class, PROP_INT_MASTER_READY,
+		 g_param_spec_boolean (NM_ACTIVE_CONNECTION_INT_MASTER_READY, "", "",
+		                       FALSE, G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
+
+	signals[DEVICE_CHANGED] =
+		g_signal_new (NM_ACTIVE_CONNECTION_DEVICE_CHANGED,
+		              G_OBJECT_CLASS_TYPE (object_class),
+		              G_SIGNAL_RUN_FIRST,
+		              G_STRUCT_OFFSET (NMActiveConnectionClass, device_changed),
+		              NULL, NULL, NULL,
+		              G_TYPE_NONE, 2, NM_TYPE_DEVICE, NM_TYPE_DEVICE);
 
 	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
 	                                        G_TYPE_FROM_CLASS (ac_class),

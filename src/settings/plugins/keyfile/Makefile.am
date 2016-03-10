@@ -4,18 +4,15 @@ SUBDIRS = . tests
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/src/config \
-	-I$(top_srcdir)/src/logging \
 	-I$(top_srcdir)/src/settings \
 	-I$(top_srcdir)/include \
-	-I$(top_builddir)/include \
-	-I$(top_srcdir)/libnm-util \
-	-I$(top_builddir)/libnm-util \
+	-I$(top_srcdir)/libnm-core \
+	-I$(top_builddir)/libnm-core \
 	-DG_LOG_DOMAIN=\""NetworkManager-keyfile"\" \
+	-DNETWORKMANAGER_COMPILATION \
 	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	$(GLIB_CFLAGS) \
 	$(DBUS_CFLAGS) \
-	$(POLKIT_CFLAGS) \
 	-DNMCONFDIR=\"$(nmconfdir)\"
 
 noinst_LTLIBRARIES = \
@@ -29,7 +26,6 @@ libkeyfile_io_la_SOURCES = \
 	reader.h \
 	writer.c \
 	writer.h \
-	errors.c \
 	utils.c \
 	utils.h \
 	common.h
@@ -45,12 +41,7 @@ libnm_settings_plugin_keyfile_la_SOURCES = \
 	plugin.h
 
 libnm_settings_plugin_keyfile_la_LIBADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	libkeyfile-io.la \
-	$(GLIB_LIBS) \
-	$(DBUS_LIBS)
-
-libnm_settings_plugin_keyfile_la_LDFLAGS = -rdynamic
+	libkeyfile-io.la
 
 keyfiledir=$(sysconfdir)/NetworkManager/system-connections
 

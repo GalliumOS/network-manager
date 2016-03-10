@@ -9,43 +9,44 @@ Index: b/src/devices/nm-device.c
 ===================================================================
 --- a/src/devices/nm-device.c
 +++ b/src/devices/nm-device.c
-@@ -626,6 +626,10 @@ nm_device_get_priority (NMDevice *dev)
- 	 *     it's using that connection.
+@@ -717,6 +717,10 @@ nm_device_get_priority (NMDevice *self)
+ 	 * metrics (except for IPv6, where 0 means 1024).
  	 */
  
 +	/* Ubuntu change:
 +	 * Adjust priorities to de-prioritize bluetooth, wimax and modem
 +	 * to lower; BT is just slow, WiMAX and "MODEM" because they cost
 +	 * money. */
- 	switch (nm_device_get_device_type (dev)) {
+ 	switch (nm_device_get_device_type (self)) {
+ 	/* 50 is reserved for VPN (NM_VPN_ROUTE_METRIC_DEFAULT) */
  	case NM_DEVICE_TYPE_ETHERNET:
- 		return 1;
-@@ -633,22 +637,22 @@ nm_device_get_priority (NMDevice *dev)
- 		return 2;
+@@ -725,8 +729,6 @@ nm_device_get_priority (NMDevice *self)
+ 		return 150;
  	case NM_DEVICE_TYPE_ADSL:
- 		return 3;
+ 		return 200;
 -	case NM_DEVICE_TYPE_WIMAX:
--		return 4;
+-		return 250;
  	case NM_DEVICE_TYPE_BOND:
- 		return 5;
+ 		return 300;
  	case NM_DEVICE_TYPE_TEAM:
- 		return 6;
- 	case NM_DEVICE_TYPE_VLAN:
- 		return 7;
+@@ -735,14 +737,16 @@ nm_device_get_priority (NMDevice *self)
+ 		return 400;
+ 	case NM_DEVICE_TYPE_BRIDGE:
+ 		return 425;
 -	case NM_DEVICE_TYPE_MODEM:
--		return 8;
+-		return 450;
 -	case NM_DEVICE_TYPE_BT:
--		return 9;
+-		return 550;
  	case NM_DEVICE_TYPE_WIFI:
- 		return 10;
+ 		return 600;
  	case NM_DEVICE_TYPE_OLPC_MESH:
- 		return 11;
-+	case NM_DEVICE_TYPE_BT:
-+		return 12;
+ 		return 650;
 +	case NM_DEVICE_TYPE_WIMAX:
-+		return 13;
++		return 700;
 +	case NM_DEVICE_TYPE_MODEM:
-+		return 14;
- 	default:
- 		return 20;
- 	}
++		return 750;
++	case NM_DEVICE_TYPE_BT:
++		return 800;
+ 	case NM_DEVICE_TYPE_GENERIC:
+ 		return 950;
+ 	case NM_DEVICE_TYPE_UNKNOWN:

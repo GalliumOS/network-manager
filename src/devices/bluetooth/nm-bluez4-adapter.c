@@ -18,10 +18,12 @@
  * Copyright (C) 2009 - 2012 Red Hat, Inc.
  */
 
+#include "config.h"
+
 #include <glib.h>
 #include <string.h>
 
-#include "NetworkManager.h"
+#include "nm-dbus-interface.h"
 #include "nm-dbus-manager.h"
 #include "nm-bluez4-adapter.h"
 #include "nm-bluez-device.h"
@@ -162,7 +164,7 @@ device_created (DBusGProxy *proxy, const char *path, gpointer user_data)
 	NMBluez4AdapterPrivate *priv = NM_BLUEZ4_ADAPTER_GET_PRIVATE (self);
 	NMBluezDevice *device;
 
-	device = nm_bluez_device_new (path, priv->provider, 4);
+	device = nm_bluez_device_new (path, priv->address, priv->provider, 4);
 	g_signal_connect (device, "initialized", G_CALLBACK (device_initialized), self);
 	g_signal_connect (device, "notify::usable", G_CALLBACK (device_usable), self);
 	g_hash_table_insert (priv->devices, (gpointer) nm_bluez_device_get_path (device), device);
@@ -371,19 +373,17 @@ nm_bluez4_adapter_class_init (NMBluez4AdapterClass *config_class)
 	/* Properties */
 	g_object_class_install_property
 		(object_class, PROP_PATH,
-		 g_param_spec_string (NM_BLUEZ4_ADAPTER_PATH,
-		                      "DBus Path",
-		                      "DBus Path",
+		 g_param_spec_string (NM_BLUEZ4_ADAPTER_PATH, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+		                      G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_ADDRESS,
-		 g_param_spec_string (NM_BLUEZ4_ADAPTER_ADDRESS,
-		                      "Address",
-		                      "Address",
+		 g_param_spec_string (NM_BLUEZ4_ADAPTER_ADDRESS, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/* Signals */
 	signals[INITIALIZED] = g_signal_new ("initialized",

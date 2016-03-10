@@ -1,8 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Thomas Graf <tgraf@redhat.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -18,14 +16,16 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2011 - 2013 Red Hat, Inc.
+ * Copyright 2011 - 2013 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 #include <linux/if_ether.h>
 
 #include "nm-setting-bridge.h"
@@ -280,25 +280,6 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 {
 	NMSettingBridgePrivate *priv = NM_SETTING_BRIDGE_GET_PRIVATE (setting);
 
-	if (!priv->interface_name || !strlen(priv->interface_name)) {
-		g_set_error_literal (error,
-		                     NM_SETTING_BRIDGE_ERROR,
-		                     NM_SETTING_BRIDGE_ERROR_MISSING_PROPERTY,
-		                     _("property is missing"));
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_BRIDGE_SETTING_NAME, NM_SETTING_BRIDGE_INTERFACE_NAME);
-		return FALSE;
-	}
-
-	if (!nm_utils_iface_valid_name (priv->interface_name)) {
-		g_set_error (error,
-		             NM_SETTING_BRIDGE_ERROR,
-		             NM_SETTING_BRIDGE_ERROR_INVALID_PROPERTY,
-		             _("'%s' is not a valid interface name"),
-		             priv->interface_name);
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_BRIDGE_SETTING_NAME, NM_SETTING_BRIDGE_INTERFACE_NAME);
-		return FALSE;
-	}
-
 	if (priv->mac_address && priv->mac_address->len != ETH_ALEN) {
 		g_set_error_literal (error,
 		                     NM_SETTING_BRIDGE_ERROR,
@@ -336,7 +317,13 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 	                  error))
 		return FALSE;
 
-	return TRUE;
+	return _nm_setting_verify_deprecated_virtual_iface_name (
+	         priv->interface_name, FALSE,
+	         NM_SETTING_BRIDGE_SETTING_NAME, NM_SETTING_BRIDGE_INTERFACE_NAME,
+	         NM_SETTING_BRIDGE_ERROR,
+	         NM_SETTING_BRIDGE_ERROR_INVALID_PROPERTY,
+	         NM_SETTING_BRIDGE_ERROR_MISSING_PROPERTY,
+	         all_settings, error);
 }
 
 static const char *
@@ -468,11 +455,11 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_INTERFACE_NAME,
-		 g_param_spec_string (NM_SETTING_BRIDGE_INTERFACE_NAME,
-		                      "InterfaceName",
-		                      "The name of the virtual in-kernel bridging network interface",
+		 g_param_spec_string (NM_SETTING_BRIDGE_INTERFACE_NAME, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridge:mac-address:
@@ -484,12 +471,12 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 * Since: 0.9.10
 	 **/
 	g_object_class_install_property
-	    (object_class, PROP_MAC_ADDRESS,
-	     _nm_param_spec_specialized (NM_SETTING_BRIDGE_MAC_ADDRESS,
-	                          "MAC Address",
-	                          "The MAC address of the bridge",
-	                          DBUS_TYPE_G_UCHAR_ARRAY,
-	                          G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		(object_class, PROP_MAC_ADDRESS,
+		 _nm_param_spec_specialized (NM_SETTING_BRIDGE_MAC_ADDRESS, "", "",
+		                             DBUS_TYPE_G_UCHAR_ARRAY,
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_INFERRABLE |
+		                             G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridge:stp:
@@ -498,14 +485,14 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 *
 	 * Since: 0.9.8
 	 **/
-	 g_object_class_install_property
-		 (object_class, PROP_STP,
-		  g_param_spec_boolean (NM_SETTING_BRIDGE_STP,
-		                        "STP",
-		                        "Controls whether Spanning Tree Protocol (STP) "
-		                        "is enabled for this bridge.",
-		                        TRUE,
-		                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+	g_object_class_install_property
+		(object_class, PROP_STP,
+		 g_param_spec_boolean (NM_SETTING_BRIDGE_STP, "", "",
+		                       TRUE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_CONSTRUCT |
+		                       NM_SETTING_PARAM_INFERRABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridge:priority:
@@ -516,16 +503,14 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 *
 	 * Since: 0.9.8
 	 **/
-	 g_object_class_install_property
-		 (object_class, PROP_PRIORITY,
-		  g_param_spec_uint (NM_SETTING_BRIDGE_PRIORITY,
-		                     "Priority",
-		                     "Sets the Spanning Tree Protocol (STP) priority "
-		                     "for this bridge.  Lower values are 'better'; the "
-		                     "lowest priority bridge will be elected the root "
-		                     "bridge.",
-		                     0, G_MAXUINT16, 0x8000,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+	g_object_class_install_property
+		(object_class, PROP_PRIORITY,
+		 g_param_spec_uint (NM_SETTING_BRIDGE_PRIORITY, "", "",
+		                    0, G_MAXUINT16, 0x8000,
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridge:forward-delay:
@@ -534,14 +519,14 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 *
 	 * Since: 0.9.8
 	 **/
-	 g_object_class_install_property
-		 (object_class, PROP_FORWARD_DELAY,
-		  g_param_spec_uint (NM_SETTING_BRIDGE_FORWARD_DELAY,
-		                     "ForwardDelay",
-		                     "The Spanning Tree Protocol (STP) forwarding "
-		                     "delay, in seconds.",
-		                     0, BR_MAX_FORWARD_DELAY, 15,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+	g_object_class_install_property
+		(object_class, PROP_FORWARD_DELAY,
+		 g_param_spec_uint (NM_SETTING_BRIDGE_FORWARD_DELAY, "", "",
+		                    0, BR_MAX_FORWARD_DELAY, 15,
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridge:hello-time:
@@ -550,14 +535,14 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 *
 	 * Since: 0.9.8
 	 **/
-	 g_object_class_install_property
-		 (object_class, PROP_HELLO_TIME,
-		  g_param_spec_uint (NM_SETTING_BRIDGE_HELLO_TIME,
-		                     "HelloTime",
-		                     "The Spanning Tree Protocol (STP) hello time, in "
-		                     "seconds.",
-		                     0, BR_MAX_HELLO_TIME, 2,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+	g_object_class_install_property
+		(object_class, PROP_HELLO_TIME,
+		 g_param_spec_uint (NM_SETTING_BRIDGE_HELLO_TIME, "", "",
+		                    0, BR_MAX_HELLO_TIME, 2,
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridge:max-age:
@@ -566,14 +551,14 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 *
 	 * Since: 0.9.8
 	 **/
-	 g_object_class_install_property
-		 (object_class, PROP_MAX_AGE,
-		  g_param_spec_uint (NM_SETTING_BRIDGE_MAX_AGE,
-		                     "MaxAge",
-		                     "The Spanning Tree Protocol (STP) maximum message "
-		                     "age, in seconds.",
-		                     0, BR_MAX_MAX_AGE, 20,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+	g_object_class_install_property
+		(object_class, PROP_MAX_AGE,
+		 g_param_spec_uint (NM_SETTING_BRIDGE_MAX_AGE, "", "",
+		                    0, BR_MAX_MAX_AGE, 20,
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBridge:ageing-time:
@@ -582,12 +567,12 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 *
 	 * Since: 0.9.8
 	 **/
-	 g_object_class_install_property
-		 (object_class, PROP_AGEING_TIME,
-		  g_param_spec_uint (NM_SETTING_BRIDGE_AGEING_TIME,
-		                     "AgeingTime",
-		                     "The Ethernet MAC address aging time, in seconds.",
-		                     0, BR_MAX_AGEING_TIME, 300,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+	g_object_class_install_property
+		(object_class, PROP_AGEING_TIME,
+		 g_param_spec_uint (NM_SETTING_BRIDGE_AGEING_TIME, "", "",
+		                    0, BR_MAX_AGEING_TIME, 300,
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 }
-

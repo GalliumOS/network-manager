@@ -18,10 +18,15 @@
  *
  */
 
+#include "config.h"
+
 #include <glib.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 #include "NetworkManagerUtils.h"
+#include "nm-ip4-config.h"
+#include "nm-ip6-config.h"
 #include "nm-platform.h"
 
 static void

@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,11 +15,12 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2012 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2012 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 #include <netinet/ether.h>
 
@@ -343,11 +342,10 @@ nm_device_bt_class_init (NMDeviceBtClass *bt_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_BT_HW_ADDRESS,
-		                      "MAC Address",
-		                      "Hardware MAC address",
+		 g_param_spec_string (NM_DEVICE_BT_HW_ADDRESS, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceBt:name:
@@ -356,11 +354,10 @@ nm_device_bt_class_init (NMDeviceBtClass *bt_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NAME,
-		 g_param_spec_string (NM_DEVICE_BT_NAME,
-		                      "Name",
-		                      "Device name",
+		 g_param_spec_string (NM_DEVICE_BT_NAME, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceBt:bt-capabilities:
@@ -369,11 +366,9 @@ nm_device_bt_class_init (NMDeviceBtClass *bt_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_BT_CAPABILITIES,
-		 g_param_spec_uint (NM_DEVICE_BT_CAPABILITIES,
-		                    "BtCapabilities",
-		                    "Bluetooth capabilities",
+		 g_param_spec_uint (NM_DEVICE_BT_CAPABILITIES, "", "",
 		                    NM_BT_CAPABILITY_NONE, G_MAXUINT32, NM_BT_CAPABILITY_NONE,
-		                    G_PARAM_READABLE));
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 }
-

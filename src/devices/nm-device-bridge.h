@@ -18,8 +18,8 @@
  * Copyright 2012 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_BRIDGE_H
-#define NM_DEVICE_BRIDGE_H
+#ifndef __NETWORKMANAGER_DEVICE_BRIDGE_H__
+#define __NETWORKMANAGER_DEVICE_BRIDGE_H__
 
 #include <glib-object.h>
 
@@ -34,30 +34,12 @@ G_BEGIN_DECLS
 #define NM_IS_DEVICE_BRIDGE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_BRIDGE))
 #define NM_DEVICE_BRIDGE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_BRIDGE, NMDeviceBridgeClass))
 
-typedef enum {
-	NM_BRIDGE_ERROR_CONNECTION_NOT_BRIDGE = 0, /*< nick=ConnectionNotBridge >*/
-	NM_BRIDGE_ERROR_CONNECTION_INVALID,      /*< nick=ConnectionInvalid >*/
-	NM_BRIDGE_ERROR_CONNECTION_INCOMPATIBLE, /*< nick=ConnectionIncompatible >*/
-} NMBridgeError;
-
 #define NM_DEVICE_BRIDGE_SLAVES "slaves"
 
-typedef struct {
-	NMDevice parent;
-} NMDeviceBridge;
-
-typedef struct {
-	NMDeviceClass parent;
-
-} NMDeviceBridgeClass;
-
+typedef NMDevice NMDeviceBridge;
+typedef NMDeviceClass NMDeviceBridgeClass;
 
 GType nm_device_bridge_get_type (void);
-
-NMDevice *nm_device_bridge_new (NMPlatformLink *platform_device);
-NMDevice *nm_device_bridge_new_for_connection (NMConnection *connection);
-
-gboolean nm_bridge_update_slave_connection (NMDevice *slave, NMConnection *connection);
 
 G_END_DECLS
 

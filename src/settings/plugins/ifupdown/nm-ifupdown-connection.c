@@ -21,14 +21,15 @@
  * (C) Copyright 2007,2008 Canonical Ltd.
  */
 
+#include "config.h"
+
 #include <string.h>
 #include <glib/gstdio.h>
-#include <NetworkManager.h>
+#include <nm-dbus-interface.h>
 #include <nm-utils.h>
 #include <nm-setting-wireless-security.h>
 #include <nm-settings-connection.h>
 #include <nm-system-config-interface.h>
-#include <nm-settings-error.h>
 #include <nm-logging.h>
 #include "nm-ifupdown-connection.h"
 #include "parser.h"
@@ -161,9 +162,8 @@ nm_ifupdown_connection_class_init (NMIfupdownConnectionClass *ifupdown_connectio
 	/* Properties */
 	g_object_class_install_property
 		(object_class, PROP_IFBLOCK,
-		 g_param_spec_pointer (NM_IFUPDOWN_CONNECTION_IFBLOCK,
-						   "ifblock",
-						   "",
-						   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+		 g_param_spec_pointer (NM_IFUPDOWN_CONNECTION_IFBLOCK, "", "",
+		                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+		                       G_PARAM_STATIC_STRINGS));
 }
 

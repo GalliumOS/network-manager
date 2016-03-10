@@ -19,10 +19,11 @@
  *
  */
 
-#ifndef IWMXSDK_H
-#define IWMXSDK_H
+#ifndef __IWMXSDK_H__
+#define __IWMXSDK_H__
 
-#include <wimax/WiMaxType.h>
+#include "nm-wimax-util.h"
+
 #include <wimax/WiMaxTypesEx.h>
 #include <wimax/WiMaxAPIEx.h>
 
@@ -108,4 +109,4 @@ int iwmx_sdk_get_networks(struct wmxsdk *wmxsdk);
 int iwmx_sdk_api_init(void);
 void iwmx_sdk_api_exit(void);
 
-#endif  /* IWMXSDK_H */
+#endif  /* __IWMXSDK_H__ */

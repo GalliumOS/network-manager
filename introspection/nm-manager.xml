@@ -2,6 +2,8 @@
 
 <node name="/org/freedesktop/NetworkManager" xmlns:tp="http://telepathy.freedesktop.org/wiki/DbusSpec#extensions-v0">
   <interface name="org.freedesktop.NetworkManager">
+    <annotation name="org.gtk.GDBus.C.Name" value="Manager"/>
+
     <method name="GetDevices">
       <tp:docstring>
         Get the list of network devices.
@@ -71,16 +73,6 @@
           The path of the active connection object representing this active connection.
         </tp:docstring>
       </arg>
-      <tp:possible-errors>
-        <tp:error name="org.freedesktop.NetworkManager.Error.UnknownConnection"/>
-        <tp:error name="org.freedesktop.NetworkManager.Error.UnknownDevice"/>
-        <tp:error name="org.freedesktop.NetworkManager.Error.ConnectionActivating">
-          <tp:docstring>Another connection is already activating or the same connection is already active.  FIXME: check if the error name is correct.  FIXME: split into 2 errors?</tp:docstring>
-        </tp:error>
-        <tp:error name="org.freedesktop.NetworkManager.Error.ConnectionInvalid">
-          <tp:docstring>The connection is invalid for this device.</tp:docstring>
-        </tp:error>
-      </tp:possible-errors>
     </method>
 
     <method name="AddAndActivateConnection">
@@ -123,13 +115,6 @@
           The path of the active connection object representing this active connection.
         </tp:docstring>
       </arg>
-      <tp:possible-errors>
-        <tp:error name="org.freedesktop.NetworkManager.Error.UnknownConnection"/>
-        <tp:error name="org.freedesktop.NetworkManager.Error.UnknownDevice"/>
-        <tp:error name="org.freedesktop.NetworkManager.Error.ConnectionInvalid">
-          <tp:docstring>The connection is invalid for this device.</tp:docstring>
-        </tp:error>
-      </tp:possible-errors>
     </method>
 
     <method name="DeactivateConnection">
@@ -215,7 +200,7 @@
       </tp:docstring>
       <arg name="level" type="s" direction="in">
         <tp:docstring>
-          One of [ERR, WARN, INFO, DEBUG].
+          One of [ERR, WARN, INFO, DEBUG, TRACE].
         </tp:docstring>
       </arg>
       <arg name="domains" type="s" direction="in">
@@ -244,7 +229,7 @@
       </tp:docstring>
       <arg name="level" type="s" direction="out">
         <tp:docstring>
-          One of [ERR, WARN, INFO, DEBUG].
+          One of [ERR, WARN, INFO, DEBUG, TRACE].
         </tp:docstring>
       </arg>
       <arg name="domains" type="s" direction="out">
@@ -339,6 +324,14 @@
         indicates the connection that has the default route. If there
         is a VPN active with the default route, then this indicates
         the connection that contains the route to the VPN endpoint.
+      </tp:docstring>
+    </property>
+
+    <property name="PrimaryConnectionType" type="s" access="read">
+      <tp:docstring>
+        The connection type of the "primary" active connection being
+        used to access the network. This is the same as the Type
+        property on the object indicated by PrimaryConnection.
       </tp:docstring>
     </property>
 

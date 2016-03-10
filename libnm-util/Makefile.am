@@ -5,8 +5,8 @@ SUBDIRS = . tests
 AM_CPPFLAGS = \
 	-I${top_srcdir} \
 	-I${top_srcdir}/include \
-	-I${top_builddir}/include \
 	-DG_LOG_DOMAIN=\""libnm-util"\" \
+	-DLOCALEDIR=\"$(datadir)/locale\" \
 	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	$(GLIB_CFLAGS) \
 	$(DBUS_CFLAGS) \
@@ -23,6 +23,8 @@ endif
 lib_LTLIBRARIES=libnm-util.la
 
 libnm_util_include_HEADERS = 		\
+	NetworkManager.h		\
+	NetworkManagerVPN.h		\
 	nm-connection.h			\
 	nm-setting.h			\
 	nm-setting-8021x.h		\
@@ -51,8 +53,11 @@ libnm_util_include_HEADERS = 		\
 	nm-setting-wireless.h		\
 	nm-setting-wireless-security.h	\
 	nm-setting-vpn.h		\
-	nm-utils-enum-types.h		\
 	nm-utils.h
+
+nodist_libnm_util_include_HEADERS = \
+	nm-utils-enum-types.h		\
+	nm-version.h
 
 libnm_util_la_private_headers = \
 	crypto.h			\
@@ -101,7 +106,7 @@ libnm_util_la_SOURCES = \
 
 GLIB_GENERATED = nm-utils-enum-types.h nm-utils-enum-types.c
 BUILT_SOURCES = $(GLIB_GENERATED)
-nm_utils_enum_types_sources = $(libnm_util_include_HEADERS)
+nm_utils_enum_types_sources = $(filter-out NetworkManager%,$(libnm_util_include_HEADERS))
 GLIB_MKENUMS_H_FLAGS = --identifier-prefix NM
 GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM
 
@@ -110,7 +115,7 @@ libnm_util_la_LIBADD = $(GLIB_LIBS) $(DBUS_LIBS) $(UUID_LIBS)
 SYMBOL_VIS_FILE=$(srcdir)/libnm-util.ver
 
 libnm_util_la_LDFLAGS = -Wl,--version-script=$(SYMBOL_VIS_FILE) \
-	-version-info "8:0:6"
+	-version-info "9:0:7"
 
 if WITH_GNUTLS
 libnm_util_la_SOURCES += crypto_gnutls.c
@@ -150,9 +155,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libnm-util.pc
 
 DISTCLEANFILES = libnm-util.pc
-CLEANFILES = 
 
-EXTRA_DIST = libnm-util.pc.in libnm-util.ver
+EXTRA_DIST = libnm-util.pc.in libnm-util.ver nm-version.h.in
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
@@ -160,7 +164,7 @@ INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir)
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
-introspection_sources = $(libnm_util_include_HEADERS) $(libnm_util_la_csources) $(top_srcdir)/include/NetworkManager.h $(top_srcdir)/include/NetworkManagerVPN.h
+introspection_sources = $(libnm_util_include_HEADERS) $(nodist_libnm_util_include_HEADERS) $(libnm_util_la_csources)
 
 NetworkManager-1.0.gir: libnm-util.la
 NetworkManager_1_0_gir_INCLUDES = GObject-2.0 DBusGLib-1.0
@@ -178,7 +182,8 @@ gir_DATA = $(INTROSPECTION_GIRS)
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
-CLEANFILES += $(gir_DATA) $(typelib_DATA)
+CLEANFILES = $(gir_DATA) $(typelib_DATA)
+
 endif
 
 if ENABLE_TESTS

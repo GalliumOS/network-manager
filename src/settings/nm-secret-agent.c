@@ -18,7 +18,7 @@
  * Copyright (C) 2010 - 2011 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
 
 #include <sys/types.h>
 #include <pwd.h>
@@ -27,12 +27,15 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
-#include "NetworkManager.h"
+#include "nm-dbus-interface.h"
 #include "nm-secret-agent.h"
 #include "nm-dbus-manager.h"
 #include "nm-dbus-glib-types.h"
 #include "nm-glib-compat.h"
 #include "nm-logging.h"
+#include "nm-auth-subject.h"
+#include "nm-simple-connection.h"
+#include "NetworkManagerUtils.h"
 
 G_DEFINE_TYPE (NMSecretAgent, nm_secret_agent, G_TYPE_OBJECT)
 
@@ -105,9 +108,9 @@ nm_secret_agent_get_description (NMSecretAgent *agent)
 	priv = NM_SECRET_AGENT_GET_PRIVATE (agent);
 	if (!priv->description) {
 		priv->description = g_strdup_printf ("%s/%s/%lu",
-		                                     nm_auth_subject_get_dbus_sender (priv->subject),
+		                                     nm_auth_subject_get_unix_process_dbus_sender (priv->subject),
 		                                     priv->identifier,
-		                                     nm_auth_subject_get_uid (priv->subject));
+		                                     nm_auth_subject_get_unix_process_uid (priv->subject));
 	}
 
 	return priv->description;
@@ -118,7 +121,7 @@ nm_secret_agent_get_dbus_owner (NMSecretAgent *agent)
 {
 	g_return_val_if_fail (NM_IS_SECRET_AGENT (agent), NULL);
 
-	return nm_auth_subject_get_dbus_sender (NM_SECRET_AGENT_GET_PRIVATE (agent)->subject);
+	return nm_auth_subject_get_unix_process_dbus_sender (NM_SECRET_AGENT_GET_PRIVATE (agent)->subject);
 }
 
 const char *
@@ -134,7 +137,7 @@ nm_secret_agent_get_owner_uid  (NMSecretAgent *agent)
 {
 	g_return_val_if_fail (NM_IS_SECRET_AGENT (agent), G_MAXULONG);
 
-	return nm_auth_subject_get_uid (NM_SECRET_AGENT_GET_PRIVATE (agent)->subject);
+	return nm_auth_subject_get_unix_process_uid (NM_SECRET_AGENT_GET_PRIVATE (agent)->subject);
 }
 
 const char *
@@ -150,7 +153,7 @@ nm_secret_agent_get_pid (NMSecretAgent *agent)
 {
 	g_return_val_if_fail (NM_IS_SECRET_AGENT (agent), G_MAXULONG);
 
-	return nm_auth_subject_get_pid (NM_SECRET_AGENT_GET_PRIVATE (agent)->subject);
+	return nm_auth_subject_get_unix_process_pid (NM_SECRET_AGENT_GET_PRIVATE (agent)->subject);
 }
 
 NMSecretAgentCapabilities
@@ -276,11 +279,12 @@ nm_secret_agent_get_secrets (NMSecretAgent *self,
                              NMConnection *connection,
                              const char *setting_name,
                              const char **hints,
-                             NMSettingsGetSecretsFlags flags,
+                             NMSecretAgentGetSecretsFlags flags,
                              NMSecretAgentCallback callback,
                              gpointer callback_data)
 {
 	NMSecretAgentPrivate *priv;
+	GVariant *dict;
 	GHashTable *hash;
 	Request *r;
 
@@ -291,10 +295,13 @@ nm_secret_agent_get_secrets (NMSecretAgent *self,
 	priv = NM_SECRET_AGENT_GET_PRIVATE (self);
 	g_return_val_if_fail (priv->proxy != NULL, NULL);
 
-	hash = nm_connection_to_hash (connection, NM_SETTING_HASH_FLAG_ALL);
+	dict = nm_connection_to_dbus (connection, NM_CONNECTION_SERIALIZE_ALL);
+	hash = nm_utils_connection_dict_to_hash (dict);
+	g_variant_unref (dict);
 
-	/* Mask off the private ONLY_SYSTEM flag if present */
-	flags &= ~NM_SETTINGS_GET_SECRETS_FLAG_ONLY_SYSTEM;
+	/* Mask off the private flags if present */
+	flags &= ~NM_SECRET_AGENT_GET_SECRETS_FLAG_ONLY_SYSTEM;
+	flags &= ~NM_SECRET_AGENT_GET_SECRETS_FLAG_NO_ERRORS;
 
 	r = request_new (self, nm_connection_get_path (connection), setting_name, callback, callback_data);
 	r->call = dbus_g_proxy_begin_call_with_timeout (priv->proxy,
@@ -377,17 +384,20 @@ agent_save_delete_cb (DBusGProxy *proxy,
 static gpointer
 agent_new_save_delete (NMSecretAgent *self,
                        NMConnection *connection,
-                       NMSettingHashFlags hash_flags,
+                       NMConnectionSerializationFlags flags,
                        const char *method,
                        NMSecretAgentCallback callback,
                        gpointer callback_data)
 {
 	NMSecretAgentPrivate *priv = NM_SECRET_AGENT_GET_PRIVATE (self);
+	GVariant *dict;
 	GHashTable *hash;
 	Request *r;
 	const char *cpath = nm_connection_get_path (connection);
 
-	hash = nm_connection_to_hash (connection, hash_flags);
+	dict = nm_connection_to_dbus (connection, flags);
+	hash = nm_utils_connection_dict_to_hash (dict);
+	g_variant_unref (dict);
 
 	r = request_new (self, cpath, NULL, callback, callback_data);
 	r->call = dbus_g_proxy_begin_call_with_timeout (priv->proxy,
@@ -417,7 +427,7 @@ nm_secret_agent_save_secrets (NMSecretAgent *self,
 	/* Caller should have ensured that only agent-owned secrets exist in 'connection' */
 	return agent_new_save_delete (self,
 	                              connection,
-	                              NM_SETTING_HASH_FLAG_ALL,
+	                              NM_CONNECTION_SERIALIZE_ALL,
 	                              "SaveSecrets",
 	                              callback,
 	                              callback_data);
@@ -435,7 +445,7 @@ nm_secret_agent_delete_secrets (NMSecretAgent *self,
 	/* No secrets sent; agents must be smart enough to track secrets using the UUID or something */
 	return agent_new_save_delete (self,
 	                              connection,
-	                              NM_SETTING_HASH_FLAG_NO_SECRETS,
+	                              NM_CONNECTION_SERIALIZE_NO_SECRETS,
 	                              "DeleteSecrets",
 	                              callback,
 	                              callback_data);
@@ -468,9 +478,10 @@ nm_secret_agent_new (DBusGMethodInvocation *context,
 
 	g_return_val_if_fail (context != NULL, NULL);
 	g_return_val_if_fail (NM_IS_AUTH_SUBJECT (subject), NULL);
+	g_return_val_if_fail (nm_auth_subject_is_unix_process (subject), NULL);
 	g_return_val_if_fail (identifier != NULL, NULL);
 
-	pw = getpwuid (nm_auth_subject_get_uid (subject));
+	pw = getpwuid (nm_auth_subject_get_unix_process_uid (subject));
 	g_return_val_if_fail (pw != NULL, NULL);
 	g_return_val_if_fail (pw->pw_name[0] != '\0', NULL);
 	username = g_strdup (pw->pw_name);
@@ -483,13 +494,13 @@ nm_secret_agent_new (DBusGMethodInvocation *context,
 	priv->capabilities = capabilities;
 	priv->subject = g_object_ref (subject);
 
-	hash_str = g_strdup_printf ("%16lu%s", nm_auth_subject_get_uid (subject), identifier);
+	hash_str = g_strdup_printf ("%16lu%s", nm_auth_subject_get_unix_process_uid (subject), identifier);
 	priv->hash = g_str_hash (hash_str);
 	g_free (hash_str);
 
 	priv->proxy = nm_dbus_manager_new_proxy (nm_dbus_manager_get (),
 	                                         context,
-	                                         nm_auth_subject_get_dbus_sender (subject),
+	                                         nm_auth_subject_get_unix_process_dbus_sender (subject),
 	                                         NM_DBUS_PATH_SECRET_AGENT,
 	                                         NM_DBUS_INTERFACE_SECRET_AGENT);
 	g_assert (priv->proxy);

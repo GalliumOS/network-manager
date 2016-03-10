@@ -1,0 +1,41 @@
+From 9736327b2616861dfec181e88f908a18b22d781c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ji=C5=99=C3=AD=20Klime=C5=A1?= <jklimes@redhat.com>
+Date: Thu, 7 May 2015 11:27:26 +0200
+Subject: wifi: fix a crash in on_bss_proxy_acquired() (rh #1266003)
+
+g_dbus_proxy_get_cached_property_names() function can return NULL.
+
+ Program received signal SIGSEGV, Segmentation fault.
+ on_bss_proxy_acquired (proxy=0x7fffe4003880 [GDBusProxy], result=0x895490, user_data=<optimized out>) at supplicant-manager/nm-supplicant-interface.c:159
+ 159		while (*iter) {
+ (gdb) bt
+ #0  0x000000000048fac7 in on_bss_proxy_acquired (proxy=0x7fffe4003880 [GDBusProxy], result=0x895490, user_data=<optimized out>)
+     at supplicant-manager/nm-supplicant-interface.c:159
+ #1  0x0000003bf84728b7 in g_simple_async_result_complete (simple=0x895490 [GSimpleAsyncResult]) at gsimpleasyncresult.c:763
+ #2  0x0000003bf8472919 in complete_in_idle_cb (data=<optimized out>) at gsimpleasyncresult.c:775
+ #3  0x0000003bf5c497fb in g_main_context_dispatch (context=0x7d6420) at gmain.c:3111
+ #4  0x0000003bf5c497fb in g_main_context_dispatch (context=context@entry=0x7d6420) at gmain.c:3710
+ #5  0x0000003bf5c49b98 in g_main_context_iterate (context=0x7d6420, block=block@entry=1, dispatch=dispatch@entry=1, self=<optimized out>) at gmain.c:3781
+ #6  0x0000003bf5c49ec2 in g_main_loop_run (loop=0x7d64e0) at gmain.c:3975
+ #7  0x00000000004349d6 in main (argc=1, argv=0x7fffffffe598) at main.c:486
+
+https://bugzilla.redhat.com/show_bug.cgi?id=1266003
+
+(cherry picked from commit 33527341b1e35034a4f1736df4bc98f8ac8418ab)
+
+diff --git a/src/supplicant-manager/nm-supplicant-interface.c b/src/supplicant-manager/nm-supplicant-interface.c
+index 66bab2e..08b850a 100644
+--- a/src/supplicant-manager/nm-supplicant-interface.c
++++ b/src/supplicant-manager/nm-supplicant-interface.c
+@@ -154,7 +154,7 @@ on_bss_proxy_acquired (GDBusProxy *proxy, GAsyncResult *result, gpointer user_da
+ 	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+ 
+ 	iter = properties = g_dbus_proxy_get_cached_property_names (proxy);
+-	while (*iter) {
++	while (iter && *iter) {
+ 		GVariant *copy = g_dbus_proxy_get_cached_property (proxy, *iter);
+ 
+ 		g_variant_builder_add (&builder, "{sv}", *iter++, copy);
+-- 
+cgit v0.10.2
+

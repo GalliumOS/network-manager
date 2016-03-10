@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,9 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 - 2011 Red Hat, Inc.
- * Copyright (C) 2008 Novell, Inc.
+ * Copyright 2008 - 2011 Red Hat, Inc.
+ * Copyright 2008 Novell, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 
@@ -156,11 +156,10 @@ nm_dhcp6_config_class_init (NMDHCP6ConfigClass *config_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_OPTIONS,
-		 g_param_spec_boxed (NM_DHCP6_CONFIG_OPTIONS,
-						       "Options",
-						       "Options",
-						       G_TYPE_HASH_TABLE,
-						       G_PARAM_READABLE));
+		 g_param_spec_boxed (NM_DHCP6_CONFIG_OPTIONS, "", "",
+		                     G_TYPE_HASH_TABLE,
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 }
 
 /**
@@ -176,9 +175,9 @@ GObject *
 nm_dhcp6_config_new (DBusGConnection *connection, const char *object_path)
 {
 	return (GObject *) g_object_new (NM_TYPE_DHCP6_CONFIG,
-									 NM_OBJECT_DBUS_CONNECTION, connection,
-									 NM_OBJECT_DBUS_PATH, object_path,
-									 NULL);
+	                                 NM_OBJECT_DBUS_CONNECTION, connection,
+	                                 NM_OBJECT_DBUS_PATH, object_path,
+	                                 NULL);
 }
 
 /**
@@ -216,4 +215,3 @@ nm_dhcp6_config_get_one_option (NMDHCP6Config *config, const char *option)
 
 	return g_hash_table_lookup (nm_dhcp6_config_get_options (config), option);
 }
-

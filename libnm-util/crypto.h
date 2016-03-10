@@ -18,7 +18,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2014 Red Hat, Inc.
+ * Copyright 2007 - 2014 Red Hat, Inc.
  */
 
 #ifndef __CRYPTO_H__
@@ -69,8 +69,6 @@ typedef enum {
 GQuark _nm_crypto_error_quark (void);
 
 gboolean crypto_init (GError **error);
-
-void crypto_deinit (void);
 
 GByteArray *crypto_decrypt_private_key_data (const GByteArray *contents,
                                              const char *password,

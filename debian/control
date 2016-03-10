@@ -18,8 +18,9 @@ Build-Depends: debhelper (>= 9),
                libnl-genl-3-dev (>= 3.2.8),
                ppp-dev (>= 2.4.6),
                libpolkit-gobject-1-dev,
-               libgnutls28-dev,
-               libgcrypt11-dev,
+               libpolkit-agent-1-dev (>= 0.97),
+               libgnutls-dev,
+               libgcrypt20-dev,
                uuid-dev,
                systemd (>= 185),
                libsystemd-dev (>= 209),
@@ -29,17 +30,19 @@ Build-Depends: debhelper (>= 9),
                gobject-introspection (>= 0.9.12-4~),
                libsoup2.4-dev (>= 2.26),
                gtk-doc-tools,
+               perl,
+               libyaml-perl,
                libglib2.0-doc,
                libmm-glib-dev (>=  0.7.991),
                libndp-dev,
                libreadline-dev,
                libnewt-dev (>= 0.52.15),
+               libbluetooth-dev (>= 5),
                valac (>= 0.17.1.24),
                dbus-test-runner,
-               isc-dhcp-client,
                python-dbus,
                python-gi,
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Vcs-Bzr: https://code.launchpad.net/~network-manager/network-manager/ubuntu
 Homepage: http://www.gnome.org/projects/NetworkManager/
 XS-Testsuite: autopkgtest
@@ -202,6 +205,40 @@ Depends: ${misc:Depends},
          libglib2.0-dev,
          libdbus-glib-1-dev
 Description: network management framework (development files)
+ NetworkManager is a system network service that manages your network devices
+ and connections, attempting to keep active network connectivity when
+ available. It manages ethernet, WiFi, mobile broadband (WWAN), and PPPoE
+ devices, and provides VPN integration with a variety of different VPN
+ services.
+ .
+ This package contains header and development files.
+
+Package: libnm0
+Section: libs
+Architecture: linux-any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: GObject-based client library for NetworkManager
+ NetworkManager is a system network service that manages your network devices
+ and connections, attempting to keep active network connectivity when
+ available. It manages ethernet, WiFi, mobile broadband (WWAN), and PPPoE
+ devices, and provides VPN integration with a variety of different VPN
+ services.
+ .
+ This package contains a convenience library to ease the access to
+ NetworkManager.
+
+Package: libnm-dev
+Section: libdevel
+Architecture: linux-any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         libnm0 (= ${binary:Version}),
+         gir1.2-networkmanager-1.0 (= ${binary:Version}),
+         libglib2.0-dev
+Description: GObject-based client library for NetworkManager (development files)
  NetworkManager is a system network service that manages your network devices
  and connections, attempting to keep active network connectivity when
  available. It manages ethernet, WiFi, mobile broadband (WWAN), and PPPoE

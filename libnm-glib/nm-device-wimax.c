@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,11 +15,12 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2011 - 2012 Red Hat, Inc.
- * Copyright (C) 2009 Novell, Inc.
+ * Copyright 2011 - 2012 Red Hat, Inc.
+ * Copyright 2009 Novell, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 #include <netinet/ether.h>
 
@@ -114,9 +113,9 @@ nm_device_wimax_new (DBusGConnection *connection, const char *path)
 	g_return_val_if_fail (path != NULL, NULL);
 
 	device = g_object_new (NM_TYPE_DEVICE_WIMAX,
-						   NM_OBJECT_DBUS_CONNECTION, connection,
-						   NM_OBJECT_DBUS_PATH, path,
-						   NULL);
+	                       NM_OBJECT_DBUS_CONNECTION, connection,
+	                       NM_OBJECT_DBUS_PATH, path,
+	                       NULL);
 	_nm_object_ensure_inited (NM_OBJECT (device));
 	return device;
 }
@@ -180,7 +179,7 @@ nm_device_wimax_get_active_nsp (NMDeviceWimax *wimax)
  *
  * Gets all the scanned NSPs of the #NMDeviceWimax.
  *
- * Returns: (element-type NMClient.WimaxNsp): a #GPtrArray containing
+ * Returns: (element-type NMWimaxNsp): a #GPtrArray containing
  *          all the scanned #NMWimaxNsps.
  * The returned array is owned by the client and should not be modified.
  **/
@@ -204,7 +203,7 @@ nm_device_wimax_get_nsps (NMDeviceWimax *wimax)
  **/
 NMWimaxNsp *
 nm_device_wimax_get_nsp_by_path (NMDeviceWimax *wimax,
-								 const char *path)
+                                 const char *path)
 {
 	const GPtrArray *nsps;
 	int i;
@@ -618,11 +617,10 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_WIMAX_HW_ADDRESS,
-		                      "MAC Address",
-		                      "Hardware MAC address",
+		 g_param_spec_string (NM_DEVICE_WIMAX_HW_ADDRESS, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceWimax:active-nsp:
@@ -631,11 +629,10 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ACTIVE_NSP,
-		 g_param_spec_object (NM_DEVICE_WIMAX_ACTIVE_NSP,
-							  "Active NSP",
-							  "Active NSP",
-							  NM_TYPE_WIMAX_NSP,
-							  G_PARAM_READABLE));
+		 g_param_spec_object (NM_DEVICE_WIMAX_ACTIVE_NSP, "", "",
+		                      NM_TYPE_WIMAX_NSP,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceWimax:center-frequency:
@@ -646,11 +643,10 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CENTER_FREQ,
-		 g_param_spec_uint (NM_DEVICE_WIMAX_CENTER_FREQUENCY,
-		                    "Center frequency",
-		                    "Center frequency",
+		 g_param_spec_uint (NM_DEVICE_WIMAX_CENTER_FREQUENCY, "", "",
 		                    0, G_MAXUINT, 0,
-		                    G_PARAM_READABLE));
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceWimax:rssi:
@@ -662,11 +658,10 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RSSI,
-		 g_param_spec_int (NM_DEVICE_WIMAX_RSSI,
-		                   "RSSI",
-		                   "RSSI",
+		 g_param_spec_int (NM_DEVICE_WIMAX_RSSI, "", "",
 		                   G_MININT, G_MAXINT, 0,
-		                   G_PARAM_READABLE));
+		                   G_PARAM_READABLE |
+		                   G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceWimax:cinr:
@@ -677,11 +672,10 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CINR,
-		 g_param_spec_int (NM_DEVICE_WIMAX_CINR,
-		                   "CINR",
-		                   "CINR",
+		 g_param_spec_int (NM_DEVICE_WIMAX_CINR, "", "",
 		                   G_MININT, G_MAXINT, 0,
-		                   G_PARAM_READABLE));
+		                   G_PARAM_READABLE |
+		                   G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceWimax:tx-power:
@@ -692,11 +686,10 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_TX_POWER,
-		 g_param_spec_int (NM_DEVICE_WIMAX_TX_POWER,
-		                   "TX Power",
-		                   "TX Power",
+		 g_param_spec_int (NM_DEVICE_WIMAX_TX_POWER, "", "",
 		                   G_MININT, G_MAXINT, 0,
-		                   G_PARAM_READABLE));
+		                   G_PARAM_READABLE |
+		                   G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceWimax:bsid:
@@ -706,11 +699,10 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_BSID,
-		 g_param_spec_string (NM_DEVICE_WIMAX_BSID,
-		                      "BSID",
-		                      "BSID",
+		 g_param_spec_string (NM_DEVICE_WIMAX_BSID, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceWimax:nsps:
@@ -721,11 +713,10 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NSPS,
-		 g_param_spec_boxed (NM_DEVICE_WIMAX_NSPS,
-		                     "NSPs",
-		                     "Network Service Providers",
+		 g_param_spec_boxed (NM_DEVICE_WIMAX_NSPS, "", "",
 		                     NM_TYPE_OBJECT_ARRAY,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	/* signals */
 
@@ -738,13 +729,13 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	signals[NSP_ADDED] =
 		g_signal_new ("nsp-added",
-				    G_OBJECT_CLASS_TYPE (object_class),
-				    G_SIGNAL_RUN_FIRST,
-				    G_STRUCT_OFFSET (NMDeviceWimaxClass, nsp_added),
-				    NULL, NULL,
-				    g_cclosure_marshal_VOID__OBJECT,
-				    G_TYPE_NONE, 1,
-				    G_TYPE_OBJECT);
+		              G_OBJECT_CLASS_TYPE (object_class),
+		              G_SIGNAL_RUN_FIRST,
+		              G_STRUCT_OFFSET (NMDeviceWimaxClass, nsp_added),
+		              NULL, NULL,
+		              g_cclosure_marshal_VOID__OBJECT,
+		              G_TYPE_NONE, 1,
+		              G_TYPE_OBJECT);
 
 	/**
 	 * NMDeviceWimax::nsp-removed:
@@ -755,11 +746,11 @@ nm_device_wimax_class_init (NMDeviceWimaxClass *wimax_class)
 	 **/
 	signals[NSP_REMOVED] =
 		g_signal_new ("nsp-removed",
-				    G_OBJECT_CLASS_TYPE (object_class),
-				    G_SIGNAL_RUN_FIRST,
-				    G_STRUCT_OFFSET (NMDeviceWimaxClass, nsp_removed),
-				    NULL, NULL,
-				    g_cclosure_marshal_VOID__OBJECT,
-				    G_TYPE_NONE, 1,
-				    G_TYPE_OBJECT);
+		              G_OBJECT_CLASS_TYPE (object_class),
+		              G_SIGNAL_RUN_FIRST,
+		              G_STRUCT_OFFSET (NMDeviceWimaxClass, nsp_removed),
+		              NULL, NULL,
+		              g_cclosure_marshal_VOID__OBJECT,
+		              G_TYPE_NONE, 1,
+		              G_TYPE_OBJECT);
 }

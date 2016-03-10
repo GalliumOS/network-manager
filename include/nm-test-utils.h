@@ -1,5 +1,4 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,12 +15,72 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2014 Red Hat, Inc.
+ * Copyright 2014 Red Hat, Inc.
  */
 
 #ifndef __NM_TEST_UTILS_H__
 #define __NM_TEST_UTILS_H__
 
+/*******************************************************************************
+ * HOWTO run tests.
+ *
+ * Our tests (make check) include this header-only file nm-test-utils.h.
+ *
+ * Logging:
+ *   In tests, nm-logging redirects to glib logging. By default, glib suppresses all debug
+ *   messages unless you set G_MESSAGES_DEBUG. To enable debug logging, you can explicitly set
+ *   G_MESSAGES_DEBUG. Otherwise, nm-test will set G_MESSAGES_DEBUG=all in debug mode (see below).
+ *   For nm-logging, you can configure the log-level and domains via NMTST_DEBUG environment
+ *   variable.
+ *
+ * Assert-logging:
+ *   Some tests assert against logged messages (g_test_expect_message()).
+ *   By specifying no-expect-message in NMTST_DEBUG, you can disable assert logging
+ *   and g_test_assert_expected_messages() will not fail.
+ *
+ * NMTST_SEED_RAND environment variable:
+ *   Tests that use random numbers from nmtst_get_rand() get seeded randomly at each start.
+ *   You can specify the seed by setting NMTST_SEED_RAND. Also, tests will print the seed
+ *   to stdout, so that you know the choosen seed.
+ *
+ *
+ * NMTST_DEBUG environment variable:
+ *
+ * "debug", "no-debug": when at test is run in debug mode, it might behave differently,
+ *   depending on the test. See nmtst_is_debug().
+ *   Known differences:
+ *    - a test might leave the logging level unspecified. In this case, running in
+ *      debug mode, will turn on DEBUG logging, otherwise WARN logging only.
+ *    - if G_MESSAGES_DEBUG is unset, nm-test will set G_MESSAGES_DEBUG=all
+ *      for tests that don't do assert-logging.
+ *   Debug mode is determined as follows (highest priority first):
+ *    - command line option --debug/--no-debug
+ *    - NMTST_DEBUG=debug/no-debug
+ *    - setting NMTST_DEBUG implies debugging turned on
+ *    - g_test_verbose()
+ *
+ * "no-expect-message": for tests that would assert against log messages, disable
+ *   those asserts.
+ *
+ * "log-level=LEVEL", "log-domains=DOMAIN": reset the log level and domain for tests.
+ *    It only has an effect for nm-logging messages.
+ *    This has no effect if the test asserts against logging (unless no-expect-message),
+ *    otherwise, changing the logging would break tests.
+ *    If you set the level to DEBUG or TRACE, it also sets G_MESSAGES_DEBUG=all (unless
+ *    in assert-logging mode and unless G_MESSAGES_DEBUG is already defined).
+ *
+ * "sudo-cmd=PATH": when running root tests as normal user, the test will execute
+ *   itself by invoking sudo at PATH.
+ *   For example
+ *     NMTST_DEBUG="sudo-cmd=$PWD/tools/test-sudo-wrapper.sh" make -C src/platform/tests/ check
+ *
+ * "slow|quick|thorough": enable/disable long-running tests. This sets nmtst_test_quick().
+ *   Whether long-running tests are enabled is determined as follows (highest priority first):
+ *     - specifying the value in NMTST_DEBUG has highest priority
+ *     - respect g_test_quick(), if the command line contains '-mslow', '-mquick', '-mthorough'.
+ *     - use compile time default
+ *
+ *******************************************************************************/
 
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -33,8 +92,46 @@
 #include <errno.h>
 
 #include "nm-utils.h"
+#include "nm-macros-internal.h"
 #include "nm-glib-compat.h"
+#include "gsystem-local-alloc.h"
 
+#ifdef __NETWORKMANAGER_LOGGING_H__
+/* We are running tests under src/ */
+#include "NetworkManagerUtils.h"
+#endif
+
+/*******************************************************************************/
+
+/* general purpose functions that have no dependency on other nmtst functions */
+
+inline static void
+nmtst_assert_error (GError *error,
+                    GQuark expect_error_domain,
+                    gint expect_error_code,
+                    const char *expect_error_pattern)
+{
+	if (expect_error_domain)
+		g_assert_error (error, expect_error_domain, expect_error_code);
+	else
+		g_assert (error);
+	g_assert (error->message);
+	if (   expect_error_pattern
+	    && !g_pattern_match_simple (expect_error_pattern, error->message)) {
+		g_error ("error message does not have expected pattern '%s'. Instead it is '%s' (%s, %d)",
+		         expect_error_pattern, error->message, g_quark_to_string (error->domain), error->code);
+	}
+}
+
+inline static void
+_nmtst_assert_success (gboolean success, GError *error, const char *file, int line)
+{
+	if (!success || error)
+		g_error ("(%s:%d) FAILURE success=%d, error=%s", file, line, success, error && error->message ? error->message : "(no error)");
+}
+#define nmtst_assert_success(success, error) _nmtst_assert_success ((success), (error), __FILE__, __LINE__)
+
+/*******************************************************************************/
 
 struct __nmtst_internal
 {
@@ -44,6 +141,7 @@ struct __nmtst_internal
 	gboolean is_debug;
 	gboolean assert_logging;
 	gboolean no_expect_message;
+	gboolean test_quick;
 	char *sudo_cmd;
 	char **orig_argv;
 };
@@ -51,7 +149,15 @@ struct __nmtst_internal
 extern struct __nmtst_internal __nmtst_internal;
 
 #define NMTST_DEFINE() \
-	struct __nmtst_internal __nmtst_internal = { 0 };
+struct __nmtst_internal __nmtst_internal = { 0 }; \
+\
+__attribute__ ((destructor)) static void \
+_nmtst_exit (void) \
+{ \
+	__nmtst_internal.assert_logging = FALSE; \
+	g_test_assert_expected_messages (); \
+	nmtst_free (); \
+}
 
 
 inline static gboolean
@@ -60,13 +166,13 @@ nmtst_initialized (void)
 	return !!__nmtst_internal.rand0;
 }
 
-#define __NMTST_LOG(cmd, fmt, ...) \
+#define __NMTST_LOG(cmd, ...) \
 	G_STMT_START { \
 		g_assert (nmtst_initialized ()); \
 		if (!__nmtst_internal.assert_logging || __nmtst_internal.no_expect_message) { \
-			cmd (fmt, __VA_ARGS__); \
+			cmd (__VA_ARGS__); \
 		} else { \
-			printf (fmt "\n", __VA_ARGS__); \
+			printf (_NM_UTILS_MACRO_FIRST (__VA_ARGS__) "\n" _NM_UTILS_MACRO_REST (__VA_ARGS__)); \
 		} \
 	} G_STMT_END
 
@@ -137,10 +243,8 @@ nmtst_free (void)
 }
 
 inline static void
-__nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_level, const char *log_domains)
+__nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_level, const char *log_domains, gboolean *out_set_logging)
 {
-	static gsize atexit_registered = 0;
-	GError *error = NULL;
 	const char *nmtst_debug;
 	gboolean is_debug = FALSE;
 	char *c_log_level = NULL, *c_log_domains = NULL;
@@ -148,12 +252,25 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 	GArray *debug_messages = g_array_new (TRUE, FALSE, sizeof (char *));
 	int i;
 	gboolean no_expect_message = FALSE;
+	gboolean _out_set_logging;
+	gboolean test_quick = FALSE;
+	gboolean test_quick_set = FALSE;
+	gboolean test_quick_argv = FALSE;
+
+	if (!out_set_logging)
+		out_set_logging = &_out_set_logging;
+	*out_set_logging = FALSE;
 
 	g_assert (!nmtst_initialized ());
 
 	g_assert (!((!!argc) ^ (!!argv)));
 	g_assert (!argc || (g_strv_length (*argv) == *argc));
 	g_assert (!assert_logging || (!log_level && !log_domains));
+
+#ifdef __NETWORKMANAGER_UTILS_H__
+	if (!nm_utils_get_testing_initialized ())
+		_nm_utils_set_testing (_NM_UTILS_TEST_GENERAL);
+#endif
 
 	if (argc)
 		__nmtst_internal.orig_argv = g_strdupv (*argv);
@@ -208,6 +325,12 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 				sudo_cmd = g_strdup (&debug[strlen ("sudo-cmd=")]);
 			} else if (!g_ascii_strcasecmp (debug, "no-expect-message")) {
 				no_expect_message = TRUE;
+			} else if (!g_ascii_strcasecmp (debug, "slow") || !g_ascii_strcasecmp (debug, "thorough")) {
+				test_quick = FALSE;
+				test_quick_set = TRUE;
+			} else if (!g_ascii_strcasecmp (debug, "quick")) {
+				test_quick = TRUE;
+				test_quick_set = TRUE;
 			} else {
 				char *msg = g_strdup_printf (">>> nmtst: ignore unrecognized NMTST_DEBUG option \"%s\"", debug);
 
@@ -219,15 +342,35 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 		g_free (nmtst_debug_copy);
 	}
 
-	if (argv && *argv) {
-		 char **a = *argv;
+	if (__nmtst_internal.orig_argv) {
+		char **a = __nmtst_internal.orig_argv;
 
-		 for (; *a; a++) {
+		for (; *a; a++) {
 			if (!g_ascii_strcasecmp (*a, "--debug"))
 				is_debug = TRUE;
 			else if (!g_ascii_strcasecmp (*a, "--no-debug"))
 				is_debug = FALSE;
-		 }
+			else if (   !strcmp (*a, "-m=slow")
+			         || !strcmp (*a, "-m=thorough")
+			         || !strcmp (*a, "-m=quick")
+			         || (!strcmp (*a, "-m") && *(a+1)
+			                                && (   !strcmp (*(a+1), "quick")
+			                                    || !strcmp (*(a+1), "slow")
+			                                    || !strcmp (*(a+1), "thorough"))))
+				test_quick_argv = TRUE;
+		}
+	}
+
+	if (test_quick_set)
+		__nmtst_internal.test_quick = test_quick;
+	else if (test_quick_argv)
+		__nmtst_internal.test_quick = g_test_quick ();
+	else {
+#ifdef NMTST_TEST_QUICK
+		__nmtst_internal.test_quick = NMTST_TEST_QUICK;
+#else
+		__nmtst_internal.test_quick = FALSE;
+#endif
 	}
 
 	__nmtst_internal.is_debug = is_debug;
@@ -243,8 +386,9 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 
 	if (!__nmtst_internal.assert_logging) {
 		gboolean success = TRUE;
-#ifdef NM_LOGGING_H
+#ifdef __NETWORKMANAGER_LOGGING_H__
 		success = nm_logging_setup (log_level, log_domains, NULL, NULL);
+		*out_set_logging = TRUE;
 #endif
 		g_assert (success);
 	} else if (__nmtst_internal.no_expect_message) {
@@ -252,6 +396,19 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 		 * This transforms g_test_expect_message() into a NOP, but we also have to relax
 		 * g_log_set_always_fatal(), which was set by g_test_init(). */
 		g_log_set_always_fatal (G_LOG_FATAL_MASK);
+#ifdef __NETWORKMANAGER_LOGGING_H__
+		if (c_log_domains || c_log_level) {
+			/* Normally, tests with assert_logging do not overwrite the logging level/domains because
+			 * the logging statements are part of the assertions. But if the test is run with
+			 * no-expect-message *and* the logging is set explicitly via environment variables,
+			 * we still reset the logging. */
+			gboolean success;
+
+			success = nm_logging_setup (log_level, log_domains, NULL, NULL);
+			*out_set_logging = TRUE;
+			g_assert (success);
+		}
+#endif
 	} else {
 #if GLIB_CHECK_VERSION(2,34,0)
 		/* We were called not to set logging levels. This means, that the user
@@ -264,7 +421,7 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 	}
 
 	if ((!__nmtst_internal.assert_logging || (__nmtst_internal.assert_logging && __nmtst_internal.no_expect_message)) &&
-	    (is_debug || (log_level && !g_ascii_strcasecmp (log_level, "DEBUG"))) &&
+	    (is_debug || (c_log_level && (!g_ascii_strcasecmp (c_log_level, "DEBUG") || !g_ascii_strcasecmp (c_log_level, "TRACE")))) &&
 	    !g_getenv ("G_MESSAGES_DEBUG"))
 	{
 		/* if we are @is_debug or @log_level=="DEBUG" and
@@ -276,10 +433,6 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 		g_setenv ("G_MESSAGES_DEBUG", "all", TRUE);
 	}
 
-	if (!nm_utils_init (&error))
-		g_error ("failed to initialize libnm-util: %s", error->message);
-	g_assert (!error);
-
 	/* Delay messages until we setup logging. */
 	for (i = 0; i < debug_messages->len; i++)
 		__NMTST_LOG (g_message, "%s", g_array_index (debug_messages, const char *, i));
@@ -288,28 +441,37 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 	g_free (c_log_level);
 	g_free (c_log_domains);
 
-	if (g_once_init_enter (&atexit_registered)) {
-		atexit (nmtst_free);
-		g_once_init_leave (&atexit_registered, 1);
-	}
+#ifdef __NETWORKMANAGER_UTILS_H__
+	/* ensure that monotonic timestamp is called (because it initially logs a line) */
+	nm_utils_get_monotonic_timestamp_s ();
+#endif
 }
 
-#ifdef NM_LOGGING_H
+#ifdef __NETWORKMANAGER_LOGGING_H__
 inline static void
 nmtst_init_with_logging (int *argc, char ***argv, const char *log_level, const char *log_domains)
 {
-	__nmtst_init (argc, argv, FALSE, log_level, log_domains);
+	__nmtst_init (argc, argv, FALSE, log_level, log_domains, NULL);
 }
 inline static void
-nmtst_init_assert_logging (int *argc, char ***argv)
+nmtst_init_assert_logging (int *argc, char ***argv, const char *log_level, const char *log_domains)
 {
-	__nmtst_init (argc, argv, TRUE, NULL, NULL);
+	gboolean set_logging;
+
+	__nmtst_init (argc, argv, TRUE, NULL, NULL, &set_logging);
+
+	if (!set_logging) {
+		gboolean success;
+
+		success = nm_logging_setup (log_level, log_domains, NULL, NULL);
+		g_assert (success);
+	}
 }
 #else
 inline static void
 nmtst_init (int *argc, char ***argv, gboolean assert_logging)
 {
-	__nmtst_init (argc, argv, assert_logging, NULL, NULL);
+	__nmtst_init (argc, argv, assert_logging, NULL, NULL, NULL);
 }
 #endif
 
@@ -320,30 +482,53 @@ nmtst_is_debug (void)
 	return __nmtst_internal.is_debug;
 }
 
+inline static gboolean
+nmtst_test_quick (void)
+{
+	g_assert (nmtst_initialized ());
+	return __nmtst_internal.test_quick;
+}
+
 #if GLIB_CHECK_VERSION(2,34,0)
 #undef g_test_expect_message
 #define g_test_expect_message(...) \
 	G_STMT_START { \
 		g_assert (nmtst_initialized ()); \
 		if (__nmtst_internal.assert_logging && __nmtst_internal.no_expect_message) { \
-			g_debug ("nmtst: swallow g_test_expect_message %s", G_STRINGIFY ((__VA_ARGS__))); \
+			g_debug ("nmtst: assert-logging: g_test_expect_message %s", G_STRINGIFY ((__VA_ARGS__))); \
 		} else { \
 			G_GNUC_BEGIN_IGNORE_DEPRECATIONS \
 			g_test_expect_message (__VA_ARGS__); \
 			G_GNUC_END_IGNORE_DEPRECATIONS \
 		} \
 	} G_STMT_END
+#undef g_test_assert_expected_messages_internal
+#define g_test_assert_expected_messages_internal(domain, file, line, func) \
+	G_STMT_START { \
+		const char *_domain = (domain); \
+		const char *_file = (file); \
+		const char *_func = (func); \
+		int _line = (line); \
+		\
+		g_assert (nmtst_initialized ()); \
+		if (__nmtst_internal.assert_logging && __nmtst_internal.no_expect_message) \
+			g_debug ("nmtst: assert-logging: g_test_assert_expected_messages(%s, %s:%d, %s)", _domain?:"", _file?:"", _line, _func?:""); \
+		\
+		G_GNUC_BEGIN_IGNORE_DEPRECATIONS \
+		g_test_assert_expected_messages_internal (_domain, _file, _line, _func); \
+		G_GNUC_END_IGNORE_DEPRECATIONS \
+	} G_STMT_END
 #endif
 
 inline static GRand *
-nmtst_get_rand0 ()
+nmtst_get_rand0 (void)
 {
 	g_assert (nmtst_initialized ());
 	return __nmtst_internal.rand0;
 }
 
 inline static GRand *
-nmtst_get_rand ()
+nmtst_get_rand (void)
 {
 	g_assert (nmtst_initialized ());
 
@@ -356,7 +541,7 @@ nmtst_get_rand ()
 			gint64 i;
 
 			i = g_ascii_strtoll (str, &s, 0);
-			g_assert (s[0] == '\0' && i >= 0 && i < G_MAXINT32);
+			g_assert (s[0] == '\0' && i >= 0 && i < G_MAXUINT32);
 
 			seed = i;
 			__nmtst_internal.rand = g_rand_new_with_seed (seed);
@@ -368,7 +553,7 @@ nmtst_get_rand ()
 		}
 		__nmtst_internal.rand_seed = seed;
 
-		__NMTST_LOG (g_message, ">> initialize nmtst_get_rand() with seed=%u", seed);
+		g_print ("\nnmtst: initialize nmtst_get_rand() with NMTST_SEED_RAND=%u\n", seed);
 	}
 	return __nmtst_internal.rand;
 }
@@ -539,7 +724,40 @@ __nmtst_spawn_sync (const char *working_directory, char **standard_out, char **s
 
 /*******************************************************************************/
 
-#ifdef NM_PLATFORM_H
+inline static char *
+nmtst_file_resolve_relative_path (const char *rel, const char *cwd)
+{
+	gs_free char *cwd_free = NULL;
+
+	g_assert (rel && *rel);
+
+	if (g_path_is_absolute (rel))
+		return g_strdup (rel);
+
+	if (!cwd)
+		cwd = cwd_free = g_get_current_dir ();
+	return g_build_filename (cwd, rel, NULL);
+}
+
+inline static void
+_nmtst_assert_resolve_relative_path_equals (const char *f1, const char *f2, const char *file, int line)
+{
+	gs_free char *p1 = NULL, *p2 = NULL;
+
+	p1 = nmtst_file_resolve_relative_path (f1, NULL);
+	p2 = nmtst_file_resolve_relative_path (f2, NULL);
+	g_assert (p1 && *p1);
+
+	/* Fixme: later we might need to coalesce repeated '/', "./", and "../".
+	 * For now, it's good enough. */
+	if (g_strcmp0 (p1, p2) != 0)
+		g_error ("%s:%d : filenames don't match \"%s\" vs. \"%s\" // \"%s\" - \"%s\"", file, line, f1, f2, p1, p2);
+}
+#define nmtst_assert_resolve_relative_path_equals(f1, f2) _nmtst_assert_resolve_relative_path_equals (f1, f2, __FILE__, __LINE__);
+
+/*******************************************************************************/
+
+#ifdef __NETWORKMANAGER_PLATFORM_H__
 
 inline static NMPlatformIP6Address *
 nmtst_platform_ip6_address (const char *address, const char *peer_address, guint plen)
@@ -556,7 +774,7 @@ nmtst_platform_ip6_address (const char *address, const char *peer_address, guint
 
 inline static NMPlatformIP6Address *
 nmtst_platform_ip6_address_full (const char *address, const char *peer_address, guint plen,
-                                 int ifindex, NMPlatformSource source, guint32 timestamp,
+                                 int ifindex, NMIPConfigSource source, guint32 timestamp,
                                  guint32 lifetime, guint32 preferred, guint flags)
 {
 	NMPlatformIP6Address *addr = nmtst_platform_ip6_address (address, peer_address, plen);
@@ -569,6 +787,38 @@ nmtst_platform_ip6_address_full (const char *address, const char *peer_address, 
 	addr->flags = flags;
 
 	return addr;
+}
+
+inline static NMPlatformIP4Route *
+nmtst_platform_ip4_route (const char *network, guint plen, const char *gateway)
+{
+	static NMPlatformIP4Route route;
+
+	memset (&route, 0, sizeof (route));
+	route.network = nmtst_inet4_from_string (network);
+	route.plen = plen;
+	route.gateway = nmtst_inet4_from_string (gateway);
+
+	return &route;
+}
+
+inline static NMPlatformIP4Route *
+nmtst_platform_ip4_route_full (const char *network, guint plen, const char *gateway,
+                               int ifindex, NMIPConfigSource source,
+                               guint metric, guint mss,
+                               guint8 scope,
+                               const char *pref_src)
+{
+	NMPlatformIP4Route *route = nmtst_platform_ip4_route (network, plen, gateway);
+
+	route->ifindex = ifindex;
+	route->source = source;
+	route->metric = metric;
+	route->mss = mss;
+	route->scope_inv = nm_platform_route_scope_inv (scope);
+	route->pref_src = nmtst_inet4_from_string (pref_src);
+
+	return route;
 }
 
 inline static NMPlatformIP6Route *
@@ -586,7 +836,7 @@ nmtst_platform_ip6_route (const char *network, guint plen, const char *gateway)
 
 inline static NMPlatformIP6Route *
 nmtst_platform_ip6_route_full (const char *network, guint plen, const char *gateway,
-                               int ifindex, NMPlatformSource source,
+                               int ifindex, NMIPConfigSource source,
                                guint metric, guint mss)
 {
 	NMPlatformIP6Route *route = nmtst_platform_ip6_route (network, plen, gateway);
@@ -599,13 +849,27 @@ nmtst_platform_ip6_route_full (const char *network, guint plen, const char *gate
 	return route;
 }
 
+inline static int
+_nmtst_platform_ip4_routes_equal_sort (gconstpointer a, gconstpointer b, gpointer user_data)
+{
+	return nm_platform_ip4_route_cmp ((const NMPlatformIP4Route *) a, (const NMPlatformIP4Route *) b);
+}
+
 inline static void
-nmtst_platform_ip4_routes_equal (const NMPlatformIP4Route *a, const NMPlatformIP4Route *b, gsize len)
+nmtst_platform_ip4_routes_equal (const NMPlatformIP4Route *a, const NMPlatformIP4Route *b, gsize len, gboolean ignore_order)
 {
 	gsize i;
+	gs_free const NMPlatformIP4Route *c_a = NULL, *c_b = NULL;
 
 	g_assert (a);
 	g_assert (b);
+
+	if (ignore_order) {
+		a = c_a = g_memdup (a, sizeof (NMPlatformIP4Route) * len);
+		b = c_b = g_memdup (b, sizeof (NMPlatformIP4Route) * len);
+		g_qsort_with_data (c_a, len, sizeof (NMPlatformIP4Route), _nmtst_platform_ip4_routes_equal_sort, NULL);
+		g_qsort_with_data (c_b, len, sizeof (NMPlatformIP4Route), _nmtst_platform_ip4_routes_equal_sort, NULL);
+	}
 
 	for (i = 0; i < len; i++) {
 		if (nm_platform_ip4_route_cmp (&a[i], &b[i]) != 0) {
@@ -614,19 +878,30 @@ nmtst_platform_ip4_routes_equal (const NMPlatformIP4Route *a, const NMPlatformIP
 			         nmtst_static_1024_02 (nm_platform_ip4_route_to_string (&b[i])));
 			g_assert_not_reached ();
 		}
-
-		/* also check with memcmp, though this might fail for valid programs (due to field alignment) */
-		g_assert_cmpint (memcmp (&a[i], &b[i], sizeof (a[i])), ==, 0);
 	}
 }
 
+inline static int
+_nmtst_platform_ip6_routes_equal_sort (gconstpointer a, gconstpointer b, gpointer user_data)
+{
+	return nm_platform_ip6_route_cmp ((const NMPlatformIP6Route *) a, (const NMPlatformIP6Route *) b);
+}
+
 inline static void
-nmtst_platform_ip6_routes_equal (const NMPlatformIP6Route *a, const NMPlatformIP6Route *b, gsize len)
+nmtst_platform_ip6_routes_equal (const NMPlatformIP6Route *a, const NMPlatformIP6Route *b, gsize len, gboolean ignore_order)
 {
 	gsize i;
+	gs_free const NMPlatformIP6Route *c_a = NULL, *c_b = NULL;
 
 	g_assert (a);
 	g_assert (b);
+
+	if (ignore_order) {
+		a = c_a = g_memdup (a, sizeof (NMPlatformIP6Route) * len);
+		b = c_b = g_memdup (b, sizeof (NMPlatformIP6Route) * len);
+		g_qsort_with_data (c_a, len, sizeof (NMPlatformIP6Route), _nmtst_platform_ip6_routes_equal_sort, NULL);
+		g_qsort_with_data (c_b, len, sizeof (NMPlatformIP6Route), _nmtst_platform_ip6_routes_equal_sort, NULL);
+	}
 
 	for (i = 0; i < len; i++) {
 		if (nm_platform_ip6_route_cmp (&a[i], &b[i]) != 0) {
@@ -635,16 +910,13 @@ nmtst_platform_ip6_routes_equal (const NMPlatformIP6Route *a, const NMPlatformIP
 			         nmtst_static_1024_02 (nm_platform_ip6_route_to_string (&b[i])));
 			g_assert_not_reached ();
 		}
-
-		/* also check with memcmp, though this might fail for valid programs (due to field alignment) */
-		g_assert_cmpint (memcmp (&a[i], &b[i], sizeof (a[i])), ==, 0);
 	}
 }
 
 #endif
 
 
-#ifdef NM_IP4_CONFIG_H
+#ifdef __NETWORKMANAGER_IP4_CONFIG_H__
 
 inline static NMIP4Config *
 nmtst_ip4_config_clone (NMIP4Config *config)
@@ -660,7 +932,7 @@ nmtst_ip4_config_clone (NMIP4Config *config)
 #endif
 
 
-#ifdef NM_IP6_CONFIG_H
+#ifdef __NETWORKMANAGER_IP6_CONFIG_H__
 
 inline static NMIP6Config *
 nmtst_ip6_config_clone (NMIP6Config *config)
@@ -675,6 +947,446 @@ nmtst_ip6_config_clone (NMIP6Config *config)
 
 #endif
 
+#ifdef __NM_SIMPLE_CONNECTION_H__
+
+inline static NMConnection *
+nmtst_create_minimal_connection (const char *id, const char *uuid, const char *type, NMSettingConnection **out_s_con)
+{
+	NMConnection *con;
+	NMSetting *s_base = NULL;
+	NMSettingConnection *s_con;
+	gs_free char *uuid_free = NULL;
+
+	g_assert (id);
+
+	if (uuid)
+		g_assert (nm_utils_is_uuid (uuid));
+	else
+		uuid = uuid_free = nm_utils_uuid_generate ();
+
+	if (type) {
+		GType type_g = nm_setting_lookup_type (type);
+
+		g_assert (type_g != G_TYPE_INVALID);
+
+		s_base = g_object_new (type_g, NULL);
+		g_assert (NM_IS_SETTING (s_base));
+	}
+
+	con = nm_simple_connection_new ();
+	s_con = NM_SETTING_CONNECTION (nm_setting_connection_new ());
+
+	g_object_set (s_con,
+	              NM_SETTING_CONNECTION_ID, id,
+	              NM_SETTING_CONNECTION_UUID, uuid,
+	              NM_SETTING_CONNECTION_TYPE, type,
+	              NULL);
+	nm_connection_add_setting (con, NM_SETTING (s_con));
+
+	if (s_base)
+		nm_connection_add_setting (con, s_base);
+
+	if (out_s_con)
+		*out_s_con = s_con;
+	return con;
+}
+
+inline static gboolean
+_nmtst_connection_normalize_v (NMConnection *connection, va_list args)
+{
+	GError *error = NULL;
+	gboolean success;
+	gboolean was_modified = FALSE;
+	GHashTable *parameters = NULL;
+	const char *p_name;
+
+	g_assert (NM_IS_CONNECTION (connection));
+
+	while ((p_name = va_arg (args, const char *))) {
+		if (!parameters)
+			parameters =  g_hash_table_new (g_str_hash, g_str_equal);
+		g_hash_table_insert (parameters, (gpointer *) p_name, va_arg (args, gpointer));
+	}
+
+	success = nm_connection_normalize (connection,
+	                                   parameters,
+	                                   &was_modified,
+	                                   &error);
+	g_assert_no_error (error);
+	g_assert (success);
+
+	if (parameters)
+		g_hash_table_destroy (parameters);
+
+	return was_modified;
+}
+
+inline static gboolean
+_nmtst_connection_normalize (NMConnection *connection, ...)
+{
+	gboolean was_modified;
+	va_list args;
+
+	va_start (args, connection);
+	was_modified = _nmtst_connection_normalize_v (connection, args);
+	va_end (args);
+
+	return was_modified;
+}
+#define nmtst_connection_normalize(connection, ...) \
+    _nmtst_connection_normalize(connection, ##__VA_ARGS__, NULL)
+
+inline static NMConnection *
+_nmtst_connection_duplicate_and_normalize (NMConnection *connection, ...)
+{
+	gboolean was_modified;
+	va_list args;
+
+	g_assert (NM_IS_CONNECTION (connection));
+
+	connection = nm_simple_connection_new_clone (connection);
+
+	va_start (args, connection);
+	was_modified = _nmtst_connection_normalize_v (connection, args);
+	va_end (args);
+
+	return connection;
+}
+#define nmtst_connection_duplicate_and_normalize(connection, ...) \
+    _nmtst_connection_duplicate_and_normalize(connection, ##__VA_ARGS__, NULL)
+
+inline static void
+nmtst_assert_connection_equals (NMConnection *a, gboolean normalize_a, NMConnection *b, gboolean normalize_b)
+{
+	gboolean compare;
+	gs_unref_object NMConnection *a2 = NULL;
+	gs_unref_object NMConnection *b2 = NULL;
+	GHashTable *out_settings = NULL;
+
+	g_assert (NM_IS_CONNECTION (a));
+	g_assert (NM_IS_CONNECTION (b));
+
+	if (normalize_a)
+		a = a2 = nmtst_connection_duplicate_and_normalize (a);
+	if (normalize_b)
+		b = b2 = nmtst_connection_duplicate_and_normalize (b);
+
+	compare = nm_connection_diff (a, b, NM_SETTING_COMPARE_FLAG_EXACT, &out_settings);
+	if (!compare || out_settings) {
+		const char *name, *pname;
+		GHashTable *setting;
+		GHashTableIter iter, iter2;
+
+		__NMTST_LOG (g_message, ">>> ASSERTION nmtst_assert_connection_equals() fails");
+		if (out_settings) {
+			g_hash_table_iter_init (&iter, out_settings);
+			while (g_hash_table_iter_next (&iter, (gpointer *) &name, (gpointer *) &setting)) {
+				__NMTST_LOG (g_message, ">>> differences in setting '%s':", name);
+
+				g_hash_table_iter_init (&iter2, setting);
+				while (g_hash_table_iter_next (&iter2, (gpointer *) &pname, NULL))
+					__NMTST_LOG (g_message, ">>> differences in setting '%s.%s'", name, pname);
+			}
+		}
+	}
+	g_assert (compare);
+	g_assert (!out_settings);
+
+	compare = nm_connection_compare (a, b, NM_SETTING_COMPARE_FLAG_EXACT);
+	g_assert (compare);
+}
+
+inline static void
+nmtst_assert_connection_verifies_without_normalization (NMConnection *con)
+{
+	/* assert that the connection verifies and does not need any normalization */
+
+	GError *error = NULL;
+	gboolean success;
+	gboolean was_modified = FALSE;
+	gs_unref_object NMConnection *clone = NULL;
+
+	g_assert (NM_IS_CONNECTION (con));
+
+	clone = nm_simple_connection_new_clone (con);
+
+	success = nm_connection_verify (con, &error);
+	g_assert_no_error (error);
+	g_assert (success);
+
+	success = nm_connection_normalize (con, NULL, &was_modified, &error);
+	g_assert_no_error (error);
+	g_assert (success);
+	nmtst_assert_connection_equals (con, FALSE, clone, FALSE);
+	g_assert (!was_modified);
+}
+
+inline static void
+nmtst_assert_connection_verifies_and_normalizable (NMConnection *con)
+{
+	/* assert that the connection does verify, but normalization still modifies it */
+	GError *error = NULL;
+	gboolean success;
+	gboolean was_modified = FALSE;
+
+	g_assert (NM_IS_CONNECTION (con));
+
+	success = nm_connection_verify (con, &error);
+	g_assert_no_error (error);
+	g_assert (success);
+	g_clear_error (&error);
+
+	success = nm_connection_normalize (con, NULL, &was_modified, &error);
+	g_assert_no_error (error);
+	g_assert (success);
+	g_assert (was_modified);
+
+	/* again! */
+	nmtst_assert_connection_verifies_without_normalization (con);
+}
+
+inline static void
+nmtst_assert_connection_verifies_after_normalization (NMConnection *con,
+                                                      GQuark expect_error_domain,
+                                                      gint expect_error_code)
+{
+	/* assert that the connection does not verify, but normalization does fix it */
+	GError *error = NULL;
+	gboolean success;
+	gboolean was_modified = FALSE;
+
+	g_assert (NM_IS_CONNECTION (con));
+
+	success = nm_connection_verify (con, &error);
+	nmtst_assert_error (error, expect_error_domain, expect_error_code, NULL);
+	g_assert (!success);
+	g_clear_error (&error);
+
+	success = nm_connection_normalize (con, NULL, &was_modified, &error);
+	g_assert_no_error (error);
+	g_assert (success);
+	g_assert (was_modified);
+
+	/* again! */
+	nmtst_assert_connection_verifies_without_normalization (con);
+}
+
+inline static void
+nmtst_assert_connection_unnormalizable (NMConnection *con,
+                                        GQuark expect_error_domain,
+                                        gint expect_error_code)
+{
+	/* assert that the connection does not verify, and it cannot be fixed by normalization */
+
+	GError *error = NULL;
+	gboolean success;
+	gboolean was_modified = FALSE;
+
+	g_assert (NM_IS_CONNECTION (con));
+
+	success = nm_connection_verify (con, &error);
+	nmtst_assert_error (error, expect_error_domain, expect_error_code, NULL);
+	g_assert (!success);
+	g_clear_error (&error);
+
+	success = nm_connection_normalize (con, NULL, &was_modified, &error);
+	nmtst_assert_error (error, expect_error_domain, expect_error_code, NULL);
+	g_assert (!success);
+	g_assert (!was_modified);
+	g_clear_error (&error);
+}
+
+inline static void
+nmtst_assert_setting_verifies (NMSetting *setting)
+{
+	/* assert that the setting verifies without an error */
+
+	GError *error = NULL;
+	gboolean success;
+
+	g_assert (NM_IS_SETTING (setting));
+
+	success = nm_setting_verify (setting, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (success);
+}
+
+inline static void
+nmtst_assert_setting_verify_fails (NMSetting *setting,
+                                   GQuark expect_error_domain,
+                                   gint expect_error_code)
+{
+	/* assert that the setting verification fails */
+
+	GError *error = NULL;
+	gboolean success;
+
+	g_assert (NM_IS_SETTING (setting));
+
+	success = nm_setting_verify (setting, NULL, &error);
+	nmtst_assert_error (error, expect_error_domain, expect_error_code, NULL);
+	g_assert (!success);
+	g_clear_error (&error);
+}
+
+#endif
+
+#ifdef __NM_UTILS_H__
+static inline void
+nmtst_assert_hwaddr_equals (gconstpointer hwaddr1, gssize hwaddr1_len, const char *expected, const char *loc)
+{
+	guint8 buf2[NM_UTILS_HWADDR_LEN_MAX];
+	gsize hwaddr2_len = 1;
+	const char *p;
+	gboolean success;
+
+	g_assert (hwaddr1_len > 0 && hwaddr1_len <= NM_UTILS_HWADDR_LEN_MAX);
+
+	g_assert (expected);
+	for (p = expected; *p; p++) {
+		if (*p == ':' || *p == '-')
+			hwaddr2_len++;
+	}
+	g_assert (hwaddr2_len <= NM_UTILS_HWADDR_LEN_MAX);
+	g_assert (nm_utils_hwaddr_aton (expected, buf2, hwaddr2_len));
+
+	/* Manually check the entire hardware address instead of using
+	 * nm_utils_hwaddr_matches() because that function doesn't compare
+	 * entire InfiniBand addresses for various (legitimate) reasons.
+	 */
+	success = (hwaddr1_len == hwaddr2_len);
+	if (success)
+		success = !memcmp (hwaddr1, buf2, hwaddr1_len);
+	if (!success) {
+		g_error ("assert: %s: hwaddr '%s' (%zd) expected, but got %s (%zd)",
+		         loc, expected, hwaddr2_len, nm_utils_hwaddr_ntoa (hwaddr1, hwaddr1_len), hwaddr1_len);
+	}
+}
+#define nmtst_assert_hwaddr_equals(hwaddr1, hwaddr1_len, expected) \
+    nmtst_assert_hwaddr_equals (hwaddr1, hwaddr1_len, expected, G_STRLOC)
+#endif
+
+#if defined(__NM_SIMPLE_CONNECTION_H__) && defined(__NM_SETTING_CONNECTION_H__) && defined(__NM_KEYFILE_INTERNAL_H__)
+
+inline static NMConnection *
+nmtst_create_connection_from_keyfile (const char *keyfile_str, const char *keyfile_name, const char *base_dir)
+{
+	GKeyFile *keyfile;
+	GError *error = NULL;
+	gboolean success;
+	NMConnection *con;
+
+	g_assert (keyfile_str);
+
+	keyfile =  g_key_file_new ();
+	success = g_key_file_load_from_data (keyfile, keyfile_str, strlen (keyfile_str), G_KEY_FILE_NONE, &error);
+	g_assert_no_error (error);
+	g_assert (success);
+
+	con = nm_keyfile_read (keyfile, keyfile_name, base_dir, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (NM_IS_CONNECTION (con));
+
+	g_key_file_unref (keyfile);
+
+	nmtst_connection_normalize (con);
+
+	return con;
+}
+
+#endif
+
+#ifdef __NM_CONNECTION_H__
+
+typedef enum {
+	NMTST_VARIANT_EDITOR_CONNECTION,
+	NMTST_VARIANT_EDITOR_SETTING,
+	NMTST_VARIANT_EDITOR_PROPERTY
+} NmtstVariantEditorPhase;
+
+#define NMTST_VARIANT_EDITOR(__connection_variant, __code) \
+	G_STMT_START { \
+		GVariantIter __connection_iter, *__setting_iter; \
+		GVariantBuilder __connection_builder, __setting_builder; \
+		const char *__cur_setting_name, *__cur_property_name; \
+		GVariant *__property_val; \
+		NmtstVariantEditorPhase __phase; \
+                                                                        \
+		g_variant_builder_init (&__connection_builder, NM_VARIANT_TYPE_CONNECTION); \
+		g_variant_iter_init (&__connection_iter, __connection_variant); \
+		 \
+		__phase = NMTST_VARIANT_EDITOR_CONNECTION; \
+		__cur_setting_name = NULL; \
+		__cur_property_name = NULL; \
+		__code; \
+		while (g_variant_iter_next (&__connection_iter, "{&sa{sv}}", &__cur_setting_name, &__setting_iter)) { \
+			g_variant_builder_init (&__setting_builder, NM_VARIANT_TYPE_SETTING); \
+			__phase = NMTST_VARIANT_EDITOR_SETTING; \
+			__cur_property_name = NULL; \
+			__code; \
+			 \
+			while (   __cur_setting_name \
+			       && g_variant_iter_next (__setting_iter, "{&sv}", &__cur_property_name, &__property_val)) { \
+				__phase = NMTST_VARIANT_EDITOR_PROPERTY; \
+				__code; \
+				 \
+				if (__cur_property_name) { \
+					g_variant_builder_add (&__setting_builder, "{sv}", \
+					                       __cur_property_name, \
+					                       __property_val); \
+				} \
+				g_variant_unref (__property_val); \
+			} \
+			 \
+			if (__cur_setting_name) \
+				g_variant_builder_add (&__connection_builder, "{sa{sv}}", __cur_setting_name, &__setting_builder); \
+			g_variant_iter_free (__setting_iter); \
+		} \
+		 \
+		g_variant_unref (__connection_variant); \
+		 \
+		__connection_variant = g_variant_builder_end (&__connection_builder); \
+	} G_STMT_END;
+
+#define NMTST_VARIANT_ADD_SETTING(__setting_name, __setting_variant) \
+	G_STMT_START { \
+		if (__phase == NMTST_VARIANT_EDITOR_CONNECTION) \
+			g_variant_builder_add (&__connection_builder, "{s@a{sv}}", __setting_name, __setting_variant); \
+	} G_STMT_END
+
+#define NMTST_VARIANT_DROP_SETTING(__setting_name) \
+	G_STMT_START { \
+		if (__phase == NMTST_VARIANT_EDITOR_SETTING && __cur_setting_name) { \
+			if (!strcmp (__cur_setting_name, __setting_name)) \
+				__cur_setting_name = NULL; \
+		} \
+	} G_STMT_END
+
+#define NMTST_VARIANT_ADD_PROPERTY(__setting_name, __property_name, __format_string, __value) \
+	G_STMT_START { \
+		if (__phase == NMTST_VARIANT_EDITOR_SETTING) { \
+			if (!strcmp (__cur_setting_name, __setting_name)) { \
+				g_variant_builder_add (&__setting_builder, "{sv}", __property_name, \
+				                       g_variant_new (__format_string, __value)); \
+			} \
+		} \
+	} G_STMT_END
+
+#define NMTST_VARIANT_DROP_PROPERTY(__setting_name, __property_name) \
+	G_STMT_START { \
+		if (__phase == NMTST_VARIANT_EDITOR_PROPERTY && __cur_property_name) { \
+			if (   !strcmp (__cur_setting_name, __setting_name) \
+			    && !strcmp (__cur_property_name, __property_name)) \
+				__cur_property_name = NULL; \
+		} \
+	} G_STMT_END
+
+#define NMTST_VARIANT_CHANGE_PROPERTY(__setting_name, __property_name, __format_string, __value) \
+	G_STMT_START { \
+		NMTST_VARIANT_DROP_PROPERTY (__setting_name, __property_name); \
+		NMTST_VARIANT_ADD_PROPERTY (__setting_name, __property_name, __format_string, __value); \
+	} G_STMT_END
+
+#endif /* __NM_CONNECTION_H__ */
 
 #endif /* __NM_TEST_UTILS_H__ */
-

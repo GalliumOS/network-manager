@@ -16,11 +16,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
-# Copyright (C) 2013 Red Hat, Inc.
+# Copyright 2013 - 2014 Red Hat, Inc.
 #
 
 import sys
-from gi.repository import GLib, NetworkManager, NMClient
+from gi.repository import GLib, NM
 
 #
 # This example demonstrates how to get and change firewall zone in a
@@ -32,7 +32,7 @@ from gi.repository import GLib, NetworkManager, NMClient
 # If you used D-Bus calls, you would call GetSettings() and then Update().
 #
 # Links:
-# https://developer.gnome.org/libnm-glib/0.9/
+# https://developer.gnome.org/libnm/1.0/
 # https://wiki.gnome.org/GObjectIntrospection
 # https://wiki.gnome.org/PyGObject
 #
@@ -43,7 +43,14 @@ def connection_saved(connection, error, data):
     print ("Connection '%s' saved.") % (connection.get_id())
     main_loop.quit()
 
-def connections_read(settings, data):
+if __name__ == "__main__":
+    if len(sys.argv) != 2 and len(sys.argv) != 3:
+        sys.exit('Usage: %s <connection name or UUID> [new zone]' % sys.argv[0])
+
+    main_loop = GLib.MainLoop()
+    client = NM.Client.new(None)
+    connections = client.get_connections()
+
     con_name = sys.argv[1]
     if len(sys.argv) == 3:
         new_zone = sys.argv[2]
@@ -51,7 +58,6 @@ def connections_read(settings, data):
         new_zone = None
 
     found = False
-    connections = settings.list_connections()
     for c in connections:
         if c.get_id() == con_name or c.get_uuid() == con_name:
             found = True
@@ -71,17 +77,3 @@ def connections_read(settings, data):
     if not found:
         print ("Error: connection '%s' not found.") % (con_name)
         main_loop.quit()
-
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2 and len(sys.argv) != 3:
-        sys.exit('Usage: %s <connection name or UUID> [new zone]' % sys.argv[0])
-
-    main_loop = GLib.MainLoop()
-    settings = NMClient.RemoteSettings.new(None);
-
-    # Connections are read asynchronously, so we have to wait for the
-    # 'settings' object to tell us that all connections have been read.
-    settings.connect("connections-read", connections_read, None)
-    main_loop.run()
-

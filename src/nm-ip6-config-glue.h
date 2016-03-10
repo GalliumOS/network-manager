@@ -68,6 +68,6 @@ const DBusGObjectInfo dbus_glib_nm_ip6_config_object_info = {  1,
   0,
 "\0",
 "org.freedesktop.NetworkManager.IP6Config\0PropertiesChanged\0\0",
-"org.freedesktop.NetworkManager.IP6Config\0Gateway\0gateway\0read\0org.freedesktop.NetworkManager.IP6Config\0Addresses\0addresses\0read\0org.freedesktop.NetworkManager.IP6Config\0Routes\0routes\0read\0org.freedesktop.NetworkManager.IP6Config\0Nameservers\0nameservers\0read\0org.freedesktop.NetworkManager.IP6Config\0Domains\0domains\0read\0org.freedesktop.NetworkManager.IP6Config\0Searches\0searches\0read\0\0"
+"org.freedesktop.NetworkManager.IP6Config\0Addresses\0addresses\0read\0org.freedesktop.NetworkManager.IP6Config\0AddressData\0address_data\0read\0org.freedesktop.NetworkManager.IP6Config\0Gateway\0gateway\0read\0org.freedesktop.NetworkManager.IP6Config\0Routes\0routes\0read\0org.freedesktop.NetworkManager.IP6Config\0RouteData\0route_data\0read\0org.freedesktop.NetworkManager.IP6Config\0Nameservers\0nameservers\0read\0org.freedesktop.NetworkManager.IP6Config\0Domains\0domains\0read\0org.freedesktop.NetworkManager.IP6Config\0Searches\0searches\0read\0\0"
 };
 

@@ -18,8 +18,8 @@
  * Copyright 2012 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_BOND_H
-#define NM_DEVICE_BOND_H
+#ifndef __NETWORKMANAGER_DEVICE_BOND_H__
+#define __NETWORKMANAGER_DEVICE_BOND_H__
 
 #include <glib-object.h>
 
@@ -34,28 +34,12 @@ G_BEGIN_DECLS
 #define NM_IS_DEVICE_BOND_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_BOND))
 #define NM_DEVICE_BOND_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_BOND, NMDeviceBondClass))
 
-typedef enum {
-	NM_BOND_ERROR_CONNECTION_NOT_BOND = 0, /*< nick=ConnectionNotBond >*/
-	NM_BOND_ERROR_CONNECTION_INVALID,      /*< nick=ConnectionInvalid >*/
-	NM_BOND_ERROR_CONNECTION_INCOMPATIBLE, /*< nick=ConnectionIncompatible >*/
-} NMBondError;
-
 #define NM_DEVICE_BOND_SLAVES "slaves"
 
-typedef struct {
-	NMDevice parent;
-} NMDeviceBond;
-
-typedef struct {
-	NMDeviceClass parent;
-
-} NMDeviceBondClass;
-
+typedef NMDevice NMDeviceBond;
+typedef NMDeviceClass NMDeviceBondClass;
 
 GType nm_device_bond_get_type (void);
-
-NMDevice *nm_device_bond_new (NMPlatformLink *platform_device);
-NMDevice *nm_device_bond_new_for_connection (NMConnection *connection);
 
 G_END_DECLS
 

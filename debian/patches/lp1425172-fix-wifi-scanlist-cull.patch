@@ -1,0 +1,33 @@
+Author: Tony Espy <espy@canonical.com>
+Subject: Remove APs when wpa_supplicant removes them
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1425172
+
+This patch modifies NMDeviceWiFi's cull_scan_list function
+such that APs are removed when the WPAS_REMOVED_TAG is
+detected.  This leads to earleir removal of APs that are
+no longer present.
+
+---
+ src/devices/wifi/nm-device-wifi.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+Index: b/src/devices/wifi/nm-device-wifi.c
+===================================================================
+--- a/src/devices/wifi/nm-device-wifi.c
++++ b/src/devices/wifi/nm-device-wifi.c
+@@ -1773,9 +1773,12 @@ cull_scan_list (NMDeviceWifi *self)
+ 		 * and we'll end up here even if the AP was still found by the
+ 		 * supplicant in the last scan.
+ 		 */
+-		if (   nm_ap_get_supplicant_path (ap)
+-		    && g_object_get_data (G_OBJECT (ap), WPAS_REMOVED_TAG) == NULL) {
+-			nm_ap_update_last_seen (ap);
++		if (   nm_ap_get_supplicant_path (ap)) {
++		    if (g_object_get_data (G_OBJECT (ap), WPAS_REMOVED_TAG) == NULL)
++				nm_ap_update_last_seen (ap);
++			else
++				outdated_list = g_slist_prepend (outdated_list, ap);
++
+ 			continue;
+ 		}
+ 

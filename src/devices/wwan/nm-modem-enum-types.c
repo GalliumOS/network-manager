@@ -8,22 +8,42 @@
 #include "nm-modem.h"
 
 GType
-nm_modem_error_get_type (void)
+nm_modem_ip_method_get_type (void)
 {
   static volatile gsize g_define_type_id__volatile = 0;
 
   if (g_once_init_enter (&g_define_type_id__volatile))
     {
       static const GEnumValue values[] = {
-        { NM_MODEM_ERROR_CONNECTION_NOT_GSM, "NM_MODEM_ERROR_CONNECTION_NOT_GSM", "ConnectionNotGsm" },
-        { NM_MODEM_ERROR_CONNECTION_NOT_CDMA, "NM_MODEM_ERROR_CONNECTION_NOT_CDMA", "ConnectionNotCdma" },
-        { NM_MODEM_ERROR_CONNECTION_INVALID, "NM_MODEM_ERROR_CONNECTION_INVALID", "ConnectionInvalid" },
-        { NM_MODEM_ERROR_CONNECTION_INCOMPATIBLE, "NM_MODEM_ERROR_CONNECTION_INCOMPATIBLE", "ConnectionIncompatible" },
-        { NM_MODEM_ERROR_INITIALIZATION_FAILED, "NM_MODEM_ERROR_INITIALIZATION_FAILED", "InitializationFailed" },
+        { NM_MODEM_IP_METHOD_UNKNOWN, "NM_MODEM_IP_METHOD_UNKNOWN", "unknown" },
+        { NM_MODEM_IP_METHOD_PPP, "NM_MODEM_IP_METHOD_PPP", "ppp" },
+        { NM_MODEM_IP_METHOD_STATIC, "NM_MODEM_IP_METHOD_STATIC", "static" },
+        { NM_MODEM_IP_METHOD_AUTO, "NM_MODEM_IP_METHOD_AUTO", "auto" },
         { 0, NULL, NULL }
       };
       GType g_define_type_id =
-        g_enum_register_static (g_intern_static_string ("NMModemError"), values);
+        g_enum_register_static (g_intern_static_string ("NMModemIPMethod"), values);
+      g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+    }
+
+  return g_define_type_id__volatile;
+}
+GType
+nm_modem_ip_type_get_type (void)
+{
+  static volatile gsize g_define_type_id__volatile = 0;
+
+  if (g_once_init_enter (&g_define_type_id__volatile))
+    {
+      static const GEnumValue values[] = {
+        { NM_MODEM_IP_TYPE_UNKNOWN, "NM_MODEM_IP_TYPE_UNKNOWN", "unknown" },
+        { NM_MODEM_IP_TYPE_IPV4, "NM_MODEM_IP_TYPE_IPV4", "ipv4" },
+        { NM_MODEM_IP_TYPE_IPV6, "NM_MODEM_IP_TYPE_IPV6", "ipv6" },
+        { NM_MODEM_IP_TYPE_IPV4V6, "NM_MODEM_IP_TYPE_IPV4V6", "ipv4v6" },
+        { 0, NULL, NULL }
+      };
+      GType g_define_type_id =
+        g_enum_register_static (g_intern_static_string ("NMModemIPType"), values);
       g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
     }
 

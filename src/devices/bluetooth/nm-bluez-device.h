@@ -18,8 +18,8 @@
  * Copyright (C) 2009 - 2014 Red Hat, Inc.
  */
 
-#ifndef NM_BLUEZ_DEVICE_H
-#define NM_BLUEZ_DEVICE_H
+#ifndef __NETWORKMANAGER_BLUEZ_DEVICE_H__
+#define __NETWORKMANAGER_BLUEZ_DEVICE_H__
 
 #include <glib.h>
 #include <glib-object.h>
@@ -62,7 +62,10 @@ typedef struct {
 
 GType nm_bluez_device_get_type (void);
 
-NMBluezDevice *nm_bluez_device_new (const char *path, NMConnectionProvider *provider, int bluez_version);
+NMBluezDevice *nm_bluez_device_new (const char *path,
+                                    const char *adapter_address,
+                                    NMConnectionProvider *provider,
+                                    int bluez_version);
 
 const char *nm_bluez_device_get_path (NMBluezDevice *self);
 
@@ -94,5 +97,5 @@ nm_bluez_device_connect_finish (NMBluezDevice *self,
 void
 nm_bluez_device_disconnect (NMBluezDevice *self);
 
-#endif /* NM_BLUEZ_DEVICE_H */
+#endif /* __NETWORKMANAGER_BLUEZ_DEVICE_H__ */
 

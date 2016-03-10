@@ -22,11 +22,11 @@
  * (C) Copyright 2009 - 2011 Red Hat, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
 #include <sys/inotify.h>
 
-#include <net/ethernet.h>
-#include <netinet/ether.h>
 
 #include <gmodule.h>
 #include <glib-object.h>
@@ -36,13 +36,14 @@
 
 #include "interface_parser.h"
 
-#include "NetworkManager.h"
+#include "nm-dbus-interface.h"
 #include "nm-system-config-interface.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-wireless.h"
 #include "nm-setting-wired.h"
 #include "nm-setting-ppp.h"
 #include "nm-utils.h"
+#include "nm-core-internal.h"
 
 #include "nm-ifupdown-connection.h"
 #include "plugin.h"
@@ -62,8 +63,6 @@
 #define IFUPDOWN_PLUGIN_INFO "(C) 2008 Canonical Ltd.  To report bugs please use the NetworkManager mailing list."
 #define IFUPDOWN_SYSTEM_HOSTNAME_FILE "/etc/hostname"
 
-#define IFUPDOWN_KEY_FILE_GROUP "ifupdown"
-#define IFUPDOWN_KEY_FILE_KEY_MANAGED "managed"
 #define IFUPDOWN_UNMANAGE_WELL_KNOWN_DEFAULT TRUE
 
 /* #define ALWAYS_UNMANAGE TRUE */
@@ -186,7 +185,6 @@ bind_device_to_connection (SCPluginIfupdown *self,
                            GUdevDevice *device,
                            NMIfupdownConnection *exported)
 {
-	GByteArray *mac_address;
 	NMSettingWired *s_wired;
 	NMSettingWireless *s_wifi;
 	const char *iface, *address;
@@ -203,8 +201,7 @@ bind_device_to_connection (SCPluginIfupdown *self,
 		return;
 	}
 
-	mac_address = nm_utils_hwaddr_atoba (address, ARPHRD_ETHER);
-	if (!mac_address) {
+	if (!nm_utils_hwaddr_valid (address, ETH_ALEN)) {
 		nm_log_warn (LOGD_SETTINGS, "failed to parse MAC address '%s' for %s",
 		             address, iface);
 		return;
@@ -214,12 +211,11 @@ bind_device_to_connection (SCPluginIfupdown *self,
 	s_wifi = nm_connection_get_setting_wireless (NM_CONNECTION (exported));
 	if (s_wired) {
 		nm_log_info (LOGD_SETTINGS, "locking wired connection setting");
-		g_object_set (s_wired, NM_SETTING_WIRED_MAC_ADDRESS, mac_address, NULL);
+		g_object_set (s_wired, NM_SETTING_WIRED_MAC_ADDRESS, address, NULL);
 	} else if (s_wifi) {
 		nm_log_info (LOGD_SETTINGS, "locking wireless connection setting");
-		g_object_set (s_wifi, NM_SETTING_WIRELESS_MAC_ADDRESS, mac_address, NULL);
+		g_object_set (s_wifi, NM_SETTING_WIRELESS_MAC_ADDRESS, address, NULL);
 	}
-	g_byte_array_free (mac_address, TRUE);
 
 	nm_settings_connection_commit_changes (NM_SETTINGS_CONNECTION (exported), NULL, NULL);
 }    
@@ -329,8 +325,6 @@ SCPluginIfupdown_init (NMSystemConfigInterface *config)
 	GHashTable *auto_ifaces;
 	if_block *block = NULL;
 	NMInotifyHelper *inotify_helper;
-	char *value;
-	GError *error = NULL;
 	GList *keys, *iter;
 	GHashTableIter con_iter;
 	const char *block_name;
@@ -356,8 +350,6 @@ SCPluginIfupdown_init (NMSystemConfigInterface *config)
 	} else
 		g_signal_connect (priv->client, "uevent", G_CALLBACK (handle_uevent), self);
 
-	priv->unmanage_well_known = IFUPDOWN_UNMANAGE_WELL_KNOWN_DEFAULT;
- 
 	inotify_helper = nm_inotify_helper_get ();
 	priv->inotify_event_id = g_signal_connect (inotify_helper,
 	                                           "event",
@@ -458,21 +450,10 @@ SCPluginIfupdown_init (NMSystemConfigInterface *config)
 	g_hash_table_destroy (auto_ifaces);
 
 	/* Check the config file to find out whether to manage interfaces */
-	value = nm_config_get_value (nm_config_get (),
-	                             IFUPDOWN_KEY_FILE_GROUP, IFUPDOWN_KEY_FILE_KEY_MANAGED,
-	                             &error);
-	if (error) {
-		nm_log_info (LOGD_SETTINGS, "loading system config file (%s) caused error: %s",
-		             nm_config_get_path (nm_config_get ()),
-		             error->message);
-	} else {
-		gboolean manage_well_known;
-		error = NULL;
-
-		manage_well_known = !g_strcmp0 (value, "true") || !g_strcmp0 (value, "1");
-		priv->unmanage_well_known = !manage_well_known;
-		g_free (value);
-	}
+	priv->unmanage_well_known = !nm_config_data_get_value_boolean (NM_CONFIG_GET_DATA_ORIG,
+	                                                               NM_CONFIG_KEYFILE_GROUP_IFUPDOWN,
+	                                                               NM_CONFIG_KEYFILE_KEY_IFUPDOWN_MANAGED,
+	                                                               !IFUPDOWN_UNMANAGE_WELL_KNOWN_DEFAULT);
 	nm_log_info (LOGD_SETTINGS, "management mode: %s", priv->unmanage_well_known ? "unmanaged" : "managed");
 
 	/* Add well-known interfaces */
@@ -507,9 +488,7 @@ static GSList*
 SCPluginIfupdown_get_connections (NMSystemConfigInterface *config)
 {
 	SCPluginIfupdownPrivate *priv = SC_PLUGIN_IFUPDOWN_GET_PRIVATE (config);
-	GSList *connections = NULL;
-	GHashTableIter iter;
-	gpointer value;
+	GSList *connections;
 
 	nm_log_info (LOGD_SETTINGS, "(%d) ... get_connections.", GPOINTER_TO_UINT(config));
 
@@ -518,9 +497,7 @@ SCPluginIfupdown_get_connections (NMSystemConfigInterface *config)
 		return NULL;
 	}
 
-	g_hash_table_iter_init (&iter, priv->connections);
-	while (g_hash_table_iter_next (&iter, NULL, &value))
-		connections = g_slist_prepend (connections, value);
+	connections = _nm_utils_hash_values_to_slist (priv->connections);
 
 	nm_log_info (LOGD_SETTINGS, "(%d) connections count: %d", GPOINTER_TO_UINT(config), g_slist_length(connections));
 	return connections;
@@ -636,7 +613,7 @@ sc_plugin_ifupdown_init (SCPluginIfupdown *plugin)
 
 static void
 GObject__get_property (GObject *object, guint prop_id,
-				   GValue *value, GParamSpec *pspec)
+                       GValue *value, GParamSpec *pspec)
 {
 	NMSystemConfigInterface *self = NM_SYSTEM_CONFIG_INTERFACE (object);
 

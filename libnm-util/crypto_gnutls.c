@@ -18,12 +18,13 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2009 Red Hat, Inc.
+ * Copyright 2007 - 2009 Red Hat, Inc.
  */
 
 #include "config.h"
+
 #include <glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include <gcrypt.h>
 #include <gnutls/gnutls.h>
@@ -53,11 +54,6 @@ crypto_init (GError **error)
 
 	initialized = TRUE;
 	return TRUE;
-}
-
-void
-crypto_deinit (void)
-{
 }
 
 gboolean
@@ -105,7 +101,7 @@ crypto_md5_hash (const char *salt,
 		gcry_md_final (ctx);
 		memcpy (digest, gcry_md_read (ctx, 0), digest_len);
 		gcry_md_reset (ctx);
-		
+
 		while (nkey && (i < digest_len)) {
 			*(p++) = digest[i++];
 			nkey--;
@@ -347,7 +343,7 @@ crypto_verify_cert (const unsigned char *data,
                     GError **error)
 {
 	gnutls_x509_crt_t der;
-	gnutls_datum dt;
+	gnutls_datum_t dt;
 	int err;
 
 	err = gnutls_x509_crt_init (&der);
@@ -387,7 +383,7 @@ crypto_verify_pkcs12 (const GByteArray *data,
                       GError **error)
 {
 	gnutls_pkcs12_t p12;
-	gnutls_datum dt;
+	gnutls_datum_t dt;
 	gboolean success = FALSE;
 	int err;
 
@@ -441,7 +437,7 @@ crypto_verify_pkcs8 (const GByteArray *data,
                      GError **error)
 {
 	gnutls_x509_privkey_t p8;
-	gnutls_datum dt;
+	gnutls_datum_t dt;
 	int err;
 
 	g_return_val_if_fail (data != NULL, FALSE);
@@ -475,9 +471,9 @@ crypto_verify_pkcs8 (const GByteArray *data,
 			 */
 		} else {
 			g_set_error (error, NM_CRYPTO_ERROR,
-				         NM_CRYPTO_ERR_FILE_FORMAT_INVALID,
-				         _("Couldn't decode PKCS#8 file: %s"),
-				         gnutls_strerror (err));
+			             NM_CRYPTO_ERR_FILE_FORMAT_INVALID,
+			             _("Couldn't decode PKCS#8 file: %s"),
+			             gnutls_strerror (err));
 			return FALSE;
 		}
 	}
@@ -491,4 +487,3 @@ crypto_randomize (void *buffer, gsize buffer_len, GError **error)
 	gcry_randomize (buffer, buffer_len, GCRY_STRONG_RANDOM);
 	return TRUE;
 }
-

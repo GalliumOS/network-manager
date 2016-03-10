@@ -18,7 +18,8 @@
  * Copyright (C) 2008 - 2012 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -31,8 +32,8 @@
 #include "nm-dnsmasq-utils.h"
 #include "nm-logging.h"
 #include "nm-glib-compat.h"
-#include "nm-posix-signals.h"
 #include "nm-utils.h"
+#include "NetworkManagerUtils.h"
 
 typedef struct {
 	char *iface;
@@ -52,22 +53,6 @@ enum {
 };
 
 static guint signals[LAST_SIGNAL] = { 0 };
-
-typedef enum {
-	NM_DNSMASQ_MANAGER_ERROR_NOT_FOUND,
-	NM_DNSMASQ_MANAGER_ERROR_INVALID_IP_RANGE,
-} NMDnsMasqManagerError;
-
-GQuark
-nm_dnsmasq_manager_error_quark (void)
-{
-	static GQuark quark;
-
-	if (!quark)
-		quark = g_quark_from_static_string ("nm_dnsmasq_manager_error");
-
-	return quark;
-}
 
 static void
 nm_dnsmasq_manager_init (NMDnsMasqManager *manager)
@@ -168,27 +153,6 @@ nm_cmd_line_add_string (NMCmdLine *cmd, const char *str)
 
 /*******************************************/
 
-static inline const char *
-nm_find_dnsmasq (void)
-{
-	static const char *dnsmasq_binary_paths[] = {
-		DNSMASQ_PATH,
-		"/usr/local/sbin/dnsmasq",
-		"/usr/sbin/dnsmasq",
-		"/sbin/dnsmasq",
-		NULL
-	};
-	const char **dnsmasq_binary = dnsmasq_binary_paths;
-
-	while (*dnsmasq_binary != NULL) {
-		if (**dnsmasq_binary && g_file_test (*dnsmasq_binary, G_FILE_TEST_EXISTS))
-			break;
-		dnsmasq_binary++;
-	}
-
-	return *dnsmasq_binary;
-}
-
 static void
 dm_exit_code (guint dm_exit_status)
 {
@@ -249,7 +213,6 @@ create_dm_cmd_line (const char *iface,
                     const char *pidfile,
                     GError **error)
 {
-	const char *dm_binary;
 	NMCmdLine *cmd;
 	GString *s;
 	const NMPlatformIP4Address *tmp;
@@ -257,16 +220,11 @@ create_dm_cmd_line (const char *iface,
 	char last[INET_ADDRSTRLEN];
 	char localaddr[INET_ADDRSTRLEN];
 	char *error_desc = NULL;
+	const char *dm_binary;
 
-	dm_binary = nm_find_dnsmasq ();
-	if (!dm_binary) {
-		g_set_error_literal (error, NM_DNSMASQ_MANAGER_ERROR, NM_DNSMASQ_MANAGER_ERROR_NOT_FOUND,
-		                     "Could not find dnsmasq binary.");
+	dm_binary = nm_utils_find_helper ("dnsmasq", DNSMASQ_PATH, error);
+	if (!dm_binary)
 		return NULL;
-	}
-
-	/* Find the IP4 address to use */
-	tmp = nm_ip4_config_get_address (ip4_config, 0);
 
 	/* Create dnsmasq command line */
 	cmd = nm_cmd_line_new ();
@@ -297,6 +255,9 @@ create_dm_cmd_line (const char *iface,
 	 */
 	nm_cmd_line_add_string (cmd, "--strict-order");
 
+	/* Find the IP4 address to use */
+	tmp = nm_ip4_config_get_address (ip4_config, 0);
+
 	s = g_string_new ("--listen-address=");
 	nm_utils_inet4_ntop (tmp->address, localaddr);
 	g_string_append (s, localaddr);
@@ -305,12 +266,13 @@ create_dm_cmd_line (const char *iface,
 
 	if (!nm_dnsmasq_utils_get_range (tmp, first, last, &error_desc)) {
 		g_set_error_literal (error,
-		                     NM_DNSMASQ_MANAGER_ERROR,
-		                     NM_DNSMASQ_MANAGER_ERROR_INVALID_IP_RANGE,
+		                     NM_MANAGER_ERROR,
+		                     NM_MANAGER_ERROR_FAILED,
 		                     error_desc);
 		nm_log_warn (LOGD_SHARING, "Failed to find DHCP address ranges: %s", error_desc);
 		g_free (error_desc);
-		goto error;
+		nm_cmd_line_destroy (cmd);
+		return NULL;
 	}
 
 	s = g_string_new ("--dhcp-range=");
@@ -331,24 +293,6 @@ create_dm_cmd_line (const char *iface,
 	g_string_free (s, TRUE);
 
 	return cmd;
-
-error:
-	nm_cmd_line_destroy (cmd);
-	return NULL;
-}
-
-static void
-dm_child_setup (gpointer user_data G_GNUC_UNUSED)
-{
-	/* We are in the child process at this point */
-	pid_t pid = getpid ();
-	setpgid (pid, pid);
-
-	/*
-	 * We blocked signals in main(). We need to restore original signal
-	 * mask for dnsmasq here so that it can receive signals.
-	 */
-	nm_unblock_posix_signals (NULL);
 }
 
 static void
@@ -415,9 +359,9 @@ nm_dnsmasq_manager_start (NMDnsMasqManager *manager,
 
 	priv->pid = 0;
 	if (!g_spawn_async (NULL, (char **) dm_cmd->array->pdata, NULL,
-					G_SPAWN_DO_NOT_REAP_CHILD,
-					dm_child_setup,
-					NULL, &priv->pid, error)) {
+	                    G_SPAWN_DO_NOT_REAP_CHILD,
+	                    nm_utils_setpgid, NULL,
+	                    &priv->pid, error)) {
 		goto out;
 	}
 
@@ -430,22 +374,6 @@ nm_dnsmasq_manager_start (NMDnsMasqManager *manager,
 		nm_cmd_line_destroy (dm_cmd);
 
 	return priv->pid > 0;
-}
-
-static gboolean
-ensure_killed (gpointer data)
-{
-	int pid = GPOINTER_TO_INT (data);
-
-	if (kill (pid, 0) == 0)
-		kill (pid, SIGKILL);
-
-	/* ensure the child is reaped */
-	nm_log_dbg (LOGD_SHARING, "waiting for dnsmasq pid %d to exit", pid);
-	waitpid (pid, NULL, 0);
-	nm_log_dbg (LOGD_SHARING, "dnsmasq pid %d cleaned up", pid);
-
-	return FALSE;
 }
 
 void
@@ -463,17 +391,7 @@ nm_dnsmasq_manager_stop (NMDnsMasqManager *manager)
 	}
 
 	if (priv->pid) {
-		if (kill (priv->pid, SIGTERM) == 0)
-			g_timeout_add_seconds (2, ensure_killed, GINT_TO_POINTER (priv->pid));
-		else {
-			kill (priv->pid, SIGKILL);
-
-			/* ensure the child is reaped */
-			nm_log_dbg (LOGD_SHARING, "waiting for dnsmasq pid %d to exit", priv->pid);
-			waitpid (priv->pid, NULL, 0);
-			nm_log_dbg (LOGD_SHARING, "dnsmasq pid %d cleaned up", priv->pid);
-		}
-
+		nm_utils_kill_child_async (priv->pid, SIGTERM, LOGD_SHARING, "dnsmasq", 2000, NULL, NULL);
 		priv->pid = 0;
 	}
 

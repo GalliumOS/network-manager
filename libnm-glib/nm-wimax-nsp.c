@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,10 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2011 Red Hat, Inc.
+ * Copyright 2011 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 
 #include "nm-glib-compat.h"
@@ -71,9 +70,9 @@ nm_wimax_nsp_new (DBusGConnection *connection, const char *path)
 	g_return_val_if_fail (path != NULL, NULL);
 
 	return (GObject *) g_object_new (NM_TYPE_WIMAX_NSP,
-									 NM_OBJECT_DBUS_CONNECTION, connection,
-									 NM_OBJECT_DBUS_PATH, path,
-									 NULL);
+	                                 NM_OBJECT_DBUS_CONNECTION, connection,
+	                                 NM_OBJECT_DBUS_PATH, path,
+	                                 NULL);
 }
 
 /**
@@ -173,14 +172,14 @@ nm_wimax_nsp_connection_valid (NMWimaxNsp *nsp, NMConnection *connection)
 /**
  * nm_wimax_nsp_filter_connections:
  * @nsp: an #NMWimaxNsp to filter connections for
- * @connections: (element-type NetworkManager.Connection): a list of
+ * @connections: (element-type NMConnection): a list of
  * #NMConnection objects to filter
  *
  * Filters a given list of connections for a given #NMWimaxNsp object and
  * return connections which may be activated with the access point.  Any
  * returned connections will match the @nsp's network name and other attributes.
  *
- * Returns: (transfer container) (element-type NetworkManager.Connection): a
+ * Returns: (transfer container) (element-type NMConnection): a
  * list of #NMConnection objects that could be activated with the given @nsp.
  * The elements of the list are owned by their creator and should not be freed
  * by the caller, but the returned list itself is owned by the caller and should
@@ -305,11 +304,10 @@ nm_wimax_nsp_class_init (NMWimaxNspClass *nsp_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NAME,
-		 g_param_spec_string (NM_WIMAX_NSP_NAME,
-							  "Name",
-							  "Name",
-							  NULL,
-							  G_PARAM_READABLE));
+		 g_param_spec_string (NM_WIMAX_NSP_NAME, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMWimaxNsp:signal-quality:
@@ -318,11 +316,10 @@ nm_wimax_nsp_class_init (NMWimaxNspClass *nsp_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SIGNAL_QUALITY,
-		 g_param_spec_uint (NM_WIMAX_NSP_SIGNAL_QUALITY,
-		                    "Signal Quality",
-		                    "Signal Quality",
+		 g_param_spec_uint (NM_WIMAX_NSP_SIGNAL_QUALITY, "", "",
 		                    0, 100, 0,
-		                    G_PARAM_READABLE));
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMWimaxNsp:network-type:
@@ -331,9 +328,8 @@ nm_wimax_nsp_class_init (NMWimaxNspClass *nsp_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NETWORK_TYPE,
-		 g_param_spec_uint (NM_WIMAX_NSP_NETWORK_TYPE,
-		                    "Network Type",
-		                    "Network Type",
+		 g_param_spec_uint (NM_WIMAX_NSP_NETWORK_TYPE, "", "",
 		                    0, G_MAXUINT32, 0,
-		                    G_PARAM_READABLE));
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
 }

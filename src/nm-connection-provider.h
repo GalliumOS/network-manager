@@ -13,18 +13,18 @@
  * Copyright (C) 2012 Red Hat, Inc.
  */
 
-#ifndef NM_CONNECTION_PROVIDER_H
-#define NM_CONNECTION_PROVIDER_H
+#ifndef __NETWORKMANAGER_CONNECTION_PROVIDER_H__
+#define __NETWORKMANAGER_CONNECTION_PROVIDER_H__
 
 #include <glib-object.h>
 #include <nm-connection.h>
+
+#include "nm-types.h"
 
 #define NM_TYPE_CONNECTION_PROVIDER      (nm_connection_provider_get_type ())
 #define NM_CONNECTION_PROVIDER(obj)      (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_CONNECTION_PROVIDER, NMConnectionProvider))
 #define NM_IS_CONNECTION_PROVIDER(obj)   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_CONNECTION_PROVIDER))
 #define NM_CONNECTION_PROVIDER_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), NM_TYPE_CONNECTION_PROVIDER, NMConnectionProvider))
-
-typedef struct _NMConnectionProvider NMConnectionProvider;
 
 #define NM_CP_SIGNAL_CONNECTION_ADDED        "cp-connection-added"
 #define NM_CP_SIGNAL_CONNECTION_UPDATED      "cp-connection-updated"
@@ -133,4 +133,4 @@ NMConnection *nm_connection_provider_add_connection (NMConnectionProvider *self,
 NMConnection *nm_connection_provider_get_connection_by_uuid (NMConnectionProvider *self,
                                                              const char *uuid);
 
-#endif /* NM_CONNECTION_PROVIDER_H */
+#endif /* __NETWORKMANAGER_CONNECTION_PROVIDER_H__ */

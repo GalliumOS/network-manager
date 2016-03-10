@@ -16,7 +16,7 @@ Index: b/src/nm-manager.c
 ===================================================================
 --- a/src/nm-manager.c
 +++ b/src/nm-manager.c
-@@ -58,6 +58,7 @@
+@@ -42,6 +42,7 @@
  #include "nm-dbus-glib-types.h"
  #include "nm-platform.h"
  #include "nm-rfkill-manager.h"
@@ -24,7 +24,7 @@ Index: b/src/nm-manager.c
  #include "nm-dhcp-manager.h"
  #include "nm-settings.h"
  #include "nm-settings-connection.h"
-@@ -189,6 +190,9 @@ typedef struct {
+@@ -174,6 +175,9 @@ typedef struct {
  	NMDBusManager *dbus_mgr;
  	gboolean       prop_filter_added;
  	NMRfkillManager *rfkill_mgr;
@@ -32,9 +32,9 @@ Index: b/src/nm-manager.c
 +	NMUrfkillManager *urfkill_mgr;
 +#endif
  
- 	/* List of NMDeviceFactoryFunc pointers sorted in priority order */
- 	GSList *factories;
-@@ -217,6 +221,7 @@ typedef struct {
+ 	NMSettings *settings;
+ 	char *hostname;
+@@ -199,6 +203,7 @@ typedef struct {
  	gboolean ifstate_force_online;
  
  	guint timestamp_update_id;
@@ -42,7 +42,7 @@ Index: b/src/nm-manager.c
  
  	gboolean startup;
  } NMManagerPrivate;
-@@ -670,7 +675,20 @@ find_unmanaged_state (NMManager *manager
+@@ -679,7 +684,20 @@ find_unmanaged_state (NMManager *manager
  		if (state == NM_DEVICE_STATE_UNMANAGED) {
  			const char *iface = nm_device_get_ip_iface (dev);
  			if (priv->ifstate_force_online) {
@@ -63,7 +63,7 @@ Index: b/src/nm-manager.c
  				nm_log_dbg (LOGD_CORE, "Unmanaged device found: %s; state CONNECTED forced.", iface);
  			}
  		}
-@@ -4669,6 +4687,49 @@ dbus_connection_changed_cb (NMDBusManage
+@@ -4750,6 +4768,49 @@ dbus_connection_changed_cb (NMDBusManage
  
  /**********************************************************************/
  
@@ -113,7 +113,7 @@ Index: b/src/nm-manager.c
  static NMManager *singleton = NULL;
  
  NMManager *
-@@ -4686,6 +4747,43 @@ nm_connection_provider_get (void)
+@@ -4767,6 +4828,43 @@ nm_connection_provider_get (void)
  	return NM_CONNECTION_PROVIDER (NM_MANAGER_GET_PRIVATE (singleton)->settings);
  }
  
@@ -157,7 +157,7 @@ Index: b/src/nm-manager.c
  NMManager *
  nm_manager_new (NMSettings *settings,
                  const char *state_file,
-@@ -4777,13 +4875,35 @@ nm_manager_new (NMSettings *settings,
+@@ -4870,13 +4968,35 @@ nm_manager_new (NMSettings *settings,
  	                  G_CALLBACK (rfkill_manager_rfkill_changed_cb),
  	                  singleton);
  
@@ -193,7 +193,7 @@ Index: b/src/nm-manager.c
 +	                                                      kill_state,
 +	                                                      kill_state_free);
  
- 	load_device_factories (singleton);
+ 	nm_device_factory_manager_load_factories (_register_device_factory, singleton);
  
 Index: b/src/nm-urfkill-manager.c
 ===================================================================
@@ -222,7 +222,7 @@ Index: b/src/nm-urfkill-manager.c
 + */
 +
 +#include "config.h"
-+#include "NetworkManager.h"
++#include "nm-core-internal.h"
 +#include "nm-urfkill-manager.h"
 +#include "nm-glib-compat.h"
 +
@@ -554,15 +554,15 @@ Index: b/src/Makefile.am
 ===================================================================
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -243,6 +243,13 @@ nm_sources = \
+@@ -344,6 +344,13 @@ nm_sources = \
  	NetworkManagerUtils.c \
  	NetworkManagerUtils.h
  
 +if WITH_URFKILL
-+NetworkManager_SOURCES += \
-+		nm-urfkill-manager.c \
-+		nm-urfkill-manager.h \
-+		$(NULL)
++nm_sources += \
++	nm-urfkill-manager.c \
++	nm-urfkill-manager.h \
++	$(NULL)
 +endif
 +
  if SESSION_TRACKING_SYSTEMD
@@ -572,7 +572,7 @@ Index: b/configure.ac
 ===================================================================
 --- a/configure.ac
 +++ b/configure.ac
-@@ -226,6 +226,17 @@ else
+@@ -249,6 +249,17 @@ else
  fi
  
  dnl
@@ -590,19 +590,19 @@ Index: b/configure.ac
  dnl Checks for libm - needed for pow()
  dnl
  LT_LIB_M
-@@ -920,6 +931,7 @@ echo "  modemmanager-1: $with_modem_mana
+@@ -1109,6 +1120,7 @@ echo "  modemmanager-1: $with_modem_mana
  echo "  concheck: $enable_concheck"
  echo "  libteamdctl: $enable_teamdctl"
  echo "  nmtui: $build_nmtui"
 +echo "  urfkill: $ac_with_urfkill"
  echo
  
- echo "Configuration plugins"
+ echo "Configuration plugins (main.plugins=${config_plugins_default})"
 Index: b/config.h.in
 ===================================================================
 --- a/config.h.in
 +++ b/config.h.in
-@@ -110,6 +110,9 @@
+@@ -126,6 +126,9 @@
  /* Define if you have Linux Wireless Extensions support */
  #undef HAVE_WEXT
  

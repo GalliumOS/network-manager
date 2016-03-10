@@ -18,10 +18,12 @@
  * Author: Dan Williams <dcbw@redhat.com>
  */
 
-#ifndef NM_SESSION_MONITOR_H
-#define NM_SESSION_MONITOR_H
+#ifndef __NETWORKMANAGER_SESSION_MONITOR_H__
+#define __NETWORKMANAGER_SESSION_MONITOR_H__
 
 #include <glib-object.h>
+
+#include "nm-types.h"
 
 G_BEGIN_DECLS
 
@@ -34,7 +36,6 @@ G_BEGIN_DECLS
 
 #define NM_SESSION_MONITOR_CHANGED "changed"
 
-typedef struct _NMSessionMonitor         NMSessionMonitor;
 typedef struct _NMSessionMonitorClass    NMSessionMonitorClass;
 
 GType             nm_session_monitor_get_type     (void) G_GNUC_CONST;
@@ -60,5 +61,5 @@ gboolean          nm_session_monitor_uid_active       (NMSessionMonitor *monitor
 
 G_END_DECLS
 
-#endif /* NM_SESSION_MONITOR_H */
+#endif /* __NETWORKMANAGER_SESSION_MONITOR_H__ */
 

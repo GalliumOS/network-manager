@@ -1,6 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* NetworkManager -- Network link manager
- *
+/*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,10 +17,12 @@
  * Copyright 2013 Red Hat, Inc.
  */
 
-#ifndef NM_GVALUEARRAY_COMPAT_H
-#define NM_GVALUEARRAY_COMPAT_H
+#ifndef __NM_GVALUEARRAY_COMPAT_H__
+#define __NM_GVALUEARRAY_COMPAT_H__
 
 #include <glib.h>
+
+#include "nm-glib-compat.h"
 
 #define g_value_array_get_type() \
   G_GNUC_EXTENSION ({ \
@@ -104,4 +105,4 @@ __g_value_array_free (GValueArray *value_array)
     G_GNUC_END_IGNORE_DEPRECATIONS \
   })
 
-#endif  /* NM_GVALUEARRAY_COMPAT_H */
+#endif  /* __NM_GVALUEARRAY_COMPAT_H__ */

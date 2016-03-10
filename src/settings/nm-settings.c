@@ -26,13 +26,16 @@
 #include "config.h"
 
 #include <unistd.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include <string.h>
 #include <gmodule.h>
 #include <pwd.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
-#include <NetworkManager.h>
+#include "gsystem-local-alloc.h"
+#include <nm-dbus-interface.h>
 #include <nm-connection.h>
 #include <nm-setting-8021x.h>
 #include <nm-setting-bluetooth.h>
@@ -52,22 +55,30 @@
 #include <nm-setting-wireless-security.h>
 #include <nm-setting-bond.h>
 #include <nm-utils.h>
+#include "nm-core-internal.h"
 
 #include "nm-device-ethernet.h"
 #include "nm-dbus-glib-types.h"
 #include "nm-settings.h"
 #include "nm-settings-connection.h"
-#include "nm-settings-error.h"
+#include "nm-system-config-interface.h"
 #include "nm-logging.h"
 #include "nm-dbus-manager.h"
-#include "nm-manager-auth.h"
+#include "nm-auth-utils.h"
+#include "nm-auth-subject.h"
 #include "nm-session-monitor.h"
 #include "plugins/keyfile/plugin.h"
 #include "nm-agent-manager.h"
-#include "nm-settings-utils.h"
 #include "nm-connection-provider.h"
 #include "nm-config.h"
 #include "NetworkManagerUtils.h"
+
+#define LOG(level, ...) \
+	G_STMT_START { \
+		nm_log ((level), LOGD_CORE, \
+		        "settings: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__) \
+		        _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
+	} G_STMT_END
 
 /* LINKER CRACKROCK */
 #define EXPORT(sym) void * __export_##sym = &sym;
@@ -83,9 +94,10 @@ EXPORT(nm_settings_connection_replace_settings)
 EXPORT(nm_settings_connection_replace_and_commit)
 /* END LINKER CRACKROCK */
 
+#define PLUGIN_MODULE_PATH      "plugin-module-path"
+
 static void claim_connection (NMSettings *self,
-                              NMSettingsConnection *connection,
-                              gboolean do_export);
+                              NMSettingsConnection *connection);
 
 static gboolean impl_settings_list_connections (NMSettings *self,
                                                 GPtrArray **connections,
@@ -140,6 +152,8 @@ typedef struct {
 	GSList *unmanaged_specs;
 	GSList *unrecognized_specs;
 	GSList *get_connections_cache;
+
+	gboolean startup_complete;
 } NMSettingsPrivate;
 
 #define NM_SETTINGS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTINGS, NMSettingsPrivate))
@@ -164,16 +178,48 @@ enum {
 	PROP_HOSTNAME,
 	PROP_CAN_MODIFY,
 	PROP_CONNECTIONS,
+	PROP_STARTUP_COMPLETE,
 
 	LAST_PROP
 };
+
+static void
+check_startup_complete (NMSettings *self)
+{
+	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
+	GHashTableIter iter;
+	NMSettingsConnection *conn;
+
+	if (priv->startup_complete)
+		return;
+
+	g_hash_table_iter_init (&iter, priv->connections);
+	while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &conn)) {
+		if (!nm_settings_connection_get_ready (conn))
+			return;
+	}
+
+	priv->startup_complete = TRUE;
+	g_object_notify (G_OBJECT (self), NM_SETTINGS_STARTUP_COMPLETE);
+}
+
+static void
+connection_ready_changed (NMSettingsConnection *conn,
+                          GParamSpec *pspec,
+                          gpointer user_data)
+{
+	NMSettings *self = NM_SETTINGS (user_data);
+
+	if (nm_settings_connection_get_ready (conn))
+		check_startup_complete (self);
+}
 
 static void
 plugin_connection_added (NMSystemConfigInterface *config,
                          NMSettingsConnection *connection,
                          gpointer user_data)
 {
-	claim_connection (NM_SETTINGS (user_data), connection, TRUE);
+	claim_connection (NM_SETTINGS (user_data), connection);
 }
 
 static void
@@ -194,7 +240,7 @@ load_connections (NMSettings *self)
 		// priority plugin.
 
 		for (elt = plugin_connections; elt; elt = g_slist_next (elt))
-			claim_connection (self, NM_SETTINGS_CONNECTION (elt->data), TRUE);
+			claim_connection (self, NM_SETTINGS_CONNECTION (elt->data));
 
 		g_slist_free (plugin_connections);
 
@@ -286,7 +332,7 @@ impl_settings_get_connection_by_uuid (NMSettings *self,
 		goto error;
 	}
 
-	subject = nm_auth_subject_new_from_context (context);
+	subject = nm_auth_subject_new_unix_process_from_context (context);
 	if (!subject) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
 		                             NM_SETTINGS_ERROR_PERMISSION_DENIED,
@@ -294,10 +340,10 @@ impl_settings_get_connection_by_uuid (NMSettings *self,
 		goto error;
 	}
 
-	if (!nm_auth_uid_in_acl (NM_CONNECTION (connection),
-	                         nm_session_monitor_get (),
-	                         nm_auth_subject_get_uid (subject),
-	                         &error_desc)) {
+	if (!nm_auth_is_subject_in_acl (NM_CONNECTION (connection),
+	                                nm_session_monitor_get (),
+	                                subject,
+	                                &error_desc)) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
 		                             NM_SETTINGS_ERROR_PERMISSION_DENIED,
 		                             error_desc);
@@ -324,17 +370,17 @@ connection_sort (gconstpointer pa, gconstpointer pb)
 	NMConnection *b = NM_CONNECTION (pb);
 	NMSettingConnection *con_b;
 	guint64 ts_a = 0, ts_b = 0;
+	gboolean can_ac_a, can_ac_b;
 
 	con_a = nm_connection_get_setting_connection (a);
 	g_assert (con_a);
 	con_b = nm_connection_get_setting_connection (b);
 	g_assert (con_b);
 
-	if (nm_setting_connection_get_autoconnect (con_a) != nm_setting_connection_get_autoconnect (con_b)) {
-		if (nm_setting_connection_get_autoconnect (con_a))
-			return -1;
-		return 1;
-	}
+	can_ac_a = !!nm_setting_connection_get_autoconnect (con_a);
+	can_ac_b = !!nm_setting_connection_get_autoconnect (con_b);
+	if (can_ac_a != can_ac_b)
+		return can_ac_a ? -1 : 1;
 
 	nm_settings_connection_get_timestamp (NM_SETTINGS_CONNECTION (pa), &ts_a);
 	nm_settings_connection_get_timestamp (NM_SETTINGS_CONNECTION (pb), &ts_b);
@@ -423,6 +469,21 @@ notify (GObject *object, GParamSpec *pspec)
 	g_slice_free (GValue, value);
 }
 
+gboolean
+nm_settings_has_connection (NMSettings *self, NMConnection *connection)
+{
+	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
+	GHashTableIter iter;
+	gpointer data;
+
+	g_hash_table_iter_init (&iter, priv->connections);
+	while (g_hash_table_iter_next (&iter, NULL, &data))
+		if (data == connection)
+			return TRUE;
+
+	return FALSE;
+}
+
 const GSList *
 nm_settings_get_unmanaged_specs (NMSettings *self)
 {
@@ -444,7 +505,7 @@ get_plugin (NMSettings *self, guint32 capability)
 		NMSystemConfigInterfaceCapabilities caps = NM_SYSTEM_CONFIG_INTERFACE_CAP_NONE;
 
 		g_object_get (G_OBJECT (iter->data), NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES, &caps, NULL);
-		if (caps & capability)
+		if (NM_FLAGS_ALL (caps, capability))
 			return NM_SYSTEM_CONFIG_INTERFACE (iter->data);
 	}
 
@@ -551,6 +612,7 @@ add_plugin (NMSettings *self, NMSystemConfigInterface *plugin)
 	NMSettingsPrivate *priv;
 	char *pname = NULL;
 	char *pinfo = NULL;
+	const char *path;
 
 	g_return_if_fail (NM_IS_SETTINGS (self));
 	g_return_if_fail (NM_IS_SYSTEM_CONFIG_INTERFACE (plugin));
@@ -568,7 +630,10 @@ add_plugin (NMSettings *self, NMSystemConfigInterface *plugin)
 	              NM_SYSTEM_CONFIG_INTERFACE_INFO, &pinfo,
 	              NULL);
 
-	nm_log_info (LOGD_SETTINGS, "Loaded plugin %s: %s", pname, pinfo);
+	path = g_object_get_data (G_OBJECT (plugin), PLUGIN_MODULE_PATH);
+
+	nm_log_info (LOGD_SETTINGS, "Loaded settings plugin %s: %s%s%s%s", pname, pinfo,
+	             NM_PRINT_FMT_QUOTED (path, " (", path, ")", ""));
 	g_free (pname);
 	g_free (pinfo);
 }
@@ -618,18 +683,20 @@ load_plugins (NMSettings *self, const char **plugins, GError **error)
 
 	for (iter = plugins; iter && *iter; iter++) {
 		GModule *plugin;
-		char *full_name, *path;
-		const char *pname = *iter;
+		gs_free char *full_name = NULL;
+		gs_free char *path = NULL;
+		const char *pname;
 		GObject *obj;
 		GObject * (*factory_func) (void);
+		struct stat st;
+		int errsv;
 
-		/* strip leading spaces */
-		while (g_ascii_isspace (*pname))
-			pname++;
+		pname = *iter;
 
-		/* ifcfg-fedora was renamed ifcfg-rh; handle old configs here */
-		if (!strcmp (pname, "ifcfg-fedora"))
-			pname = "ifcfg-rh";
+		if (!*pname || strchr (pname, '/')) {
+			LOG (LOGL_WARN, "ignore invalid plugin \"%s\"", pname);
+			continue;
+		}
 
 		obj = find_plugin (list, pname);
 		if (obj)
@@ -647,39 +714,56 @@ load_plugins (NMSettings *self, const char **plugins, GError **error)
 		full_name = g_strdup_printf ("nm-settings-plugin-%s", pname);
 		path = g_module_build_path (NMPLUGINDIR, full_name);
 
-		plugin = g_module_open (path, G_MODULE_BIND_LOCAL);
-		if (!plugin) {
-			g_set_error (error, 0, 0,
-			             "Could not load plugin '%s': %s",
-			             pname, g_module_error ());
-			g_free (full_name);
-			g_free (path);
-			success = FALSE;
-			break;
+		if (stat (path, &st) != 0) {
+			errsv = errno;
+			LOG (LOGL_WARN, "Could not load plugin '%s' from file '%s': %s", pname, path, strerror (errsv));
+			continue;
+		}
+		if (!S_ISREG (st.st_mode)) {
+			LOG (LOGL_WARN, "Could not load plugin '%s' from file '%s': not a file", pname, path);
+			continue;
+		}
+		if (st.st_uid != 0) {
+			LOG (LOGL_WARN, "Could not load plugin '%s' from file '%s': file must be owned by root", pname, path);
+			continue;
+		}
+		if (st.st_mode & (S_IWGRP | S_IWOTH | S_ISUID)) {
+			LOG (LOGL_WARN, "Could not load plugin '%s' from file '%s': invalid file permissions", pname, path);
+			continue;
 		}
 
-		g_free (full_name);
-		g_free (path);
+		plugin = g_module_open (path, G_MODULE_BIND_LOCAL);
+		if (!plugin) {
+			LOG (LOGL_WARN, "Could not load plugin '%s' from file '%s': %s",
+			     pname, path, g_module_error ());
+			continue;
+		}
+
+		/* errors after this point are fatal, because we loaded the shared library already. */
 
 		if (!g_module_symbol (plugin, "nm_system_config_factory", (gpointer) (&factory_func))) {
-			g_set_error (error, 0, 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
 			             "Could not find plugin '%s' factory function.",
 			             pname);
 			success = FALSE;
+			g_module_close (plugin);
 			break;
 		}
 
 		obj = (*factory_func) ();
 		if (!obj || !NM_IS_SYSTEM_CONFIG_INTERFACE (obj)) {
-			g_set_error (error, 0, 0,
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
 			             "Plugin '%s' returned invalid system config object.",
 			             pname);
 			success = FALSE;
+			g_module_close (plugin);
 			break;
 		}
 
 		g_module_make_resident (plugin);
 		g_object_weak_ref (obj, (GWeakNotify) g_module_close, plugin);
+		g_object_set_data_full (obj, PLUGIN_MODULE_PATH, path, g_free);
+		path = NULL;
 		add_plugin (self, NM_SYSTEM_CONFIG_INTERFACE (obj));
 		list = g_slist_append (list, obj);
 	}
@@ -730,6 +814,11 @@ static void
 connection_removed (NMSettingsConnection *connection, gpointer user_data)
 {
 	NMSettings *self = NM_SETTINGS (user_data);
+	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
+	const char *cpath = nm_connection_get_path (NM_CONNECTION (connection));
+
+	if (!g_hash_table_lookup (priv->connections, cpath))
+		g_return_if_reached ();
 
 	g_object_ref (connection);
 
@@ -742,10 +831,10 @@ connection_removed (NMSettingsConnection *connection, gpointer user_data)
 	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_updated), self);
 	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_updated_by_user), self);
 	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_visibility_changed), self);
+	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_ready_changed), self);
 
 	/* Forget about the connection internally */
-	g_hash_table_remove (NM_SETTINGS_GET_PRIVATE (user_data)->connections,
-	                     (gpointer) nm_connection_get_path (NM_CONNECTION (connection)));
+	g_hash_table_remove (priv->connections, (gpointer) cpath);
 
 	/* Notify D-Bus */
 	g_signal_emit (self, signals[CONNECTION_REMOVED], 0, connection);
@@ -753,6 +842,8 @@ connection_removed (NMSettingsConnection *connection, gpointer user_data)
 	/* Re-emit for listeners like NMPolicy */
 	g_signal_emit_by_name (self, NM_CP_SIGNAL_CONNECTION_REMOVED, connection);
 	g_object_notify (G_OBJECT (self), NM_SETTINGS_CONNECTIONS);
+
+	check_startup_complete (self);
 
 	g_object_unref (connection);
 }
@@ -781,7 +872,7 @@ secret_agent_registered (NMAgentManager *agent_mgr,
 static void
 openconnect_migrate_hack (NMConnection *connection)
 {
-	NMSettingVPN *s_vpn;
+	NMSettingVpn *s_vpn;
 	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NOT_SAVED;
 
 	/* Huge hack.  There were some openconnect changes that needed to happen
@@ -810,9 +901,7 @@ openconnect_migrate_hack (NMConnection *connection)
 }
 
 static void
-claim_connection (NMSettings *self,
-                  NMSettingsConnection *connection,
-                  gboolean do_export)
+claim_connection (NMSettings *self, NMSettingsConnection *connection)
 {
 	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
 	static guint32 ec_counter = 0;
@@ -820,6 +909,7 @@ claim_connection (NMSettings *self,
 	GHashTableIter iter;
 	gpointer data;
 	char *path;
+	NMSettingsConnection *existing;
 
 	g_return_if_fail (NM_IS_SETTINGS_CONNECTION (connection));
 	g_return_if_fail (nm_connection_get_path (NM_CONNECTION (connection)) == NULL);
@@ -831,13 +921,27 @@ claim_connection (NMSettings *self,
 			return;
 	}
 
-	nm_utils_normalize_connection (NM_CONNECTION (connection), TRUE);
-
-	if (!nm_connection_verify (NM_CONNECTION (connection), &error)) {
-		nm_log_warn (LOGD_SETTINGS, "plugin provided invalid connection: '%s' / '%s' invalid: %d",
-		             g_type_name (nm_connection_lookup_setting_type_by_quark (error->domain)),
-		             error->message, error->code);
+	if (!nm_connection_normalize (NM_CONNECTION (connection), NULL, NULL, &error)) {
+		nm_log_warn (LOGD_SETTINGS, "plugin provided invalid connection: %s",
+		             error->message);
 		g_error_free (error);
+		return;
+	}
+
+	existing = nm_settings_get_connection_by_uuid (self, nm_connection_get_uuid (NM_CONNECTION (connection)));
+	if (existing) {
+		/* Cannot add duplicate connections per UUID. Just return without action and
+		 * log a warning.
+		 *
+		 * This means, that plugins must not provide duplicate connections (UUID).
+		 * In fact, none of the plugins currently would do that.
+		 *
+		 * But globaly, over different setting plugins, there could be duplicates
+		 * without the individual plugins being aware. Don't handle that at all, just
+		 * error out. That should not happen unless the admin misconfigured the system
+		 * to create conflicting connections. */
+		nm_log_warn (LOGD_SETTINGS, "plugin provided duplicate connection with UUID %s",
+		             nm_connection_get_uuid (NM_CONNECTION (connection)));
 		return;
 	}
 
@@ -862,6 +966,11 @@ claim_connection (NMSettings *self,
 	g_signal_connect (connection, "notify::" NM_SETTINGS_CONNECTION_VISIBLE,
 	                  G_CALLBACK (connection_visibility_changed),
 	                  self);
+	if (!priv->startup_complete) {
+		g_signal_connect (connection, "notify::" NM_SETTINGS_CONNECTION_READY,
+		                  G_CALLBACK (connection_ready_changed),
+		                  self);
+	}
 
 	/* Export the connection over D-Bus */
 	g_warn_if_fail (nm_connection_get_path (NM_CONNECTION (connection)) == NULL);
@@ -873,6 +982,8 @@ claim_connection (NMSettings *self,
 	g_hash_table_insert (priv->connections,
 	                     (gpointer) nm_connection_get_path (NM_CONNECTION (connection)),
 	                     g_object_ref (connection));
+
+	nm_utils_log_connection_diff (NM_CONNECTION (connection), NULL, LOGL_DEBUG, LOGD_CORE, "new connection", "++ ");
 
 	/* Only emit the individual connection-added signal after connections
 	 * have been initially loaded.
@@ -941,7 +1052,7 @@ nm_settings_add_connection (NMSettings *self,
 
 		added = nm_system_config_interface_add_connection (plugin, connection, save_to_disk, &add_error);
 		if (added) {
-			claim_connection (self, added, TRUE);
+			claim_connection (self, added);
 			return added;
 		}
 		nm_log_dbg (LOGD_SETTINGS, "Failed to add %s/'%s': %s",
@@ -951,7 +1062,7 @@ nm_settings_add_connection (NMSettings *self,
 		g_clear_error (&add_error);
 	}
 
-	g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_ADD_FAILED,
+	g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
 	                     "No plugin supported adding this connection");
 	return NULL;
 }
@@ -997,7 +1108,7 @@ send_agent_owned_secrets (NMSettings *self,
 	 * as agent-owned secrets are the only ones we send back to be saved.
 	 * Only send secrets to agents of the same UID that called update too.
 	 */
-	for_agent = nm_connection_duplicate (NM_CONNECTION (connection));
+	for_agent = nm_simple_connection_new_clone (NM_CONNECTION (connection));
 	nm_connection_clear_secrets_with_flags (for_agent,
 	                                        secrets_filter_cb,
 	                                        GUINT_TO_POINTER (NM_SETTING_SECRET_FLAG_AGENT_OWNED));
@@ -1033,7 +1144,7 @@ pk_add_cb (NMAuthChain *chain,
 
 	if (chain_error) {
 		error = g_error_new (NM_SETTINGS_ERROR,
-		                     NM_SETTINGS_ERROR_GENERAL,
+		                     NM_SETTINGS_ERROR_FAILED,
 		                     "Error checking authorization: %s",
 		                     chain_error->message ? chain_error->message : "(unknown)");
 	} else if (result != NM_AUTH_CALL_RESULT_YES) {
@@ -1137,12 +1248,12 @@ nm_settings_add_connection_dbus (NMSettings *self,
 	/* Do any of the plugins support adding? */
 	if (!get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS)) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
-		                             NM_SETTINGS_ERROR_ADD_NOT_SUPPORTED,
+		                             NM_SETTINGS_ERROR_NOT_SUPPORTED,
 		                             "None of the registered plugins support add.");
 		goto done;
 	}
 
-	subject = nm_auth_subject_new_from_context (context);
+	subject = nm_auth_subject_new_unix_process_from_context (context);
 	if (!subject) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
 		                             NM_SETTINGS_ERROR_PERMISSION_DENIED,
@@ -1153,10 +1264,10 @@ nm_settings_add_connection_dbus (NMSettings *self,
 	/* Ensure the caller's username exists in the connection's permissions,
 	 * or that the permissions is empty (ie, visible by everyone).
 	 */
-	if (!nm_auth_uid_in_acl (connection,
-	                         nm_session_monitor_get (),
-	                         nm_auth_subject_get_uid (subject),
-	                         &error_desc)) {
+	if (!nm_auth_is_subject_in_acl (connection,
+	                                nm_session_monitor_get (),
+	                                subject,
+	                                &error_desc)) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
 		                             NM_SETTINGS_ERROR_PERMISSION_DENIED,
 		                             error_desc);
@@ -1221,16 +1332,19 @@ impl_settings_add_connection_helper (NMSettings *self,
                                      DBusGMethodInvocation *context)
 {
 	NMConnection *connection;
+	GVariant *dict;
 	GError *error = NULL;
 
-	connection = nm_connection_new_from_hash (settings, &error);
+	dict = nm_utils_connection_hash_to_dict (settings);
+	connection = nm_simple_connection_new_from_dbus (dict, &error);
+	g_variant_unref (dict);
 	if (connection) {
 		nm_settings_add_connection_dbus (self,
-		                            connection,
-		                            save_to_disk,
-		                            context,
-		                            impl_settings_add_connection_add_cb,
-		                            NULL);
+		                                 connection,
+		                                 save_to_disk,
+		                                 context,
+		                                 impl_settings_add_connection_add_cb,
+		                                 NULL);
 		g_object_unref (connection);
 	} else {
 		g_assert (error);
@@ -1358,7 +1472,7 @@ pk_hostname_cb (NMAuthChain *chain,
 	/* If our NMSettingsConnection is already gone, do nothing */
 	if (chain_error) {
 		error = g_error_new (NM_SETTINGS_ERROR,
-		                     NM_SETTINGS_ERROR_GENERAL,
+		                     NM_SETTINGS_ERROR_FAILED,
 		                     "Error checking authorization: %s",
 		                     chain_error->message ? chain_error->message : "(unknown)");
 	} else if (result != NM_AUTH_CALL_RESULT_YES) {
@@ -1373,7 +1487,7 @@ pk_hostname_cb (NMAuthChain *chain,
 
 			/* error will be cleared if any plugin supports saving the hostname */
 			error = g_error_new_literal (NM_SETTINGS_ERROR,
-			                             NM_SETTINGS_ERROR_SAVE_HOSTNAME_FAILED,
+			                             NM_SETTINGS_ERROR_FAILED,
 			                             "Saving the hostname failed.");
 
 			g_object_get (G_OBJECT (iter->data), NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES, &caps, NULL);
@@ -1432,7 +1546,7 @@ impl_settings_save_hostname (NMSettings *self,
 	/* Minimal validation of the hostname */
 	if (!validate_hostname (hostname)) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
-		                             NM_SETTINGS_ERROR_HOSTNAME_INVALID,
+		                             NM_SETTINGS_ERROR_INVALID_HOSTNAME,
 		                             "The hostname was too long or contained invalid characters.");
 		goto done;
 	}
@@ -1440,7 +1554,7 @@ impl_settings_save_hostname (NMSettings *self,
 	/* Do any of the plugins support setting the hostname? */
 	if (!get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME)) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
-		                             NM_SETTINGS_ERROR_SAVE_HOSTNAME_NOT_SUPPORTED,
+		                             NM_SETTINGS_ERROR_NOT_SUPPORTED,
 		                             "None of the registered plugins support setting the hostname.");
 		goto done;
 	}
@@ -1471,19 +1585,21 @@ have_connection_for_device (NMSettings *self, NMDevice *device)
 	gpointer data;
 	NMSettingConnection *s_con;
 	NMSettingWired *s_wired;
-	const GByteArray *setting_mac;
-	const guint8 *hwaddr;
-	guint hwaddr_len = 0;
+	const char *setting_hwaddr;
+	const char *device_hwaddr;
 
 	g_return_val_if_fail (NM_IS_SETTINGS (self), FALSE);
 
-	hwaddr = nm_device_get_hw_address (device, &hwaddr_len);
+	device_hwaddr = nm_device_get_hw_address (device);
 
 	/* Find a wired connection locked to the given MAC address, if any */
 	g_hash_table_iter_init (&iter, priv->connections);
 	while (g_hash_table_iter_next (&iter, NULL, &data)) {
 		NMConnection *connection = NM_CONNECTION (data);
 		const char *ctype, *iface;
+
+		if (!nm_device_check_connection_compatible (device, connection))
+			continue;
 
 		s_con = nm_connection_get_setting_connection (connection);
 
@@ -1505,11 +1621,11 @@ have_connection_for_device (NMSettings *self, NMDevice *device)
 
 		g_assert (s_wired != NULL);
 
-		setting_mac = nm_setting_wired_get_mac_address (s_wired);
-		if (setting_mac) {
+		setting_hwaddr = nm_setting_wired_get_mac_address (s_wired);
+		if (setting_hwaddr) {
 			/* A connection mac-locked to this device */
-			if (hwaddr_len == setting_mac->len &&
-				!memcmp (setting_mac->data, hwaddr, hwaddr_len))
+			if (   device_hwaddr
+			    && nm_utils_hwaddr_matches (setting_hwaddr, -1, device_hwaddr, -1))
 				return TRUE;
 		} else {
 			/* A connection that applies to any wired device */
@@ -1580,64 +1696,27 @@ default_wired_clear_tag (NMSettings *self,
 	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (default_wired_connection_updated_by_user_cb), self);
 
 	if (add_to_no_auto_default)
-		nm_config_set_ethernet_no_auto_default (NM_SETTINGS_GET_PRIVATE (self)->config, NM_CONFIG_DEVICE (device));
+		nm_config_set_no_auto_default_for_device (NM_SETTINGS_GET_PRIVATE (self)->config, device);
 }
 
 void
 nm_settings_device_added (NMSettings *self, NMDevice *device)
 {
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
 	NMConnection *connection;
 	NMSettingsConnection *added;
-	NMSetting *setting;
 	GError *error = NULL;
-	const guint8 *hw_address;
-	char *defname, *uuid;
-	guint len = 0;
-	GByteArray *mac;
-
-	if (!NM_IS_DEVICE_ETHERNET (device))
-		return;
 
 	/* If the device isn't managed or it already has a default wired connection,
 	 * ignore it.
 	 */
 	if (   !nm_device_get_managed (device)
 	    || g_object_get_data (G_OBJECT (device), DEFAULT_WIRED_CONNECTION_TAG)
-	    || have_connection_for_device (self, device)
-	    || !nm_config_get_ethernet_can_auto_default (priv->config, NM_CONFIG_DEVICE (device)))
+	    || have_connection_for_device (self, device))
 		return;
 
-	hw_address = nm_device_get_hw_address (device, &len);
-	if (!hw_address)
+	connection = nm_device_new_default_connection (device);
+	if (!connection)
 		return;
-
-	connection = nm_connection_new ();
-	g_assert (connection);
-	setting = nm_setting_connection_new ();
-	g_assert (setting);
-	nm_connection_add_setting (connection, setting);
-
-	defname = nm_settings_utils_get_default_wired_name (priv->connections);
-	uuid = nm_utils_uuid_generate ();
-	g_object_set (setting,
-	              NM_SETTING_CONNECTION_ID, defname,
-	              NM_SETTING_CONNECTION_TYPE, NM_SETTING_WIRED_SETTING_NAME,
-	              NM_SETTING_CONNECTION_AUTOCONNECT, TRUE,
-	              NM_SETTING_CONNECTION_UUID, uuid,
-	              NM_SETTING_CONNECTION_TIMESTAMP, (guint64) time (NULL),
-	              NULL);
-	g_free (uuid);
-	g_free (defname);
-
-	/* Lock the connection to the device */
-	setting = nm_setting_wired_new ();
-	nm_connection_add_setting (connection, setting);
-
-	mac = g_byte_array_sized_new (len);
-	g_byte_array_append (mac, hw_address, len);
-	g_object_set (setting, NM_SETTING_WIRED_MAC_ADDRESS, mac, NULL);
-	g_byte_array_unref (mac);
 
 	/* Add the connection */
 	added = nm_settings_add_connection (self, connection, FALSE, &error);
@@ -1769,13 +1848,8 @@ get_connections (NMConnectionProvider *provider)
 	GSList *list = NULL;
 	NMSettings *self = NM_SETTINGS (provider);
 	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
-	GHashTableIter iter;
-	NMSettingsConnection *connection;
 
-	g_hash_table_iter_init (&iter, priv->connections);
-	while (g_hash_table_iter_next (&iter, NULL, (gpointer) &connection))
-		list = g_slist_prepend (list, connection);
-	list = g_slist_reverse (list);
+	list = _nm_utils_hash_values_to_slist (priv->connections);
 
 	/* Cache the list every call so we can keep it 'const' for callers */
 	g_slist_free (priv->get_connections_cache);
@@ -1787,6 +1861,16 @@ static NMConnection *
 cp_get_connection_by_uuid (NMConnectionProvider *provider, const char *uuid)
 {
 	return NM_CONNECTION (nm_settings_get_connection_by_uuid (NM_SETTINGS (provider), uuid));
+}
+
+/***************************************************************/
+
+gboolean
+nm_settings_get_startup_complete (NMSettings *self)
+{
+	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
+
+	return priv->startup_complete;
 }
 
 /***************************************************************/
@@ -1811,6 +1895,7 @@ nm_settings_new (GError **error)
 	}
 
 	load_connections (self);
+	check_startup_complete (self);
 
 	nm_dbus_manager_register_object (priv->dbus_mgr, NM_DBUS_PATH_SETTINGS, self);
 	return self;
@@ -1911,6 +1996,9 @@ get_property (GObject *object, guint prop_id,
 			g_ptr_array_add (array, g_strdup (path));
 		g_value_take_boxed (value, array);
 		break;
+	case PROP_STARTUP_COMPLETE:
+		g_value_set_boolean (value, nm_settings_get_startup_complete (self));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1934,35 +2022,31 @@ nm_settings_class_init (NMSettingsClass *class)
 
 	g_object_class_install_property
 		(object_class, PROP_UNMANAGED_SPECS,
-		 g_param_spec_boxed (NM_SETTINGS_UNMANAGED_SPECS,
-							 "Unamanged device specs",
-							 "Unmanaged device specs",
-							 DBUS_TYPE_G_LIST_OF_STRING,
-							 G_PARAM_READABLE));
+		 g_param_spec_boxed (NM_SETTINGS_UNMANAGED_SPECS, "", "",
+		                     DBUS_TYPE_G_LIST_OF_STRING,
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_HOSTNAME,
-		 g_param_spec_string (NM_SETTINGS_HOSTNAME,
-		                      "Hostname",
-		                      "Persistent hostname",
+		 g_param_spec_string (NM_SETTINGS_HOSTNAME, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_CAN_MODIFY,
-		 g_param_spec_boolean (NM_SETTINGS_CAN_MODIFY,
-		                       "CanModify",
-		                       "Can modify anything (hostname, connections, etc)",
+		 g_param_spec_boolean (NM_SETTINGS_CAN_MODIFY, "", "",
 		                       FALSE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_CONNECTIONS,
-		 g_param_spec_boxed (NM_SETTINGS_CONNECTIONS,
-		                     "Connections",
-		                     "Connections",
+		 g_param_spec_boxed (NM_SETTINGS_CONNECTIONS, "", "",
 		                     DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 
 	/* signals */
 	signals[PROPERTIES_CHANGED] = 
@@ -2036,28 +2120,11 @@ nm_settings_class_init (NMSettingsClass *class)
 	                              G_TYPE_NONE, 1, G_TYPE_OBJECT);
 
 	dbus_g_error_domain_register (NM_SETTINGS_ERROR,
-	                              NM_DBUS_IFACE_SETTINGS,
+	                              NM_DBUS_INTERFACE_SETTINGS,
 	                              NM_TYPE_SETTINGS_ERROR);
-
-	/* And register all the settings errors with D-Bus */
-	dbus_g_error_domain_register (NM_CONNECTION_ERROR, NULL, NM_TYPE_CONNECTION_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_802_1X_ERROR, NULL, NM_TYPE_SETTING_802_1X_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_BLUETOOTH_ERROR, NULL, NM_TYPE_SETTING_BLUETOOTH_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_CDMA_ERROR, NULL, NM_TYPE_SETTING_CDMA_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_CONNECTION_ERROR, NULL, NM_TYPE_SETTING_CONNECTION_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_GSM_ERROR, NULL, NM_TYPE_SETTING_GSM_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_IP4_CONFIG_ERROR, NULL, NM_TYPE_SETTING_IP4_CONFIG_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_IP6_CONFIG_ERROR, NULL, NM_TYPE_SETTING_IP6_CONFIG_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_OLPC_MESH_ERROR, NULL, NM_TYPE_SETTING_OLPC_MESH_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_PPP_ERROR, NULL, NM_TYPE_SETTING_PPP_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_PPPOE_ERROR, NULL, NM_TYPE_SETTING_PPPOE_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_SERIAL_ERROR, NULL, NM_TYPE_SETTING_SERIAL_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_ADSL_ERROR, NULL, NM_TYPE_SETTING_ADSL_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_VPN_ERROR, NULL, NM_TYPE_SETTING_VPN_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_WIRED_ERROR, NULL, NM_TYPE_SETTING_WIRED_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_WIRELESS_SECURITY_ERROR, NULL, NM_TYPE_SETTING_WIRELESS_SECURITY_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_WIRELESS_ERROR, NULL, NM_TYPE_SETTING_WIRELESS_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_ERROR, NULL, NM_TYPE_SETTING_ERROR);
+	dbus_g_error_domain_register (NM_CONNECTION_ERROR,
+	                              NM_DBUS_INTERFACE_SETTINGS_CONNECTION,
+	                              NM_TYPE_CONNECTION_ERROR);
 
 	dbus_g_object_type_install_info (NM_TYPE_SETTINGS, &dbus_glib_nm_settings_object_info);
 

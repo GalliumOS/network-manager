@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,9 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 Novell, Inc.
- * Copyright (C) 2009 - 2012 Red Hat, Inc.
+ * Copyright 2008 Novell, Inc.
+ * Copyright 2009 - 2012 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <NetworkManager.h>
@@ -143,7 +143,7 @@ typedef struct {
 
 	/* AddConnectionInfo objects that are waiting for the connection to become initialized */
 	GSList *add_list;
-	
+
 	DBusGProxy *props_proxy;
 	char *hostname;
 	gboolean can_modify;
@@ -206,7 +206,7 @@ _nm_remote_settings_ensure_inited (NMRemoteSettings *self)
 			 */
 			if (!g_error_matches (error, DBUS_GERROR, DBUS_GERROR_NO_REPLY)) {
 				g_warning ("%s: (NMRemoteSettings) error initializing: %s\n",
-					       __func__, error->message);
+				           __func__, error->message);
 			}
 			g_error_free (error);
 		}
@@ -469,6 +469,7 @@ connection_inited (GObject *source, GAsyncResult *result, gpointer user_data)
 	AddConnectionInfo *addinfo;
 	const char *path;
 	GError *error = NULL, *local;
+	static gboolean print_once = TRUE;
 
 	path = nm_connection_get_path (NM_CONNECTION (remote));
 	addinfo = add_connection_info_find (self, remote);
@@ -492,7 +493,7 @@ connection_inited (GObject *source, GAsyncResult *result, gpointer user_data)
 			local = g_error_new (NM_REMOTE_SETTINGS_ERROR,
 			                     NM_REMOTE_SETTINGS_ERROR_CONNECTION_UNAVAILABLE,
 			                     "Connection not visible or not available: %s",
-			                     error ? error->message : "(unknown)");
+			                     error->message);
 			add_connection_info_complete (self, addinfo, local);
 			g_error_free (local);
 		}
@@ -504,6 +505,14 @@ connection_inited (GObject *source, GAsyncResult *result, gpointer user_data)
 		if (!dbus_g_error_has_name (error, "org.freedesktop.NetworkManager.Settings.PermissionDenied"))
 			g_hash_table_remove (priv->pending, path);
 
+		if (print_once && error->code == DBUS_GERROR_LIMITS_EXCEEDED) {
+			g_printerr ("Warning: libnm-glib:%s(): a D-Bus limit exceeded: %s. The application might not work properly.\n"
+			            "Consider increasing max_replies_per_connection limit in /etc/dbus-1/system.d/org.freedesktop.NetworkManager.conf "
+			            "like <limit name=\"max_replies_per_connection\">2048</limit>",
+			            __func__, error->message);
+			print_once = FALSE;
+		}
+
 		g_error_free (error);
 	}
 
@@ -511,6 +520,8 @@ connection_inited (GObject *source, GAsyncResult *result, gpointer user_data)
 	priv->init_left--;
 	if (priv->init_left == 0)
 		g_signal_emit (self, signals[CONNECTIONS_READ], 0);
+
+	g_object_unref (self);
 }
 
 static NMRemoteConnection *
@@ -533,7 +544,7 @@ new_connection_cb (DBusGProxy *proxy, const char *path, gpointer user_data)
 	if (connection) {
 		g_async_initable_init_async (G_ASYNC_INITABLE (connection),
 		                             G_PRIORITY_DEFAULT, NULL,
-		                             connection_inited, self);
+		                             connection_inited, g_object_ref (self));
 
 		/* Add the connection to the pending table to wait for it to retrieve
 		 * it's settings asynchronously over D-Bus.  The connection isn't
@@ -559,7 +570,7 @@ fetch_connections_done (DBusGProxy *proxy,
 	g_warn_if_fail (priv->listcon_call == call);
 	priv->listcon_call = NULL;
 
-	if (!dbus_g_proxy_end_call (proxy, call, &error, 
+	if (!dbus_g_proxy_end_call (proxy, call, &error,
 	                            DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH, &connections,
 	                            G_TYPE_INVALID)) {
 		if (   !g_error_matches (error, DBUS_GERROR, DBUS_GERROR_SERVICE_UNKNOWN)
@@ -567,8 +578,8 @@ fetch_connections_done (DBusGProxy *proxy,
 		    && priv->service_running) {
 			g_warning ("%s: error fetching connections: (%d) %s.",
 			           __func__,
-				       error->code,
-				       error->message ? error->message : "(unknown)");
+			           error->code,
+			           error->message ? error->message : "(unknown)");
 		}
 		g_clear_error (&error);
 
@@ -597,7 +608,7 @@ fetch_connections_done (DBusGProxy *proxy,
  * nm_remote_settings_list_connections:
  * @settings: the %NMRemoteSettings
  *
- * Returns: (transfer container) (element-type NMClient.RemoteConnection): a
+ * Returns: (transfer container) (element-type NMRemoteConnection): a
  * list containing all connections provided by the remote settings service.
  * Each element of the returned list is a %NMRemoteConnection instance, which is
  * owned by the %NMRemoteSettings object and should not be freed by the caller.
@@ -939,7 +950,7 @@ nm_remote_settings_save_hostname (NMRemoteSettings *settings,
 	g_return_val_if_fail (NM_IS_REMOTE_SETTINGS (settings), FALSE);
 	g_return_val_if_fail (hostname != NULL, FALSE);
 	g_return_val_if_fail (callback != NULL, FALSE);
-	
+
 	priv = NM_REMOTE_SETTINGS_GET_PRIVATE (settings);
 
 	_nm_remote_settings_ensure_inited (settings);
@@ -1354,8 +1365,8 @@ init_async_got_manager_running (DBusGProxy *proxy, DBusGProxyCall *call,
 
 static void
 init_async (GAsyncInitable *initable, int io_priority,
-			GCancellable *cancellable, GAsyncReadyCallback callback,
-			gpointer user_data)
+            GCancellable *cancellable, GAsyncReadyCallback callback,
+            gpointer user_data)
 {
 	NMRemoteSettingsInitData *init_data;
 	NMRemoteSettingsPrivate *priv = NM_REMOTE_SETTINGS_GET_PRIVATE (initable);
@@ -1365,9 +1376,10 @@ init_async (GAsyncInitable *initable, int io_priority,
 	init_data->result = g_simple_async_result_new (G_OBJECT (initable), callback,
 	                                               user_data, init_async);
 
-	if (priv->private_bus)
+	if (priv->private_bus) {
+		priv->service_running = TRUE;
 		init_get_properties (init_data);
-	else {
+	} else {
 		/* Check if NM is running */
 		dbus_g_proxy_begin_call (priv->dbus_proxy, "NameHasOwner",
 		                         init_async_got_manager_running,
@@ -1484,54 +1496,74 @@ nm_remote_settings_class_init (NMRemoteSettingsClass *class)
 	object_class->dispose = dispose;
 
 	/* Properties */
+
+	/**
+	 * NMRemoteSettings:bus:
+	 *
+	 * The #DBusGConnection that the #NMRemoteSettings is connected to. Defaults
+	 * to the system bus if not specified.
+	 */
 	g_object_class_install_property
 		(object_class, PROP_BUS,
-		 g_param_spec_boxed (NM_REMOTE_SETTINGS_BUS,
-		                     "DBusGConnection",
-		                     "DBusGConnection",
+		 g_param_spec_boxed (NM_REMOTE_SETTINGS_BUS, "", "",
 		                     DBUS_TYPE_G_CONNECTION,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+		                     G_PARAM_READWRITE |
+		                     G_PARAM_CONSTRUCT_ONLY |
+		                     G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * NMRemoteSettings:service-running:
+	 *
+	 * Whether the settings service is running.
+	 */
 	g_object_class_install_property
 		(object_class, PROP_SERVICE_RUNNING,
-		 g_param_spec_boolean (NM_REMOTE_SETTINGS_SERVICE_RUNNING,
-		                       "Service running",
-		                       "Is service running",
+		 g_param_spec_boolean (NM_REMOTE_SETTINGS_SERVICE_RUNNING, "", "",
 		                       FALSE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * NMRemoteSettings:hostname:
+	 *
+	 * The machine hostname stored in persistent configuration. This can be
+	 * modified by calling nm_remote_settings_save_hostname().
+	 */
 	g_object_class_install_property
 		(object_class, PROP_HOSTNAME,
-		 g_param_spec_string (NM_REMOTE_SETTINGS_HOSTNAME,
-		                      "Hostname",
-		                      "Persistent hostname",
+		 g_param_spec_string (NM_REMOTE_SETTINGS_HOSTNAME, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * NMRemoteSettings:can-modify:
+	 *
+	 * If %TRUE, adding and modifying connections is supported.
+	 */
 	g_object_class_install_property
 		(object_class, PROP_CAN_MODIFY,
-		 g_param_spec_boolean (NM_REMOTE_SETTINGS_CAN_MODIFY,
-		                       "CanModify",
-		                       "Can modify anything (hostname, connections, etc)",
+		 g_param_spec_boolean (NM_REMOTE_SETTINGS_CAN_MODIFY, "", "",
 		                       FALSE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/* Signals */
-	signals[NEW_CONNECTION] = 
-	                g_signal_new (NM_REMOTE_SETTINGS_NEW_CONNECTION,
-	                              G_OBJECT_CLASS_TYPE (object_class),
-	                              G_SIGNAL_RUN_FIRST,
-	                              G_STRUCT_OFFSET (NMRemoteSettingsClass, new_connection),
-	                              NULL, NULL, NULL,
-	                              G_TYPE_NONE, 1, G_TYPE_OBJECT);
+	signals[NEW_CONNECTION] =
+		g_signal_new (NM_REMOTE_SETTINGS_NEW_CONNECTION,
+		              G_OBJECT_CLASS_TYPE (object_class),
+		              G_SIGNAL_RUN_FIRST,
+		              G_STRUCT_OFFSET (NMRemoteSettingsClass, new_connection),
+		              NULL, NULL, NULL,
+		              G_TYPE_NONE, 1, G_TYPE_OBJECT);
 
-	signals[CONNECTIONS_READ] = 
-	                g_signal_new (NM_REMOTE_SETTINGS_CONNECTIONS_READ,
-	                              G_OBJECT_CLASS_TYPE (object_class),
-	                              G_SIGNAL_RUN_FIRST,
-	                              G_STRUCT_OFFSET (NMRemoteSettingsClass, connections_read),
-	                              NULL, NULL, NULL,
-	                              G_TYPE_NONE, 0);
+	signals[CONNECTIONS_READ] =
+		g_signal_new (NM_REMOTE_SETTINGS_CONNECTIONS_READ,
+		              G_OBJECT_CLASS_TYPE (object_class),
+		              G_SIGNAL_RUN_FIRST,
+		              G_STRUCT_OFFSET (NMRemoteSettingsClass, connections_read),
+		              NULL, NULL, NULL,
+		              G_TYPE_NONE, 0);
 }
 
 static void

@@ -21,8 +21,10 @@
 
 #include <glib-object.h>
 
-#ifndef NM_RFKILL_MANAGER_H
-#define NM_RFKILL_MANAGER_H
+#include "nm-types.h"
+
+#ifndef __NETWORKMANAGER_RFKILL_MANAGER_H__
+#define __NETWORKMANAGER_RFKILL_MANAGER_H__
 
 typedef enum {
 	RFKILL_UNBLOCKED = 0,
@@ -51,9 +53,9 @@ typedef enum {
 #define NM_IS_RFKILL_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_RFKILL_MANAGER))
 #define NM_RFKILL_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_RFKILL_MANAGER, NMRfkillManagerClass))
 
-typedef struct {
+struct _NMRfkillManager {
 	GObject parent;
-} NMRfkillManager;
+};
 
 typedef struct {
 	GObjectClass parent;

@@ -19,14 +19,11 @@
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "config.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
-#include <netinet/ether.h>
 #include <dbus/dbus-glib.h>
 
 #include "nm-supplicant-config.h"
@@ -166,7 +163,7 @@ nm_supplicant_config_add_option (NMSupplicantConfig *self,
 static gboolean
 nm_supplicant_config_add_blob (NMSupplicantConfig *self,
                                const char *key,
-                               const GByteArray *value,
+                               GBytes *value,
                                const char *blobid)
 {
 	NMSupplicantConfigPrivate *priv;
@@ -174,16 +171,20 @@ nm_supplicant_config_add_blob (NMSupplicantConfig *self,
 	ConfigOption *opt;
 	OptType type;
 	GByteArray *blob;
+	const guint8 *data;
+	gsize data_len;
 
 	g_return_val_if_fail (NM_IS_SUPPLICANT_CONFIG (self), FALSE);
 	g_return_val_if_fail (key != NULL, FALSE);
 	g_return_val_if_fail (value != NULL, FALSE);
-	g_return_val_if_fail (value->len > 0, FALSE);
 	g_return_val_if_fail (blobid != NULL, FALSE);
+
+	data = g_bytes_get_data (value, &data_len);
+	g_return_val_if_fail (data_len > 0, FALSE);
 
 	priv = NM_SUPPLICANT_CONFIG_GET_PRIVATE (self);
 
-	type = nm_supplicant_settings_verify_setting (key, (const char *) value->data, value->len);
+	type = nm_supplicant_settings_verify_setting (key, (const char *) data, data_len);
 	if (type == TYPE_INVALID) {
 		nm_log_warn (LOGD_SUPPLICANT, "Key '%s' and/or it's contained value is invalid.", key);
 		return FALSE;
@@ -195,8 +196,8 @@ nm_supplicant_config_add_blob (NMSupplicantConfig *self,
 		return FALSE;
 	}
 
-	blob = g_byte_array_sized_new (value->len);
-	g_byte_array_append (blob, value->data, value->len);
+	blob = g_byte_array_sized_new (data_len);
+	g_byte_array_append (blob, data, data_len);
 
 	opt = g_slice_new0 (ConfigOption);
 	opt->value = g_strdup_printf ("blob://%s", blobid);
@@ -259,65 +260,44 @@ nm_supplicant_config_fast_required (NMSupplicantConfig *self)
 	return NM_SUPPLICANT_CONFIG_GET_PRIVATE (self)->fast_required;
 }
 
-static void
-get_hash_cb (gpointer key, gpointer value, gpointer user_data)
-{
-	ConfigOption *opt = (ConfigOption *) value;
-	GValue *variant;
-	GByteArray *array;
-
-	variant = g_slice_new0 (GValue);
-
-	switch (opt->type) {
-	case TYPE_INT:
-		g_value_init (variant, G_TYPE_INT);
-		g_value_set_int (variant, atoi (opt->value));
-		break;
-	case TYPE_BYTES:
-	case TYPE_UTF8:
-		array = g_byte_array_sized_new (opt->len);
-		g_byte_array_append (array, (const guint8 *) opt->value, opt->len);
-		g_value_init (variant, DBUS_TYPE_G_UCHAR_ARRAY);
-		g_value_set_boxed (variant, array);
-		g_byte_array_free (array, TRUE);
-		break;
-	case TYPE_KEYWORD:
-	case TYPE_STRING:
-		g_value_init (variant, G_TYPE_STRING);
-		g_value_set_string (variant, opt->value);
-		break;
-	default:
-		g_slice_free (GValue, variant);
-		return;
-	}
-
-	g_hash_table_insert ((GHashTable *) user_data, g_strdup (key), variant);
-}
-
-static void
-destroy_hash_value (gpointer data)
-{
-	GValue *value = (GValue *) data;
-
-	g_value_unset (value);
-	g_slice_free (GValue, value);
-}
-
-GHashTable *
-nm_supplicant_config_get_hash (NMSupplicantConfig * self)
+GVariant *
+nm_supplicant_config_to_variant (NMSupplicantConfig *self)
 {
 	NMSupplicantConfigPrivate *priv;
-	GHashTable *hash;
+	GVariantBuilder builder;
+	GHashTableIter iter;
+	ConfigOption *option;
+	const char *key;
 
 	g_return_val_if_fail (NM_IS_SUPPLICANT_CONFIG (self), NULL);
 
-	hash = g_hash_table_new_full (g_str_hash, g_str_equal,
-	                              (GDestroyNotify) g_free,
-	                              destroy_hash_value);
-
 	priv = NM_SUPPLICANT_CONFIG_GET_PRIVATE (self);
-	g_hash_table_foreach (priv->config, get_hash_cb, hash);
-	return hash;
+
+	g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+
+	g_hash_table_iter_init (&iter, priv->config);
+	while (g_hash_table_iter_next (&iter, (gpointer) &key, (gpointer) &option)) {
+		switch (option->type) {
+		case TYPE_INT:
+			g_variant_builder_add (&builder, "{sv}", key, g_variant_new_int32 (atoi (option->value)));
+			break;
+		case TYPE_BYTES:
+		case TYPE_UTF8:
+			g_variant_builder_add (&builder, "{sv}",
+			                       key,
+			                       g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE,
+			                                                  option->value, option->len, 1));
+			break;
+		case TYPE_KEYWORD:
+		case TYPE_STRING:
+			g_variant_builder_add (&builder, "{sv}", key, g_variant_new_string (option->value));
+			break;
+		default:
+			break;
+		}
+	}
+
+	return g_variant_builder_end (&builder);
 }
 
 GHashTable *
@@ -327,9 +307,6 @@ nm_supplicant_config_get_blobs (NMSupplicantConfig * self)
 
 	return NM_SUPPLICANT_CONFIG_GET_PRIVATE (self)->blobs;
 }
-
-#define MAC_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
-#define MAC_ARG(x) ((guint8*)(x))[0],((guint8*)(x))[1],((guint8*)(x))[2],((guint8*)(x))[3],((guint8*)(x))[4],((guint8*)(x))[5]
 
 #define TWO_GHZ_FREQS  "2412,2417,2422,2427,2432,2437,2442,2447,2452,2457,2462,2467,2472,2484"
 #define FIVE_GHZ_FREQS "4915,4920,4925,4935,4940,4945,4960,4980,5035,5040,5045,5055,5060,5080," \
@@ -346,7 +323,8 @@ nm_supplicant_config_add_setting_wireless (NMSupplicantConfig * self,
 	NMSupplicantConfigPrivate *priv;
 	gboolean is_adhoc, is_ap;
 	const char *mode, *band;
-	const GByteArray *id;
+	GBytes *ssid;
+	const char *bssid;
 
 	g_return_val_if_fail (NM_IS_SUPPLICANT_CONFIG (self), FALSE);
 	g_return_val_if_fail (setting != NULL, FALSE);
@@ -361,8 +339,11 @@ nm_supplicant_config_add_setting_wireless (NMSupplicantConfig * self,
 	else
 		priv->ap_scan = 1;
 
-	id = nm_setting_wireless_get_ssid (setting);
-	if (!nm_supplicant_config_add_option (self, "ssid", (char *) id->data, id->len, FALSE)) {
+	ssid = nm_setting_wireless_get_ssid (setting);
+	if (!nm_supplicant_config_add_option (self, "ssid",
+	                                      (char *) g_bytes_get_data (ssid, NULL),
+	                                      g_bytes_get_size (ssid),
+	                                      FALSE)) {
 		nm_log_warn (LOGD_SUPPLICANT, "Error adding SSID to supplicant config.");
 		return FALSE;
 	}
@@ -401,19 +382,14 @@ nm_supplicant_config_add_setting_wireless (NMSupplicantConfig * self,
 			return FALSE;
 	}
 
-	id = nm_setting_wireless_get_bssid (setting);
-	if (id && id->len) {
-		char *str_bssid;
-
-		str_bssid = g_strdup_printf (MAC_FMT, MAC_ARG (id->data));
+	bssid = nm_setting_wireless_get_bssid (setting);
+	if (bssid) {
 		if (!nm_supplicant_config_add_option (self, "bssid",
-		                                      str_bssid, strlen (str_bssid),
+		                                      bssid, strlen (bssid),
 		                                      FALSE)) {
-			g_free (str_bssid);
 			nm_log_warn (LOGD_SUPPLICANT, "Error adding BSSID to supplicant config.");
 			return FALSE;
 		}
-		g_free (str_bssid);
 	}
 
 	band = nm_setting_wireless_get_band (setting);
@@ -496,7 +472,7 @@ get_blob_id (const char *name, const char *seed_uid)
 }
 
 #define ADD_BLOB_VAL(field, name, con_uid) \
-	if (field && field->len) { \
+	if (field && g_bytes_get_size (field)) { \
 		char *uid = get_blob_id (name, con_uid); \
 		success = nm_supplicant_config_add_blob (self, name, field, uid); \
 		g_free (uid); \
@@ -543,19 +519,32 @@ add_wep_key (NMSupplicantConfig *self,
              const char *name,
              NMWepKeyType wep_type)
 {
-	char *value;
-	gboolean success;
+	GBytes *bytes;
+	gboolean success = FALSE;
 	size_t key_len = key ? strlen (key) : 0;
 
 	if (!key || !key_len)
 		return TRUE;
 
+	if (wep_type == NM_WEP_KEY_TYPE_UNKNOWN) {
+		if (nm_utils_wep_key_valid (key, NM_WEP_KEY_TYPE_KEY))
+			wep_type = NM_WEP_KEY_TYPE_KEY;
+		else if (nm_utils_wep_key_valid (key, NM_WEP_KEY_TYPE_PASSPHRASE))
+			wep_type = NM_WEP_KEY_TYPE_PASSPHRASE;
+	}
+
 	if (   (wep_type == NM_WEP_KEY_TYPE_UNKNOWN)
 	    || (wep_type == NM_WEP_KEY_TYPE_KEY)) {
 		if ((key_len == 10) || (key_len == 26)) {
-			value = nm_utils_hexstr2bin (key, strlen (key));
-			success = nm_supplicant_config_add_option (self, name, value, key_len / 2, TRUE);
-			g_free (value);
+			bytes = nm_utils_hexstr2bin (key);
+			if (bytes) {
+				success = nm_supplicant_config_add_option (self,
+				                                           name,
+				                                           g_bytes_get_data (bytes, NULL),
+				                                           g_bytes_get_size (bytes),
+				                                           TRUE);
+				g_bytes_unref (bytes);
+			}
 			if (!success) {
 				nm_log_warn (LOGD_SUPPLICANT, "Error adding %s to supplicant config.", name);
 				return FALSE;
@@ -591,8 +580,7 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
                                                     NMSetting8021x *setting_8021x,
                                                     const char *con_uuid)
 {
-	char *value;
-	gboolean success;
+	gboolean success = FALSE;
 	const char *key_mgmt, *auth_alg;
 	const char *psk;
 
@@ -613,10 +601,18 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 		size_t psk_len = strlen (psk);
 
 		if (psk_len == 64) {
+			GBytes *bytes;
+
 			/* Hex PSK */
-			value = nm_utils_hexstr2bin (psk, psk_len);
-			success = nm_supplicant_config_add_option (self, "psk", value, psk_len / 2, TRUE);
-			g_free (value);
+			bytes = nm_utils_hexstr2bin (psk);
+			if (bytes) {
+				success = nm_supplicant_config_add_option (self,
+				                                           "psk",
+				                                           g_bytes_get_data (bytes, NULL),
+				                                           g_bytes_get_size (bytes),
+				                                           TRUE);
+				g_bytes_unref (bytes);
+			}
 			if (!success) {
 				nm_log_warn (LOGD_SUPPLICANT, "Error adding 'psk' to supplicant config.");
 				return FALSE;
@@ -654,6 +650,7 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 		const char *wep1 = nm_setting_wireless_security_get_wep_key (setting, 1);
 		const char *wep2 = nm_setting_wireless_security_get_wep_key (setting, 2);
 		const char *wep3 = nm_setting_wireless_security_get_wep_key (setting, 3);
+		char *value;
 
 		if (!add_wep_key (self, wep0, "wep_key0", wep_type))
 			return FALSE;
@@ -732,10 +729,11 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 	const char *peapver, *value, *path;
 	gboolean success, added;
 	GString *phase1, *phase2;
-	const GByteArray *array;
+	GBytes *bytes;
 	gboolean fast = FALSE;
 	guint32 i, num_eap;
 	gboolean fast_provisoning_allowed = FALSE;
+	const char *ca_path_override = NULL, *ca_cert_override = NULL;
 
 	g_return_val_if_fail (NM_IS_SUPPLICANT_CONFIG (self), FALSE);
 	g_return_val_if_fail (setting != NULL, FALSE);
@@ -748,12 +746,12 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 		if (!add_string_val (self, value, "password", FALSE, TRUE))
 			return FALSE;
 	} else {
-		array = nm_setting_802_1x_get_password_raw (setting);
-		if (array) {
+		bytes = nm_setting_802_1x_get_password_raw (setting);
+		if (bytes) {
 			success = nm_supplicant_config_add_option (self,
 			                                           "password",
-			                                           (const char *)array->data,
-			                                           array->len,
+			                                           (const char *) g_bytes_get_data (bytes, NULL),
+			                                           g_bytes_get_size (bytes),
 			                                           TRUE);
 			if (!success) {
 				nm_log_warn (LOGD_SUPPLICANT, "Error adding password-raw to supplicant config.");
@@ -873,10 +871,18 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 		}
 	}
 
+	/* If user wants to use system CA certs, either populate ca_path (if the path
+	 * is a directory) or ca_cert (the path is a file name) */
+	if (nm_setting_802_1x_get_system_ca_certs (setting)) {
+		if (g_file_test (SYSTEM_CA_PATH, G_FILE_TEST_IS_DIR))
+			ca_path_override = SYSTEM_CA_PATH;
+		else
+			ca_cert_override = SYSTEM_CA_PATH;
+	}
+
 	/* CA path */
 	path = nm_setting_802_1x_get_ca_path (setting);
-	if (nm_setting_802_1x_get_system_ca_certs (setting))
-		path = SYSTEM_CA_PATH;
+	path = ca_path_override ? ca_path_override : path;
 	if (path) {
 		if (!add_string_val (self, path, "ca_path", FALSE, FALSE))
 			return FALSE;
@@ -884,41 +890,50 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 
 	/* Phase2 CA path */
 	path = nm_setting_802_1x_get_phase2_ca_path (setting);
-	if (nm_setting_802_1x_get_system_ca_certs (setting))
-		path = SYSTEM_CA_PATH;
+	path = ca_path_override ? ca_path_override : path;
 	if (path) {
 		if (!add_string_val (self, path, "ca_path2", FALSE, FALSE))
 			return FALSE;
 	}
 
 	/* CA certificate */
-	switch (nm_setting_802_1x_get_ca_cert_scheme (setting)) {
-	case NM_SETTING_802_1X_CK_SCHEME_BLOB:
-		array = nm_setting_802_1x_get_ca_cert_blob (setting);
-		ADD_BLOB_VAL (array, "ca_cert", con_uuid);
-		break;
-	case NM_SETTING_802_1X_CK_SCHEME_PATH:
-		path = nm_setting_802_1x_get_ca_cert_path (setting);
-		if (!add_string_val (self, path, "ca_cert", FALSE, FALSE))
+	if (ca_cert_override) {
+		if (!add_string_val (self, ca_cert_override, "ca_cert", FALSE, FALSE))
 			return FALSE;
-		break;
-	default:
-		break;
+	} else {
+		switch (nm_setting_802_1x_get_ca_cert_scheme (setting)) {
+		case NM_SETTING_802_1X_CK_SCHEME_BLOB:
+			bytes = nm_setting_802_1x_get_ca_cert_blob (setting);
+			ADD_BLOB_VAL (bytes, "ca_cert", con_uuid);
+			break;
+		case NM_SETTING_802_1X_CK_SCHEME_PATH:
+			path = nm_setting_802_1x_get_ca_cert_path (setting);
+			if (!add_string_val (self, path, "ca_cert", FALSE, FALSE))
+				return FALSE;
+			break;
+		default:
+			break;
+		}
 	}
 
 	/* Phase 2 CA certificate */
-	switch (nm_setting_802_1x_get_phase2_ca_cert_scheme (setting)) {
-	case NM_SETTING_802_1X_CK_SCHEME_BLOB:
-		array = nm_setting_802_1x_get_phase2_ca_cert_blob (setting);
-		ADD_BLOB_VAL (array, "ca_cert2", con_uuid);
-		break;
-	case NM_SETTING_802_1X_CK_SCHEME_PATH:
-		path = nm_setting_802_1x_get_phase2_ca_cert_path (setting);
-		if (!add_string_val (self, path, "ca_cert2", FALSE, FALSE))
+	if (ca_cert_override) {
+		if (!add_string_val (self, ca_cert_override, "ca_cert2", FALSE, FALSE))
 			return FALSE;
-		break;
-	default:
-		break;
+	} else {
+		switch (nm_setting_802_1x_get_phase2_ca_cert_scheme (setting)) {
+		case NM_SETTING_802_1X_CK_SCHEME_BLOB:
+			bytes = nm_setting_802_1x_get_phase2_ca_cert_blob (setting);
+			ADD_BLOB_VAL (bytes, "ca_cert2", con_uuid);
+			break;
+		case NM_SETTING_802_1X_CK_SCHEME_PATH:
+			path = nm_setting_802_1x_get_phase2_ca_cert_path (setting);
+			if (!add_string_val (self, path, "ca_cert2", FALSE, FALSE))
+				return FALSE;
+			break;
+		default:
+			break;
+		}
 	}
 
 	/* Subject match */
@@ -937,8 +952,8 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 	added = FALSE;
 	switch (nm_setting_802_1x_get_private_key_scheme (setting)) {
 	case NM_SETTING_802_1X_CK_SCHEME_BLOB:
-		array = nm_setting_802_1x_get_private_key_blob (setting);
-		ADD_BLOB_VAL (array, "private_key", con_uuid);
+		bytes = nm_setting_802_1x_get_private_key_blob (setting);
+		ADD_BLOB_VAL (bytes, "private_key", con_uuid);
 		added = TRUE;
 		break;
 	case NM_SETTING_802_1X_CK_SCHEME_PATH:
@@ -975,8 +990,8 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 			 */
 			switch (nm_setting_802_1x_get_client_cert_scheme (setting)) {
 			case NM_SETTING_802_1X_CK_SCHEME_BLOB:
-				array = nm_setting_802_1x_get_client_cert_blob (setting);
-				ADD_BLOB_VAL (array, "client_cert", con_uuid);
+				bytes = nm_setting_802_1x_get_client_cert_blob (setting);
+				ADD_BLOB_VAL (bytes, "client_cert", con_uuid);
 				break;
 			case NM_SETTING_802_1X_CK_SCHEME_PATH:
 				path = nm_setting_802_1x_get_client_cert_path (setting);
@@ -993,8 +1008,8 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 	added = FALSE;
 	switch (nm_setting_802_1x_get_phase2_private_key_scheme (setting)) {
 	case NM_SETTING_802_1X_CK_SCHEME_BLOB:
-		array = nm_setting_802_1x_get_phase2_private_key_blob (setting);
-		ADD_BLOB_VAL (array, "private_key2", con_uuid);
+		bytes = nm_setting_802_1x_get_phase2_private_key_blob (setting);
+		ADD_BLOB_VAL (bytes, "private_key2", con_uuid);
 		added = TRUE;
 		break;
 	case NM_SETTING_802_1X_CK_SCHEME_PATH:
@@ -1021,7 +1036,7 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 			 * isn't decrypted at all.
 			 */
 			value = nm_setting_802_1x_get_phase2_private_key_password (setting);
-			if (!add_string_val (self, value, "private_key_passwd2", FALSE, TRUE))
+			if (!add_string_val (self, value, "private_key2_passwd", FALSE, TRUE))
 				return FALSE;
 		}
 
@@ -1031,8 +1046,8 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 			 */
 			switch (nm_setting_802_1x_get_phase2_client_cert_scheme (setting)) {
 			case NM_SETTING_802_1X_CK_SCHEME_BLOB:
-				array = nm_setting_802_1x_get_phase2_client_cert_blob (setting);
-				ADD_BLOB_VAL (array, "client_cert2", con_uuid);
+				bytes = nm_setting_802_1x_get_phase2_client_cert_blob (setting);
+				ADD_BLOB_VAL (bytes, "client_cert2", con_uuid);
 				break;
 			case NM_SETTING_802_1X_CK_SCHEME_PATH:
 				path = nm_setting_802_1x_get_phase2_client_cert_path (setting);

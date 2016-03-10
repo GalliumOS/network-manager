@@ -5,7 +5,7 @@
 
 #include "nm-bt-enum-types.h"
 
-#include "nm-device-bt.h"
+#include "nm-bt-error.h"
 
 GType
 nm_bt_error_get_type (void)
@@ -18,6 +18,7 @@ nm_bt_error_get_type (void)
         { NM_BT_ERROR_CONNECTION_NOT_BT, "NM_BT_ERROR_CONNECTION_NOT_BT", "ConnectionNotBt" },
         { NM_BT_ERROR_CONNECTION_INVALID, "NM_BT_ERROR_CONNECTION_INVALID", "ConnectionInvalid" },
         { NM_BT_ERROR_CONNECTION_INCOMPATIBLE, "NM_BT_ERROR_CONNECTION_INCOMPATIBLE", "ConnectionIncompatible" },
+        { NM_BT_ERROR_DUN_CONNECT_FAILED, "NM_BT_ERROR_DUN_CONNECT_FAILED", "DunConnectFailed" },
         { 0, NULL, NULL }
       };
       GType g_define_type_id =

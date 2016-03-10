@@ -22,18 +22,11 @@ PKG_NAME=NetworkManager
 
 cd $srcdir
 
-# Fetch submodules if needed
-if test -d $srcdir/.git; then
-    echo "+ Setting up submodules"
-    git submodule init
-    git submodule update
-fi
-
 gtkdocize
 autopoint --force
 AUTOPOINT='intltoolize --automake --copy' autoreconf --force --install --verbose
 
 cd $olddir
 if test -z "$NOCONFIGURE"; then
-	exec $srcdir/configure --enable-maintainer-mode "$@"
+	exec $srcdir/configure --enable-maintainer-mode --enable-more-warnings=error "$@"
 fi

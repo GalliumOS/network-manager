@@ -8,36 +8,37 @@ again and again.
 
 Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
 ---
- src/dns-manager/nm-dns-dnsmasq.c        |  312 ++++++++++++++++++++++----------
+ src/dns-manager/nm-dns-dnsmasq.c        |  310 ++++++++++++++++++++++----------
  src/dns-manager/nm-dns-manager.c        |   22 ++
  src/dns-manager/nm-dns-plugin.c         |   16 +
  src/dns-manager/nm-dns-plugin.h         |    1 
  src/org.freedesktop.NetworkManager.conf |   10 +
- 5 files changed, 272 insertions(+), 89 deletions(-)
+ 5 files changed, 271 insertions(+), 88 deletions(-)
 
 Index: b/src/dns-manager/nm-dns-dnsmasq.c
 ===================================================================
 --- a/src/dns-manager/nm-dns-dnsmasq.c
 +++ b/src/dns-manager/nm-dns-dnsmasq.c
-@@ -29,12 +29,17 @@
- #include <glib.h>
- #include <glib/gi18n.h>
+@@ -27,6 +27,10 @@
+ #include <arpa/inet.h>
+ #include <sys/stat.h>
  
 +#include <dbus/dbus.h>
 +#include <dbus/dbus-glib-lowlevel.h>
 +#include <dbus/dbus-glib.h>
 +
- #include "nm-dns-dnsmasq.h"
- #include "nm-utils.h"
- #include "nm-logging.h"
- #include "nm-ip4-config.h"
+ #include <glib.h>
+ #include <glib/gi18n.h>
+ 
+@@ -37,6 +41,7 @@
  #include "nm-ip6-config.h"
  #include "nm-dns-utils.h"
+ #include "NetworkManagerUtils.h"
 +#include "nm-dbus-manager.h"
  
  G_DEFINE_TYPE (NMDnsDnsmasq, nm_dns_dnsmasq, NM_TYPE_DNS_PLUGIN)
  
-@@ -44,8 +49,13 @@ G_DEFINE_TYPE (NMDnsDnsmasq, nm_dns_dnsm
+@@ -46,14 +51,19 @@ G_DEFINE_TYPE (NMDnsDnsmasq, nm_dns_dnsm
  #define CONFFILE NMRUNDIR "/dnsmasq.conf"
  #define CONFDIR NMCONFDIR "/dnsmasq.d"
  
@@ -52,8 +53,6 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  } NMDnsDnsmasqPrivate;
  
  /*******************************************/
-@@ -71,7 +81,7 @@ find_dnsmasq (void)
- }
  
  static gboolean
 -add_ip4_config (GString *str, NMIP4Config *ip4, gboolean split)
@@ -61,7 +60,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  {
  	char buf[INET_ADDRSTRLEN];
  	in_addr_t addr;
-@@ -87,15 +97,18 @@ add_ip4_config (GString *str, NMIP4Confi
+@@ -69,15 +79,18 @@ add_ip4_config (GString *str, NMIP4Confi
  			return FALSE;
  
  		for (i_nameserver = 0; i_nameserver < nnameservers; i_nameserver++) {
@@ -85,7 +84,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  				added = TRUE;
  			}
  
-@@ -103,9 +116,10 @@ add_ip4_config (GString *str, NMIP4Confi
+@@ -85,9 +98,10 @@ add_ip4_config (GString *str, NMIP4Confi
  				/* If not searches, use any domains */
  				n = nm_ip4_config_get_num_domains (ip4);
  				for (i = 0; i < n; i++) {
@@ -99,7 +98,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  					added = TRUE;
  				}
  			}
-@@ -116,7 +130,9 @@ add_ip4_config (GString *str, NMIP4Confi
+@@ -98,7 +112,9 @@ add_ip4_config (GString *str, NMIP4Confi
  			domains = nm_dns_utils_get_ip4_rdns_domains (ip4);
  			if (domains) {
  				for (iter = domains; iter && *iter; iter++)
@@ -110,7 +109,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  				g_strfreev (domains);
  				added = TRUE;
  			}
-@@ -126,41 +142,20 @@ add_ip4_config (GString *str, NMIP4Confi
+@@ -108,41 +124,20 @@ add_ip4_config (GString *str, NMIP4Confi
  	/* If no searches or domains, just add the namservers */
  	if (!added) {
  		for (i = 0; i < nnameservers; i++) {
@@ -157,7 +156,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  	int nnameservers, i_nameserver, n, i;
  	gboolean added = FALSE;
  	const char *iface;
-@@ -176,14 +171,32 @@ add_ip6_config (GString *str, NMIP6Confi
+@@ -158,14 +153,32 @@ add_ip6_config (GString *str, NMIP6Confi
  
  		for (i_nameserver = 0; i_nameserver < nnameservers; i_nameserver++) {
  			addr = nm_ip6_config_get_nameserver (ip6, i_nameserver);
@@ -194,7 +193,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  				added = TRUE;
  			}
  
-@@ -191,14 +204,13 @@ add_ip6_config (GString *str, NMIP6Confi
+@@ -173,14 +186,13 @@ add_ip6_config (GString *str, NMIP6Confi
  				/* If not searches, use any domains */
  				n = nm_ip6_config_get_num_domains (ip6);
  				for (i = 0; i < n; i++) {
@@ -213,7 +212,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  		}
  	}
  
-@@ -206,11 +218,24 @@ add_ip6_config (GString *str, NMIP6Confi
+@@ -188,11 +200,24 @@ add_ip6_config (GString *str, NMIP6Confi
  	if (!added) {
  		for (i = 0; i < nnameservers; i++) {
  			addr = nm_ip6_config_get_nameserver (ip6, i);
@@ -243,7 +242,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  		}
  	}
  
-@@ -218,55 +243,29 @@ add_ip6_config (GString *str, NMIP6Confi
+@@ -200,28 +225,26 @@ add_ip6_config (GString *str, NMIP6Confi
  }
  
  static gboolean
@@ -255,32 +254,35 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
 +start_dnsmasq (NMDnsDnsmasq *self)
  {
 -	NMDnsDnsmasq *self = NM_DNS_DNSMASQ (plugin);
++	NMDnsDnsmasqPrivate *priv = NM_DNS_DNSMASQ_GET_PRIVATE (self);
+ 	const char *dm_binary;
 -	GString *conf;
 -	GSList *iter;
-+	NMDnsDnsmasqPrivate *priv = NM_DNS_DNSMASQ_GET_PRIVATE (self);
  	const char *argv[15];
-+	char *dnsmasq_owner;
  	GError *error = NULL;
  	int ignored;
-+	GString *conf;
  	GPid pid = 0;
  	guint idx = 0;
++	char *dnsmasq_owner;
++	GString *conf;
  
 -	/* Kill the old dnsmasq; there doesn't appear to be a way to get dnsmasq
 -	 * to reread the config file using SIGHUP or similar.  This is a small race
 -	 * here when restarting dnsmasq when DNS requests could go to the upstream
 -	 * servers instead of to dnsmasq.
--	 */
--	nm_dns_plugin_child_kill (plugin);
 +	/* dnsmasq is probably already started; if it's the case, don't do
 +	 * anything more.
-+ 	 */
+ 	 */
+-	nm_dns_plugin_child_kill (plugin);
 +	dnsmasq_owner = nm_dbus_manager_get_name_owner (priv->dbus_mgr, DNSMASQ_DBUS_SERVICE, NULL);
 +	if (dnsmasq_owner != NULL)
 +		return TRUE;
 +
 +	/* Start dnsmasq */
  
+ 	dm_binary = nm_utils_find_helper ("dnsmasq", DNSMASQ_PATH, NULL);
+ 	if (!dm_binary) {
+@@ -232,30 +255,6 @@ update (NMDnsPlugin *plugin,
  	/* Build up the new dnsmasq config file */
  	conf = g_string_sized_new (150);
  
@@ -311,7 +313,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  	/* Write out the config file */
  	if (!g_file_set_contents (CONFFILE, conf->str, -1, &error)) {
  		nm_log_warn (LOGD_DNS, "Failed to write dnsmasq config file %s: (%d) %s",
-@@ -291,6 +290,7 @@ update (NMDnsPlugin *plugin,
+@@ -280,6 +279,7 @@ update (NMDnsPlugin *plugin,
  	argv[idx++] = "--conf-file=" CONFFILE;
  	argv[idx++] = "--cache-size=400";
  	argv[idx++] = "--proxy-dnssec"; /* Allow DNSSEC to pass through */
@@ -319,7 +321,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  
  	/* dnsmasq exits if the conf dir is not present */
  	if (g_file_test (CONFDIR, G_FILE_TEST_IS_DIR))
-@@ -307,8 +307,124 @@ out:
+@@ -296,8 +296,124 @@ out:
  	return pid ? TRUE : FALSE;
  }
  
@@ -444,7 +446,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  static const char *
  dm_exit_code_to_msg (int status)
  {
-@@ -380,13 +496,31 @@ nm_dns_dnsmasq_new (void)
+@@ -369,13 +485,31 @@ nm_dns_dnsmasq_new (void)
  static void
  nm_dns_dnsmasq_init (NMDnsDnsmasq *self)
  {
@@ -480,7 +482,7 @@ Index: b/src/dns-manager/nm-dns-manager.c
 ===================================================================
 --- a/src/dns-manager/nm-dns-manager.c
 +++ b/src/dns-manager/nm-dns-manager.c
-@@ -781,6 +781,27 @@ update_dns (NMDnsManager *self,
+@@ -800,6 +800,27 @@ update_dns (NMDnsManager *self,
  }
  
  static void
@@ -508,10 +510,10 @@ Index: b/src/dns-manager/nm-dns-manager.c
  plugin_failed (NMDnsPlugin *plugin, gpointer user_data)
  {
  	NMDnsManager *self = NM_DNS_MANAGER (user_data);
-@@ -1127,6 +1148,7 @@ nm_dns_manager_init (NMDnsManager *self)
- 	if (priv->plugin) {
+@@ -1129,6 +1150,7 @@ init_resolv_conf_mode (NMDnsManager *sel
  		nm_log_info (LOGD_DNS, "DNS: loaded plugin %s", nm_dns_plugin_get_name (priv->plugin));
  		g_signal_connect (priv->plugin, NM_DNS_PLUGIN_FAILED, G_CALLBACK (plugin_failed), self);
+ 		g_signal_connect (priv->plugin, NM_DNS_PLUGIN_CHILD_QUIT, G_CALLBACK (plugin_child_quit), self);
 +		g_signal_connect (priv->plugin, NM_DNS_PLUGIN_APPEARED, G_CALLBACK (plugin_appeared), self);
  	}
  }
@@ -520,7 +522,7 @@ Index: b/src/dns-manager/nm-dns-plugin.c
 ===================================================================
 --- a/src/dns-manager/nm-dns-plugin.c
 +++ b/src/dns-manager/nm-dns-plugin.c
-@@ -44,6 +44,7 @@ G_DEFINE_TYPE_EXTENDED (NMDnsPlugin, nm_
+@@ -45,6 +45,7 @@ G_DEFINE_TYPE_EXTENDED (NMDnsPlugin, nm_
  
  enum {
  	FAILED,
@@ -528,7 +530,7 @@ Index: b/src/dns-manager/nm-dns-plugin.c
  	CHILD_QUIT,
  	LAST_SIGNAL
  };
-@@ -131,6 +132,12 @@ watch_cb (GPid pid, gint status, gpointe
+@@ -132,6 +133,12 @@ watch_cb (GPid pid, gint status, gpointe
  	g_free (priv->progname);
  	priv->progname = NULL;
  
@@ -541,7 +543,7 @@ Index: b/src/dns-manager/nm-dns-plugin.c
  	g_signal_emit (self, signals[CHILD_QUIT], 0, status);
  }
  
-@@ -310,6 +317,15 @@ nm_dns_plugin_class_init (NMDnsPluginCla
+@@ -261,6 +268,15 @@ nm_dns_plugin_class_init (NMDnsPluginCla
  					  G_OBJECT_CLASS_TYPE (object_class),
  					  G_SIGNAL_RUN_FIRST,
  					  G_STRUCT_OFFSET (NMDnsPluginClass, failed),
@@ -595,5 +597,5 @@ Index: b/src/org.freedesktop.NetworkManager.conf
 +                <deny own="org.freedesktop.NetworkManager.dnsmasq"/>
 +                <deny send_destination="org.freedesktop.NetworkManager.dnsmasq"/>
          </policy>
- </busconfig>
  
+ 	<limit name="max_replies_per_connection">1024</limit>

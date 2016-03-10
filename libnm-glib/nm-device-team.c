@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * Copyright (C) 2013 Jiri Pirko <jiri@resnulli.us>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -16,9 +14,12 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
+ *
+ * Copyright 2013 Jiri Pirko <jiri@resnulli.us>
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 #include <netinet/ether.h>
 
@@ -93,9 +94,9 @@ nm_device_team_new (DBusGConnection *connection, const char *path)
 	g_return_val_if_fail (path != NULL, NULL);
 
 	device = g_object_new (NM_TYPE_DEVICE_TEAM,
-			       NM_OBJECT_DBUS_CONNECTION, connection,
-			       NM_OBJECT_DBUS_PATH, path,
-			       NULL);
+	                       NM_OBJECT_DBUS_CONNECTION, connection,
+	                       NM_OBJECT_DBUS_PATH, path,
+	                       NULL);
 	_nm_object_ensure_inited (NM_OBJECT (device));
 	return device;
 }
@@ -145,7 +146,7 @@ nm_device_team_get_carrier (NMDeviceTeam *device)
  *
  * Gets the devices currently enslaved to @device.
  *
- * Returns: (element-type NMClient.Device): the #GPtrArray containing
+ * Returns: (element-type NMDevice): the #GPtrArray containing
  * #NMDevices that are slaves of @device. This is the internal
  * copy used by the device, and must not be modified.
  *
@@ -297,12 +298,12 @@ get_property (GObject *object,
 }
 
 static void
-nm_device_team_class_init (NMDeviceTeamClass *eth_class)
+nm_device_team_class_init (NMDeviceTeamClass *team_class)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (eth_class);
-	NMDeviceClass *device_class = NM_DEVICE_CLASS (eth_class);
+	GObjectClass *object_class = G_OBJECT_CLASS (team_class);
+	NMDeviceClass *device_class = NM_DEVICE_CLASS (team_class);
 
-	g_type_class_add_private (eth_class, sizeof (NMDeviceTeamPrivate));
+	g_type_class_add_private (team_class, sizeof (NMDeviceTeamPrivate));
 
 	/* virtual methods */
 	object_class->constructed = constructed;
@@ -322,11 +323,10 @@ nm_device_team_class_init (NMDeviceTeamClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_TEAM_HW_ADDRESS,
-		                      "Active MAC Address",
-		                      "Currently set hardware MAC address",
+		 g_param_spec_string (NM_DEVICE_TEAM_HW_ADDRESS, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceTeam:carrier:
@@ -335,11 +335,10 @@ nm_device_team_class_init (NMDeviceTeamClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CARRIER,
-		 g_param_spec_boolean (NM_DEVICE_TEAM_CARRIER,
-		                       "Carrier",
-		                       "Carrier",
+		 g_param_spec_boolean (NM_DEVICE_TEAM_CARRIER, "", "",
 		                       FALSE,
-		                       G_PARAM_READABLE));
+		                       G_PARAM_READABLE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceTeam:slaves:
@@ -348,9 +347,8 @@ nm_device_team_class_init (NMDeviceTeamClass *eth_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SLAVES,
-		 g_param_spec_boxed (NM_DEVICE_TEAM_SLAVES,
-		                     "Slaves",
-		                     "Slaves",
+		 g_param_spec_boxed (NM_DEVICE_TEAM_SLAVES, "", "",
 		                     NM_TYPE_OBJECT_ARRAY,
-		                     G_PARAM_READABLE));
+		                     G_PARAM_READABLE |
+		                     G_PARAM_STATIC_STRINGS));
 }

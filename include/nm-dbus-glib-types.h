@@ -1,7 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * Dan Williams <dcbw@redhat.com>
- *
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
+/*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,11 +14,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2008 Red Hat, Inc.
+ * Copyright 2008 Red Hat, Inc.
  */
 
-#ifndef DBUS_GLIB_TYPES_H
-#define DBUS_GLIB_TYPES_H
+#ifndef __NM_DBUS_GLIB_TYPES_H__
+#define __NM_DBUS_GLIB_TYPES_H__
 
 #include <dbus/dbus-glib.h>
 
@@ -39,5 +37,9 @@
 #define DBUS_TYPE_G_IP6_ROUTE               (dbus_g_type_get_struct ("GValueArray", DBUS_TYPE_G_UCHAR_ARRAY, G_TYPE_UINT, DBUS_TYPE_G_UCHAR_ARRAY, G_TYPE_UINT, G_TYPE_INVALID))
 #define DBUS_TYPE_G_ARRAY_OF_IP6_ROUTE      (dbus_g_type_get_collection ("GPtrArray", DBUS_TYPE_G_IP6_ROUTE))
 
-#endif /* DBUS_GLIB_TYPES_H */
+#define DBUS_TYPE_NM_IP_ADDRESS             DBUS_TYPE_G_MAP_OF_VARIANT
+#define DBUS_TYPE_NM_IP_ADDRESSES           (dbus_g_type_get_collection ("GPtrArray", DBUS_TYPE_NM_IP_ADDRESS))
+#define DBUS_TYPE_NM_IP_ROUTE               DBUS_TYPE_G_MAP_OF_VARIANT
+#define DBUS_TYPE_NM_IP_ROUTES              (dbus_g_type_get_collection ("GPtrArray", DBUS_TYPE_NM_IP_ROUTE))
 
+#endif /* __NM_DBUS_GLIB_TYPES_H__ */

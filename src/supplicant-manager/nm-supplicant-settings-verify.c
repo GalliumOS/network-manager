@@ -18,6 +18,8 @@
  * Copyright (C) 2006 - 2012 Red Hat, Inc.
  */
 
+#include "config.h"
+
 #include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -137,7 +139,7 @@ static const struct Opt opt_table[] = {
 	{ "proactive_key_caching", TYPE_INT,  0, 1, FALSE,  NULL },
 	{ "bgscan",             TYPE_BYTES,   0, 0, FALSE,  NULL },
 	{ "pac_file",           TYPE_BYTES,   0, 1024, FALSE,  NULL },
-	{ "freq_list",          TYPE_BYTES,   0, 0, FALSE,  NULL },
+	{ "freq_list",          TYPE_KEYWORD, 0, 0, FALSE,  NULL },
 };
 
 

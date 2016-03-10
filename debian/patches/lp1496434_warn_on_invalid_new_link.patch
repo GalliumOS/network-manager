@@ -1,0 +1,35 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Don't crash when a device can't be created; just warn.
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1496434
+Last-Update: 2015-09-25
+
+This was apparently how things were handled in 0.9.10; but changed in 1.0.4.
+
+Still, on some devices (phones!) a failure to have the NMDeviceFactory create
+the device can happen even if the device technically has a type, and in that
+case it seems that the error message does not get set.
+
+The issue we've seen seemed to be with ccmni0 being detected as a wifi device,
+but bad kernel drivers with an incomplete WEXT extension set would report
+a WEXT version of 0 and thus fail its activation.
+
+This won't fix those devices, but the message will show up in logs, along
+with the interface name so we can then fix that interface properly.
+
+---
+ src/nm-manager.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: b/src/nm-manager.c
+===================================================================
+--- a/src/nm-manager.c
++++ b/src/nm-manager.c
+@@ -1954,7 +1954,7 @@ platform_link_added (NMManager *self,
+ 		if (!device) {
+ 			if (!ignore) {
+ 				nm_log_warn (LOGD_HW, "%s: factory failed to create device: %s",
+-				             plink->name, error->message);
++				             plink->name, error ? error->message : "(unknown)");
+ 				g_clear_error (&error);
+ 			}
+ 			return;

@@ -8,7 +8,7 @@ Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
 
 (fixups and WEXT implementation by dcbw)
 ---
- src/devices/wifi/nm-device-wifi.c      |    7 +++++++
+ src/devices/wifi/nm-device-wifi.c      |    8 ++++++++
  src/platform/nm-linux-platform.c       |   10 ++++++++++
  src/platform/nm-platform.c             |   10 ++++++++++
  src/platform/nm-platform.h             |    2 ++
@@ -17,27 +17,28 @@ Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
  src/platform/wifi/wifi-utils-wext.c    |   25 +++++++++++++++++++++++++
  src/platform/wifi/wifi-utils.c         |    8 ++++++++
  src/platform/wifi/wifi-utils.h         |    2 ++
- 9 files changed, 86 insertions(+)
+ 9 files changed, 87 insertions(+)
 
 Index: b/src/devices/wifi/nm-device-wifi.c
 ===================================================================
 --- a/src/devices/wifi/nm-device-wifi.c
 +++ b/src/devices/wifi/nm-device-wifi.c
-@@ -775,6 +775,8 @@ deactivate (NMDevice *dev)
- 	/* Reset MAC address back to initial address */
- 	nm_device_set_hw_addr (dev, priv->initial_hw_addr, "reset", LOGD_WIFI);
+@@ -741,6 +741,8 @@ deactivate (NMDevice *device)
+ 	if (nm_device_get_initial_hw_address (device))
+ 		nm_device_set_hw_addr (device, nm_device_get_initial_hw_address (device), "reset", LOGD_WIFI);
  
-+	nm_platform_wifi_set_powersave (ifindex, 0);
++	nm_platform_wifi_set_powersave (NM_PLATFORM_GET, ifindex, 0);
 +
  	/* Ensure we're in infrastructure mode after deactivation; some devices
  	 * (usually older ones) don't scan well in adhoc mode.
  	 */
-@@ -2796,6 +2798,11 @@ act_stage2_config (NMDevice *dev, NMDevi
+@@ -2724,6 +2726,12 @@ act_stage2_config (NMDevice *device, NMD
  	if ((nm_ap_get_mode (ap) == NM_802_11_MODE_ADHOC) || nm_ap_is_hotspot (ap))
  		ensure_hotspot_frequency (self, s_wireless, ap);
  
 +	if (nm_ap_get_mode (ap) == NM_802_11_MODE_INFRA) {
-+		nm_platform_wifi_set_powersave (nm_device_get_ifindex (dev),
++		nm_platform_wifi_set_powersave (NM_PLATFORM_GET,
++		                                nm_device_get_ifindex (device),
 +		                                nm_setting_wireless_get_powersave (s_wireless));
 +	}
 +
@@ -48,7 +49,7 @@ Index: b/src/platform/nm-linux-platform.c
 ===================================================================
 --- a/src/platform/nm-linux-platform.c
 +++ b/src/platform/nm-linux-platform.c
-@@ -3200,6 +3200,15 @@ wifi_set_mode (NMPlatform *platform, int
+@@ -3857,6 +3857,15 @@ wifi_set_mode (NMPlatform *platform, int
  		wifi_utils_set_mode (wifi_data, mode);
  }
  
@@ -64,7 +65,7 @@ Index: b/src/platform/nm-linux-platform.c
  static guint32
  wifi_find_frequency (NMPlatform *platform, int ifindex, const guint32 *freqs)
  {
-@@ -4152,6 +4161,7 @@ nm_linux_platform_class_init (NMLinuxPla
+@@ -4995,6 +5004,7 @@ nm_linux_platform_class_init (NMLinuxPla
  	platform_class->wifi_get_rate = wifi_get_rate;
  	platform_class->wifi_get_mode = wifi_get_mode;
  	platform_class->wifi_set_mode = wifi_set_mode;
@@ -76,28 +77,28 @@ Index: b/src/platform/nm-platform.c
 ===================================================================
 --- a/src/platform/nm-platform.c
 +++ b/src/platform/nm-platform.c
-@@ -1335,6 +1335,16 @@ nm_platform_wifi_set_mode (int ifindex,
- 	klass->wifi_set_mode (platform, ifindex, mode);
+@@ -1704,6 +1704,16 @@ nm_platform_wifi_get_ssid (NMPlatform *s
+ 	return klass->wifi_get_ssid (self, ifindex);
  }
  
 +void
-+nm_platform_wifi_set_powersave (int ifindex, guint32 powersave)
++nm_platform_wifi_set_powersave (NMPlatform *self, int ifindex, guint32 powersave)
 +{
-+	reset_error ();
++	_CHECK_SELF_VOID (self, klass);
 +
 +	g_return_if_fail (ifindex > 0);
 +
-+	klass->wifi_set_powersave (platform, ifindex, powersave);
++	klass->wifi_set_powersave (self, ifindex, powersave);
 +}
 +
  guint32
- nm_platform_wifi_find_frequency (int ifindex, const guint32 *freqs)
+ nm_platform_wifi_get_frequency (NMPlatform *self, int ifindex)
  {
 Index: b/src/platform/nm-platform.h
 ===================================================================
 --- a/src/platform/nm-platform.h
 +++ b/src/platform/nm-platform.h
-@@ -427,6 +427,7 @@ typedef struct {
+@@ -499,6 +499,7 @@ typedef struct {
  	guint32     (*wifi_get_rate)         (NMPlatform *, int ifindex);
  	NM80211Mode (*wifi_get_mode)         (NMPlatform *, int ifindex);
  	void        (*wifi_set_mode)         (NMPlatform *, int ifindex, NM80211Mode mode);
@@ -105,19 +106,19 @@ Index: b/src/platform/nm-platform.h
  	guint32     (*wifi_find_frequency)   (NMPlatform *, int ifindex, const guint32 *freqs);
  	void        (*wifi_indicate_addressing_running) (NMPlatform *, int ifindex, gboolean running);
  
-@@ -567,6 +568,7 @@ int         nm_platform_wifi_get_quality
- guint32     nm_platform_wifi_get_rate         (int ifindex);
- NM80211Mode nm_platform_wifi_get_mode         (int ifindex);
- void        nm_platform_wifi_set_mode         (int ifindex, NM80211Mode mode);
-+void        nm_platform_wifi_set_powersave    (int ifindex, guint32 powersave);
- guint32     nm_platform_wifi_find_frequency   (int ifindex, const guint32 *freqs);
- void        nm_platform_wifi_indicate_addressing_running (int ifindex, gboolean running);
+@@ -684,6 +685,7 @@ int         nm_platform_wifi_get_quality
+ guint32     nm_platform_wifi_get_rate         (NMPlatform *self, int ifindex);
+ NM80211Mode nm_platform_wifi_get_mode         (NMPlatform *self, int ifindex);
+ void        nm_platform_wifi_set_mode         (NMPlatform *self, int ifindex, NM80211Mode mode);
++void        nm_platform_wifi_set_powersave    (NMPlatform *self, int ifindex, guint32 powersave);
+ guint32     nm_platform_wifi_find_frequency   (NMPlatform *self, int ifindex, const guint32 *freqs);
+ void        nm_platform_wifi_indicate_addressing_running (NMPlatform *self, int ifindex, gboolean running);
  
 Index: b/src/platform/wifi/wifi-utils-nl80211.c
 ===================================================================
 --- a/src/platform/wifi/wifi-utils-nl80211.c
 +++ b/src/platform/wifi/wifi-utils-nl80211.c
-@@ -264,6 +264,24 @@ wifi_nl80211_set_mode (WifiData *data, c
+@@ -265,6 +265,24 @@ wifi_nl80211_set_mode (WifiData *data, c
  	return FALSE;
  }
  
@@ -142,7 +143,7 @@ Index: b/src/platform/wifi/wifi-utils-nl80211.c
  /* @divisor: pass what value @xbm should be divided by to get dBm */
  static guint32
  nl80211_xbm_to_percent (gint32 xbm, guint32 divisor)
-@@ -835,6 +853,7 @@ wifi_nl80211_init (const char *iface, in
+@@ -853,6 +871,7 @@ wifi_nl80211_init (const char *iface, in
  	nl80211 = wifi_data_new (iface, ifindex, sizeof (*nl80211));
  	nl80211->parent.get_mode = wifi_nl80211_get_mode;
  	nl80211->parent.set_mode = wifi_nl80211_set_mode;
@@ -199,7 +200,7 @@ Index: b/src/platform/wifi/wifi-utils-wext.c
  static guint32
  wifi_wext_get_freq (WifiData *data)
  {
-@@ -576,6 +600,7 @@ wifi_wext_init (const char *iface, int i
+@@ -574,6 +598,7 @@ wifi_wext_init (const char *iface, int i
  	wext = wifi_data_new (iface, ifindex, sizeof (*wext));
  	wext->parent.get_mode = wifi_wext_get_mode;
  	wext->parent.set_mode = wifi_wext_set_mode;
@@ -211,7 +212,7 @@ Index: b/src/platform/wifi/wifi-utils.c
 ===================================================================
 --- a/src/platform/wifi/wifi-utils.c
 +++ b/src/platform/wifi/wifi-utils.c
-@@ -97,6 +97,14 @@ wifi_utils_set_mode (WifiData *data, con
+@@ -98,6 +98,14 @@ wifi_utils_set_mode (WifiData *data, con
  	return data->set_mode ? data->set_mode (data, mode) : TRUE;
  }
  
@@ -230,7 +231,7 @@ Index: b/src/platform/wifi/wifi-utils.h
 ===================================================================
 --- a/src/platform/wifi/wifi-utils.h
 +++ b/src/platform/wifi/wifi-utils.h
-@@ -65,6 +65,8 @@ gboolean wifi_utils_indicate_addressing_
+@@ -66,6 +66,8 @@ gboolean wifi_utils_indicate_addressing_
  /* Returns true if WoWLAN is enabled on device */
  gboolean wifi_utils_get_wowlan (WifiData *data);
  

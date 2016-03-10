@@ -16,8 +16,8 @@ Index: b/src/dhcp-manager/nm-dhcp-dhclient.c
 ===================================================================
 --- a/src/dhcp-manager/nm-dhcp-dhclient.c
 +++ b/src/dhcp-manager/nm-dhcp-dhclient.c
-@@ -353,7 +353,7 @@ dhclient_start (NMDHCPClient *client,
- 		return -1;
+@@ -331,7 +331,7 @@ dhclient_start (NMDhcpClient *client,
+ 		return FALSE;
  	}
  
 -	pid_file = g_strdup_printf (LOCALSTATEDIR "/run/dhclient%s-%s.pid",
@@ -29,7 +29,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
 ===================================================================
 --- a/src/dns-manager/nm-dns-dnsmasq.c
 +++ b/src/dns-manager/nm-dns-dnsmasq.c
-@@ -40,7 +40,7 @@ G_DEFINE_TYPE (NMDnsDnsmasq, nm_dns_dnsm
+@@ -42,7 +42,7 @@ G_DEFINE_TYPE (NMDnsDnsmasq, nm_dns_dnsm
  
  #define NM_DNS_DNSMASQ_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DNS_DNSMASQ, NMDnsDnsmasqPrivate))
  

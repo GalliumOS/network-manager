@@ -18,9 +18,11 @@
  * Copyright (C) 2012 Red Hat, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
 #include <glib/gstdio.h>
-#include <NetworkManager.h>
+#include <nm-dbus-interface.h>
 #include <nm-setting-connection.h>
 #include <nm-utils.h>
 
@@ -80,6 +82,7 @@ nm_example_connection_new (const char *full_path,
 	if (!nm_settings_connection_replace_settings (NM_SETTINGS_CONNECTION (object),
 	                                              tmp,
 	                                              TRUE,
+	                                              NULL,
 	                                              error)) {
 		g_object_unref (object);
 		object = NULL;
@@ -89,7 +92,7 @@ nm_example_connection_new (const char *full_path,
 	/* Make sure we have a UUID; just a sanity check */
 	uuid = nm_connection_get_uuid (NM_CONNECTION (object));
 	if (!uuid) {
-		g_set_error (error, EXAMPLE_PLUGIN_ERROR, 0,
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 		             "Connection in file %s had no UUID", full_path);
 		g_object_unref (object);
 		object = NULL;
@@ -165,12 +168,7 @@ nm_example_connection_init (NMExampleConnection *connection)
 static void
 finalize (GObject *object)
 {
-	NMExampleConnectionPrivate *priv = NM_EXAMPLE_CONNECTION_GET_PRIVATE (object);
-
-	/* Zero out any secrets so we don't leave them in memory */
-	nm_connection_clear_secrets (NM_CONNECTION (object));
-
-	g_free (priv->path);
+	g_free (NM_EXAMPLE_CONNECTION_GET_PRIVATE (object)->path);
 
 	G_OBJECT_CLASS (nm_example_connection_parent_class)->finalize (object);
 }

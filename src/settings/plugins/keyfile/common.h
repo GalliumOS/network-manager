@@ -24,14 +24,9 @@
 #include <glib.h>
 
 #define KEYFILE_PLUGIN_NAME "keyfile"
-#define KEYFILE_PLUGIN_INFO "(c) 2007 - 2013 Red Hat, Inc.  To report bugs please use the NetworkManager mailing list."
+#define KEYFILE_PLUGIN_INFO "(c) 2007 - 2015 Red Hat, Inc.  To report bugs please use the NetworkManager mailing list."
 
 #define KEYFILE_DIR NMCONFDIR "/system-connections"
-
-#define VPN_SECRETS_GROUP "vpn-secrets"
-
-#define KEYFILE_PLUGIN_ERROR (keyfile_plugin_error_quark ())
-GQuark keyfile_plugin_error_quark (void);
 
 #endif  /* __COMMON_H__ */
 

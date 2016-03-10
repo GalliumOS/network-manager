@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,9 +15,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2012 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2012 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <gio/gio.h>
@@ -41,14 +41,16 @@ static gboolean debug = FALSE;
 static void nm_object_initable_iface_init (GInitableIface *iface);
 static void nm_object_async_initable_iface_init (GAsyncInitableIface *iface);
 
+static GHashTable *type_funcs, *type_async_funcs;
+
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (NMObject, nm_object, G_TYPE_OBJECT,
+                                  type_funcs = g_hash_table_new (NULL, NULL);
+                                  type_async_funcs = g_hash_table_new (NULL, NULL);
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, nm_object_initable_iface_init);
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, nm_object_async_initable_iface_init);
                                   )
 
 #define NM_OBJECT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_OBJECT, NMObjectPrivate))
-
-static GHashTable *type_funcs, *type_async_funcs;
 
 typedef struct {
 	PropertyMarshalFunc func;
@@ -82,8 +84,8 @@ typedef struct {
 
 enum {
 	PROP_0,
-	PROP_CONNECTION,
-	PROP_PATH,
+	PROP_DBUS_CONNECTION,
+	PROP_DBUS_PATH,
 
 	LAST_PROP
 };
@@ -158,8 +160,6 @@ constructor (GType type,
 		g_object_unref (object);
 		return NULL;
 	}
-
-	_nm_object_cache_add (NM_OBJECT (object));
 
 	return object;
 }
@@ -336,18 +336,18 @@ finalize (GObject *object)
 
 static void
 set_property (GObject *object, guint prop_id,
-			  const GValue *value, GParamSpec *pspec)
+              const GValue *value, GParamSpec *pspec)
 {
 	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (object);
 
 	switch (prop_id) {
-	case PROP_CONNECTION:
+	case PROP_DBUS_CONNECTION:
 		/* Construct only */
 		priv->connection = g_value_dup_boxed (value);
 		if (!priv->connection)
 			priv->connection = _nm_dbus_new_connection (NULL);
 		break;
-	case PROP_PATH:
+	case PROP_DBUS_PATH:
 		/* Construct only */
 		priv->path = g_value_dup_string (value);
 		break;
@@ -359,15 +359,15 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-			  GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (object);
 
 	switch (prop_id) {
-	case PROP_CONNECTION:
+	case PROP_DBUS_CONNECTION:
 		g_value_set_boxed (value, priv->connection);
 		break;
-	case PROP_PATH:
+	case PROP_DBUS_PATH:
 		g_value_set_string (value, priv->path);
 		break;
 	default:
@@ -383,11 +383,6 @@ nm_object_class_init (NMObjectClass *nm_object_class)
 
 	g_type_class_add_private (nm_object_class, sizeof (NMObjectPrivate));
 
-	if (!type_funcs) {
-		type_funcs = g_hash_table_new (NULL, NULL);
-		type_async_funcs = g_hash_table_new (NULL, NULL);
-	}
-
 	/* virtual methods */
 	object_class->constructor = constructor;
 	object_class->constructed = constructed;
@@ -396,7 +391,7 @@ nm_object_class_init (NMObjectClass *nm_object_class)
 	object_class->dispose = dispose;
 	object_class->finalize = finalize;
 
-	/* porperties */
+	/* Properties */
 
 	/**
 	 * NMObject:connection:
@@ -404,12 +399,12 @@ nm_object_class_init (NMObjectClass *nm_object_class)
 	 * The #DBusGConnection of the object.
 	 **/
 	g_object_class_install_property
-		(object_class, PROP_CONNECTION,
-		 g_param_spec_boxed (NM_OBJECT_DBUS_CONNECTION,
-							 "Connection",
-							 "Connection",
-							 DBUS_TYPE_G_CONNECTION,
-							 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+		(object_class, PROP_DBUS_CONNECTION,
+		 g_param_spec_boxed (NM_OBJECT_DBUS_CONNECTION, "", "",
+		                     DBUS_TYPE_G_CONNECTION,
+		                     G_PARAM_READWRITE |
+		                     G_PARAM_CONSTRUCT_ONLY |
+		                     G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMObject:path:
@@ -417,12 +412,12 @@ nm_object_class_init (NMObjectClass *nm_object_class)
 	 * The DBus object path.
 	 **/
 	g_object_class_install_property
-		(object_class, PROP_PATH,
-		 g_param_spec_string (NM_OBJECT_DBUS_PATH,
-							  "Object Path",
-							  "DBus Object Path",
-							  NULL,
-							  G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+		(object_class, PROP_DBUS_PATH,
+		 g_param_spec_string (NM_OBJECT_DBUS_PATH, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_CONSTRUCT_ONLY |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/* signals */
 
@@ -578,6 +573,8 @@ _nm_object_create (GType type, DBusGConnection *connection, const char *path)
 	                       NM_OBJECT_DBUS_CONNECTION, connection,
 	                       NM_OBJECT_DBUS_PATH, path,
 	                       NULL);
+	if (NM_IS_OBJECT (object))
+		_nm_object_cache_add (NM_OBJECT (object));
 	if (!g_initable_init (G_INITABLE (object), NULL, &error)) {
 		dbgmsg ("Could not create object for %s: %s", path, error->message);
 		g_error_free (error);
@@ -661,6 +658,8 @@ async_got_type (GType type, gpointer user_data)
 	                       NM_OBJECT_DBUS_PATH, async_data->path,
 	                       NULL);
 	g_warn_if_fail (object != NULL);
+	if (NM_IS_OBJECT (object))
+		_nm_object_cache_add (NM_OBJECT (object));
 	g_async_initable_init_async (G_ASYNC_INITABLE (object), G_PRIORITY_DEFAULT,
 	                             NULL, async_inited, async_data);
 }
@@ -1189,10 +1188,10 @@ _nm_object_register_properties (NMObject *object,
 
 	dbus_g_proxy_add_signal (proxy, "PropertiesChanged", DBUS_TYPE_G_MAP_OF_VARIANT, G_TYPE_INVALID);
 	dbus_g_proxy_connect_signal (proxy,
-						    "PropertiesChanged",
-						    G_CALLBACK (properties_changed_proxy),
-						    object,
-						    NULL);
+	                             "PropertiesChanged",
+	                             G_CALLBACK (properties_changed_proxy),
+	                             object,
+	                             NULL);
 
 	instance = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 	priv->property_tables = g_slist_prepend (priv->property_tables, instance);
@@ -1446,4 +1445,3 @@ _nm_object_is_connection_private (NMObject *self)
 {
 	return _nm_dbus_is_connection_private (NM_OBJECT_GET_PRIVATE (self)->connection);
 }
-

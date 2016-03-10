@@ -19,6 +19,8 @@
  * Copyright (C) 1999-2010 Gentoo Foundation, Inc.
  */
 
+#include "config.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <nm-system-config-interface.h>
@@ -166,7 +168,7 @@ add_one_wep_key (GHashTable * table, int key_num, gchar * one_wep_key)
 /* Reading wep security information from /etc/conf.d/net.
  * This should not be used in future, use wpa_supplicant instead. */
 static void
-add_keys_from_net ()
+add_keys_from_net (void)
 {
 	GList *names = ifnet_get_connection_names ();
 	GList *iter = names;

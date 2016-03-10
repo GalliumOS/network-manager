@@ -18,11 +18,12 @@
  * Copyright (C) 2008 - 2011 Red Hat, Inc.
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
-#include <netinet/ether.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -31,13 +32,7 @@
 
 #include <dbus/dbus-glib.h>
 
-#include <nm-utils.h>
-#include <nm-setting-connection.h>
-#include <nm-setting-wired.h>
-#include <nm-setting-wireless.h>
-#include <nm-setting-wireless-security.h>
-#include <nm-setting-ip4-config.h>
-#include <nm-setting-8021x.h>
+#include "nm-core-internal.h"
 
 #include "nm-supplicant-config.h"
 #include "nm-supplicant-settings-verify.h"
@@ -46,88 +41,75 @@
 
 static gboolean
 validate_opt (const char *detail,
-              GHashTable *hash,
+              GVariant *config,
               const char *key,
               OptType val_type,
               gconstpointer expected,
               size_t expected_len)
 {
-	GValue *value;
-	gint int_val;
-	GByteArray *array;
+	char *config_key;
+	GVariant *config_value;
+	gboolean found = FALSE;
+	const guint8 *bytes;
+	gsize len;
 	const char *s;
 	const unsigned char *expected_array = expected;
-	int result;
+	GVariantIter iter;
 
-	ASSERT (hash != NULL, detail, "hash was NULL");
+	g_assert (g_variant_is_of_type (config, G_VARIANT_TYPE_VARDICT));
 
-	value = g_hash_table_lookup (hash, key);
-	ASSERT (value != NULL,
-	        detail, "option '%s' expected but not found in config hash.");
-
-	switch (val_type) {
-	case TYPE_INT:
-		ASSERT (G_VALUE_HOLDS_INT (value),
-		        detail, "config hash item '%s' was not TYPE_INT.", key);
-		int_val = g_value_get_int (value);
-		ASSERT (int_val == GPOINTER_TO_INT (expected),
-		        detail, "unexpected config hash item '%s' value %d (expected %d)",
-		        key, int_val, GPOINTER_TO_INT (expected));
-		break;
-	case TYPE_BYTES:
-		ASSERT (G_VALUE_HOLDS (value, DBUS_TYPE_G_UCHAR_ARRAY),
-		        detail, "config hash item '%s' was not TYPE_BYTES.", key);
-		array = g_value_get_boxed (value);
-		ASSERT (array->len == expected_len,
-		        detail, "unexpected config hash item '%s' length %d (expected %d)",
-		        key, array->len, expected_len);
-		result = memcmp (array->data, expected_array, expected_len);
-		ASSERT (result == 0, detail, "unexpected config hash item '%s' value", key);
-		break;
-	case TYPE_KEYWORD:
-	case TYPE_STRING:
-		ASSERT (G_VALUE_HOLDS_STRING (value),
-		        detail, "config hash item '%s' was not TYPE_STRING or TYPE_KEYWORD.", key);
-		if (expected_len == -1)
-			expected_len = strlen ((const char *) expected);
-		s = g_value_get_string (value);
-		ASSERT (s != NULL, detail, "unexpected NULL config hash string item '%s'.", key);
-		ASSERT (strlen (s) == expected_len,
-		        detail, "unexpected config hash string item '%s' length %d (expected %d)",
-		        key, strlen (s), expected_len);
-		result = strcmp (s, (const char *) expected);
-		ASSERT (result == 0,
-		        detail, "unexpected config hash string item '%s' value '%s' (expected '%s')",
-		        key, s, (const char *) expected);
-		break;
-	default:
-		g_warning ("unknown supplicant config hash item '%s' option type %d",
-		           key, val_type);
-		return FALSE;
+	g_variant_iter_init (&iter, config);
+	while (g_variant_iter_next (&iter, "{&sv}", (gpointer) &config_key, (gpointer) &config_value)) {
+		if (!strcmp (key, config_key)) {
+			found = TRUE;
+			switch (val_type) {
+			case TYPE_INT:
+				g_assert (g_variant_is_of_type (config_value, G_VARIANT_TYPE_INT32));
+				g_assert_cmpint (g_variant_get_int32 (config_value), ==, GPOINTER_TO_INT (expected));
+				break;
+			case TYPE_BYTES:
+				g_assert (g_variant_is_of_type (config_value, G_VARIANT_TYPE_BYTESTRING));
+				bytes = g_variant_get_fixed_array (config_value, &len, 1);
+				g_assert_cmpint (len, ==, expected_len);
+				g_assert (memcmp (bytes, expected_array, expected_len) == 0);
+				break;
+			case TYPE_KEYWORD:
+			case TYPE_STRING:
+				g_assert (g_variant_is_of_type (config_value, G_VARIANT_TYPE_STRING));
+				if (expected_len == -1)
+					expected_len = strlen ((const char *) expected);
+				s = g_variant_get_string (config_value, NULL);
+				g_assert_cmpint (strlen (s), ==, expected_len);
+				g_assert_cmpstr (s, ==, expected);
+				break;
+			default:
+				g_assert_not_reached ();
+				break;
+			}
+		}
+		g_variant_unref (config_value);
 	}
 
-	return TRUE;
+	return found;
 }
 
 static void
 test_wifi_open (void)
 {
-	NMConnection *connection;
+	gs_unref_object NMConnection *connection = NULL;
+	gs_unref_object NMSupplicantConfig *config = NULL;
+	gs_unref_variant GVariant *config_dict = NULL;
 	NMSettingConnection *s_con;
 	NMSettingWireless *s_wifi;
-	NMSettingIP4Config *s_ip4;
-	NMSupplicantConfig *config;
-	GHashTable *hash;
+	NMSettingIPConfig *s_ip4;
 	char *uuid;
 	gboolean success;
 	GError *error = NULL;
-	GByteArray *ssid;
+	GBytes *ssid;
 	const unsigned char ssid_data[] = { 0x54, 0x65, 0x73, 0x74, 0x20, 0x53, 0x53, 0x49, 0x44 };
-	GByteArray *bssid;
-	const unsigned char bssid_data[] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
 	const char *bssid_str = "11:22:33:44:55:66";
 
-	connection = nm_connection_new ();
+	connection = nm_simple_connection_new ();
 
 	/* Connection setting */
 	s_con = (NMSettingConnection *) nm_setting_connection_new ();
@@ -146,30 +128,26 @@ test_wifi_open (void)
 	s_wifi = (NMSettingWireless *) nm_setting_wireless_new ();
 	nm_connection_add_setting (connection, NM_SETTING (s_wifi));
 
-	ssid = g_byte_array_sized_new (sizeof (ssid_data));
-	g_byte_array_append (ssid, ssid_data, sizeof (ssid_data));
-	bssid = g_byte_array_sized_new (sizeof (bssid_data));
-	g_byte_array_append (bssid, bssid_data, sizeof (bssid_data));
+	ssid = g_bytes_new (ssid_data, sizeof (ssid_data));
 
 	g_object_set (s_wifi,
 	              NM_SETTING_WIRELESS_SSID, ssid,
-	              NM_SETTING_WIRELESS_BSSID, bssid,
+	              NM_SETTING_WIRELESS_BSSID, bssid_str,
 	              NM_SETTING_WIRELESS_MODE, "infrastructure",
 	              NM_SETTING_WIRELESS_BAND, "bg",
 	              NULL);
 
-	g_byte_array_free (ssid, TRUE);
-	g_byte_array_free (bssid, TRUE);
+	g_bytes_unref (ssid);
 
 	/* IP4 setting */
-	s_ip4 = (NMSettingIP4Config *) nm_setting_ip4_config_new ();
+	s_ip4 = (NMSettingIPConfig *) nm_setting_ip4_config_new ();
 	nm_connection_add_setting (connection, NM_SETTING (s_ip4));
 
-	g_object_set (s_ip4, NM_SETTING_IP4_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO, NULL);
+	g_object_set (s_ip4, NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO, NULL);
 
-	ASSERT (nm_connection_verify (connection, &error) == TRUE,
-	        "wifi-open", "failed to verify connection: %s",
-	        (error && error->message) ? error->message : "(unknown)");
+	success = nm_connection_verify (connection, &error);
+	g_assert_no_error (error);
+	g_assert (success);
 
 	config = nm_supplicant_config_new ();
 
@@ -181,28 +159,21 @@ test_wifi_open (void)
 	                       "*added 'bssid' value '11:22:33:44:55:66'*");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE,
 	                       "*added 'freq_list' value *");
-	success = nm_supplicant_config_add_setting_wireless (config, s_wifi, 0);
-	ASSERT (success == TRUE,
-	        "wifi-open", "failed to add wireless setting to supplicant config.");
+	g_assert (nm_supplicant_config_add_setting_wireless (config, s_wifi, 0));
 	g_test_assert_expected_messages ();
 
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE,
 	                       "*added 'key_mgmt' value 'NONE'");
-	success = nm_supplicant_config_add_no_security (config);
-	ASSERT (success == TRUE,
-	        "wifi-open", "failed to add wireless security to supplicant config.");
+	g_assert (nm_supplicant_config_add_no_security (config));
 	g_test_assert_expected_messages ();
 
-	hash = nm_supplicant_config_get_hash (config);
-	ASSERT (hash != NULL,
-	        "wifi-open", "failed to hash supplicant config options.");
+	config_dict = nm_supplicant_config_to_variant (config);
+	g_assert (config_dict);
 
-	validate_opt ("wifi-open", hash, "scan_ssid", TYPE_INT, GINT_TO_POINTER (1), -1);
-	validate_opt ("wifi-open", hash, "ssid", TYPE_BYTES, ssid_data, sizeof (ssid_data));
-	validate_opt ("wifi-open", hash, "bssid", TYPE_KEYWORD, bssid_str, -1);
-	validate_opt ("wifi-open", hash, "key_mgmt", TYPE_KEYWORD, "NONE", -1);
-
-	g_object_unref (connection);
+	validate_opt ("wifi-open", config_dict, "scan_ssid", TYPE_INT, GINT_TO_POINTER (1), -1);
+	validate_opt ("wifi-open", config_dict, "ssid", TYPE_BYTES, ssid_data, sizeof (ssid_data));
+	validate_opt ("wifi-open", config_dict, "bssid", TYPE_KEYWORD, bssid_str, -1);
+	validate_opt ("wifi-open", config_dict, "key_mgmt", TYPE_KEYWORD, "NONE", -1);
 }
 
 static void
@@ -212,23 +183,21 @@ test_wifi_wep_key (const char *detail,
                    const unsigned char *expected,
                    size_t expected_size)
 {
-	NMConnection *connection;
+	gs_unref_object NMConnection *connection = NULL;
+	gs_unref_object NMSupplicantConfig *config = NULL;
+	gs_unref_variant GVariant *config_dict = NULL;
 	NMSettingConnection *s_con;
 	NMSettingWireless *s_wifi;
 	NMSettingWirelessSecurity *s_wsec;
-	NMSettingIP4Config *s_ip4;
-	NMSupplicantConfig *config;
-	GHashTable *hash;
+	NMSettingIPConfig *s_ip4;
 	char *uuid;
 	gboolean success;
 	GError *error = NULL;
-	GByteArray *ssid;
+	GBytes *ssid;
 	const unsigned char ssid_data[] = { 0x54, 0x65, 0x73, 0x74, 0x20, 0x53, 0x53, 0x49, 0x44 };
-	GByteArray *bssid;
-	const unsigned char bssid_data[] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
 	const char *bssid_str = "11:22:33:44:55:66";
 
-	connection = nm_connection_new ();
+	connection = nm_simple_connection_new ();
 
 	/* Connection setting */
 	s_con = (NMSettingConnection *) nm_setting_connection_new ();
@@ -247,20 +216,16 @@ test_wifi_wep_key (const char *detail,
 	s_wifi = (NMSettingWireless *) nm_setting_wireless_new ();
 	nm_connection_add_setting (connection, NM_SETTING (s_wifi));
 
-	ssid = g_byte_array_sized_new (sizeof (ssid_data));
-	g_byte_array_append (ssid, ssid_data, sizeof (ssid_data));
-	bssid = g_byte_array_sized_new (sizeof (bssid_data));
-	g_byte_array_append (bssid, bssid_data, sizeof (bssid_data));
+	ssid = g_bytes_new (ssid_data, sizeof (ssid_data));
 
 	g_object_set (s_wifi,
 	              NM_SETTING_WIRELESS_SSID, ssid,
-	              NM_SETTING_WIRELESS_BSSID, bssid,
+	              NM_SETTING_WIRELESS_BSSID, bssid_str,
 	              NM_SETTING_WIRELESS_MODE, "infrastructure",
 	              NM_SETTING_WIRELESS_BAND, "bg",
 	              NULL);
 
-	g_byte_array_free (ssid, TRUE);
-	g_byte_array_free (bssid, TRUE);
+	g_bytes_unref (ssid);
 
 	/* Wifi Security setting */
 	s_wsec = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new ();
@@ -273,14 +238,14 @@ test_wifi_wep_key (const char *detail,
 	nm_setting_wireless_security_set_wep_key (s_wsec, 0, key_data);	
 
 	/* IP4 setting */
-	s_ip4 = (NMSettingIP4Config *) nm_setting_ip4_config_new ();
+	s_ip4 = (NMSettingIPConfig *) nm_setting_ip4_config_new ();
 	nm_connection_add_setting (connection, NM_SETTING (s_ip4));
 
-	g_object_set (s_ip4, NM_SETTING_IP4_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO, NULL);
+	g_object_set (s_ip4, NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO, NULL);
 
-	ASSERT (nm_connection_verify (connection, &error) == TRUE,
-	        detail, "failed to verify connection: %s",
-	        (error && error->message) ? error->message : "(unknown)");
+	success = nm_connection_verify (connection, &error);
+	g_assert_no_error (error);
+	g_assert (success);
 
 	config = nm_supplicant_config_new ();
 
@@ -292,9 +257,7 @@ test_wifi_wep_key (const char *detail,
 	                       "*added 'bssid' value '11:22:33:44:55:66'*");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE,
 	                       "*added 'freq_list' value *");
-	success = nm_supplicant_config_add_setting_wireless (config, s_wifi, 0);
-	ASSERT (success == TRUE,
-	        detail, "failed to add wireless setting to supplicant config.");
+	g_assert (nm_supplicant_config_add_setting_wireless (config, s_wifi, 0));
 	g_test_assert_expected_messages ();
 
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE,
@@ -303,26 +266,21 @@ test_wifi_wep_key (const char *detail,
 	                       "*added 'wep_key0' value *");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE,
 	                       "*added 'wep_tx_keyidx' value '0'");
-	success = nm_supplicant_config_add_setting_wireless_security (config,
+	g_assert (nm_supplicant_config_add_setting_wireless_security (config,
 	                                                              s_wsec,
 	                                                              NULL,
-	                                                              "376aced7-b28c-46be-9a62-fcdf072571da");
-	ASSERT (success == TRUE,
-	        detail, "failed to add wireless security to supplicant config.");
+	                                                              "376aced7-b28c-46be-9a62-fcdf072571da"));
 	g_test_assert_expected_messages ();
 
-	hash = nm_supplicant_config_get_hash (config);
-	ASSERT (hash != NULL,
-	        detail, "failed to hash supplicant config options.");
+	config_dict = nm_supplicant_config_to_variant (config);
+	g_assert (config_dict);
 
-	validate_opt (detail, hash, "scan_ssid", TYPE_INT, GINT_TO_POINTER (1), -1);
-	validate_opt (detail, hash, "ssid", TYPE_BYTES, ssid_data, sizeof (ssid_data));
-	validate_opt (detail, hash, "bssid", TYPE_KEYWORD, bssid_str, -1);
-	validate_opt (detail, hash, "key_mgmt", TYPE_KEYWORD, "NONE", -1);
-	validate_opt (detail, hash, "wep_tx_keyidx", TYPE_INT, GINT_TO_POINTER (0), -1);
-	validate_opt (detail, hash, "wep_key0", TYPE_BYTES, expected, expected_size);
-
-	g_object_unref (connection);
+	validate_opt (detail, config_dict, "scan_ssid", TYPE_INT, GINT_TO_POINTER (1), -1);
+	validate_opt (detail, config_dict, "ssid", TYPE_BYTES, ssid_data, sizeof (ssid_data));
+	validate_opt (detail, config_dict, "bssid", TYPE_KEYWORD, bssid_str, -1);
+	validate_opt (detail, config_dict, "key_mgmt", TYPE_KEYWORD, "NONE", -1);
+	validate_opt (detail, config_dict, "wep_tx_keyidx", TYPE_INT, GINT_TO_POINTER (0), -1);
+	validate_opt (detail, config_dict, "wep_key0", TYPE_BYTES, expected, expected_size);
 }
 
 static void
@@ -355,23 +313,21 @@ test_wifi_wpa_psk (const char *detail,
                    const unsigned char *expected,
                    size_t expected_size)
 {
-	NMConnection *connection;
+	gs_unref_object NMConnection *connection = NULL;
+	gs_unref_object NMSupplicantConfig *config = NULL;
+	gs_unref_variant GVariant *config_dict = NULL;
 	NMSettingConnection *s_con;
 	NMSettingWireless *s_wifi;
 	NMSettingWirelessSecurity *s_wsec;
-	NMSettingIP4Config *s_ip4;
-	NMSupplicantConfig *config;
-	GHashTable *hash;
+	NMSettingIPConfig *s_ip4;
 	char *uuid;
 	gboolean success;
 	GError *error = NULL;
-	GByteArray *ssid;
+	GBytes *ssid;
 	const unsigned char ssid_data[] = { 0x54, 0x65, 0x73, 0x74, 0x20, 0x53, 0x53, 0x49, 0x44 };
-	GByteArray *bssid;
-	const unsigned char bssid_data[] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 };
 	const char *bssid_str = "11:22:33:44:55:66";
 
-	connection = nm_connection_new ();
+	connection = nm_simple_connection_new ();
 
 	/* Connection setting */
 	s_con = (NMSettingConnection *) nm_setting_connection_new ();
@@ -390,20 +346,16 @@ test_wifi_wpa_psk (const char *detail,
 	s_wifi = (NMSettingWireless *) nm_setting_wireless_new ();
 	nm_connection_add_setting (connection, NM_SETTING (s_wifi));
 
-	ssid = g_byte_array_sized_new (sizeof (ssid_data));
-	g_byte_array_append (ssid, ssid_data, sizeof (ssid_data));
-	bssid = g_byte_array_sized_new (sizeof (bssid_data));
-	g_byte_array_append (bssid, bssid_data, sizeof (bssid_data));
+	ssid = g_bytes_new (ssid_data, sizeof (ssid_data));
 
 	g_object_set (s_wifi,
 	              NM_SETTING_WIRELESS_SSID, ssid,
-	              NM_SETTING_WIRELESS_BSSID, bssid,
+	              NM_SETTING_WIRELESS_BSSID, bssid_str,
 	              NM_SETTING_WIRELESS_MODE, "infrastructure",
 	              NM_SETTING_WIRELESS_BAND, "bg",
 	              NULL);
 
-	g_byte_array_free (ssid, TRUE);
-	g_byte_array_free (bssid, TRUE);
+	g_bytes_unref (ssid);
 
 	/* Wifi Security setting */
 	s_wsec = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new ();
@@ -422,14 +374,14 @@ test_wifi_wpa_psk (const char *detail,
 	nm_setting_wireless_security_add_group (s_wsec, "ccmp");
 
 	/* IP4 setting */
-	s_ip4 = (NMSettingIP4Config *) nm_setting_ip4_config_new ();
+	s_ip4 = (NMSettingIPConfig *) nm_setting_ip4_config_new ();
 	nm_connection_add_setting (connection, NM_SETTING (s_ip4));
 
-	g_object_set (s_ip4, NM_SETTING_IP4_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO, NULL);
+	g_object_set (s_ip4, NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO, NULL);
 
-	ASSERT (nm_connection_verify (connection, &error) == TRUE,
-	        detail, "failed to verify connection: %s",
-	        (error && error->message) ? error->message : "(unknown)");
+	success = nm_connection_verify (connection, &error);
+	g_assert_no_error (error);
+	g_assert (success);
 
 	config = nm_supplicant_config_new ();
 
@@ -441,9 +393,7 @@ test_wifi_wpa_psk (const char *detail,
 	                       "*added 'bssid' value '11:22:33:44:55:66'*");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE,
 	                       "*added 'freq_list' value *");
-	success = nm_supplicant_config_add_setting_wireless (config, s_wifi, 0);
-	ASSERT (success == TRUE,
-	        detail, "failed to add wireless setting to supplicant config.");
+	g_assert (nm_supplicant_config_add_setting_wireless (config, s_wifi, 0));
 	g_test_assert_expected_messages ();
 
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE,
@@ -456,28 +406,23 @@ test_wifi_wpa_psk (const char *detail,
 	                       "*added 'pairwise' value 'TKIP CCMP'");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE,
 	                       "*added 'group' value 'TKIP CCMP'");
-	success = nm_supplicant_config_add_setting_wireless_security (config,
+	g_assert (nm_supplicant_config_add_setting_wireless_security (config,
 	                                                              s_wsec,
 	                                                              NULL,
-	                                                              "376aced7-b28c-46be-9a62-fcdf072571da");
-	ASSERT (success == TRUE,
-	        detail, "failed to add wireless security to supplicant config.");
+	                                                              "376aced7-b28c-46be-9a62-fcdf072571da"));
 	g_test_assert_expected_messages ();
 
-	hash = nm_supplicant_config_get_hash (config);
-	ASSERT (hash != NULL,
-	        detail, "failed to hash supplicant config options.");
+	config_dict = nm_supplicant_config_to_variant (config);
+	g_assert (config_dict);
 
-	validate_opt (detail, hash, "scan_ssid", TYPE_INT, GINT_TO_POINTER (1), -1);
-	validate_opt (detail, hash, "ssid", TYPE_BYTES, ssid_data, sizeof (ssid_data));
-	validate_opt (detail, hash, "bssid", TYPE_KEYWORD, bssid_str, -1);
-	validate_opt (detail, hash, "key_mgmt", TYPE_KEYWORD, "WPA-PSK", -1);
-	validate_opt (detail, hash, "proto", TYPE_KEYWORD, "WPA RSN", -1);
-	validate_opt (detail, hash, "pairwise", TYPE_KEYWORD, "TKIP CCMP", -1);
-	validate_opt (detail, hash, "group", TYPE_KEYWORD, "TKIP CCMP", -1);
-	validate_opt (detail, hash, "psk", key_type, expected, expected_size);
-
-	g_object_unref (connection);
+	validate_opt (detail, config_dict, "scan_ssid", TYPE_INT, GINT_TO_POINTER (1), -1);
+	validate_opt (detail, config_dict, "ssid", TYPE_BYTES, ssid_data, sizeof (ssid_data));
+	validate_opt (detail, config_dict, "bssid", TYPE_KEYWORD, bssid_str, -1);
+	validate_opt (detail, config_dict, "key_mgmt", TYPE_KEYWORD, "WPA-PSK", -1);
+	validate_opt (detail, config_dict, "proto", TYPE_KEYWORD, "WPA RSN", -1);
+	validate_opt (detail, config_dict, "pairwise", TYPE_KEYWORD, "TKIP CCMP", -1);
+	validate_opt (detail, config_dict, "group", TYPE_KEYWORD, "TKIP CCMP", -1);
+	validate_opt (detail, config_dict, "psk", key_type, expected, expected_size);
 }
 
 static void
@@ -498,18 +443,12 @@ NMTST_DEFINE ();
 
 int main (int argc, char **argv)
 {
-	char *base;
-
 	nmtst_init (&argc, &argv, TRUE);
 
-	/* The tests */
-	test_wifi_open ();
-	test_wifi_wep ();
-	test_wifi_wpa_psk_types ();
+	g_test_add_func ("/supplicant-config/wifi-open", test_wifi_open);
+	g_test_add_func ("/supplicant-config/wifi-wep", test_wifi_wep);
+	g_test_add_func ("/supplicant-config/wifi-wpa-psk-types", test_wifi_wpa_psk_types);
 
-	base = g_path_get_basename (argv[0]);
-	fprintf (stdout, "%s: SUCCESS\n", base);
-	g_free (base);
-	return 0;
+	return g_test_run ();
 }
 

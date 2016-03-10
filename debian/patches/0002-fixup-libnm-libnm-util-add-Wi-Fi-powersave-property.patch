@@ -11,7 +11,7 @@ Index: b/libnm-util/nm-setting-wireless.c
 ===================================================================
 --- a/libnm-util/nm-setting-wireless.c
 +++ b/libnm-util/nm-setting-wireless.c
-@@ -879,16 +879,6 @@ verify (NMSetting *setting, GSList *all_
+@@ -876,16 +876,6 @@ verify (NMSetting *setting, GSList *all_
  		}
  	}
  

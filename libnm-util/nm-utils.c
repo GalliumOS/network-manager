@@ -1,11 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
-/* NetworkManager -- Network link manager
- *
- * Ray Strode <rstrode@redhat.com>
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
- *
+/*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -21,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2005 - 2013 Red Hat, Inc.
+ * Copyright 2005 - 2013 Red Hat, Inc.
  */
 
 #include "config.h"
@@ -31,6 +26,10 @@
 #include <netinet/ether.h>
 #include <linux/if_infiniband.h>
 #include <uuid/uuid.h>
+#include <libintl.h>
+#include <gmodule.h>
+#include <gio/gio.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-utils.h"
 #include "nm-utils-private.h"
@@ -38,13 +37,17 @@
 #include "nm-dbus-glib-types.h"
 #include "nm-setting-private.h"
 #include "crypto.h"
+#include "nm-macros-internal.h"
+
+/* Embed the commit id in the build binary */
+static const char *const __nm_git_sha = STRLEN (NM_GIT_SHA) > 0 ? "NM_GIT_SHA:"NM_GIT_SHA : "";
 
 /**
  * SECTION:nm-utils
  * @short_description: Utility functions
  * @include: nm-utils.h
  *
- * A collection of utility functions for working SSIDs, IP addresses, Wi-Fi
+ * A collection of utility functions for working with SSIDs, IP addresses, Wi-Fi
  * access points and devices, among other things.
  */
 
@@ -144,7 +147,7 @@ init_lang_to_encodings_hash (void)
 		langToEncodings5 = g_hash_table_new (g_str_hash, g_str_equal);
 		while (enc->lang) {
 			g_hash_table_insert (langToEncodings5, (gpointer) enc->lang,
-					(gpointer) &enc->encodings);
+			                     (gpointer) &enc->encodings);
 			enc++;
 		}
 	}
@@ -155,7 +158,7 @@ init_lang_to_encodings_hash (void)
 		langToEncodings2 = g_hash_table_new (g_str_hash, g_str_equal);
 		while (enc->lang) {
 			g_hash_table_insert (langToEncodings2, (gpointer) enc->lang,
-					(gpointer) &enc->encodings);
+			                     (gpointer) &enc->encodings);
 			enc++;
 		}
 	}
@@ -184,8 +187,7 @@ get_encodings_for_lang (const char *lang,
 	init_lang_to_encodings_hash ();
 
 	tmp_lang = g_strdup (lang);
-	if ((encodings = g_hash_table_lookup (langToEncodings5, tmp_lang)))
-	{
+	if ((encodings = g_hash_table_lookup (langToEncodings5, tmp_lang))) {
 		*encoding1 = (char *) encodings->encoding1;
 		*encoding2 = (char *) encodings->encoding2;
 		*encoding3 = (char *) encodings->encoding3;
@@ -195,8 +197,7 @@ get_encodings_for_lang (const char *lang,
 	/* Truncate tmp_lang to length of 2 */
 	if (strlen (tmp_lang) > 2)
 		tmp_lang[2] = '\0';
-	if (!success && (encodings = g_hash_table_lookup (langToEncodings2, tmp_lang)))
-	{
+	if (!success && (encodings = g_hash_table_lookup (langToEncodings2, tmp_lang))) {
 		*encoding1 = (char *) encodings->encoding1;
 		*encoding2 = (char *) encodings->encoding2;
 		*encoding3 = (char *) encodings->encoding3;
@@ -209,24 +210,39 @@ get_encodings_for_lang (const char *lang,
 
 /* init, deinit for libnm_util */
 
+static void __attribute__((constructor))
+_check_symbols (void)
+{
+	GModule *self;
+	gpointer func;
+
+	self = g_module_open (NULL, 0);
+	if (g_module_symbol (self, "nm_device_state_get_type", &func))
+		g_error ("libnm symbols detected; Mixing libnm with libnm-util/libnm-glib is not supported");
+	g_module_close (self);
+}
+
 static gboolean initialized = FALSE;
 
 /**
  * nm_utils_init:
  * @error: location to store error, or %NULL
  *
- * Initializes libnm-util; should be called when starting and program that
- * uses libnm-util.  Sets up an atexit() handler to ensure de-initialization
- * is performed, but calling nm_utils_deinit() to explicitly deinitialize
- * libnm-util can also be done.  This function can be called more than once.
- * 
+ * Initializes libnm-util; should be called when starting any program that
+ * uses libnm-util.  This function can be called more than once.
+ *
  * Returns: %TRUE if the initialization was successful, %FALSE on failure.
  **/
 gboolean
 nm_utils_init (GError **error)
 {
+	(void) __nm_git_sha;
+
 	if (!initialized) {
 		initialized = TRUE;
+
+		bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+		bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 
 		if (!crypto_init (error))
 			return FALSE;
@@ -239,18 +255,12 @@ nm_utils_init (GError **error)
 /**
  * nm_utils_deinit:
  *
- * Frees all resources used internally by libnm-util.  This function is called
- * from an atexit() handler, set up by nm_utils_init(), but is safe to be called
- * more than once.  Subsequent calls have no effect until nm_utils_init() is
- * called again.
+ * No-op. Although this function still exists for ABI compatibility reasons, it
+ * does not have any effect, and does not ever need to be called.
  **/
 void
 nm_utils_deinit (void)
 {
-	if (initialized) {
-		crypto_deinit ();
-		initialized = FALSE;
-	}
 }
 
 /* ssid helpers */
@@ -340,16 +350,16 @@ nm_utils_ssid_to_utf8 (const GByteArray *ssid)
 gboolean
 nm_utils_is_empty_ssid (const guint8 * ssid, int len)
 {
-        /* Single white space is for Linksys APs */
-        if (len == 1 && ssid[0] == ' ')
-                return TRUE;
+	/* Single white space is for Linksys APs */
+	if (len == 1 && ssid[0] == ' ')
+		return TRUE;
 
-        /* Otherwise, if the entire ssid is 0, we assume it is hidden */
-        while (len--) {
-                if (ssid[len] != '\0')
-                        return FALSE;
-        }
-        return TRUE;
+	/* Otherwise, if the entire ssid is 0, we assume it is hidden */
+	while (len--) {
+		if (ssid[len] != '\0')
+			return FALSE;
+	}
+	return TRUE;
 }
 
 #define ESSID_MAX_SIZE 32
@@ -475,8 +485,8 @@ nm_utils_gvalue_hash_dup (GHashTable *hash)
 	g_return_val_if_fail (hash != NULL, NULL);
 
 	table = g_hash_table_new_full (g_str_hash, g_str_equal,
-						    (GDestroyNotify) g_free,
-						    value_destroy);
+	                               (GDestroyNotify) g_free,
+	                               value_destroy);
 
 	g_hash_table_foreach (hash, value_dup, table);
 
@@ -675,7 +685,7 @@ nm_utils_security_valid (NMUtilsSecurityType type,
 		    || ((type == NMU_SEC_LEAP) && !adhoc)) {
 			if (wifi_caps & (NM_WIFI_DEVICE_CAP_CIPHER_WEP40 | NM_WIFI_DEVICE_CAP_CIPHER_WEP104))
 				return TRUE;
-			else 
+			else
 				return FALSE;
 		}
 	}
@@ -894,7 +904,7 @@ nm_utils_wpa_psk_valid (const char *psk)
  * this serialization is not guaranteed to be stable and the #GArray may be
  * extended in the future.
  *
- * Returns: (transfer full) (element-type NetworkManager.IP4Address): a newly allocated #GSList of #NMIP4Address objects
+ * Returns: (transfer full) (element-type NMIP4Address): a newly allocated #GSList of #NMIP4Address objects
  **/
 GSList *
 nm_utils_ip4_addresses_from_gvalue (const GValue *value)
@@ -912,7 +922,7 @@ nm_utils_ip4_addresses_from_gvalue (const GValue *value)
 			g_warning ("Ignoring invalid IP4 address");
 			continue;
 		}
-		
+
 		addr = nm_ip4_address_new ();
 		nm_ip4_address_set_address (addr, g_array_index (array, guint32, 0));
 		nm_ip4_address_set_prefix (addr, g_array_index (array, guint32, 1));
@@ -976,7 +986,7 @@ nm_utils_ip4_addresses_to_gvalue (GSList *list, GValue *value)
  * format of this serialization is not guaranteed to be stable and may be
  * extended in the future.
  *
- * Returns: (transfer full) (element-type NetworkManager.IP4Route): a newly allocated #GSList of #NMIP4Route objects
+ * Returns: (transfer full) (element-type NMIP4Route): a newly allocated #GSList of #NMIP4Route objects
  **/
 GSList *
 nm_utils_ip4_routes_from_gvalue (const GValue *value)
@@ -1133,7 +1143,7 @@ nm_utils_ip4_get_default_prefix (guint32 ip)
  * this serialization is not guaranteed to be stable and the #GValueArray may be
  * extended in the future.
  *
- * Returns: (transfer full) (element-type NetworkManager.IP6Address): a newly allocated #GSList of #NMIP6Address objects
+ * Returns: (transfer full) (element-type NMIP6Address): a newly allocated #GSList of #NMIP6Address objects
  **/
 GSList *
 nm_utils_ip6_addresses_from_gvalue (const GValue *value)
@@ -1168,7 +1178,7 @@ nm_utils_ip6_addresses_from_gvalue (const GValue *value)
 		ba_addr = g_value_get_boxed (tmp);
 		if (ba_addr->len != 16) {
 			g_warning ("%s: ignoring invalid IP6 address of length %d",
-			            __func__, ba_addr->len);
+			           __func__, ba_addr->len);
 			continue;
 		}
 
@@ -1176,7 +1186,7 @@ nm_utils_ip6_addresses_from_gvalue (const GValue *value)
 		prefix = g_value_get_uint (tmp);
 		if (prefix > 128) {
 			g_warning ("%s: ignoring invalid IP6 prefix %d",
-			            __func__, prefix);
+			           __func__, prefix);
 			continue;
 		}
 
@@ -1185,7 +1195,7 @@ nm_utils_ip6_addresses_from_gvalue (const GValue *value)
 			ba_gw = g_value_get_boxed (tmp);
 			if (ba_gw->len != 16) {
 				g_warning ("%s: ignoring invalid IP6 gateway address of length %d",
-				            __func__, ba_gw->len);
+				           __func__, ba_gw->len);
 				continue;
 			}
 		}
@@ -1270,7 +1280,7 @@ nm_utils_ip6_addresses_to_gvalue (GSList *list, GValue *value)
  * into a #GSList of #NMIP6Route objects.  The specific format of this serialization
  * is not guaranteed to be stable and may be extended in the future.
  *
- * Returns: (transfer full) (element-type NetworkManager.IP6Route): a newly allocated #GSList of #NMIP6Route objects
+ * Returns: (transfer full) (element-type NMIP6Route): a newly allocated #GSList of #NMIP6Route objects
  **/
 GSList *
 nm_utils_ip6_routes_from_gvalue (const GValue *value)
@@ -1298,7 +1308,7 @@ nm_utils_ip6_routes_from_gvalue (const GValue *value)
 		dest = g_value_get_boxed (g_value_array_get_nth (route_values, 0));
 		if (dest->len != 16) {
 			g_warning ("%s: ignoring invalid IP6 dest address of length %d",
-			            __func__, dest->len);
+			           __func__, dest->len);
 			continue;
 		}
 
@@ -1307,7 +1317,7 @@ nm_utils_ip6_routes_from_gvalue (const GValue *value)
 		next_hop = g_value_get_boxed (g_value_array_get_nth (route_values, 2));
 		if (next_hop->len != 16) {
 			g_warning ("%s: ignoring invalid IP6 next_hop address of length %d",
-			            __func__, next_hop->len);
+			           __func__, next_hop->len);
 			continue;
 		}
 
@@ -1334,7 +1344,7 @@ nm_utils_ip6_routes_from_gvalue (const GValue *value)
  * Utility function to convert a #GSList of #NMIP6Route objects into a #GPtrArray of
  * #GValueArrays of (#GArray of #guchars), #guint32, (#GArray of #guchars), and #guint32
  * representing a list of NetworkManager IPv6 routes (which is a tuple of destination,
- * prefix, next hop, and metric).  The specific format of this serialization is not 
+ * prefix, next hop, and metric).  The specific format of this serialization is not
  * guaranteed to be stable and may be extended in the future.
  **/
 void
@@ -1485,8 +1495,10 @@ char *
 nm_utils_uuid_generate_from_string (const char *s)
 {
 	GError *error = NULL;
-	uuid_t *uuid;
+	uuid_t uuid;
 	char *buf = NULL;
+
+	g_return_val_if_fail (s && *s, NULL);
 
 	if (!nm_utils_init (&error)) {
 		g_warning ("error initializing crypto: (%d) %s",
@@ -1497,21 +1509,18 @@ nm_utils_uuid_generate_from_string (const char *s)
 		return NULL;
 	}
 
-	uuid = g_malloc0 (sizeof (*uuid));
-	if (!crypto_md5_hash (NULL, 0, s, strlen (s), (char *) uuid, sizeof (*uuid), &error)) {
+	if (!crypto_md5_hash (NULL, 0, s, strlen (s), (char *) uuid, sizeof (uuid), &error)) {
 		g_warning ("error generating UUID: (%d) %s",
 		           error ? error->code : 0,
 		           error ? error->message : "unknown");
 		if (error)
 			g_error_free (error);
-		goto out;
+		return NULL;
 	}
 
 	buf = g_malloc0 (37);
-	uuid_unparse_lower (*uuid, &buf[0]);
+	uuid_unparse_lower (uuid, &buf[0]);
 
-out:
-	g_free (uuid);
 	return buf;
 }
 
@@ -1721,15 +1730,91 @@ nm_utils_rsa_key_encrypt_aes (const GByteArray *data,
  * nm_utils_file_is_pkcs12:
  * @filename: name of the file to test
  *
- * Utility function to find out if the @filename is in PKCS#12 format.
+ * Utility function to find out if the @filename is in PKCS#<!-- -->12 format.
  *
- * Returns: %TRUE if the file is PKCS#12, %FALSE if it is not
+ * Returns: %TRUE if the file is PKCS#<!-- -->12, %FALSE if it is not
  **/
 gboolean
 nm_utils_file_is_pkcs12 (const char *filename)
 {
 	return crypto_is_pkcs12_file (filename, NULL);
 }
+
+/**********************************************************************************************/
+
+/**
+ * nm_utils_file_search_in_paths:
+ * @progname: the helper program name, like "iptables"
+ *   Must be a non-empty string, without path separator (/).
+ * @try_first: (allow-none): a custom path to try first before searching.
+ *   It is silently ignored if it is empty or not an absolute path.
+ * @paths: (allow-none): a %NULL terminated list of search paths.
+ *   Can be empty or %NULL, in which case only @try_first is checked.
+ * @file_test_flags: the flags passed to g_file_test() when searching
+ *   for @progname. Set it to 0 to skip the g_file_test().
+ * @predicate: (scope call): if given, pass the file name to this function
+ *   for additional checks. This check is performed after the check for
+ *   @file_test_flags. You cannot omit both @file_test_flags and @predicate.
+ * @user_data: (closure): (allow-none): user data for @predicate function.
+ * @error: (allow-none): on failure, set a "not found" error %G_IO_ERROR %G_IO_ERROR_NOT_FOUND.
+ *
+ * Searches for a @progname file in a list of search @paths.
+ *
+ * Returns: (transfer none): the full path to the helper, if found, or %NULL if not found.
+ *   The returned string is not owned by the caller, but later
+ *   invocations of the function might overwrite it.
+ */
+const char *
+nm_utils_file_search_in_paths (const char *progname,
+                               const char *try_first,
+                               const char *const *paths,
+                               GFileTest file_test_flags,
+                               NMUtilsFileSearchInPathsPredicate predicate,
+                               gpointer user_data,
+                               GError **error)
+{
+	GString *tmp;
+	const char *ret;
+
+	g_return_val_if_fail (!error || !*error, NULL);
+	g_return_val_if_fail (progname && progname[0] && !strchr (progname, '/'), NULL);
+	g_return_val_if_fail (file_test_flags || predicate, NULL);
+
+	/* Only consider @try_first if it is a valid, absolute path. This makes
+	 * it simpler to pass in a path from configure checks. */
+	if (   try_first
+	    && try_first[0] == '/'
+	    && (file_test_flags == 0 || g_file_test (try_first, file_test_flags))
+	    && (!predicate || predicate (try_first, user_data)))
+		return g_intern_string (try_first);
+
+	if (!paths || !*paths)
+		goto NOT_FOUND;
+
+	tmp = g_string_sized_new (50);
+	for (; *paths; paths++) {
+		if (!*paths)
+			continue;
+		g_string_append (tmp, *paths);
+		if (tmp->str[tmp->len - 1] != '/')
+			g_string_append_c (tmp, '/');
+		g_string_append (tmp, progname);
+		if (   (file_test_flags == 0 || g_file_test (tmp->str, file_test_flags))
+		    && (!predicate || predicate (tmp->str, user_data))) {
+			ret = g_intern_string (tmp->str);
+			g_string_free (tmp, TRUE);
+			return ret;
+		}
+		g_string_set_size (tmp, 0);
+	}
+	g_string_free (tmp, TRUE);
+
+NOT_FOUND:
+	g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND, _("Could not find \"%s\" binary"), progname);
+	return NULL;
+}
+
+/**********************************************************************************************/
 
 /* Band, channel/frequency stuff for wireless */
 struct cf_pair {
@@ -1899,7 +1984,7 @@ nm_utils_wifi_find_next_channel (guint32 channel, int direction, char *band)
 		if (channel == pair->chan)
 			return channel;
 		if ((channel < (pair+1)->chan) && (channel > pair->chan)) {
-			if (direction > 0)	
+			if (direction > 0)
 				return (pair+1)->chan;
 			else
 				return pair->chan;
@@ -1942,7 +2027,8 @@ nm_utils_wifi_is_channel_valid (guint32 channel, const char *band)
 
 /**
  * nm_utils_hwaddr_len:
- * @type: the type of address; either %ARPHRD_ETHER or %ARPHRD_INFINIBAND
+ * @type: the type of address; either <literal>ARPHRD_ETHER</literal> or
+ *   <literal>ARPHRD_INFINIBAND</literal>
  *
  * Returns the length in octets of a hardware address of type @type.
  *
@@ -1963,11 +2049,12 @@ nm_utils_hwaddr_len (int type)
  * nm_utils_hwaddr_type:
  * @len: the length of hardware address in bytes
  *
- * Returns the type (either %ARPHRD_ETHER or %ARPHRD_INFINIBAND) of
- * the raw address given its length.
+ * Returns the type (either <literal>ARPHRD_ETHER</literal> or
+ * <literal>ARPHRD_INFINIBAND</literal>) of the raw address given its length.
  *
- * Return value: the type, either %ARPHRD_ETHER or %ARPHRD_INFINIBAND.
- * If the length is unexpected, return -1 (unsupported type/length).
+ * Return value: the type, either <literal>ARPHRD_ETHER</literal> or
+ * <literal>ARPHRD_INFINIBAND</literal>.  If the length is unexpected, return -1
+ * (unsupported type/length).
  *
  * Deprecated: This could not be extended to cover other types, since
  * there is not a one-to-one mapping between types and lengths. This
@@ -1992,7 +2079,8 @@ nm_utils_hwaddr_type (int len)
 /**
  * nm_utils_hwaddr_aton:
  * @asc: the ASCII representation of a hardware address
- * @type: the type of address; either %ARPHRD_ETHER or %ARPHRD_INFINIBAND
+ * @type: the type of address; either <literal>ARPHRD_ETHER</literal> or
+ *   <literal>ARPHRD_INFINIBAND</literal>
  * @buffer: buffer to store the result into
  *
  * Parses @asc and converts it to binary form in @buffer. See
@@ -2019,7 +2107,8 @@ nm_utils_hwaddr_aton (const char *asc, int type, gpointer buffer)
 /**
  * nm_utils_hwaddr_atoba:
  * @asc: the ASCII representation of a hardware address
- * @type: the type of address; either %ARPHRD_ETHER or %ARPHRD_INFINIBAND
+ * @type: the type of address; either <literal>ARPHRD_ETHER</literal> or
+ *   <literal>ARPHRD_INFINIBAND</literal>
  *
  * Parses @asc and converts it to binary form in a #GByteArray. See
  * nm_utils_hwaddr_aton() if you don't want a #GByteArray.
@@ -2051,7 +2140,8 @@ nm_utils_hwaddr_atoba (const char *asc, int type)
 /**
  * nm_utils_hwaddr_ntoa:
  * @addr: a binary hardware address
- * @type: the type of address; either %ARPHRD_ETHER or %ARPHRD_INFINIBAND
+ * @type: the type of address; either <literal>ARPHRD_ETHER</literal> or
+ *   <literal>ARPHRD_INFINIBAND</literal>
  *
  * Converts @addr to textual form.
  *
@@ -2235,8 +2325,7 @@ nm_utils_bin2hexstr (const char *bytes, int len, int final_len)
 		g_return_val_if_fail (final_len < buflen, NULL);
 
 	result = g_malloc0 (buflen);
-	for (i = 0; i < len; i++)
-	{
+	for (i = 0; i < len; i++) {
 		result[2*i] = hex_digits[(bytes[i] >> 4) & 0xf];
 		result[2*i+1] = hex_digits[bytes[i] & 0xf];
 	}
@@ -2385,13 +2474,14 @@ static char _nm_utils_inet_ntop_buffer[NM_UTILS_INET_ADDRSTRLEN];
 /**
  * nm_utils_inet4_ntop: (skip)
  * @inaddr: the address that should be converted to string.
- * @dst: the destination buffer, it must contain at least %INET_ADDRSTRLEN
- *  or %NM_UTILS_INET_ADDRSTRLEN characters. If set to %NULL, it will return
- *  a pointer to an internal, static buffer (shared with nm_utils_inet6_ntop()).
- *  Beware, that the internal buffer will be overwritten with ever new call
- *  of nm_utils_inet4_ntop() or nm_utils_inet6_ntop() that does not provied it's
- *  own @dst buffer. Also, using the internal buffer is not thread safe. When
- *  in doubt, pass your own @dst buffer to avoid these issues.
+ * @dst: the destination buffer, it must contain at least
+ *  <literal>INET_ADDRSTRLEN</literal> or %NM_UTILS_INET_ADDRSTRLEN
+ *  characters. If set to %NULL, it will return a pointer to an internal, static
+ *  buffer (shared with nm_utils_inet6_ntop()).  Beware, that the internal
+ *  buffer will be overwritten with ever new call of nm_utils_inet4_ntop() or
+ *  nm_utils_inet6_ntop() that does not provied it's own @dst buffer. Also,
+ *  using the internal buffer is not thread safe. When in doubt, pass your own
+ *  @dst buffer to avoid these issues.
  *
  * Wrapper for inet_ntop.
  *
@@ -2410,13 +2500,14 @@ nm_utils_inet4_ntop (in_addr_t inaddr, char *dst)
 /**
  * nm_utils_inet6_ntop: (skip)
  * @in6addr: the address that should be converted to string.
- * @dst: the destination buffer, it must contain at least %INET6_ADDRSTRLEN
- *  or %NM_UTILS_INET_ADDRSTRLEN characters. If set to %NULL, it will return
- *  a pointer to an internal, static buffer (shared with nm_utils_inet4_ntop()).
- *  Beware, that the internal buffer will be overwritten with ever new call
- *  of nm_utils_inet4_ntop() or nm_utils_inet6_ntop() that does not provied it's
- *  own @dst buffer. Also, using the internal buffer is not thread safe. When
- *  in doubt, pass your own @dst buffer to avoid these issues.
+ * @dst: the destination buffer, it must contain at least
+ *  <literal>INET6_ADDRSTRLEN</literal> or %NM_UTILS_INET_ADDRSTRLEN
+ *  characters. If set to %NULL, it will return a pointer to an internal, static
+ *  buffer (shared with nm_utils_inet4_ntop()).  Beware, that the internal
+ *  buffer will be overwritten with ever new call of nm_utils_inet4_ntop() or
+ *  nm_utils_inet6_ntop() that does not provied it's own @dst buffer. Also,
+ *  using the internal buffer is not thread safe. When in doubt, pass your own
+ *  @dst buffer to avoid these issues.
  *
  * Wrapper for inet_ntop.
  *
@@ -2498,13 +2589,10 @@ nm_utils_check_virtual_device_compatibility (GType virtual_type, GType other_typ
 
 /***********************************************************/
 
-/* Unused prototype to make the compiler happy */
-const NMUtilsPrivateData *nm_util_get_private (void);
+/* Unused prototypes to make the compiler happy */
+gconstpointer nm_utils_get_private (void);
+gconstpointer nm_util_get_private (void);
 
-static const NMUtilsPrivateData data = {
-	.nm_setting_ip4_config_get_address_label = nm_setting_ip4_config_get_address_label,
-	.nm_setting_ip4_config_add_address_with_label = nm_setting_ip4_config_add_address_with_label,
-};
 
 /**
  * nm_utils_get_private:
@@ -2516,10 +2604,11 @@ static const NMUtilsPrivateData data = {
  *
  * Since: 0.9.10
  */
-const NMUtilsPrivateData *
+gconstpointer
 nm_utils_get_private (void)
 {
-	return &data;
+	/* We told you not to use it! */
+	g_assert_not_reached ();
 }
 
 /**
@@ -2531,9 +2620,9 @@ nm_utils_get_private (void)
  *
  * Since: 0.9.10
  */
-const NMUtilsPrivateData *
+gconstpointer
 nm_util_get_private (void)
 {
-	/* Compat function to preserve ABI */
-	return nm_utils_get_private ();
+	/* We told you not to use it! */
+	g_assert_not_reached ();
 }

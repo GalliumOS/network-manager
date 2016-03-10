@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,7 +15,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2012 Red Hat, Inc.
+ * Copyright 2012 - 2014 Red Hat, Inc.
  */
 
 #ifndef NM_DEVICE_VLAN_H
@@ -57,6 +55,7 @@ GQuark nm_device_vlan_error_quark (void);
 
 #define NM_DEVICE_VLAN_HW_ADDRESS  "hw-address"
 #define NM_DEVICE_VLAN_CARRIER     "carrier"
+#define NM_DEVICE_VLAN_PARENT      "parent"
 #define NM_DEVICE_VLAN_VLAN_ID     "vlan-id"
 
 typedef struct {
@@ -81,6 +80,8 @@ GObject *nm_device_vlan_new (DBusGConnection *connection, const char *path);
 
 const char * nm_device_vlan_get_hw_address (NMDeviceVlan *device);
 gboolean     nm_device_vlan_get_carrier (NMDeviceVlan *device);
+NM_AVAILABLE_IN_1_0
+NMDevice *   nm_device_vlan_get_parent  (NMDeviceVlan *device);
 guint        nm_device_vlan_get_vlan_id (NMDeviceVlan *device);
 
 G_END_DECLS

@@ -1,9 +1,11 @@
+#include "config.h"
+
 #include "test-common.h"
 
 #define DEVICE_NAME "nm-test-device"
 
 static void
-test_cleanup_internal ()
+test_cleanup_internal (void)
 {
 	SignalData *link_added = add_signal_ifname (NM_PLATFORM_SIGNAL_LINK_CHANGED, NM_PLATFORM_SIGNAL_ADDED, link_callback, DEVICE_NAME);
 	int ifindex;
@@ -33,30 +35,30 @@ test_cleanup_internal ()
 	inet_pton (AF_INET6, "2001:db8:e:f:1:2:3:4", &gateway6);
 
 	/* Create and set up device */
-	g_assert (nm_platform_dummy_add (DEVICE_NAME));
+	g_assert (nm_platform_dummy_add (NM_PLATFORM_GET, DEVICE_NAME, NULL) == NM_PLATFORM_ERROR_SUCCESS);
 	accept_signal (link_added);
 	free_signal (link_added);
-	g_assert (nm_platform_link_set_up (nm_platform_link_get_ifindex (DEVICE_NAME)));
-	ifindex = nm_platform_link_get_ifindex (DEVICE_NAME);
+	g_assert (nm_platform_link_set_up (NM_PLATFORM_GET, nm_platform_link_get_ifindex (NM_PLATFORM_GET, DEVICE_NAME), NULL));
+	ifindex = nm_platform_link_get_ifindex (NM_PLATFORM_GET, DEVICE_NAME);
 	g_assert (ifindex > 0);
 
 	/* Add routes and addresses */
-	g_assert (nm_platform_ip4_address_add (ifindex, addr4, 0, plen4, lifetime, preferred, NULL));
-	g_assert (nm_platform_ip6_address_add (ifindex, addr6, in6addr_any, plen6, lifetime, preferred, flags));
-	g_assert (nm_platform_ip4_route_add (ifindex, NM_PLATFORM_SOURCE_USER, gateway4, 32, INADDR_ANY, metric, mss));
-	g_assert (nm_platform_ip4_route_add (ifindex, NM_PLATFORM_SOURCE_USER, network4, plen4, gateway4, metric, mss));
-	g_assert (nm_platform_ip4_route_add (ifindex, NM_PLATFORM_SOURCE_USER, 0, 0, gateway4, metric, mss));
-	g_assert (nm_platform_ip6_route_add (ifindex, NM_PLATFORM_SOURCE_USER, gateway6, 128, in6addr_any, metric, mss));
-	g_assert (nm_platform_ip6_route_add (ifindex, NM_PLATFORM_SOURCE_USER, network6, plen6, gateway6, metric, mss));
-	g_assert (nm_platform_ip6_route_add (ifindex, NM_PLATFORM_SOURCE_USER, in6addr_any, 0, gateway6, metric, mss));
+	g_assert (nm_platform_ip4_address_add (NM_PLATFORM_GET, ifindex, addr4, 0, plen4, lifetime, preferred, NULL));
+	g_assert (nm_platform_ip6_address_add (NM_PLATFORM_GET, ifindex, addr6, in6addr_any, plen6, lifetime, preferred, flags));
+	g_assert (nm_platform_ip4_route_add (NM_PLATFORM_GET, ifindex, NM_IP_CONFIG_SOURCE_USER, gateway4, 32, INADDR_ANY, 0, metric, mss));
+	g_assert (nm_platform_ip4_route_add (NM_PLATFORM_GET, ifindex, NM_IP_CONFIG_SOURCE_USER, network4, plen4, gateway4, 0, metric, mss));
+	g_assert (nm_platform_ip4_route_add (NM_PLATFORM_GET, ifindex, NM_IP_CONFIG_SOURCE_USER, 0, 0, gateway4, 0, metric, mss));
+	g_assert (nm_platform_ip6_route_add (NM_PLATFORM_GET, ifindex, NM_IP_CONFIG_SOURCE_USER, gateway6, 128, in6addr_any, metric, mss));
+	g_assert (nm_platform_ip6_route_add (NM_PLATFORM_GET, ifindex, NM_IP_CONFIG_SOURCE_USER, network6, plen6, gateway6, metric, mss));
+	g_assert (nm_platform_ip6_route_add (NM_PLATFORM_GET, ifindex, NM_IP_CONFIG_SOURCE_USER, in6addr_any, 0, gateway6, metric, mss));
 
-	addresses4 = nm_platform_ip4_address_get_all (ifindex);
-	addresses6 = nm_platform_ip6_address_get_all (ifindex);
-	routes4 = nm_platform_ip4_route_get_all (ifindex, TRUE);
-	routes6 = nm_platform_ip6_route_get_all (ifindex, TRUE);
+	addresses4 = nm_platform_ip4_address_get_all (NM_PLATFORM_GET, ifindex);
+	addresses6 = nm_platform_ip6_address_get_all (NM_PLATFORM_GET, ifindex);
+	routes4 = nm_platform_ip4_route_get_all (NM_PLATFORM_GET, ifindex, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT | NM_PLATFORM_GET_ROUTE_FLAGS_WITH_NON_DEFAULT);
+	routes6 = nm_platform_ip6_route_get_all (NM_PLATFORM_GET, ifindex, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT | NM_PLATFORM_GET_ROUTE_FLAGS_WITH_NON_DEFAULT);
 
 	g_assert_cmpint (addresses4->len, ==, 1);
-	g_assert_cmpint (addresses6->len, ==, 1);
+	g_assert_cmpint (addresses6->len, ==, 2); /* also has a IPv6 LL address. */
 	g_assert_cmpint (routes4->len, ==, 3);
 	g_assert_cmpint (routes6->len, ==, 3);
 
@@ -66,12 +68,12 @@ test_cleanup_internal ()
 	g_array_unref (routes6);
 
 	/* Delete interface with all addresses and routes */
-	g_assert (nm_platform_link_delete (ifindex));
+	g_assert (nm_platform_link_delete (NM_PLATFORM_GET, ifindex));
 
-	addresses4 = nm_platform_ip4_address_get_all (ifindex);
-	addresses6 = nm_platform_ip6_address_get_all (ifindex);
-	routes4 = nm_platform_ip4_route_get_all (ifindex, TRUE);
-	routes6 = nm_platform_ip6_route_get_all (ifindex, TRUE);
+	addresses4 = nm_platform_ip4_address_get_all (NM_PLATFORM_GET, ifindex);
+	addresses6 = nm_platform_ip6_address_get_all (NM_PLATFORM_GET, ifindex);
+	routes4 = nm_platform_ip4_route_get_all (NM_PLATFORM_GET, ifindex, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT | NM_PLATFORM_GET_ROUTE_FLAGS_WITH_NON_DEFAULT);
+	routes6 = nm_platform_ip6_route_get_all (NM_PLATFORM_GET, ifindex, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT | NM_PLATFORM_GET_ROUTE_FLAGS_WITH_NON_DEFAULT);
 
 	g_assert_cmpint (addresses4->len, ==, 0);
 	g_assert_cmpint (addresses6->len, ==, 0);
@@ -85,10 +87,16 @@ test_cleanup_internal ()
 }
 
 void
+init_tests (int *argc, char ***argv)
+{
+	nmtst_init_with_logging (argc, argv, NULL, "ALL");
+}
+
+void
 setup_tests (void)
 {
-	nm_platform_link_delete (nm_platform_link_get_ifindex (DEVICE_NAME));
-	g_assert (!nm_platform_link_exists (DEVICE_NAME));
+	nm_platform_link_delete (NM_PLATFORM_GET, nm_platform_link_get_ifindex (NM_PLATFORM_GET, DEVICE_NAME));
+	g_assert (!nm_platform_link_get_by_ifname (NM_PLATFORM_GET, DEVICE_NAME));
 
 	g_test_add_func ("/internal", test_cleanup_internal);
 	/* FIXME: add external cleanup check */

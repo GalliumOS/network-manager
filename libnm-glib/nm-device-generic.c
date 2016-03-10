@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -20,7 +18,7 @@
  * Copyright 2013 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
 
 #include <string.h>
 
@@ -266,11 +264,10 @@ nm_device_generic_class_init (NMDeviceGenericClass *klass)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_GENERIC_HW_ADDRESS,
-		                      "Hardware Address",
-		                      "Hardware address",
+		 g_param_spec_string (NM_DEVICE_GENERIC_HW_ADDRESS, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMDeviceGeneric:type-description:
@@ -280,10 +277,8 @@ nm_device_generic_class_init (NMDeviceGenericClass *klass)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_TYPE_DESCRIPTION,
-		 g_param_spec_string (NM_DEVICE_GENERIC_TYPE_DESCRIPTION,
-		                      "Type Description",
-		                      "Type description",
+		 g_param_spec_string (NM_DEVICE_GENERIC_TYPE_DESCRIPTION, "", "",
 		                      NULL,
-		                      G_PARAM_READABLE));
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 }
-

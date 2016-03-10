@@ -25,7 +25,7 @@ case "$1" in
 	    fi
 	fi
 
-	if dpkg --compare-versions "$2" lt "0.9.10.0-4ubuntu12"; then
+	if dpkg --compare-versions "$2" lt "1.0.0-4"; then
 	    if [ -L /etc/systemd/system/dbus-org.freedesktop.NetworkManager.service ]; then
 	        rm -f /etc/systemd/system/dbus-org.freedesktop.NetworkManager.service
 	    fi

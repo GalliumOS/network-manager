@@ -18,14 +18,15 @@
  * Copyright (C) 2011 Thomas Bechtold <thomasbechtold@jpberlin.de>
  */
 
-#ifndef NM_CONNECTIVITY_H
-#define NM_CONNECTIVITY_H
+#ifndef __NETWORKMANAGER_CONNECTIVITY_H__
+#define __NETWORKMANAGER_CONNECTIVITY_H__
 
 #include <glib.h>
 #include <glib-object.h>
 #include <gio/gio.h>
 
-#include "NetworkManager.h"
+#include "nm-dbus-interface.h"
+#include "nm-types.h"
 
 #define NM_TYPE_CONNECTIVITY            (nm_connectivity_get_type ())
 #define NM_CONNECTIVITY(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_CONNECTIVITY, NMConnectivity))
@@ -40,9 +41,9 @@
 #define NM_CONNECTIVITY_RESPONSE  "response"
 #define NM_CONNECTIVITY_STATE     "state"
 
-typedef struct {
+struct _NMConnectivity {
 	GObject parent;
-} NMConnectivity;
+};
 
 typedef struct {
 	GObjectClass parent;
@@ -50,7 +51,11 @@ typedef struct {
 
 GType nm_connectivity_get_type (void);
 
-NMConnectivity      *nm_connectivity_new          (void);
+const char *nm_connectivity_state_to_string (NMConnectivityState state);
+
+NMConnectivity      *nm_connectivity_new (const char *uri,
+                                          guint interval,
+                                          const char *response);
 
 void                 nm_connectivity_set_online   (NMConnectivity       *self,
                                                    gboolean              online);
@@ -64,4 +69,4 @@ NMConnectivityState  nm_connectivity_check_finish (NMConnectivity       *self,
                                                    GAsyncResult         *result,
                                                    GError              **error);
 
-#endif /* NM_CONNECTIVITY_H */
+#endif /* __NETWORKMANAGER_CONNECTIVITY_H__ */

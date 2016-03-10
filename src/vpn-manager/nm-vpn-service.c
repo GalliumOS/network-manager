@@ -19,10 +19,10 @@
  * Copyright (C) 2005 - 2008 Novell, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <glib.h>
 #include <string.h>
-#include <dbus/dbus.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -31,11 +31,10 @@
 #include "nm-vpn-service.h"
 #include "nm-dbus-manager.h"
 #include "nm-logging.h"
-#include "nm-posix-signals.h"
 #include "nm-vpn-manager.h"
 #include "nm-glib-compat.h"
 
-G_DEFINE_TYPE (NMVPNService, nm_vpn_service, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NMVpnService, nm_vpn_service, G_TYPE_OBJECT)
 
 typedef struct {
 	char *name;
@@ -43,24 +42,24 @@ typedef struct {
 	char *program;
 	char *namefile;
 
-	NMVPNConnection *active;
+	NMVpnConnection *active;
 	GSList *pending;
 
 	guint start_timeout;
 	gboolean service_running;
-} NMVPNServicePrivate;
+} NMVpnServicePrivate;
 
-#define NM_VPN_SERVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_VPN_SERVICE, NMVPNServicePrivate))
+#define NM_VPN_SERVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_VPN_SERVICE, NMVpnServicePrivate))
 
 #define VPN_CONNECTION_GROUP "VPN Connection"
 
-static gboolean start_pending_vpn (NMVPNService *self);
+static gboolean start_pending_vpn (NMVpnService *self, GError **error);
 
-NMVPNService *
+NMVpnService *
 nm_vpn_service_new (const char *namefile, GError **error)
 {
-	NMVPNService *self;
-	NMVPNServicePrivate *priv;
+	NMVpnService *self;
+	NMVpnServicePrivate *priv;
 	GKeyFile *kf;
 
 	g_return_val_if_fail (namefile != NULL, NULL);
@@ -72,7 +71,7 @@ nm_vpn_service_new (const char *namefile, GError **error)
 		return NULL;
 	}
 
-	self = (NMVPNService *) g_object_new (NM_TYPE_VPN_SERVICE, NULL);
+	self = (NMVpnService *) g_object_new (NM_TYPE_VPN_SERVICE, NULL);
 	priv = NM_VPN_SERVICE_GET_PRIVATE (self);
 	priv->namefile = g_strdup (namefile);
 
@@ -100,7 +99,7 @@ error:
 }
 
 const char *
-nm_vpn_service_get_dbus_service (NMVPNService *service)
+nm_vpn_service_get_dbus_service (NMVpnService *service)
 {
 	g_return_val_if_fail (NM_IS_VPN_SERVICE (service), NULL);
 
@@ -108,7 +107,7 @@ nm_vpn_service_get_dbus_service (NMVPNService *service)
 }
 
 const char *
-nm_vpn_service_get_name_file (NMVPNService *service)
+nm_vpn_service_get_name_file (NMVpnService *service)
 {
 	g_return_val_if_fail (NM_IS_VPN_SERVICE (service), NULL);
 
@@ -116,21 +115,21 @@ nm_vpn_service_get_name_file (NMVPNService *service)
 }
 
 static void
-connection_vpn_state_changed (NMVPNConnection *connection,
-                              NMVPNConnectionState new_state,
-                              NMVPNConnectionState old_state,
-                              NMVPNConnectionStateReason reason,
+connection_vpn_state_changed (NMVpnConnection *connection,
+                              NMVpnConnectionState new_state,
+                              NMVpnConnectionState old_state,
+                              NMVpnConnectionStateReason reason,
                               gpointer user_data)
 {
-	NMVPNService *self = NM_VPN_SERVICE (user_data);
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
+	NMVpnService *self = NM_VPN_SERVICE (user_data);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
 
 	if (new_state == NM_VPN_CONNECTION_STATE_FAILED ||
 	    new_state == NM_VPN_CONNECTION_STATE_DISCONNECTED) {
 		g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_vpn_state_changed), self);
 		if (connection == priv->active) {
 			priv->active = NULL;
-			start_pending_vpn (self);
+			start_pending_vpn (self, NULL);
 		} else
 			priv->pending = g_slist_remove (priv->pending, connection);
 		g_object_unref (connection);
@@ -138,11 +137,11 @@ connection_vpn_state_changed (NMVPNConnection *connection,
 }
 
 void
-nm_vpn_service_stop_connections (NMVPNService *service,
+nm_vpn_service_stop_connections (NMVpnService *service,
                                  gboolean quitting,
-                                 NMVPNConnectionStateReason reason)
+                                 NMVpnConnectionStateReason reason)
 {
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (service);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (service);
 	GSList *iter;
 
 	/* Just add priv->active to the beginning of priv->pending,
@@ -154,7 +153,7 @@ nm_vpn_service_stop_connections (NMVPNService *service,
 	}
 
 	for (iter = priv->pending; iter; iter = iter->next) {
-		NMVPNConnection *vpn = NM_VPN_CONNECTION (iter->data);
+		NMVpnConnection *vpn = NM_VPN_CONNECTION (iter->data);
 
 		g_signal_handlers_disconnect_by_func (vpn, G_CALLBACK (connection_vpn_state_changed), service);
 		if (quitting) {
@@ -167,25 +166,11 @@ nm_vpn_service_stop_connections (NMVPNService *service,
 	g_clear_pointer (&priv->pending, g_slist_free);
 }
 
-static void
-_daemon_setup (gpointer user_data G_GNUC_UNUSED)
-{
-	/* We are in the child process at this point */
-	pid_t pid = getpid ();
-	setpgid (pid, pid);
-
-	/*
-	 * We blocked signals in main(). We need to restore original signal
-	 * mask for VPN service here so that it can receive signals.
-	 */
-	nm_unblock_posix_signals (NULL);
-}
-
 static gboolean
 _daemon_exec_timeout (gpointer data)
 {
-	NMVPNService *self = NM_VPN_SERVICE (data);
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
+	NMVpnService *self = NM_VPN_SERVICE (data);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
 
 	nm_log_warn (LOGD_VPN, "VPN service '%s' start timed out", priv->name);
 	priv->start_timeout = 0;
@@ -194,9 +179,9 @@ _daemon_exec_timeout (gpointer data)
 }
 
 static gboolean
-nm_vpn_service_daemon_exec (NMVPNService *service, GError **error)
+nm_vpn_service_daemon_exec (NMVpnService *service, GError **error)
 {
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (service);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (service);
 	GPid pid;
 	char *vpn_argv[2];
 	gboolean success = FALSE;
@@ -207,7 +192,7 @@ nm_vpn_service_daemon_exec (NMVPNService *service, GError **error)
 	vpn_argv[0] = priv->program;
 	vpn_argv[1] = NULL;
 
-	success = g_spawn_async (NULL, vpn_argv, NULL, 0, _daemon_setup, NULL, &pid, &spawn_error);
+	success = g_spawn_async (NULL, vpn_argv, NULL, 0, nm_utils_setpgid, NULL, &pid, &spawn_error);
 	if (success) {
 		nm_log_info (LOGD_VPN, "VPN service '%s' started (%s), PID %ld",
 		             priv->name, priv->dbus_service, (long int) pid);
@@ -219,7 +204,7 @@ nm_vpn_service_daemon_exec (NMVPNService *service, GError **error)
 		             spawn_error && spawn_error->message ? spawn_error->message : "(unknown)");
 
 		g_set_error (error,
-		             NM_VPN_MANAGER_ERROR, NM_VPN_MANAGER_ERROR_SERVICE_START_FAILED,
+		             NM_MANAGER_ERROR, NM_MANAGER_ERROR_FAILED,
 		             "%s", spawn_error ? spawn_error->message : "unknown g_spawn_async() error");
 
 		nm_vpn_service_stop_connections (service, FALSE, NM_VPN_CONNECTION_STATE_REASON_SERVICE_START_FAILED);
@@ -231,9 +216,9 @@ nm_vpn_service_daemon_exec (NMVPNService *service, GError **error)
 }
 
 static gboolean
-start_active_vpn (NMVPNService *self, GError **error)
+start_active_vpn (NMVpnService *self, GError **error)
 {
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
 
 	if (!priv->active)
 		return TRUE;
@@ -253,9 +238,9 @@ start_active_vpn (NMVPNService *self, GError **error)
 }
 
 static gboolean
-start_pending_vpn (NMVPNService *self)
+start_pending_vpn (NMVpnService *self, GError **error)
 {
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
 
 	g_assert (priv->active == NULL);
 
@@ -266,15 +251,15 @@ start_pending_vpn (NMVPNService *self)
 	priv->active = g_slist_nth_data (priv->pending, 0);
 	priv->pending = g_slist_remove (priv->pending, priv->active);
 
-	return start_active_vpn (self, NULL);
+	return start_active_vpn (self, error);
 }
 
 gboolean
-nm_vpn_service_activate (NMVPNService *service,
-                         NMVPNConnection *vpn,
+nm_vpn_service_activate (NMVpnService *service,
+                         NMVpnConnection *vpn,
                          GError **error)
 {
-	NMVPNServicePrivate *priv;
+	NMVpnServicePrivate *priv;
 
 	g_return_val_if_fail (NM_IS_VPN_SERVICE (service), FALSE);
 	g_return_val_if_fail (NM_IS_VPN_CONNECTION (vpn), FALSE);
@@ -300,7 +285,7 @@ nm_vpn_service_activate (NMVPNService *service,
 	}
 
 	/* Otherwise start the next VPN */
-	return start_pending_vpn (service);
+	return start_pending_vpn (service, error);
 }
 
 static void
@@ -310,8 +295,8 @@ _name_owner_changed (NMDBusManager *mgr,
                      const char *new,
                      gpointer user_data)
 {
-	NMVPNService *service = NM_VPN_SERVICE (user_data);
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (service);
+	NMVpnService *service = NM_VPN_SERVICE (user_data);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (service);
 	gboolean old_owner_good, new_owner_good, success;
 
 	if (strcmp (name, priv->dbus_service))
@@ -344,7 +329,7 @@ _name_owner_changed (NMDBusManager *mgr,
 /******************************************************************************/
 
 static void
-nm_vpn_service_init (NMVPNService *self)
+nm_vpn_service_init (NMVpnService *self)
 {
 	g_signal_connect (nm_dbus_manager_get (),
 	                  NM_DBUS_MANAGER_NAME_OWNER_CHANGED,
@@ -355,8 +340,8 @@ nm_vpn_service_init (NMVPNService *self)
 static void
 dispose (GObject *object)
 {
-	NMVPNService *self = NM_VPN_SERVICE (object);
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
+	NMVpnService *self = NM_VPN_SERVICE (object);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (self);
 
 	if (priv->start_timeout) {
 		g_source_remove (priv->start_timeout);
@@ -377,7 +362,7 @@ dispose (GObject *object)
 static void
 finalize (GObject *object)
 {
-	NMVPNServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (object);
+	NMVpnServicePrivate *priv = NM_VPN_SERVICE_GET_PRIVATE (object);
 
 	g_free (priv->name);
 	g_free (priv->dbus_service);
@@ -388,11 +373,11 @@ finalize (GObject *object)
 }
 
 static void
-nm_vpn_service_class_init (NMVPNServiceClass *service_class)
+nm_vpn_service_class_init (NMVpnServiceClass *service_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (service_class);
 
-	g_type_class_add_private (service_class, sizeof (NMVPNServicePrivate));
+	g_type_class_add_private (service_class, sizeof (NMVpnServicePrivate));
 
 	/* virtual methods */
 	object_class->dispose = dispose;

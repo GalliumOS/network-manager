@@ -19,8 +19,8 @@
  * Copyright (C) 2008 - 2012 Red Hat, Inc.
  */
 
-#ifndef NM_KEYFILE_CONNECTION_H
-#define NM_KEYFILE_CONNECTION_H
+#ifndef __NETWORKMANAGER_KEYFILE_CONNECTION_H__
+#define __NETWORKMANAGER_KEYFILE_CONNECTION_H__
 
 #include <nm-settings-connection.h>
 
@@ -47,9 +47,6 @@ NMKeyfileConnection *nm_keyfile_connection_new (NMConnection *source,
                                                 const char *filename,
                                                 GError **error);
 
-const char *nm_keyfile_connection_get_path (NMKeyfileConnection *self);
-void        nm_keyfile_connection_set_path (NMKeyfileConnection *self, const char *path);
-
 G_END_DECLS
 
-#endif /* NM_KEYFILE_CONNECTION_H */
+#endif /* __NETWORKMANAGER_KEYFILE_CONNECTION_H__ */

@@ -28,10 +28,7 @@
 
 #include <nm-connection.h>
 
-#include "nm-settings-connection.h"
-#include "nm-system-config-interface.h"
-#include "nm-device.h"
-#include "nm-secret-agent.h"
+#include "nm-types.h"
 
 #define NM_TYPE_SETTINGS            (nm_settings_get_type ())
 #define NM_SETTINGS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTINGS, NMSettings))
@@ -40,10 +37,11 @@
 #define NM_IS_SETTINGS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_SETTINGS))
 #define NM_SETTINGS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_SETTINGS, NMSettingsClass))
 
-#define NM_SETTINGS_UNMANAGED_SPECS "unmanaged-specs"
-#define NM_SETTINGS_HOSTNAME        "hostname"
-#define NM_SETTINGS_CAN_MODIFY      "can-modify"
-#define NM_SETTINGS_CONNECTIONS     "connections"
+#define NM_SETTINGS_UNMANAGED_SPECS  "unmanaged-specs"
+#define NM_SETTINGS_HOSTNAME         "hostname"
+#define NM_SETTINGS_CAN_MODIFY       "can-modify"
+#define NM_SETTINGS_CONNECTIONS      "connections"
+#define NM_SETTINGS_STARTUP_COMPLETE "connections"
 
 #define NM_SETTINGS_SIGNAL_CONNECTION_ADDED              "connection-added"
 #define NM_SETTINGS_SIGNAL_CONNECTION_UPDATED            "connection-updated"
@@ -52,9 +50,9 @@
 #define NM_SETTINGS_SIGNAL_CONNECTION_VISIBILITY_CHANGED "connection-visibility-changed"
 #define NM_SETTINGS_SIGNAL_AGENT_REGISTERED              "agent-registered"
 
-typedef struct {
+struct _NMSettings {
 	GObject parent_instance;
-} NMSettings;
+};
 
 typedef struct {
 	GObjectClass parent_class;
@@ -113,6 +111,8 @@ NMSettingsConnection *nm_settings_get_connection_by_path (NMSettings *settings,
 NMSettingsConnection *nm_settings_get_connection_by_uuid (NMSettings *settings,
                                                           const char *uuid);
 
+gboolean nm_settings_has_connection (NMSettings *self, NMConnection *connection);
+
 const GSList *nm_settings_get_unmanaged_specs (NMSettings *self);
 
 char *nm_settings_get_hostname (NMSettings *self);
@@ -122,5 +122,7 @@ void nm_settings_device_added (NMSettings *self, NMDevice *device);
 void nm_settings_device_removed (NMSettings *self, NMDevice *device, gboolean quitting);
 
 gint nm_settings_sort_connections (gconstpointer a, gconstpointer b);
+
+gboolean nm_settings_get_startup_complete (NMSettings *self);
 
 #endif  /* __NM_SETTINGS_H__ */

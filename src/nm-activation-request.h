@@ -18,15 +18,15 @@
  * (C) Copyright 2005 - 2012 Red Hat, Inc.
  */
 
-#ifndef NM_ACTIVATION_REQUEST_H
-#define NM_ACTIVATION_REQUEST_H
+#ifndef __NETWORKMANAGER_ACTIVATION_REQUEST_H__
+#define __NETWORKMANAGER_ACTIVATION_REQUEST_H__
 
 #include <glib.h>
 #include <glib-object.h>
+
 #include "nm-types.h"
 #include "nm-connection.h"
 #include "nm-active-connection.h"
-#include "nm-settings-flags.h"
 
 #define NM_TYPE_ACT_REQUEST            (nm_act_request_get_type ())
 #define NM_ACT_REQUEST(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_ACT_REQUEST, NMActRequest))
@@ -35,9 +35,9 @@
 #define NM_IS_ACT_REQUEST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_ACT_REQUEST))
 #define NM_ACT_REQUEST_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_ACT_REQUEST, NMActRequestClass))
 
-typedef struct {
+struct _NMActRequest {
 	NMActiveConnection parent;
-} NMActRequest;
+};
 
 typedef struct {
 	NMActiveConnectionClass parent;
@@ -71,12 +71,12 @@ typedef void (*NMActRequestSecretsFunc) (NMActRequest *req,
 
 guint32 nm_act_request_get_secrets (NMActRequest *req,
                                     const char *setting_name,
-                                    NMSettingsGetSecretsFlags flags,
+                                    NMSecretAgentGetSecretsFlags flags,
                                     const char *hint,
                                     NMActRequestSecretsFunc callback,
                                     gpointer callback_data);
 
 void nm_act_request_cancel_secrets (NMActRequest *req, guint32 call_id);
 
-#endif /* NM_ACTIVATION_REQUEST_H */
+#endif /* __NETWORKMANAGER_ACTIVATION_REQUEST_H__ */
 

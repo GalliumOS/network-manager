@@ -1,8 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Weiping Pan <wpan@redhat.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -18,13 +16,15 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2011 - 2014 Red Hat, Inc.
+ * Copyright 2011 - 2014 Red Hat, Inc.
  */
+
+#include "config.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-vlan.h"
 #include "nm-param-spec-specialized.h"
@@ -260,7 +260,8 @@ nm_setting_vlan_add_priority_str (NMSettingVlan *setting,
 	list = get_map (setting, map);
 
 	item = priority_map_new_from_str (map, str);
-	g_return_val_if_fail (item != NULL, FALSE);
+	if (!item)
+		g_return_val_if_reached (FALSE);
 
 	/* Duplicates get replaced */
 	for (iter = list; iter; iter = g_slist_next (iter)) {
@@ -537,20 +538,6 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 			s_wired = iter->data;
 	}
 
-	/* If interface_name is specified, it must be a valid interface name. We
-	 * don't check that it matches parent and/or id, because we allowing
-	 * renaming vlans to arbitrary names.
-	 */
-	if (priv->interface_name && !nm_utils_iface_valid_name (priv->interface_name)) {
-		g_set_error (error,
-		             NM_SETTING_VLAN_ERROR,
-		             NM_SETTING_VLAN_ERROR_INVALID_PROPERTY,
-		             _("'%s' is not a valid interface name"),
-		             priv->interface_name);
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_VLAN_SETTING_NAME, NM_SETTING_VLAN_INTERFACE_NAME);
-		return FALSE;
-	}
-
 	if (priv->parent) {
 		if (nm_utils_is_uuid (priv->parent)) {
 			/* If we have an NMSettingConnection:master with slave-type="vlan",
@@ -582,7 +569,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 			             priv->parent);
 			g_prefix_error (error, "%s.%s: ", NM_SETTING_VLAN_SETTING_NAME, NM_SETTING_VLAN_PARENT);
 			return FALSE;
-		} 
+		}
 	} else {
 		/* If parent is NULL, the parent must be specified via
 		 * NMSettingWired:mac-address.
@@ -609,7 +596,17 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		return FALSE;
 	}
 
-	return TRUE;
+	/* If interface_name is specified, it must be a valid interface name. We
+	 * don't check that it matches parent and/or id, because we allow
+	 * renaming vlans to arbitrary names.
+	 */
+	return _nm_setting_verify_deprecated_virtual_iface_name (
+	         priv->interface_name, TRUE,
+	         NM_SETTING_VLAN_SETTING_NAME, NM_SETTING_VLAN_INTERFACE_NAME,
+	         NM_SETTING_VLAN_ERROR,
+	         NM_SETTING_VLAN_ERROR_INVALID_PROPERTY,
+	         NM_SETTING_VLAN_ERROR_MISSING_PROPERTY,
+	         all_settings, error);
 }
 
 static const char *
@@ -758,17 +755,12 @@ nm_setting_vlan_class_init (NMSettingVlanClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_INTERFACE_NAME,
-		g_param_spec_string (NM_SETTING_VLAN_INTERFACE_NAME,
-		                     "InterfaceName",
-		                     "If given, specifies the kernel name of the VLAN "
-		                     "interface. If not given, a default name will be "
-		                     "constructed from the interface described by the "
-		                     "parent interface and the 'id' property, ex "
-		                     "'eth2.1'. The parent interface may be given by "
-		                     "the 'parent' property or by the 'mac-address' "
-		                     "property of a 'wired' setting.",
-		                     NULL,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+		 g_param_spec_string (NM_SETTING_VLAN_INTERFACE_NAME, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_CONSTRUCT |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingVlan:parent:
@@ -780,15 +772,12 @@ nm_setting_vlan_class_init (NMSettingVlanClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PARENT,
-		g_param_spec_string (NM_SETTING_VLAN_PARENT,
-		                     "Parent",
-		                     "If given, specifies the parent interface name or "
-		                     "parent connection UUID from which this VLAN "
-		                     "interface should be created.  If this property is "
-		                     "not specified, the connection must contain a "
-		                     "'wired' setting with a 'mac-address' property.",
-		                     NULL,
-		                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+		 g_param_spec_string (NM_SETTING_VLAN_PARENT, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_CONSTRUCT |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingVlan:id:
@@ -798,12 +787,12 @@ nm_setting_vlan_class_init (NMSettingVlanClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ID,
-		 g_param_spec_uint (NM_SETTING_VLAN_ID,
-		                    "VLAN ID",
-		                    "The VLAN indentifier the interface created by "
-		                    "this connection should be assigned.",
+		 g_param_spec_uint (NM_SETTING_VLAN_ID, "", "",
 		                    0, 4095, 0,
-		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingVlan:flags:
@@ -816,16 +805,12 @@ nm_setting_vlan_class_init (NMSettingVlanClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_FLAGS,
-		 g_param_spec_uint (NM_SETTING_VLAN_FLAGS,
-		                    "VLAN flags",
-		                    "One or more flags which control the behavior and "
-		                    "features of the VLAN interface.  Flags include "
-		                    "reordering of output packet headers (0x01), use "
-		                    "of the GVRP protocol (0x02), and loose binding "
-		                    "of the interface to its master device's operating "
-		                    "state (0x04).",
+		 g_param_spec_uint (NM_SETTING_VLAN_FLAGS, "", "",
 		                    0, G_MAXUINT32, 0,
-		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_INFERRABLE));
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingVlan:ingress-priority-map:
@@ -836,15 +821,11 @@ nm_setting_vlan_class_init (NMSettingVlanClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_INGRESS_PRIORITY_MAP,
-		_nm_param_spec_specialized (NM_SETTING_VLAN_INGRESS_PRIORITY_MAP,
-		                            "VLAN ingress priority mapping",
-		                            "For incoming packets, a list of mappings "
-		                            "from 802.1p priorities to Linux SKB "
-		                            "priorities.  The mapping is given in the "
-		                            "format 'from:to' where both 'from' and "
-		                            "'to' are unsigned integers, ie '7:3'.",
-		                            DBUS_TYPE_G_LIST_OF_STRING,
-		                            G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		 _nm_param_spec_specialized (NM_SETTING_VLAN_INGRESS_PRIORITY_MAP, "", "",
+		                             DBUS_TYPE_G_LIST_OF_STRING,
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_INFERRABLE |
+		                             G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingVlan:egress-priority-map:
@@ -855,13 +836,9 @@ nm_setting_vlan_class_init (NMSettingVlanClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_EGRESS_PRIORITY_MAP,
-		_nm_param_spec_specialized (NM_SETTING_VLAN_EGRESS_PRIORITY_MAP,
-		                            "VLAN egress priority mapping",
-		                            "For outgoing packets, a list of mappings "
-		                            "from Linux SKB priorities to 802.1p "
-		                            "priorities.  The mapping is given in the "
-		                            "format 'from:to' where both 'from' and "
-		                            "'to' are unsigned integers, ie '7:3'.",
-		                            DBUS_TYPE_G_LIST_OF_STRING,
-		                            G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		 _nm_param_spec_specialized (NM_SETTING_VLAN_EGRESS_PRIORITY_MAP, "", "",
+		                             DBUS_TYPE_G_LIST_OF_STRING,
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_INFERRABLE |
+		                             G_PARAM_STATIC_STRINGS));
 }

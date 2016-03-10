@@ -18,35 +18,11 @@
  * Copyright (C) 2013 Red Hat, Inc.
  */
 
-#ifndef NM_DCB_H
-#define NM_DCB_H
+#ifndef __NETWORKMANAGER_DCB_H__
+#define __NETWORKMANAGER_DCB_H__
 
 #include <glib.h>
 #include "nm-setting-dcb.h"
-
-/**
- * NMDcbError:
- * @NM_DCB_ERROR_UNKNOWN: unknown or unclassified error
- * @NM_DCB_ERROR_INTERNAL: a internal programmer error
- * @NM_DCB_ERROR_BAD_CONFIG: configuration was invalid
- * @NM_DCB_ERROR_HELPER_NOT_FOUND: the required helper program was not found
- * @NM_DCB_ERROR_HELPER_FAILED: the helper program failed
- *
- * NOTE: these errors are internal-use only and should never be used with D-Bus.
- **/
-typedef enum {
-	NM_DCB_ERROR_UNKNOWN = 0,
-	NM_DCB_ERROR_INTERNAL,
-	NM_DCB_ERROR_BAD_CONFIG,
-	NM_DCB_ERROR_HELPER_NOT_FOUND,
-	NM_DCB_ERROR_HELPER_FAILED,
-} NMDcbError;
-
-#define NM_DCB_ERROR (nm_dcb_error_quark ())
-GQuark nm_dcb_error_quark (void);
-#define NM_TYPE_DCB_ERROR (nm_dcb_error_get_type ())
-GType  nm_dcb_error_get_type (void);
-
 
 gboolean nm_dcb_enable (const char *iface, gboolean enable, GError **error);
 gboolean nm_dcb_setup (const char *iface, NMSettingDcb *s_dcb, GError **error);
@@ -97,4 +73,4 @@ gboolean _fcoe_cleanup (const char *iface,
                         gpointer user_data,
                         GError **error);
 
-#endif /* NM_DCB_H */
+#endif /* __NETWORKMANAGER_DCB_H__ */

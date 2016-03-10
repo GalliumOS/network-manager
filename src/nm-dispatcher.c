@@ -19,6 +19,8 @@
  * Copyright (C) 2005 - 2008 Novell, Inc.
  */
 
+#include "config.h"
+
 #include <glib.h>
 #include <gio/gio.h>
 #include <string.h>
@@ -30,8 +32,12 @@
 #include "nm-utils.h"
 #include "nm-logging.h"
 #include "nm-dbus-manager.h"
+#include "nm-device.h"
+#include "nm-dhcp4-config.h"
+#include "nm-dhcp6-config.h"
 #include "nm-dbus-glib-types.h"
 #include "nm-glib-compat.h"
+#include "nm-settings-connection.h"
 
 #define CALL_TIMEOUT (1000 * 60 * 10)  /* 10 minutes for all scripts */
 
@@ -91,7 +97,7 @@ dump_object_to_props (GObject *object, GHashTable *hash)
 }
 
 static void
-dump_dhcp4_to_props (NMDHCP4Config *config, GHashTable *hash)
+dump_dhcp4_to_props (NMDhcp4Config *config, GHashTable *hash)
 {
 	GSList *options, *iter;
 
@@ -107,7 +113,7 @@ dump_dhcp4_to_props (NMDHCP4Config *config, GHashTable *hash)
 }
 
 static void
-dump_dhcp6_to_props (NMDHCP6Config *config, GHashTable *hash)
+dump_dhcp6_to_props (NMDhcp6Config *config, GHashTable *hash)
 {
 	GSList *options, *iter;
 
@@ -132,8 +138,8 @@ fill_device_props (NMDevice *device,
 {
 	NMIP4Config *ip4_config;
 	NMIP6Config *ip6_config;
-	NMDHCP4Config *dhcp4_config;
-	NMDHCP6Config *dhcp6_config;
+	NMDhcp4Config *dhcp4_config;
+	NMDhcp6Config *dhcp6_config;
 
 	/* If the action is for a VPN, send the VPN's IP interface instead of the device's */
 	value_hash_add_str (dev_hash, NMD_DEVICE_PROPS_IP_INTERFACE, nm_device_get_ip_iface (device));
@@ -366,7 +372,7 @@ static const char *action_table[] = {
 static const char *
 action_to_string (DispatcherAction action)
 {
-	g_assert (action >= 0 && action < G_N_ELEMENTS (action_table));
+	g_assert ((gsize) action < G_N_ELEMENTS (action_table));
 	return action_table[action];
 }
 
@@ -461,19 +467,30 @@ _dispatcher_call (DispatcherAction action,
 	proxy = dbus_g_proxy_new_for_name (g_connection,
 	                                   NM_DISPATCHER_DBUS_SERVICE,
 	                                   NM_DISPATCHER_DBUS_PATH,
-	                                   NM_DISPATCHER_DBUS_IFACE);
+	                                   NM_DISPATCHER_DBUS_INTERFACE);
 	if (!proxy) {
 		nm_log_err (LOGD_DISPATCH, "(%u) could not get dispatcher proxy!", reqid);
 		return FALSE;
 	}
 
 	if (connection) {
-		connection_hash = nm_connection_to_hash (connection, NM_SETTING_HASH_FLAG_NO_SECRETS);
+		GVariant *connection_dict;
+		const char *filename;
+
+		connection_dict = nm_connection_to_dbus (connection, NM_CONNECTION_SERIALIZE_NO_SECRETS);
+		connection_hash = nm_utils_connection_dict_to_hash (connection_dict);
+		g_variant_unref (connection_dict);
 
 		connection_props = value_hash_create ();
 		value_hash_add_object_path (connection_props,
 		                            NMD_CONNECTION_PROPS_PATH,
 		                            nm_connection_get_path (connection));
+		filename = nm_settings_connection_get_filename (NM_SETTINGS_CONNECTION (connection));
+		if (filename) {
+			value_hash_add_str (connection_props,
+			                    NMD_CONNECTION_PROPS_FILENAME,
+			                    filename);
+		}
 	} else {
 		connection_hash = value_hash_create ();
 		connection_props = value_hash_create ();

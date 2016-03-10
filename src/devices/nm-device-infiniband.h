@@ -18,8 +18,8 @@
  * Copyright 2011 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_INFINIBAND_H
-#define NM_DEVICE_INFINIBAND_H
+#ifndef __NETWORKMANAGER_DEVICE_INFINIBAND_H__
+#define __NETWORKMANAGER_DEVICE_INFINIBAND_H__
 
 #include <glib-object.h>
 
@@ -34,27 +34,10 @@ G_BEGIN_DECLS
 #define NM_IS_DEVICE_INFINIBAND_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_INFINIBAND))
 #define NM_DEVICE_INFINIBAND_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_INFINIBAND, NMDeviceInfinibandClass))
 
-typedef enum {
-	NM_INFINIBAND_ERROR_CONNECTION_NOT_INFINIBAND = 0, /*< nick=ConnectionNotInfiniband >*/
-	NM_INFINIBAND_ERROR_CONNECTION_INVALID,            /*< nick=ConnectionInvalid >*/
-	NM_INFINIBAND_ERROR_CONNECTION_INCOMPATIBLE,       /*< nick=ConnectionIncompatible >*/
-} NMInfinibandError;
-
-typedef struct {
-	NMDevice parent;
-} NMDeviceInfiniband;
-
-typedef struct {
-	NMDeviceClass parent;
-
-} NMDeviceInfinibandClass;
-
+typedef NMDevice NMDeviceInfiniband;
+typedef NMDeviceClass NMDeviceInfinibandClass;
 
 GType nm_device_infiniband_get_type (void);
-
-NMDevice *nm_device_infiniband_new (NMPlatformLink *platform_device);
-NMDevice *nm_device_infiniband_new_partition (NMConnection *connection,
-                                              NMDevice     *parent);
 
 G_END_DECLS
 

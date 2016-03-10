@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* 
+/*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -15,7 +15,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2010 - 2011 Red Hat, Inc.
+ * Copyright 2010 - 2011 Red Hat, Inc.
  */
 
 #ifndef NM_SECRET_AGENT_H
@@ -59,7 +59,7 @@ typedef enum {
  * NMSecretAgentCapabilities:
  * @NM_SECRET_AGENT_CAPABILITY_NONE: the agent supports no special capabilities
  * @NM_SECRET_AGENT_CAPABILITY_VPN_HINTS: the agent supports sending hints given
- * by the NMSecretAgentClass::get_secrets() class method to VPN plugin
+ * by the <literal>get_secrets</literal> class method to VPN plugin
  * authentication dialogs.
  * @NM_SECRET_AGENT_CAPABILITY_LAST: bounds checking value; should not be used.
  *

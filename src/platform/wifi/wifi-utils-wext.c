@@ -19,7 +19,8 @@
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <errno.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -41,7 +42,6 @@
 #include <sys/types.h>
 #include <linux/types.h>
 #include <sys/socket.h>
-#include <linux/if.h>
 #include <linux/wireless.h>
 
 
@@ -230,7 +230,7 @@ wifi_wext_get_ssid (WifiData *data)
 }
 
 static gboolean
-wifi_wext_get_bssid (WifiData *data, struct ether_addr *out_bssid)
+wifi_wext_get_bssid (WifiData *data, guint8 *out_bssid)
 {
 	WifiDataWext *wext = (WifiDataWext *) data;
 	struct iwreq wrq;
@@ -243,7 +243,7 @@ wifi_wext_get_bssid (WifiData *data, struct ether_addr *out_bssid)
 		             wext->parent.iface, strerror (errno));
 		return FALSE;
 	}
-	memcpy (out_bssid->ether_addr_octet, &(wrq.u.ap_addr.sa_data), ETH_ALEN);
+	memcpy (out_bssid, &(wrq.u.ap_addr.sa_data), ETH_ALEN);
 	return TRUE;
 }
 
@@ -421,18 +421,15 @@ wifi_wext_set_mesh_channel (WifiData *data, guint32 channel)
 }
 
 static gboolean
-wifi_wext_set_mesh_ssid (WifiData *data, const GByteArray *ssid)
+wifi_wext_set_mesh_ssid (WifiData *data, const guint8 *ssid, gsize len)
 {
 	WifiDataWext *wext = (WifiDataWext *) data;
 	struct iwreq wrq;
-	guint32 len = 0;
 	char buf[IW_ESSID_MAX_SIZE + 1];
 
 	memset (buf, 0, sizeof (buf));
-	if (ssid) {
-		len = ssid->len;
-		memcpy (buf, ssid->data, MIN (sizeof (buf) - 1, len));
-	}
+	memcpy (buf, ssid, MIN (sizeof (buf) - 1, len));
+
 	wrq.u.essid.pointer = (caddr_t) buf;
 	wrq.u.essid.length = len;
 	wrq.u.essid.flags = (len > 0) ? 1 : 0; /* 1=enable SSID, 0=disable/any */
@@ -445,7 +442,7 @@ wifi_wext_set_mesh_ssid (WifiData *data, const GByteArray *ssid)
 		nm_log_err (LOGD_HW | LOGD_WIFI | LOGD_OLPC,
 		            "(%s): error setting SSID to '%s': %s",
 		            wext->parent.iface,
-		            ssid ? nm_utils_escape_ssid (ssid->data, ssid->len) : "(null)",
+		            ssid ? nm_utils_escape_ssid (ssid, len) : "(null)",
 		            strerror (errno));
 	}
 
@@ -572,6 +569,7 @@ wifi_wext_init (const char *iface, int ifindex, gboolean check_scan)
 	guint32 response_len = 0;
 	struct iw_range_with_scan_capa *scan_capa_range;
 	int i;
+	gboolean freq_valid = FALSE, has_5ghz = FALSE, has_2ghz = FALSE;
 
 	wext = wifi_data_new (iface, ifindex, sizeof (*wext));
 	wext->parent.get_mode = wifi_wext_get_mode;
@@ -612,8 +610,14 @@ wifi_wext_init (const char *iface, int ifindex, gboolean check_scan)
 	wext->max_qual.updated = range.max_qual.updated;
 
 	wext->num_freqs = MIN (range.num_frequency, IW_MAX_FREQUENCIES);
-	for (i = 0; i < wext->num_freqs; i++)
+	for (i = 0; i < wext->num_freqs; i++) {
 		wext->freqs[i] = iw_freq_to_uint32 (&range.freq[i]);
+		freq_valid = TRUE;
+		if (wext->freqs[i] > 2400 && wext->freqs[i] < 2500)
+			has_2ghz = TRUE;
+		else if (wext->freqs[i] > 4900 && wext->freqs[i] < 6000)
+			has_5ghz = TRUE;
+	}
 
 	/* Check for scanning capability; cards that can't scan are not supported */
 	if (check_scan && (wext_can_scan (wext) == FALSE)) {
@@ -641,6 +645,12 @@ wifi_wext_init (const char *iface, int ifindex, gboolean check_scan)
 	}
 
 	wext->parent.caps = wext_get_caps (wext, &range);
+	if (freq_valid)
+		wext->parent.caps |= NM_WIFI_DEVICE_CAP_FREQ_VALID;
+	if (has_2ghz)
+		wext->parent.caps |= NM_WIFI_DEVICE_CAP_FREQ_2GHZ;
+	if (has_5ghz)
+		wext->parent.caps |= NM_WIFI_DEVICE_CAP_FREQ_5GHZ;
 
 	nm_log_info (LOGD_HW | LOGD_WIFI,
 	             "(%s): using WEXT for WiFi device control",

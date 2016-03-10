@@ -19,8 +19,8 @@
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#ifndef NM_SUPPLICANT_CONFIG_H
-#define NM_SUPPLICANT_CONFIG_H
+#ifndef __NETWORKMANAGER_SUPPLICANT_CONFIG_H__
+#define __NETWORKMANAGER_SUPPLICANT_CONFIG_H__
 
 #include <glib-object.h>
 #include <nm-setting-wireless.h>
@@ -59,7 +59,7 @@ void nm_supplicant_config_set_ap_scan (NMSupplicantConfig *self,
 
 gboolean nm_supplicant_config_fast_required (NMSupplicantConfig *self);
 
-GHashTable *nm_supplicant_config_get_hash (NMSupplicantConfig *self);
+GVariant *nm_supplicant_config_to_variant (NMSupplicantConfig *self);
 
 GHashTable *nm_supplicant_config_get_blobs (NMSupplicantConfig *self);
 

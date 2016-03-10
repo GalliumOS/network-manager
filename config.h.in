@@ -3,6 +3,13 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* Define if you we can build nm-setting-docs.xml, nm-keyfile-docs.xml and
+   nm-ifcfg-rh-docs.xml */
+#undef BUILD_SETTING_DOCS
+
+/* Default configuration option for main.plugins setting */
+#undef CONFIG_PLUGINS_DEFAULT
+
 /* Define if dhcpcd supports IPv6 (6.x+) */
 #undef DHCPCD_SUPPORTS_IPV6
 
@@ -53,8 +60,14 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define if you have libsoup */
-#undef HAVE_LIBSOUP
+/* Define if the kernel has IN6_ADDR_GEN_MODE_* */
+#undef HAVE_KERNEL_INET6_ADDR_GEN_MODE
+
+/* Define if libnl has rtnl_link_inet6_get_addr_gen_mode() */
+#undef HAVE_LIBNL_INET6_ADDR_GEN_MODE
+
+/* Define if libnl has rtnl_link_inet6_get_token() */
+#undef HAVE_LIBNL_INET6_TOKEN
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -79,6 +92,9 @@
 
 /* Define if you have SELinux support */
 #undef HAVE_SELINUX
+
+/* Define if you have pre-built settings docs */
+#undef HAVE_SETTING_DOCS
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -123,11 +139,20 @@
 /* Path to netconfig (if enabled) */
 #undef NETCONFIG_PATH
 
+/* The default value of the auth-polkit configuration option */
+#undef NM_CONFIG_DEFAULT_AUTH_POLKIT
+
 /* Define the distribution version string */
 #undef NM_DIST_VERSION
 
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
+/* git commit id of the original source code version */
+#undef NM_GIT_SHA
+
+/* Define if more asserts are enabled */
+#undef NM_MORE_ASSERTS
+
+/* Define if more asserts are enabled */
+#undef NM_MORE_LOGGING
 
 /* Name of package */
 #undef PACKAGE
@@ -190,20 +215,38 @@
 /* Version number of package */
 #undef VERSION
 
+/* Define if you have Bluez 5 libraries */
+#undef WITH_BLUEZ5_DUN
+
 /* Define if you want connectivity checking support */
 #undef WITH_CONCHECK
+
+/* Define if you have dhclient */
+#undef WITH_DHCLIENT
+
+/* Define if you have dhcpcd */
+#undef WITH_DHCPCD
+
+/* Define if you have libsoup */
+#undef WITH_LIBSOUP
 
 /* Define if you have ModemManager1 support */
 #undef WITH_MODEM_MANAGER_1
 
-/* Define if you have PolicyKit support */
+/* whether to compile polkit support */
 #undef WITH_POLKIT
+
+/* Define if you have polkit agent */
+#undef WITH_POLKIT_AGENT
 
 /* Define if you have PPP support */
 #undef WITH_PPP
 
 /* Define if you have Teamd control support */
 #undef WITH_TEAMDCTL
+
+/* Define if you have Wi-Fi support */
+#undef WITH_WIFI
 
 /* Define if you have WiMAX support */
 #undef WITH_WIMAX

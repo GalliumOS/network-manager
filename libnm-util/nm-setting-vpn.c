@@ -1,8 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -18,15 +15,17 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2013 Red Hat, Inc.
- * (C) Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2013 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-setting-vpn.h"
 #include "nm-param-spec-specialized.h"
@@ -84,6 +83,11 @@ typedef struct {
 	 */
 	char *user_name;
 
+	/* Whether the VPN stays up across link changes, until the user
+	 * explicitly disconnects it.
+	 */
+	gboolean persistent;
+
 	/* The hash table is created at setting object
 	 * init time and should not be replaced.  It is
 	 * a char * -> char * mapping, and both the key
@@ -107,6 +111,7 @@ enum {
 	PROP_0,
 	PROP_SERVICE_TYPE,
 	PROP_USER_NAME,
+	PROP_PERSISTENT,
 	PROP_DATA,
 	PROP_SECRETS,
 
@@ -155,6 +160,20 @@ nm_setting_vpn_get_user_name (NMSettingVPN *setting)
 	g_return_val_if_fail (NM_IS_SETTING_VPN (setting), NULL);
 
 	return NM_SETTING_VPN_GET_PRIVATE (setting)->user_name;
+}
+
+/**
+ * nm_setting_vpn_get_persistent:
+ * @setting: the #NMSettingVPN
+ *
+ * Returns: the #NMSettingVPN:persistent property of the setting
+ **/
+gboolean
+nm_setting_vpn_get_persistent (NMSettingVPN *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_VPN (setting), FALSE);
+
+	return NM_SETTING_VPN_GET_PRIVATE (setting)->persistent;
 }
 
 /**
@@ -479,7 +498,7 @@ update_secret_hash (NMSetting *setting,
 		if (!value || !strlen (value)) {
 			g_set_error (error, NM_SETTING_ERROR,
 			             NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH,
-				         "Secret %s value was empty", name);
+			             "Secret %s value was empty", name);
 			return NM_SETTING_UPDATE_SECRET_ERROR;
 		}
 	}
@@ -548,29 +567,31 @@ get_secret_flags (NMSetting *setting,
 	char *flags_key;
 	gpointer val;
 	unsigned long tmp;
+	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
 
 	flags_key = g_strdup_printf ("%s-flags", secret_name);
 	if (g_hash_table_lookup_extended (priv->data, flags_key, NULL, &val)) {
 		errno = 0;
 		tmp = strtoul ((const char *) val, NULL, 10);
 		if ((errno == 0) && (tmp <= NM_SETTING_SECRET_FLAGS_ALL)) {
-			if (out_flags)
-				*out_flags = (guint32) tmp;
+			flags = (NMSettingSecretFlags) tmp;
 			success = TRUE;
 		} else {
 			g_set_error (error,
 			             NM_SETTING_ERROR,
 			             NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH,
-			             "Failed to convert '%s' value '%s' to uint",
+			             _("Failed to convert '%s' value '%s' to uint"),
 			             flags_key, (const char *) val);
 		}
 	} else {
 		g_set_error (error,
 		             NM_SETTING_ERROR,
 		             NM_SETTING_ERROR_PROPERTY_NOT_FOUND,
-		             "Secret flags property '%s' not found", flags_key);
+		             _("Secret flags property '%s' not found"), flags_key);
 	}
 	g_free (flags_key);
+	if (out_flags)
+		*out_flags = flags;
 	return success;
 }
 
@@ -659,9 +680,9 @@ compare_property (NMSetting *setting,
 
 static gboolean
 clear_secrets_with_flags (NMSetting *setting,
-	                      GParamSpec *pspec,
-	                      NMSettingClearSecretsWithFlagsFn func,
-	                      gpointer user_data)
+                          GParamSpec *pspec,
+                          NMSettingClearSecretsWithFlagsFn func,
+                          gpointer user_data)
 {
 	NMSettingVPNPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (setting);
 	GHashTableIter iter;
@@ -731,7 +752,7 @@ copy_hash (gpointer key, gpointer value, gpointer user_data)
 
 static void
 set_property (GObject *object, guint prop_id,
-		    const GValue *value, GParamSpec *pspec)
+              const GValue *value, GParamSpec *pspec)
 {
 	NMSettingVPNPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (object);
 	GHashTable *new_hash;
@@ -744,6 +765,9 @@ set_property (GObject *object, guint prop_id,
 	case PROP_USER_NAME:
 		g_free (priv->user_name);
 		priv->user_name = g_value_dup_string (value);
+		break;
+	case PROP_PERSISTENT:
+		priv->persistent = g_value_get_boolean (value);
 		break;
 	case PROP_DATA:
 		/* Must make a deep copy of the hash table here... */
@@ -767,7 +791,7 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-		    GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMSettingVPN *setting = NM_SETTING_VPN (object);
 	NMSettingVPNPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (setting);
@@ -778,6 +802,9 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_USER_NAME:
 		g_value_set_string (value, nm_setting_vpn_get_user_name (setting));
+		break;
+	case PROP_PERSISTENT:
+		g_value_set_boolean (value, priv->persistent);
 		break;
 	case PROP_DATA:
 		g_value_set_boxed (value, priv->data);
@@ -822,14 +849,10 @@ nm_setting_vpn_class_init (NMSettingVPNClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SERVICE_TYPE,
-		 g_param_spec_string (NM_SETTING_VPN_SERVICE_TYPE,
-						  "Service type",
-						  "D-Bus service name of the VPN plugin that this "
-						  "setting uses to connect to its network.  i.e. "
-						  "org.freedesktop.NetworkManager.vpnc for the vpnc "
-						  "plugin.",
-						  NULL,
-						  G_PARAM_READWRITE));
+		 g_param_spec_string (NM_SETTING_VPN_SERVICE_TYPE, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingVPN:user-name:
@@ -843,18 +866,24 @@ nm_setting_vpn_class_init (NMSettingVPNClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_USER_NAME,
-		 g_param_spec_string (NM_SETTING_VPN_USER_NAME,
-		                      "User name",
-		                      "If the VPN connection requires a user name for "
-		                      "authentication, that name should be provided here.  "
-		                      "If the connection is available to more than one "
-		                      "user, and the VPN requires each user to supply a "
-		                      "different name, then leave this property empty.  If "
-		                      "this property is empty, NetworkManager will "
-		                      "automatically supply the username of the user which "
-		                      "requested the VPN connection.",
+		 g_param_spec_string (NM_SETTING_VPN_USER_NAME, "", "",
 		                      NULL,
-		                      G_PARAM_READWRITE));
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingVPN:persistent:
+	 *
+	 * If the VPN service supports persistence, and this property is %TRUE,
+	 * the VPN will attempt to stay connected across link changes and outages,
+	 * until explicitly disconnected.
+	 **/
+	g_object_class_install_property
+		(object_class, PROP_PERSISTENT,
+		 g_param_spec_boolean (NM_SETTING_VPN_PERSISTENT, "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingVPN:data:
@@ -864,13 +893,10 @@ nm_setting_vpn_class_init (NMSettingVPNClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DATA,
-		 _nm_param_spec_specialized (NM_SETTING_VPN_DATA,
-							   "Data",
-							   "Dictionary of key/value pairs of VPN plugin "
-							   "specific data.  Both keys and values must be "
-							   "strings.",
-							   DBUS_TYPE_G_MAP_OF_STRING,
-							   G_PARAM_READWRITE));
+		 _nm_param_spec_specialized (NM_SETTING_VPN_DATA, "", "",
+		                             DBUS_TYPE_G_MAP_OF_STRING,
+		                             G_PARAM_READWRITE |
+		                             G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingVPN:secrets:
@@ -880,12 +906,9 @@ nm_setting_vpn_class_init (NMSettingVPNClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SECRETS,
-		 _nm_param_spec_specialized (NM_SETTING_VPN_SECRETS,
-							   "Secrets",
-							   "Dictionary of key/value pairs of VPN plugin "
-							   "specific secrets like passwords or private keys."
-							   "  Both keys and values must be strings.",
-							   DBUS_TYPE_G_MAP_OF_STRING,
-							   G_PARAM_READWRITE | NM_SETTING_PARAM_SECRET));
+		 _nm_param_spec_specialized (NM_SETTING_VPN_SECRETS, "", "",
+		                             DBUS_TYPE_G_MAP_OF_STRING,
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_SECRET |
+		                             G_PARAM_STATIC_STRINGS));
 }
-

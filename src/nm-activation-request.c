@@ -25,9 +25,8 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <dbus/dbus-glib.h>
 
-#include "libgsystem.h"
+#include "gsystem-local-alloc.h"
 
 #include "nm-activation-request.h"
 #include "nm-logging.h"
@@ -36,8 +35,7 @@
 #include "nm-device.h"
 #include "nm-active-connection.h"
 #include "nm-settings-connection.h"
-#include "nm-posix-signals.h"
-
+#include "nm-auth-subject.h"
 
 G_DEFINE_TYPE (NMActRequest, nm_act_request, NM_TYPE_ACTIVE_CONNECTION)
 
@@ -106,7 +104,7 @@ get_secrets_cb (NMSettingsConnection *connection,
 guint32
 nm_act_request_get_secrets (NMActRequest *self,
                             const char *setting_name,
-                            NMSettingsGetSecretsFlags flags,
+                            NMSecretAgentGetSecretsFlags flags,
                             const char *hint,
                             NMActRequestSecretsFunc callback,
                             gpointer callback_data)
@@ -128,7 +126,7 @@ nm_act_request_get_secrets (NMActRequest *self,
 	info->callback_data = callback_data;
 
 	if (nm_active_connection_get_user_requested (NM_ACTIVE_CONNECTION (self)))
-		flags |= NM_SETTINGS_GET_SECRETS_FLAG_USER_REQUESTED;
+		flags |= NM_SECRET_AGENT_GET_SECRETS_FLAG_USER_REQUESTED;
 
 	connection = nm_active_connection_get_connection (NM_ACTIVE_CONNECTION (self));
 	call_id = nm_settings_connection_get_secrets (NM_SETTINGS_CONNECTION (connection),
@@ -197,16 +195,6 @@ clear_share_rules (NMActRequest *req)
 	priv->share_rules = NULL;
 }
 
-static void
-share_child_setup (gpointer user_data G_GNUC_UNUSED)
-{
-	/* We are in the child process at this point */
-	pid_t pid = getpid ();
-	setpgid (pid, pid);
-
-	nm_unblock_posix_signals (NULL);
-}
-
 void
 nm_act_request_set_shared (NMActRequest *req, gboolean shared)
 {
@@ -244,7 +232,7 @@ nm_act_request_set_shared (NMActRequest *req, gboolean shared)
 
 			nm_log_info (LOGD_SHARING, "Executing: %s", cmd);
 			if (!g_spawn_sync ("/", argv, envp, G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_STDERR_TO_DEV_NULL,
-			                   share_child_setup, NULL, NULL, NULL, &status, &error)) {
+			                   NULL, NULL, NULL, NULL, &status, &error)) {
 				nm_log_warn (LOGD_SHARING, "Error executing command: (%d) %s",
 				             error ? error->code : -1,
 				             (error && error->message) ? error->message : "(unknown)");

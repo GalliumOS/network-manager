@@ -10,7 +10,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
 ===================================================================
 --- a/src/dns-manager/nm-dns-dnsmasq.c
 +++ b/src/dns-manager/nm-dns-dnsmasq.c
-@@ -323,6 +323,8 @@ update (NMDnsPlugin *plugin,
+@@ -312,6 +312,8 @@ update (NMDnsPlugin *plugin,
  	gboolean have_dnsmasq = FALSE;
  	gboolean ret = FALSE;
  	dbus_bool_t result;
@@ -19,7 +19,7 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  
  	have_dnsmasq = start_dnsmasq (self);
  	if (!have_dnsmasq)
-@@ -337,20 +339,49 @@ update (NMDnsPlugin *plugin,
+@@ -326,20 +328,49 @@ update (NMDnsPlugin *plugin,
  	message = dbus_message_new_method_call (DNSMASQ_DBUS_SERVICE, DNSMASQ_DBUS_PATH,
  	                                        DNSMASQ_DBUS_INTERFACE, "SetServers");
  

@@ -1,83 +1,53 @@
 AM_CPPFLAGS = \
-	-I${top_srcdir}/libnm-util \
-	-I${top_builddir}/libnm-util \
-	-I${top_srcdir}/libnm-glib \
 	-I${top_srcdir}/include \
-	-I${top_builddir}/include \
-	$(DBUS_CFLAGS) \
+	-I${top_srcdir}/libnm-core \
+	-I${top_builddir}/libnm-core \
+	-I${top_srcdir}/libnm \
+	-I${top_builddir}/libnm \
 	$(GLIB_CFLAGS)
 
 noinst_PROGRAMS = \
-	add-connection-dbus-glib \
-	add-connection-libnm-glib \
-	get-active-connections-dbus-glib \
-	list-connections-dbus-glib \
-	list-connections-libnm-glib \
-	get-ap-info-libnm-glib \
-	monitor-nm-running-dbus-glib \
-	monitor-nm-running-GDBus \
-	monitor-nm-state-GDBus
+	add-connection-gdbus \
+	add-connection-libnm \
+	get-active-connections-gdbus \
+	get-ap-info-libnm \
+	list-connections-gdbus \
+	list-connections-libnm \
+	monitor-nm-running-gdbus \
+	monitor-nm-state-gdbus
 
-add_connection_dbus_glib_SOURCES = add-connection-dbus-glib.c
-add_connection_dbus_glib_LDADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(DBUS_LIBS) \
+add_connection_gdbus_SOURCES = add-connection-gdbus.c
+add_connection_gdbus_LDADD = \
+	$(GLIB_LIBS) \
+	$(UUID_LIBS)
+
+add_connection_libnm_SOURCES = add-connection-libnm.c
+add_connection_libnm_LDADD = \
+	$(top_builddir)/libnm/libnm.la \
 	$(GLIB_LIBS)
 
-add_connection_libnm_glib_SOURCES = add-connection-libnm-glib.c
-add_connection_libnm_glib_LDADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(top_builddir)/libnm-glib/libnm-glib.la \
-	$(DBUS_LIBS) \
+get_active_connections_gdbus_SOURCES = get-active-connections-gdbus.c
+get_active_connections_gdbus_LDADD = \
 	$(GLIB_LIBS)
 
-get_active_connections_dbus_glib_SOURCES = get-active-connections-dbus-glib.c
-get_active_connections_dbus_glib_LDADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(DBUS_LIBS) \
+get_ap_info_libnm_SOURCES = get-ap-info-libnm.c
+get_ap_info_libnm_LDADD = \
+	$(top_builddir)/libnm/libnm.la \
 	$(GLIB_LIBS)
 
-list_connections_dbus_glib_SOURCES = list-connections-dbus-glib.c
-list_connections_dbus_glib_LDADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(DBUS_LIBS) \
+list_connections_gdbus_SOURCES = list-connections-gdbus.c
+list_connections_gdbus_LDADD = \
 	$(GLIB_LIBS)
 
-list_connections_libnm_glib_SOURCES = list-connections-libnm-glib.c
-list_connections_libnm_glib_LDADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(top_builddir)/libnm-glib/libnm-glib.la \
-	$(DBUS_LIBS) \
+list_connections_libnm_SOURCES = list-connections-libnm.c
+list_connections_libnm_LDADD = \
+	$(top_builddir)/libnm/libnm.la \
 	$(GLIB_LIBS)
 
-get_ap_info_libnm_glib_SOURCES = get-ap-info-libnm-glib.c
-get_ap_info_libnm_glib_LDADD = \
-	$(top_builddir)/libnm-util/libnm-util.la \
-	$(top_builddir)/libnm-glib/libnm-glib.la \
-	$(DBUS_LIBS) \
+monitor_nm_running_gdbus_SOURCES = monitor-nm-running-gdbus.c
+monitor_nm_running_gdbus_LDADD = \
 	$(GLIB_LIBS)
 
-monitor_nm_running_dbus_glib_SOURCES = monitor-nm-running-dbus-glib.c
-monitor_nm_running_dbus_glib_LDADD = \
-	$(DBUS_LIBS) \
+monitor_nm_state_gdbus_SOURCES = monitor-nm-state-gdbus.c
+monitor_nm_state_gdbus_LDADD = \
 	$(GLIB_LIBS)
-
-monitor_nm_running_GDBus_SOURCES = monitor-nm-running-GDBus.c
-monitor_nm_running_GDBus_LDADD = \
-	$(GLIB_LIBS)
-
-monitor_nm_state_GDBus_SOURCES = monitor-nm-state-GDBus.c
-monitor_nm_state_GDBus_LDADD = \
-	$(GLIB_LIBS)
-
-EXTRA_DIST = \
-	add-connection-dbus-glib.c \
-	add-connection-libnm-glib.c \
-	get-active-connections-dbus-glib.c \
-	list-connections-dbus-glib.c \
-	list-connections-libnm-glib.c \
-	get-ap-info-libnm-glib.c \
-	monitor-nm-running-dbus-glib.c \
-	monitor-nm-running-GDBus.c \
-	monitor-nm-state-GDBus.c
-

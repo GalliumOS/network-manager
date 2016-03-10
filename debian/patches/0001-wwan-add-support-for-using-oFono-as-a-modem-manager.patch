@@ -6,22 +6,23 @@ Subject: [PATCH] wwan: add support for using oFono as a modem manager
 Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
 ---
  configure.ac                        |    9 
- src/NetworkManagerUtils.c           |   18 
+ src/NetworkManagerUtils.c           |   20 
  src/devices/wwan/Makefile.am        |    7 
- src/devices/wwan/nm-modem-manager.c |  191 ++++
- src/devices/wwan/nm-modem-ofono.c   | 1378 ++++++++++++++++++++++++++++++++++++
+ src/devices/wwan/nm-device-modem.c  |   18 
+ src/devices/wwan/nm-modem-manager.c |  219 ++++++
+ src/devices/wwan/nm-modem-ofono.c   | 1172 ++++++++++++++++++++++++++++++++++++
  src/devices/wwan/nm-modem-ofono.h   |   64 +
- 6 files changed, 1655 insertions(+), 12 deletions(-)
+ 7 files changed, 1500 insertions(+), 9 deletions(-)
  create mode 100644 src/devices/wwan/nm-modem-ofono.c
  create mode 100644 src/devices/wwan/nm-modem-ofono.h
 
-Index: network-manager-0.9.10.0/configure.ac
+Index: b/configure.ac
 ===================================================================
---- network-manager-0.9.10.0.orig/configure.ac
-+++ network-manager-0.9.10.0/configure.ac
-@@ -593,6 +593,15 @@ else
+--- a/configure.ac
++++ b/configure.ac
+@@ -686,6 +686,15 @@ else
  fi
- AM_CONDITIONAL(WITH_MODEM_MANAGER_1, test "${with_modem_manager_1}" = "yes")
+ AM_CONDITIONAL(WITH_BLUEZ5_DUN, test "${enable_bluez5_dun}" = "yes")
  
 +# OFONO
 +AC_ARG_WITH(ofono, AS_HELP_STRING([--with-ofono], [Enable oFono support]),,[with_ofono=yes])
@@ -35,13 +36,13 @@ Index: network-manager-0.9.10.0/configure.ac
  # DHCP client support
  AC_ARG_WITH([dhclient], AS_HELP_STRING([--with-dhclient=yes|no|path], [Enable dhclient 4.x support]))
  AC_ARG_WITH([dhcpcd], AS_HELP_STRING([--with-dhcpcd=yes|no|path], [Enable dhcpcd 4.x support]))
-Index: network-manager-0.9.10.0/src/devices/wwan/Makefile.am
+Index: b/src/devices/wwan/Makefile.am
 ===================================================================
---- network-manager-0.9.10.0.orig/src/devices/wwan/Makefile.am
-+++ network-manager-0.9.10.0/src/devices/wwan/Makefile.am
-@@ -49,6 +49,13 @@ libnm_wwan_la_SOURCES += \
- 	nm-modem-broadband.h
- endif
+--- a/src/devices/wwan/Makefile.am
++++ b/src/devices/wwan/Makefile.am
+@@ -40,6 +40,13 @@ libnm_wwan_la_SOURCES = \
+ 	\
+ 	$(GLIB_GENERATED)
  
 +if WITH_OFONO
 +libnm_wwan_la_SOURCES += \
@@ -53,10 +54,10 @@ Index: network-manager-0.9.10.0/src/devices/wwan/Makefile.am
  WWAN_SYMBOL_VIS_FILE=$(srcdir)/wwan-exports.ver
  
  libnm_wwan_la_LDFLAGS = \
-Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-manager.c
+Index: b/src/devices/wwan/nm-modem-manager.c
 ===================================================================
---- network-manager-0.9.10.0.orig/src/devices/wwan/nm-modem-manager.c
-+++ network-manager-0.9.10.0/src/devices/wwan/nm-modem-manager.c
+--- a/src/devices/wwan/nm-modem-manager.c
++++ b/src/devices/wwan/nm-modem-manager.c
 @@ -17,7 +17,7 @@
   *
   * Copyright (C) 2009 - 2014 Red Hat, Inc.
@@ -65,10 +66,10 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-manager.c
 + * Copyright (C) 2009 - 2013 Canonical Ltd.
   */
  
- #include <string.h>
-@@ -35,6 +35,11 @@
+ #include "config.h"
+@@ -31,6 +31,11 @@
+ #include "nm-modem.h"
  #include "nm-modem-broadband.h"
- #endif
  
 +#if WITH_OFONO
 +#include "nm-dbus-manager.h"
@@ -78,51 +79,43 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-manager.c
  #define MODEM_POKE_INTERVAL 120
  
  G_DEFINE_TYPE (NMModemManager, nm_modem_manager, G_TYPE_OBJECT)
-@@ -57,6 +62,10 @@ struct _NMModemManagerPrivate {
- 	guint modem_manager_1_object_removed_id;
- #endif
+@@ -43,6 +48,12 @@ struct _NMModemManagerPrivate {
+ 	guint mm_object_added_id;
+ 	guint mm_object_removed_id;
  
 +#if WITH_OFONO
-+	DBusGProxy *ofono_proxy;
++	GDBusProxy *ofono_proxy;
++
++	guint ofono_name_owner_changed_id;
 +#endif
 +
  	/* Common */
  	GHashTable *modems;
  };
-@@ -235,6 +244,156 @@ enumerate_devices_done (DBusGProxy *prox
- static void clear_modem_manager_1_support (NMModemManager *self);
- #endif
+@@ -226,6 +237,179 @@ modem_manager_name_owner_changed (MMMana
+ 	 */
+ }
  
 +#if WITH_OFONO
++static void
++ofono_clear_signals (NMModemManager *self)
++{
++	if (!self->priv->ofono_proxy)
++		return;
++
++	if (self->priv->ofono_name_owner_changed_id) {
++		if (g_signal_handler_is_connected (self->priv->ofono_proxy,
++		                                   self->priv->ofono_name_owner_changed_id))
++			g_signal_handler_disconnect (self->priv->ofono_proxy,
++			                             self->priv->ofono_name_owner_changed_id);
++		self->priv->ofono_name_owner_changed_id = 0;
++	}
++}
++
 +static void
 +ofono_create_modem (NMModemManager *self, const char *path)
 +{
 +	NMModem *modem = NULL;
-+	DBusGProxy *proxy;
-+	GError *err = NULL;
-+	GValue value = { 0, };
-+
-+	proxy = dbus_g_proxy_new_for_name (nm_dbus_manager_get_connection (self->priv->dbus_mgr),
-+	                                   OFONO_DBUS_SERVICE,
-+	                                   path,
-+	                                   OFONO_DBUS_INTERFACE_MODEM);
-+
-+	/* Create a simple TRUE gvalue boolean */
-+	g_value_init (&value, G_TYPE_BOOLEAN);
-+	g_value_set_boolean (&value, TRUE);
-+
-+	/* Mark the modem as powered */
-+	if (!dbus_g_proxy_call_with_timeout (proxy, "SetProperty", 15000, &err,
-+	                                     G_TYPE_STRING, "Powered",
-+	                                     G_TYPE_VALUE, &value,
-+	                                     G_TYPE_INVALID,
-+	                                     G_TYPE_INVALID)) {
-+		nm_log_warn (LOGD_MB, "could not mark modem as powered: %s %s",
-+		             err ? dbus_g_error_get_name (err) : "(none)",
-+		             err ? err->message : "(unknown)");
-+		g_clear_error (&err);
-+		/* Don't fail the creation here, some modems are weird. */
-+	}
 +
 +	if (g_hash_table_lookup (self->priv->modems, path)) {
 +		nm_log_warn (LOGD_MB, "modem with path %s already exists, ignoring", path);
@@ -138,173 +131,211 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-manager.c
 +}
 +
 +static void
-+ofono_modem_added (DBusGProxy *proxy, const char *path, GHashTable *props, gpointer user_data)
-+{
-+	ofono_create_modem (NM_MODEM_MANAGER (user_data), path);
-+}
-+
-+static void
-+ofono_modem_removed (DBusGProxy *proxy,
-+                     const char *path,
-+                     gpointer user_data)
++ofono_signal_cb (GDBusProxy *proxy,
++                 gchar *sender_name,
++                 gchar *signal_name,
++                 GVariant *parameters,
++                 gpointer user_data)
 +{
 +	NMModemManager *self = NM_MODEM_MANAGER (user_data);
++	gchar *object_path;
 +	NMModem *modem;
 +
-+	modem = (NMModem *) g_hash_table_lookup (self->priv->modems, path);
-+	if (!modem)
-+		return;
++	if (g_strcmp0 (signal_name, "ModemAdded") == 0) {
++		g_variant_get (parameters, "(oa{sv})", &object_path, NULL);
++		nm_log_info (LOGD_MB, "oFono modem appeared: %s", object_path);
 +
-+	nm_modem_emit_removed (modem);
-+	g_hash_table_remove (self->priv->modems, path);
++		ofono_create_modem (NM_MODEM_MANAGER (user_data), object_path);
++		g_free (object_path);
++	} else if (g_strcmp0 (signal_name, "ModemRemoved") == 0) {
++		g_variant_get (parameters, "(o)", &object_path);
++		nm_log_info (LOGD_MB, "oFono modem removed: %s", object_path);
++
++		modem = (NMModem *) g_hash_table_lookup (self->priv->modems, object_path);
++		if (modem) {
++			nm_modem_emit_removed (modem);
++			g_hash_table_remove (self->priv->modems, object_path);
++		} else {
++			nm_log_warn (LOGD_MB, "could not remove modem %s, not found in table",
++			             object_path);
++		}
++		g_free (object_path);
++	}
 +}
 +
 +#define OFONO_DBUS_MODEM_ENTRY (dbus_g_type_get_struct ("GValueArray", DBUS_TYPE_G_OBJECT_PATH, DBUS_TYPE_G_MAP_OF_VARIANT, G_TYPE_INVALID))
 +#define OFONO_DBUS_MODEM_ENTRIES (dbus_g_type_get_collection ("GPtrArray", OFONO_DBUS_MODEM_ENTRY))
 +
 +static void
-+ofono_enumerate_devices_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer data)
++ofono_enumerate_devices_done (GDBusProxy *proxy, GAsyncResult *res, gpointer user_data)
 +{
-+	NMModemManager *manager = NM_MODEM_MANAGER (data);
++	NMModemManager *manager = NM_MODEM_MANAGER (user_data);
 +	GPtrArray *modems;
 +	GError *error = NULL;
++	GVariant *results;
++	GVariantIter *iter;
++	const char *path;
 +
-+	if (!dbus_g_proxy_end_call (proxy, call_id, &error,
-+	                            OFONO_DBUS_MODEM_ENTRIES, &modems,
-+	                            G_TYPE_INVALID)) {
-+		nm_log_warn (LOGD_MB, "could not get modem list: %s", error->message);
-+		g_error_free (error);
-+	} else {
-+		int i;
-+
-+		for (i = 0; i < modems->len; i++) {
-+			GValueArray *item = g_ptr_array_index (modems, i);
-+			GValue *tmp;
-+			const char *path;
-+
-+			tmp = g_value_array_get_nth (item, 0);
-+			path = g_value_get_boxed (tmp);
-+
++	results = g_dbus_proxy_call_finish (proxy, res, &error);
++	if (results) {
++		g_variant_get (results, "(a(oa{sv}))", &iter);
++		while (g_variant_iter_loop (iter, "(&oa{sv})", &path, NULL)) {
 +			ofono_create_modem (manager, path);
-+
-+			g_value_array_free (item);
 +		}
-+
-+		g_ptr_array_free (modems, TRUE);
++		g_variant_iter_free (iter);
++		g_variant_unref (results);
 +	}
++
++	if (error)
++		nm_log_warn (LOGD_MB, "failed to enumerate oFono devices: %s",
++		             error->message ? error->message : "(unknown)");
 +}
++
++static void ofono_appeared (NMModemManager *self);
++
++static void
++ofono_check_name_owner (NMModemManager *self)
++{
++	gchar *name_owner;
++
++	name_owner = g_dbus_object_manager_client_get_name_owner (G_DBUS_OBJECT_MANAGER_CLIENT (self->priv->ofono_proxy));
++	if (name_owner) {
++		/* Available! */
++		ofono_appeared (self);
++		goto free;
++	}
++
++	nm_log_info (LOGD_MB, "oFono disappeared from bus");
++
++	ofono_clear_signals (self);
++	g_clear_object (&self->priv->ofono_proxy);
++	ensure_client (self);
++
++free:
++	g_free (name_owner);
++	return;
++}
++
++static void
++ofono_name_owner_changed (GDBusProxy *ofono_proxy,
++                          GParamSpec *pspec,
++                          NMModemManager *self)
++{
++	ofono_check_name_owner (self);
++}
++
 +static void
 +ofono_appeared (NMModemManager *self)
 +{
 +	nm_log_info (LOGD_MB, "ofono is now available");
 +
-+	self->priv->ofono_proxy = dbus_g_proxy_new_for_name (nm_dbus_manager_get_connection (self->priv->dbus_mgr),
-+	                                                     OFONO_DBUS_SERVICE, OFONO_DBUS_PATH, OFONO_DBUS_INTERFACE);
++	self->priv->ofono_name_owner_changed_id =
++		g_signal_connect (self->priv->ofono_proxy,
++		                  "notify::name-owner",
++		                  G_CALLBACK (ofono_name_owner_changed),
++		                  self);
++	g_dbus_proxy_call (self->priv->ofono_proxy,
++	                   "GetModems",
++	                   NULL,
++	                   G_DBUS_CALL_FLAGS_NONE,
++	                   -1,
++	                   NULL,
++	                   (GAsyncReadyCallback) ofono_enumerate_devices_done,
++	                   g_object_ref (self));
 +
-+	dbus_g_object_register_marshaller (g_cclosure_marshal_generic,
-+	                                   G_TYPE_NONE,
-+	                                   DBUS_TYPE_G_OBJECT_PATH, DBUS_TYPE_G_MAP_OF_VARIANT,
-+	                                   G_TYPE_INVALID);
-+	dbus_g_proxy_add_signal (self->priv->ofono_proxy, "ModemAdded",
-+	                         DBUS_TYPE_G_OBJECT_PATH,
-+	                         DBUS_TYPE_G_MAP_OF_VARIANT,
-+	                         G_TYPE_INVALID);
-+	dbus_g_proxy_connect_signal (self->priv->ofono_proxy, "ModemAdded",
-+	                             G_CALLBACK (ofono_modem_added), self,
-+	                             NULL);
-+
-+	dbus_g_proxy_add_signal (self->priv->ofono_proxy, "ModemRemoved",
-+	                         DBUS_TYPE_G_OBJECT_PATH,
-+	                         G_TYPE_INVALID);
-+	dbus_g_proxy_connect_signal (self->priv->ofono_proxy, "ModemRemoved",
-+	                             G_CALLBACK (ofono_modem_removed), self,
-+	                             NULL);
-+
-+	dbus_g_proxy_begin_call (self->priv->ofono_proxy,
-+	                         "GetModems",
-+	                         ofono_enumerate_devices_done,
-+	                         self, NULL, G_TYPE_INVALID);
++	g_signal_connect (self->priv->ofono_proxy,
++	                  "g-signal",
++	                  G_CALLBACK (ofono_signal_cb),
++	                  self);
 +}
 +
 +static void
-+clear_ofono_support (NMModemManager *self)
++ofono_proxy_new_cb (GObject *source_object, GAsyncResult *res, gpointer user_data)
 +{
-+	if (self->priv->ofono_proxy) {
-+		g_object_unref (self->priv->ofono_proxy);
-+		self->priv->ofono_proxy = NULL;
++	NMModemManager *self = NM_MODEM_MANAGER (user_data);
++	GError *error = NULL;
++
++	self->priv->ofono_proxy = g_dbus_proxy_new_finish (res, &error);
++
++	if (error) {
++		//FIXME: do stuff if there's an error.
++		return;
 +	}
-+}
 +
-+static void
-+init_ofono_bus (NMModemManager *self)
-+{
-+	if (nm_dbus_manager_name_has_owner (self->priv->dbus_mgr, OFONO_DBUS_SERVICE))
-+		ofono_appeared (self);
++	ofono_appeared (self);
++
++	/* Balance refcount */
++	g_object_unref (self);
 +}
 +#endif
 +
+ #if !HAVE_SYSTEMD
+ 
  static void
- modem_manager_appeared (NMModemManager *self, gboolean enumerate_devices)
+@@ -344,22 +528,43 @@ manager_new_ready (GObject *source,
+ static void
+ ensure_client (NMModemManager *self)
  {
-@@ -303,18 +462,22 @@ nm_modem_manager_name_owner_changed (NMD
- 	gboolean old_owner_good;
- 	gboolean new_owner_good;
+-	g_assert (self->priv->dbus_connection);
++	NMModemManagerPrivate *priv = self->priv;
++	g_assert (priv->dbus_connection);
++	gboolean created = FALSE;
  
--	/* Can't handle the signal if its not from the modem service */
--	if (strcmp (MM_OLD_DBUS_SERVICE, name) != 0)
+ 	/* Create the GDBusObjectManagerClient. We do not request to autostart, as
+ 	 * we don't really want the MMManager creation to fail. We can always poke
+ 	 * later on if we want to request the autostart */
+-	if (!self->priv->modem_manager) {
+-		mm_manager_new (self->priv->dbus_connection,
++	if (!priv->modem_manager) {
++		mm_manager_new (priv->dbus_connection,
+ 		                G_DBUS_OBJECT_MANAGER_CLIENT_FLAGS_DO_NOT_AUTO_START,
+ 		                NULL,
+ 		                (GAsyncReadyCallback)manager_new_ready,
+ 		                g_object_ref (self));
 -		return;
--
- 	old_owner_good = (old_owner && strlen (old_owner));
- 	new_owner_good = (new_owner && strlen (new_owner));
- 
--	if (!old_owner_good && new_owner_good) {
--		modem_manager_appeared (NM_MODEM_MANAGER (user_data), FALSE);
--	} else if (old_owner_good && !new_owner_good) {
--		nm_log_info (LOGD_MB, "the modem manager disappeared");
--		modem_manager_disappeared (NM_MODEM_MANAGER (user_data));
-+	if (strcmp (MM_OLD_DBUS_SERVICE, name) == 0) {
-+		if (!old_owner_good && new_owner_good) {
-+			modem_manager_appeared (NM_MODEM_MANAGER (user_data), FALSE);
-+		} else if (old_owner_good && !new_owner_good) {
-+			nm_log_info (LOGD_MB, "the modem manager disappeared");
-+			modem_manager_disappeared (NM_MODEM_MANAGER (user_data));
-+		}
-+	} else if (strcmp (OFONO_DBUS_SERVICE, name) == 0) {
-+		if (!old_owner_good && new_owner_good) {
-+			ofono_appeared (NM_MODEM_MANAGER (user_data));
-+		} else if (old_owner_good && !new_owner_good) {
-+			nm_log_info (LOGD_MB, "ofono disappeared");
-+		}
++		created = TRUE;
  	}
+ 
++#if WITH_OFONO
++	if (!priv->ofono_proxy) {
++		g_dbus_proxy_new (priv->dbus_connection,
++		                  G_DBUS_OBJECT_MANAGER_CLIENT_FLAGS_DO_NOT_AUTO_START,
++		                  NULL,
++		                  OFONO_DBUS_SERVICE,
++		                  OFONO_DBUS_PATH,
++		                  OFONO_DBUS_INTERFACE,
++		                  NULL,
++		                  (GAsyncReadyCallback)ofono_proxy_new_cb,
++		                  g_object_ref (self));
++		created = TRUE;
++	}
++#endif /* WITH_OFONO */
++
++	if (created)
++		return;
++
+ 	/* If already available, recheck name owner! */
+ 	modem_manager_check_name_owner (self);
++	ofono_check_name_owner (self);
  }
  
-@@ -708,6 +871,10 @@ nm_modem_manager_init (NMModemManager *s
- 	else
- 		modem_manager_disappeared (self);
+ static void
+@@ -441,6 +646,10 @@ dispose (GObject *object)
  
+ 	modem_manager_clear_signals (self);
+ 	g_clear_object (&self->priv->modem_manager);
 +#if WITH_OFONO
-+	init_ofono_bus (self);
++	ofono_clear_signals (self);
++	g_clear_object (&self->priv->ofono_proxy);
 +#endif
-+
- #if WITH_MODEM_MANAGER_1
- 	/* ModemManager >= 0.7 */
- 	schedule_modem_manager_1_relaunch (self, 0);
-@@ -722,6 +889,10 @@ dispose (GObject *object)
- 	/* ModemManager < 0.7 */
- 	clear_modem_manager_support (self);
+ 	g_clear_object (&self->priv->dbus_connection);
  
-+#if WITH_OFONO
-+	clear_ofono_support (self);
-+#endif
-+
- #if WITH_MODEM_MANAGER_1
- 	/* ModemManager >= 0.7 */
- 	clear_modem_manager_1_support (self);
-Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
+ 	if (self->priv->modems) {
+Index: b/src/devices/wwan/nm-modem-ofono.c
 ===================================================================
 --- /dev/null
-+++ network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
-@@ -0,0 +1,1140 @@
++++ b/src/devices/wwan/nm-modem-ofono.c
+@@ -0,0 +1,1172 @@
 +/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 +/* NetworkManager -- Network link manager
 + *
@@ -341,7 +372,8 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +#include "nm-logging.h"
 +#include "nm-modem.h"
 +#include "nm-dbus-manager.h"
-+#include "NetworkManagerUtils.h"
++#include "nm-platform.h"
++#include "nm-utils.h"
 +
 +G_DEFINE_TYPE (NMModemOfono, nm_modem_ofono, NM_TYPE_MODEM)
 +
@@ -361,14 +393,13 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +
 +	char **interfaces;
 +	char *context_path;
++	char *imsi;
 +
 +	gboolean modem_online;
 +	gboolean gprs_attached;
-+	gboolean gprs_powered;
 +
 +	NMIP4Config *ip4_config;
 +
-+	gboolean enabled;
 +} NMModemOfonoPrivate;
 +
 +#define NM_OFONO_ERROR (nm_ofono_error_quark ())
@@ -386,14 +417,51 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +ip_string_to_network_address (const gchar *str,
 +                              guint32 *out)
 +{
-+	struct in_addr addr;
++	guint32 addr = 0;
++	gboolean success = FALSE;
 +
-+	/* IP address */
-+	if (inet_pton (AF_INET, str, &addr) <= 0)
-+		return FALSE;
++	if (!str || inet_pton (AF_INET, str, &addr) != 1)
++		addr = 0;
++	else
++		success = TRUE;
 +
-+	*out = (guint32)addr.s_addr;
-+	return TRUE;
++	*out = (guint32)addr;
++	return success;
++}
++
++static void
++update_modem_state (NMModemOfono *self)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	NMModemState state = nm_modem_get_state (NM_MODEM (self));
++	NMModemState new_state = NM_MODEM_STATE_UNKNOWN;
++	const char *reason = NULL;
++
++	nm_log_info (LOGD_MB, "(%s): %s: 'Attached': %s 'Online': %s 'IMSI': %s",
++	             nm_modem_get_path (NM_MODEM (self)),
++	             __func__,
++	             priv->gprs_attached ? "true" : "false",
++	             priv->modem_online ? "true" : "false",
++	             priv->imsi);
++
++	if (priv->modem_online == FALSE) {
++		new_state = NM_MODEM_STATE_DISABLED;
++		reason = "modem 'Online=false'";
++	} else if (priv->imsi == NULL && state != NM_MODEM_STATE_ENABLING) {
++		new_state = NM_MODEM_STATE_DISABLED;
++		reason = "modem not ready";
++	} else if (priv->gprs_attached == FALSE) {
++		if (state >= NM_MODEM_STATE_ENABLING) {
++			new_state = NM_MODEM_STATE_SEARCHING;
++			reason = "modem searching";
++		}
++	} else {
++		new_state = NM_MODEM_STATE_REGISTERED;
++		reason = "modem ready";
++	}
++
++	if (state != new_state)
++		nm_modem_set_state (NM_MODEM (self), new_state, reason);
 +}
 +
 +/* Disconnect stuff */
@@ -401,6 +469,19 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	NMModemOfono *self;
 +	gboolean warn;
 +} SimpleDisconnectContext;
++
++static gboolean
++disconnect_finish (NMModem *self,
++                   GAsyncResult *res,
++                   GError **error)
++{
++	/* FIXME: might actually be wrong, copied straight from NMModemBroadband.
++	 * this is already working using GDBusProxy, so won't be called until the
++	 * rest of this file is ported: uncomment when everything else is ported.
++	 */
++	//return !g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (res), error);
++	return FALSE;
++}
 +
 +static void
 +simple_disconnect_context_free (SimpleDisconnectContext *ctx)
@@ -414,7 +495,7 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +{
 +	SimpleDisconnectContext *ctx = (SimpleDisconnectContext*) user_data;
 +	NMModemOfono *self = ctx->self;
-+	NMModemState state = nm_modem_get_state (NM_MODEM (self));
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
 +	GError *error = NULL;
 +
 +	nm_log_dbg (LOGD_MB, "in %s", __func__);
@@ -427,27 +508,35 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +		g_clear_error (&error);
 +	}
 +
-+	simple_disconnect_context_free (ctx);
++	update_modem_state (self);
 +
-+	if (state != NM_MODEM_STATE_SEARCHING)
-+		nm_modem_set_state (NM_MODEM (self),
-+		                    NM_MODEM_STATE_REGISTERED,
-+		                    nm_modem_state_to_string (NM_MODEM_STATE_REGISTERED));
++	simple_disconnect_context_free (ctx);
 +}
 +
 +static void
 +disconnect (NMModem *self,
-+            gboolean warn)
++            gboolean warn,
++            GCancellable *cancellable,
++            GAsyncReadyCallback callback,
++            gpointer user_data)
 +{
 +	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
 +	SimpleDisconnectContext *ctx;
 +	GValue value = G_VALUE_INIT;
++	NMModemState state = nm_modem_get_state (NM_MODEM (self));
 +
 +	nm_log_dbg (LOGD_MB, "in %s", __func__);
++
++	if (state != NM_MODEM_STATE_CONNECTED)
++		return;
 +
 +	ctx = g_slice_new (SimpleDisconnectContext);
 +	ctx->self = g_object_ref (self);
 +	ctx->warn = warn;
++
++	nm_modem_set_state (NM_MODEM (self),
++	                    NM_MODEM_STATE_DISCONNECTING,
++	                    nm_modem_state_to_string (NM_MODEM_STATE_DISCONNECTING));
 +
 +	g_value_init (&value, G_TYPE_BOOLEAN);
 +	g_value_set_boolean (&value, FALSE);
@@ -458,14 +547,27 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	                                      G_TYPE_STRING, "Active",
 +	                                      G_TYPE_VALUE, &value,
 +	                                      G_TYPE_INVALID);
-+
 +}
 +
 +static void
-+deactivate (NMModem *_self, NMDevice *device)
++deactivate_cleanup (NMModem *_self, NMDevice *device)
 +{
++	NMModemOfono *self = NM_MODEM_OFONO (_self);
++
++	/* TODO: cancel SimpleConnect() if any */
++
++	/* TODO: Cleanup IPv4 addresses and routes */
++	/*
++	g_clear_object (&self->priv->ipv4_config);
++	g_clear_object (&self->priv->ipv6_config);
++	*/
++
++	/*
++	self->priv->pin_tries = 0;
++	*/
++
 +	/* Chain up parent's */
-+	NM_MODEM_CLASS (nm_modem_ofono_parent_class)->deactivate (_self, device);
++	NM_MODEM_CLASS (nm_modem_ofono_parent_class)->deactivate_cleanup (_self, device);
 +}
 +
 +DBusGProxy *
@@ -484,39 +586,24 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +
 +	return proxy;
 +}
-+
-+static void ofono_read_contexts (NMModemOfono *self);
-+
 +static void
-+update_ofono_enabled (NMModemOfono *self,
-+                      gboolean new_enabled)
++handle_attached (NMModemOfono *self, GValue *value)
 +{
 +	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
-+	NMModemState new_state;
-+	NMDeviceStateReason reason;
++	gboolean attached = g_value_get_boolean (value);
 +
-+	if (new_enabled == priv->enabled)
-+		return;
++	if (priv->gprs_attached != attached) {
++		priv->gprs_attached = attached;
 +
-+	if (new_enabled) {
-+		new_state = NM_MODEM_STATE_REGISTERED;
-+		reason = NM_DEVICE_STATE_REASON_NONE;
-+		ofono_read_contexts (self);
-+	} else {
-+		new_state = NM_MODEM_STATE_SEARCHING;
-+		reason = NM_DEVICE_STATE_REASON_MODEM_NO_CARRIER;
++		nm_log_info (LOGD_MB, "(%s): %s: new value for 'Attached': %s",
++		             nm_modem_get_path (NM_MODEM (self)),
++		             __func__,
++		             attached ? "true" : "false");
++
++		update_modem_state (self);
 +	}
-+
-+	nm_modem_set_state (NM_MODEM (self),
-+	                    new_state,
-+	                    nm_modem_state_to_string (new_state));
-+
-+	priv->enabled = new_enabled;
-+
-+	nm_log_info (LOGD_MB, "(%s) now in state: %s",
-+	             nm_modem_get_path (NM_MODEM (self)),
-+	             nm_modem_state_to_string(new_state));
 +}
++
 +
 +static void
 +get_ofono_conn_manager_properties_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer user_data)
@@ -530,43 +617,25 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	nm_log_dbg (LOGD_MB, "in %s", __func__);
 +
 +	if (!dbus_g_proxy_end_call (proxy, call_id, &error,
-+	                            DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
-+	                            G_TYPE_INVALID)) {
++		                        DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
++		                        G_TYPE_INVALID)) {
 +		nm_log_warn (LOGD_MB, "failed get connection manager properties: (%d) %s",
 +		             error ? error->code : -1,
 +		             error && error->message ? error->message : "(unknown)");
-+		return;
++		goto done;
 +	}
 +
 +	value = g_hash_table_lookup (properties, "Attached");
-+	if (value)
-+		priv->gprs_attached = g_value_get_boolean (value);
-+	else
-+		nm_log_warn (LOGD_MB, "failed get GPRS state: unexpected reply type");
-+	g_value_unset (value);
++	if (value) {
++		handle_attached (self, value);
++		g_value_unset (value);
++	} else
++		nm_log_warn (LOGD_MB, "(%s): %s: no 'Attached' property found",
++		             nm_modem_get_path (NM_MODEM (self)),
++		             __func__);
 +
-+	value = g_hash_table_lookup (properties, "Powered");
-+	if (value)
-+		priv->gprs_powered = g_value_get_boolean (value);
-+	else
-+		nm_log_warn (LOGD_MB, "failed get modem enabled state: unexpected reply type");
-+	g_value_unset (value);
-+
-+	update_ofono_enabled (self, priv->modem_online
-+	                            && priv->gprs_powered
-+	                            && priv->gprs_attached);
-+}
-+
-+static void
-+get_ofono_conn_manager_properties (NMModemOfono *self)
-+{
-+	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
-+
-+	dbus_g_proxy_begin_call_with_timeout (priv->connman_proxy,
-+	                                      "GetProperties",
-+	                                      get_ofono_conn_manager_properties_done,
-+	                                      self, NULL, 20000,
-+	                                      G_TYPE_INVALID);
++done:
++	g_object_unref (self);
 +}
 +
 +static void
@@ -576,87 +645,84 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +                               gpointer user_data)
 +{
 +	NMModemOfono *self = NM_MODEM_OFONO (user_data);
-+	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
 +
 +	nm_log_dbg (LOGD_MB, "in %s", __func__);
 +
-+	if (g_strcmp0 (key, "Powered") == 0 && G_VALUE_HOLDS_BOOLEAN (value)) {
-+		priv->gprs_powered = g_value_get_boolean (value);
-+	} else if (g_strcmp0 (key, "Attached") == 0 && G_VALUE_HOLDS_BOOLEAN (value)) {
-+		priv->gprs_attached = g_value_get_boolean (value);
-+	} else
-+		/* No need to update enabled for other property changes */
-+		return;
-+
-+	update_ofono_enabled (self, priv->modem_online
-+	                            && priv->gprs_powered
-+	                            && priv->gprs_attached);
++	if (g_strcmp0 (key, "Attached") == 0 && G_VALUE_HOLDS_BOOLEAN (value))
++		handle_attached (self, value);
 +}
 +
 +static void
-+ofono_read_imsi_contexts_done (DBusGProxy *proxy,
-+                               DBusGProxyCall *call_id,
-+                               gpointer user_data)
++handle_subscriber_identity (NMModemOfono *self, GValue *value)
++{
++	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	const gchar *value_str = g_value_get_string (value);
++
++	/* Check for empty DBus string value */
++	if (g_strcmp0 (value_str, "(null)") != 0) {
++
++		if (g_strcmp0 (value_str, priv->imsi) != 0) {
++
++			if (priv->imsi != NULL) {
++				nm_log_warn (LOGD_MB, "SimManager:'SubscriberIdentity' changed: %s", priv->imsi);
++				g_free(priv->imsi);
++			}
++
++			nm_log_info (LOGD_MB, "GetPropsDone: 'SubscriberIdentity': %s", priv->imsi);
++
++			priv->imsi = g_strdup (value_str);
++			update_modem_state (self);
++		}
++	}
++}
++
++
++static void
++get_ofono_sim_properties_done (DBusGProxy *proxy, DBusGProxyCall *call_id, gpointer user_data)
 +{
 +	NMModemOfono *self = NM_MODEM_OFONO (user_data);
 +	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	NMModemState state = nm_modem_get_state (NM_MODEM (self));
 +	GError *error = NULL;
++	GHashTable *properties = NULL;
++	GValue *value = NULL;
++	const gchar *value_str;
 +
 +	nm_log_dbg (LOGD_MB, "in %s", __func__);
 +
-+	if (!dbus_g_proxy_end_call (proxy, call_id, &error, G_TYPE_INVALID)) {
-+		nm_log_warn (LOGD_MB, "failed notify settings plugin of a new context: (%d) %s",
++	if (!dbus_g_proxy_end_call (proxy, call_id, &error,
++		                        DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
++		                        G_TYPE_INVALID)) {
++		nm_log_warn (LOGD_MB, "failed to get ofono SimManager properties: (%d) %s",
 +		             error ? error->code : -1,
 +		             error && error->message ? error->message : "(unknown)");
-+		return;
++		goto done;
 +	}
++
++	value = g_hash_table_lookup (properties, "SubscriberIdentity");
++
++	if (value) {
++		handle_subscriber_identity (self, value);
++		g_value_unset (value);
++	} else {
++		nm_log_warn (LOGD_MB, "failed to get SimManager:'SubscriberIdentity'; not found");
++	}
++
++done:
++	g_object_unref (self);
++
 +}
 +
 +static void
-+ofono_read_contexts (NMModemOfono *self)
++ofono_sim_properties_changed (DBusGProxy *proxy,
++                              const char *key,
++                              GValue *value,
++                              gpointer user_data)
 +{
-+	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
-+	DBusGConnection *bus;
-+	DBusGProxy *settings_proxy;
-+	GHashTable *properties;
-+	GError *error = NULL;
-+	const char *imsi;
++	NMModemOfono *self = NM_MODEM_OFONO (user_data);
 +
-+	nm_log_dbg (LOGD_MB, "in %s", __func__);
-+	nm_log_info (LOGD_MB, "(%s): trying to read IMSI contexts from oFono files",
-+	             nm_modem_get_path (NM_MODEM (self)));
-+
-+	bus = nm_dbus_manager_get_connection (priv->dbus_mgr);
-+
-+	dbus_g_proxy_call_with_timeout (priv->simmanager_proxy,
-+	                                "GetProperties",
-+	                                20000,
-+	                                &error,
-+	                                G_TYPE_INVALID,
-+	                                DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
-+	                                G_TYPE_INVALID);
-+
-+	if (error) {
-+		nm_log_warn (LOGD_MB, "Could not get SIM properties: %s",
-+		             error && error->message ? error->message : "(unknown)");
-+		g_clear_error (&error);
-+	}
-+
-+	imsi = g_value_get_string (g_hash_table_lookup (properties, "SubscriberIdentity"));
-+
-+	settings_proxy = dbus_g_proxy_new_for_name (bus,
-+	                                            "com.canonical.NMOfono",
-+	                                            "/com/canonical/NMOfono",
-+	                                            "com.canonical.NMOfono");
-+
-+	if (settings_proxy)
-+		dbus_g_proxy_begin_call_with_timeout (settings_proxy,
-+		                                      "ReadImsiContexts", ofono_read_imsi_contexts_done,
-+		                                      self, NULL, 20000,
-+		                                      G_TYPE_STRING, imsi,
-+		                                      G_TYPE_INVALID);
-+	else
-+		nm_log_warn (LOGD_MB, "could not get proxy to the oFono Settings plugin.");
++	if (g_strcmp0 (key, "SubscriberIdentity") == 0 && G_VALUE_HOLDS_STRING (value))
++		handle_subscriber_identity (self, value);
 +}
 +
 +static void
@@ -668,8 +734,6 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	NMModemOfono *self = NM_MODEM_OFONO (user_data);
 +
 +	nm_log_dbg (LOGD_MB, "context %s added", path);
-+
-+	ofono_read_contexts (self);
 +}
 +
 +static void
@@ -689,17 +753,23 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +{
 +	NMModemOfono *self = NM_MODEM_OFONO (user_data);
 +	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
++	gboolean online;
 +
 +	nm_log_dbg (LOGD_MB, "in %s: %s", __func__, key);
 +
 +	if (g_strcmp0 (key, "Online") == 0 && G_VALUE_HOLDS_BOOLEAN (value)) {
-+		priv->modem_online = g_value_get_boolean (value);
-+		nm_log_info (LOGD_MB, "(%s) modem is now %s",
-+		             nm_modem_get_path (NM_MODEM (self)),
-+		             priv->modem_online ? "Online" : "Offline");
-+		update_ofono_enabled (self, priv->modem_online
-+		                            && priv->gprs_powered
-+		                            && priv->gprs_attached);
++
++		online = g_value_get_boolean (value);
++		if (online != priv->modem_online) {
++			priv->modem_online = online;
++
++			nm_log_info (LOGD_MB, "(%s) modem is now %s",
++			             nm_modem_get_path (NM_MODEM (self)),
++			             online ? "Online" : "Offline");
++
++			update_modem_state (self);
++		}
++
 +	} else if (g_strcmp0 (key, "Interfaces") == 0 && G_VALUE_HOLDS_BOXED (value)) {
 +		gboolean found_simmanager = FALSE;
 +		gboolean found_conn_manager = FALSE;
@@ -722,26 +792,48 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +				priv->simmanager_proxy = get_ofono_proxy (self,
 +				                                          nm_modem_get_path (NM_MODEM (self)),
 +				                                          OFONO_DBUS_INTERFACE_SIM_MANAGER);
++				dbus_g_proxy_add_signal (priv->simmanager_proxy, "PropertyChanged",
++				                         G_TYPE_STRING, G_TYPE_VALUE,
++				                         G_TYPE_INVALID);
++				dbus_g_proxy_connect_signal (priv->simmanager_proxy, "PropertyChanged",
++				                             G_CALLBACK (ofono_sim_properties_changed),
++				                             self,
++				                             NULL);
++
++				dbus_g_proxy_begin_call_with_timeout (priv->simmanager_proxy,
++				                                      "GetProperties",
++				                                      get_ofono_sim_properties_done,
++				                                      g_object_ref (self), NULL, 20000,
++				                                      G_TYPE_INVALID);
 +			}
-+		} else {
-+			if (priv->simmanager_proxy) {
++		} else if (priv->simmanager_proxy) {
 +				nm_log_info (LOGD_MB, "(%s): SimManager interface disappeared",
 +				             nm_modem_get_path (NM_MODEM (self)));
 +				g_object_unref (priv->simmanager_proxy);
 +				priv->simmanager_proxy = NULL;
-+			}
++
++				g_free (priv->imsi);
++				priv->imsi = NULL;
++
++				update_modem_state (self);
 +		}
 +
 +		if (found_conn_manager) {
 +			if (!priv->connman_proxy) {
 +				nm_log_info (LOGD_MB, "(%s): found new ConnectionManager interface",
 +				             nm_modem_get_path (NM_MODEM (self)));
++
 +				priv->connman_proxy = get_ofono_proxy (self,
 +				                                       nm_modem_get_path (NM_MODEM (self)),
 +				                                       OFONO_DBUS_INTERFACE_CONNECTION_MANAGER);
 +
 +				if (priv->connman_proxy) {
-+					get_ofono_conn_manager_properties (self);
++
++					dbus_g_proxy_begin_call_with_timeout (priv->connman_proxy,
++					                                      "GetProperties",
++					                                      get_ofono_conn_manager_properties_done,
++					                                      g_object_ref (self), NULL, 20000,
++					                                      G_TYPE_INVALID);
 +
 +					dbus_g_proxy_add_signal (priv->connman_proxy, "PropertyChanged",
 +					                         G_TYPE_STRING, G_TYPE_VALUE,
@@ -767,20 +859,18 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +					                             NULL);
 +				}
 +			}
-+		} else {
-+			if (priv->connman_proxy) {
-+				nm_log_info (LOGD_MB, "(%s): ConnectionManager interface disappeared",
-+				             nm_modem_get_path (NM_MODEM (self)));
-+				g_object_unref (priv->connman_proxy);
-+				priv->connman_proxy = NULL;
++		} else if (priv->connman_proxy) {
++			nm_log_info (LOGD_MB, "(%s): ConnectionManager interface disappeared",
++			             nm_modem_get_path (NM_MODEM (self)));
++			g_object_unref (priv->connman_proxy);
++			priv->connman_proxy = NULL;
 +
-+				/* The connection manager proxy disappeared, we should
-+				 * consider the modem disabled.
-+				 */
-+				update_ofono_enabled (self, FALSE);
-+				priv->gprs_powered = FALSE;
-+				priv->gprs_attached = FALSE;
-+			}
++			/* The connection manager proxy disappeared, we should
++			 * consider the modem disabled.
++			 */
++			priv->gprs_attached = FALSE;
++
++			update_modem_state (self);
 +		}
 +	}
 +}
@@ -796,8 +886,9 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	return (NMModem *) g_object_new (NM_TYPE_MODEM_OFONO,
 +	                                 NM_MODEM_PATH, path,
 +	                                 NM_MODEM_UID, (path + 1),
++	                                 NM_MODEM_DEVICE_ID, (path + 1),
 +	                                 NM_MODEM_CONTROL_PORT, "ofono", /* mandatory */
-+	                                 NM_MODEM_IP_METHOD, MM_MODEM_IP_METHOD_STATIC,
++	                                 NM_MODEM_DRIVER, "ofono",
 +	                                 NM_MODEM_STATE, NM_MODEM_STATE_INITIALIZING,
 +	                                 NULL);
 +}
@@ -879,7 +970,9 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +
 +			iface = g_value_get_string (g_hash_table_lookup (ip_settings, "Interface"));
 +			if (iface)
-+				g_object_set (self, NM_MODEM_DATA_PORT, iface, NULL);
++				g_object_set (self, NM_MODEM_DATA_PORT, iface,
++				                    NM_MODEM_IP4_METHOD, NM_MODEM_IP_METHOD_STATIC,
++				              NULL);
 +
 +			if (priv->ip4_config)
 +				g_object_unref (priv->ip4_config);
@@ -890,7 +983,7 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +			if (address_string) {
 +				if (ip_string_to_network_address (address_string, &address_network)) {
 +					addr.address = address_network;
-+					addr.source = NM_PLATFORM_SOURCE_WWAN;
++					addr.source = NM_IP_CONFIG_SOURCE_WWAN;
 +				}
 +			} else
 +				goto out;
@@ -938,6 +1031,7 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +				if (ip_string_to_network_address (mms_proxy, &address_network)) {
 +					NMPlatformIP4Route mms_route;
 +
++					memset (&mms_route, 0, sizeof (mms_route));
 +					mms_route.network = address_network;
 +					mms_route.plen = 32;
 +					mms_route.gateway = gateway_network;
@@ -1036,7 +1130,7 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +
 +	dbus_g_proxy_begin_call_with_timeout (priv->context_proxy,
 +	                                      "SetProperty", stage1_prepare_done,
-+	                                      self, NULL, 40000,
++	                                      g_object_ref (self), NULL, 40000,
 +	                                      G_TYPE_STRING, "Active",
 +	                                      G_TYPE_VALUE, &value,
 +	                                      G_TYPE_INVALID);
@@ -1099,6 +1193,8 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +
 +		g_error_free (error);
 +	}
++
++	g_object_unref (self);
 +}
 +
 +static GHashTable *
@@ -1211,11 +1307,8 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
 +	NMSettingConnection *s_con;
 +	NMSettingGsm *s_gsm;
-+	GHashTable *properties;
-+	GError *error = NULL;
 +	const char *uuid;
 +	const char *id;
-+	const char *imsi;
 +
 +	s_con = nm_connection_get_setting_connection (connection);
 +	g_assert (s_con);
@@ -1237,27 +1330,12 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +		return FALSE;
 +	}
 +
-+	dbus_g_proxy_call_with_timeout (priv->simmanager_proxy,
-+	                                "GetProperties",
-+	                                20000,
-+	                                &error,
-+	                                G_TYPE_INVALID,
-+	                                DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
-+	                                G_TYPE_INVALID);
-+
-+	if (error) {
-+		nm_log_warn (LOGD_MB, "Could not get SIM properties to match connections: %s",
-+		             error && error->message ? error->message : "(unknown)");
-+		g_clear_error (&error);
-+	}
-+
-+	imsi = g_value_get_string (g_hash_table_lookup (properties, "SubscriberIdentity"));
-+	if (! g_strrstr (id, imsi)) {
++	if (! g_strrstr (id, priv->imsi)) {
 +		nm_log_dbg (LOGD_MB, "%s (%s) isn't for the right SIM, skipping.", id, uuid);
 +		return FALSE;
 +	}
 +
-+	nm_log_dbg (LOGD_MB, "%s (%s) looks compatible with IMSI %s", id, uuid, imsi);
++	nm_log_dbg (LOGD_MB, "%s (%s) looks compatible with IMSI %s", id, uuid, priv->imsi);
 +
 +	return TRUE;
 +}
@@ -1273,8 +1351,8 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	nm_log_dbg (LOGD_MB, "in %s", __func__);
 +
 +	if (!dbus_g_proxy_end_call (proxy, call_id, &error,
-+	                            DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
-+	                            G_TYPE_INVALID)) {
++		                        DBUS_TYPE_G_MAP_OF_VARIANT, &properties,
++		                        G_TYPE_INVALID)) {
 +		nm_log_warn (LOGD_MB, "failed get modem enabled state: (%d) %s",
 +		             error ? error->code : -1,
 +		             error && error->message ? error->message : "(unknown)");
@@ -1307,27 +1385,6 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +}
 +
 +static void
-+set_ofono_enabled (NMModem *self, gboolean enabled)
-+{
-+	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
-+
-+	nm_log_info (LOGD_MB, "(%s): trying to set modem to %s",
-+	             nm_modem_get_path (self),
-+	             enabled ? "enabled" : "disabled");
-+
-+	/*
-+	 * FIXME: this is code is a no-op; we should either make
-+	 * work, or get rid of this function, or at least remove
-+	 * the call to update_ofono_enabled.
-+	 */
-+
-+	update_ofono_enabled (NM_MODEM_OFONO (self),
-+	                      priv->modem_online
-+	                      && priv->gprs_powered
-+	                      && priv->gprs_attached);
-+}
-+
-+static void
 +get_capabilities (NMModem *_self,
 +                  NMDeviceModemCapabilities *modem_caps,
 +                  NMDeviceModemCapabilities *current_caps)
@@ -1354,7 +1411,6 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	priv->simmanager_proxy = NULL;
 +
 +	priv->modem_online = FALSE;
-+	priv->gprs_powered = FALSE;
 +	priv->gprs_attached = FALSE;
 +
 +	priv->ip4_config = NULL;
@@ -1406,18 +1462,25 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +
 +	nm_log_dbg (LOGD_MB, "in %s", __func__);
 +
-+	if (priv->connect_properties)
++	if (priv->connect_properties) {
 +		g_hash_table_destroy (priv->connect_properties);
++		priv->connect_properties = NULL;
++	}
 +
 +	if (priv->ip4_config)
-+		g_object_unref (priv->ip4_config);
++		g_clear_object (&priv->ip4_config);
 +
 +	if (priv->modem_proxy)
-+		g_object_unref (priv->modem_proxy);
++		g_clear_object (&priv->modem_proxy);
 +	if (priv->connman_proxy)
-+		g_object_unref (priv->connman_proxy);
++		g_clear_object (&priv->connman_proxy);
 +	if (priv->context_proxy)
-+		g_object_unref (priv->context_proxy);
++		g_clear_object (&priv->context_proxy);
++
++	if (priv->imsi) {
++		g_free (priv->imsi);
++		priv->imsi = NULL;
++	}
 +
 +	G_OBJECT_CLASS (nm_modem_ofono_parent_class)->dispose (object);
 +}
@@ -1437,18 +1500,18 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.c
 +	object_class->dispose = dispose;
 +
 +	modem_class->get_capabilities = get_capabilities;
-+	modem_class->set_mm_enabled = set_ofono_enabled;
 +	modem_class->disconnect = disconnect;
-+	modem_class->deactivate = deactivate;
++	modem_class->disconnect_finish = disconnect_finish;
++	modem_class->deactivate_cleanup = deactivate_cleanup;
 +	modem_class->check_connection_compatible = check_connection_compatible;
 +	modem_class->act_stage1_prepare = act_stage1_prepare;
 +	modem_class->static_stage3_ip4_config_start = static_stage3_ip4_config_start;
 +}
 +
-Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.h
+Index: b/src/devices/wwan/nm-modem-ofono.h
 ===================================================================
 --- /dev/null
-+++ network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.h
++++ b/src/devices/wwan/nm-modem-ofono.h
 @@ -0,0 +1,64 @@
 +/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 +/* NetworkManager -- Network link manager
@@ -1514,14 +1577,14 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-modem-ofono.h
 +G_END_DECLS
 +
 +#endif /* NM_MODEM_OFONO_H */
-Index: network-manager-0.9.10.0/src/NetworkManagerUtils.c
+Index: b/src/NetworkManagerUtils.c
 ===================================================================
---- network-manager-0.9.10.0.orig/src/NetworkManagerUtils.c
-+++ network-manager-0.9.10.0/src/NetworkManagerUtils.c
-@@ -1221,7 +1221,13 @@ nm_utils_ip6_property_path (const char *
- 
- 	len = g_snprintf (path, sizeof (path), IPV6_PROPERTY_DIR "%s/%s",
- 	                  ifname, property);
+--- a/src/NetworkManagerUtils.c
++++ b/src/NetworkManagerUtils.c
+@@ -2650,7 +2650,13 @@ _get_property_path (const char *ifname,
+ 	                  ipv6 ? IPV6_PROPERTY_DIR : IPV4_PROPERTY_DIR,
+ 	                  ifname,
+ 	                  property);
 -	g_assert (len < sizeof (path) - 1);
 +
 +	/* Ubuntu: don't assert, but log about the inconsistent size. */
@@ -1533,11 +1596,13 @@ Index: network-manager-0.9.10.0/src/NetworkManagerUtils.c
  
  	return path;
  }
-@@ -1252,6 +1258,14 @@ fail:
- 		nm_log_err (LOGD_CORE, "Failed asserting path component: NULL");
- 	else
- 		nm_log_err (LOGD_CORE, "Failed asserting path component: \"%s\"", name);
--	g_error ("FATAL: Failed asserting path component: %s", name ? name : "(null)");
+@@ -2707,9 +2713,15 @@ ASSERT_VALID_PATH_COMPONENT (const char
+ fail:
+ 	nm_log_err (LOGD_CORE, "Failed asserting path component: %s%s%s",
+ 	            NM_PRINT_FMT_QUOTED (name, "\"", name, "\"", "(null)"));
+-	g_error ("FATAL: Failed asserting path component: %s%s%s",
+-	         NM_PRINT_FMT_QUOTED (name, "\"", name, "\"", "(null)"));
+-	g_assert_not_reached ();
 +
 +	/* Ubuntu: Don't outright fail, just return the name again. It's
 +	 * logged as being invalid, which is enough.
@@ -1549,11 +1614,12 @@ Index: network-manager-0.9.10.0/src/NetworkManagerUtils.c
 +	return name;
  }
  
-Index: network-manager-0.9.10.0/src/devices/wwan/nm-device-modem.c
+ gboolean
+Index: b/src/devices/wwan/nm-device-modem.c
 ===================================================================
---- network-manager-0.9.10.0.orig/src/devices/wwan/nm-device-modem.c
-+++ network-manager-0.9.10.0/src/devices/wwan/nm-device-modem.c
-@@ -201,6 +201,16 @@ modem_state_cb (NMModem *modem,
+--- a/src/devices/wwan/nm-device-modem.c
++++ b/src/devices/wwan/nm-device-modem.c
+@@ -280,6 +280,16 @@ modem_state_cb (NMModem *modem,
  		}
  	}
  
@@ -1570,8 +1636,8 @@ Index: network-manager-0.9.10.0/src/devices/wwan/nm-device-modem.c
  	if (new_state < NM_MODEM_STATE_CONNECTING &&
  	    old_state >= NM_MODEM_STATE_CONNECTING &&
  	    dev_state >= NM_DEVICE_STATE_NEED_AUTH &&
-@@ -271,6 +281,14 @@ device_state_changed (NMDevice *device,
- 		             nm_modem_state_to_string (nm_modem_get_state (priv->modem)));
+@@ -343,6 +353,14 @@ device_state_changed (NMDevice *device,
+ 		       nm_modem_state_to_string (nm_modem_get_state (priv->modem)));
  	}
  
 +	/* Block autoconnect until the modem is registered again */

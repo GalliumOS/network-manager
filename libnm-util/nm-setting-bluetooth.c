@@ -1,10 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Bastien Nocera <hadess@hadess.net>
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -20,13 +16,15 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2013 Red Hat, Inc.
- * (C) Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2013 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
  */
+
+#include "config.h"
 
 #include <string.h>
 #include <net/ethernet.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 
 #include "nm-param-spec-specialized.h"
 #include "nm-dbus-glib-types.h"
@@ -105,7 +103,8 @@ NMSetting *nm_setting_bluetooth_new (void)
  * Returns the connection method for communicating with the remote device (i.e.
  * either DUN to a DUN-capable device or PANU to a NAP-capable device).
  *
- * Returns: the type, either %NM_SETTING_BLUETOOTH_PANU or %NM_SETTING_BLUETOOTH_DUN
+ * Returns: the type, either %NM_SETTING_BLUETOOTH_TYPE_PANU or
+ *   %NM_SETTING_BLUETOOTH_TYPE_DUN
  **/
 const char *
 nm_setting_bluetooth_get_connection_type (NMSettingBluetooth *setting)
@@ -163,7 +162,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_BLUETOOTH_SETTING_NAME, NM_SETTING_BLUETOOTH_TYPE);
 		return FALSE;
 	} else if (!g_str_equal (priv->type, NM_SETTING_BLUETOOTH_TYPE_DUN) &&
-		   !g_str_equal (priv->type, NM_SETTING_BLUETOOTH_TYPE_PANU)) {
+	           !g_str_equal (priv->type, NM_SETTING_BLUETOOTH_TYPE_PANU)) {
 		g_set_error (error,
 		             NM_SETTING_BLUETOOTH_ERROR,
 		             NM_SETTING_BLUETOOTH_ERROR_INVALID_PROPERTY,
@@ -217,7 +216,7 @@ finalize (GObject *object)
 
 static void
 set_property (GObject *object, guint prop_id,
-		    const GValue *value, GParamSpec *pspec)
+              const GValue *value, GParamSpec *pspec)
 {
 	NMSettingBluetoothPrivate *priv = NM_SETTING_BLUETOOTH_GET_PRIVATE (object);
 
@@ -239,7 +238,7 @@ set_property (GObject *object, guint prop_id,
 
 static void
 get_property (GObject *object, guint prop_id,
-		    GValue *value, GParamSpec *pspec)
+              GValue *value, GParamSpec *pspec)
 {
 	NMSettingBluetooth *setting = NM_SETTING_BLUETOOTH (object);
 
@@ -279,11 +278,11 @@ nm_setting_bluetooth_class_init (NMSettingBluetoothClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_BDADDR,
-		 _nm_param_spec_specialized (NM_SETTING_BLUETOOTH_BDADDR,
-		                             "Bluetooth address",
-		                             "The Bluetooth address of the device",
+		 _nm_param_spec_specialized (NM_SETTING_BLUETOOTH_BDADDR, "", "",
 		                             DBUS_TYPE_G_UCHAR_ARRAY,
-		                             G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		                             G_PARAM_READWRITE |
+		                             NM_SETTING_PARAM_INFERRABLE |
+		                             G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingBluetooth:type:
@@ -293,12 +292,9 @@ nm_setting_bluetooth_class_init (NMSettingBluetoothClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_TYPE,
-		 g_param_spec_string (NM_SETTING_BLUETOOTH_TYPE,
-						  "Connection type",
-						  "Either '" NM_SETTING_BLUETOOTH_TYPE_DUN "' for "
-						  "Dial-Up Networking connections or "
-						  "'" NM_SETTING_BLUETOOTH_TYPE_PANU "' for "
-						  "Personal Area Networking connections.",
-						  NULL,
-						  G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE));
+		 g_param_spec_string (NM_SETTING_BLUETOOTH_TYPE, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      NM_SETTING_PARAM_INFERRABLE |
+		                      G_PARAM_STATIC_STRINGS));
 }

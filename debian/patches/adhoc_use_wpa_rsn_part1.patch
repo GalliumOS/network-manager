@@ -6,15 +6,15 @@ which disabled all security in Ad-Hoc networks, due to a bug
 of wpa_supplicant that only affected WPA-None.
 ---
  libnm-util/nm-utils.c             |    4 --
- src/devices/wifi/nm-device-wifi.c |   55 --------------------------------------
- src/settings/nm-settings.c        |   43 -----------------------------
- 3 files changed, 102 deletions(-)
+ src/devices/wifi/nm-device-wifi.c |   58 --------------------------------------
+ src/settings/nm-settings.c        |   43 ----------------------------
+ 3 files changed, 105 deletions(-)
 
 Index: b/libnm-util/nm-utils.c
 ===================================================================
 --- a/libnm-util/nm-utils.c
 +++ b/libnm-util/nm-utils.c
-@@ -717,8 +717,6 @@ nm_utils_security_valid (NMUtilsSecurity
+@@ -727,8 +727,6 @@ nm_utils_security_valid (NMUtilsSecurity
  		}
  		break;
  	case NMU_SEC_WPA_PSK:
@@ -23,7 +23,7 @@ Index: b/libnm-util/nm-utils.c
  		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_WPA))
  			return FALSE;
  		if (have_ap) {
-@@ -746,8 +744,6 @@ nm_utils_security_valid (NMUtilsSecurity
+@@ -756,8 +754,6 @@ nm_utils_security_valid (NMUtilsSecurity
  		}
  		break;
  	case NMU_SEC_WPA2_PSK:
@@ -36,7 +36,7 @@ Index: b/src/devices/wifi/nm-device-wifi.c
 ===================================================================
 --- a/src/devices/wifi/nm-device-wifi.c
 +++ b/src/devices/wifi/nm-device-wifi.c
-@@ -792,36 +792,6 @@ deactivate (NMDevice *dev)
+@@ -758,36 +758,6 @@ deactivate (NMDevice *device)
  }
  
  static gboolean
@@ -73,9 +73,9 @@ Index: b/src/devices/wifi/nm-device-wifi.c
  check_connection_compatible (NMDevice *device, NMConnection *connection)
  {
  	NMDeviceWifi *self = NM_DEVICE_WIFI (device);
-@@ -864,9 +834,6 @@ check_connection_compatible (NMDevice *d
- 			return FALSE;
- 	}
+@@ -833,9 +803,6 @@ check_connection_compatible (NMDevice *d
+ 	} else if (mac)
+ 		return FALSE;
  
 -	if (is_adhoc_wpa (connection))
 -		return FALSE;
@@ -83,8 +83,8 @@ Index: b/src/devices/wifi/nm-device-wifi.c
  	/* Early exit if supplicant or device doesn't support requested mode */
  	mode = nm_setting_wireless_get_mode (s_wireless);
  	if (g_strcmp0 (mode, NM_SETTING_WIRELESS_MODE_ADHOC) == 0) {
-@@ -1107,18 +1074,6 @@ complete_connection (NMDevice *device,
- 			return FALSE;
+@@ -1072,21 +1039,6 @@ complete_connection (NMDevice *device,
+ 		}
  	}
  
 -	/* The kernel doesn't support Ad-Hoc WPA connections well at this time,
@@ -93,16 +93,19 @@ Index: b/src/devices/wifi/nm-device-wifi.c
 -	 */
 -	if (is_adhoc_wpa (connection)) {
 -		g_set_error_literal (error,
--		                     NM_SETTING_WIRELESS_ERROR,
--		                     NM_SETTING_WIRELESS_ERROR_INVALID_PROPERTY,
--		                     "WPA Ad-Hoc disabled due to kernel bugs");
+-		                     NM_CONNECTION_ERROR,
+-		                     NM_CONNECTION_ERROR_INVALID_SETTING,
+-		                     _("WPA Ad-Hoc disabled due to kernel bugs"));
+-		g_prefix_error (error, "%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME);
+-		if (tmp_ssid)
+-			g_byte_array_unref (tmp_ssid);
 -		return FALSE;
 -	}
 -
- 	g_assert (ssid);
- 	str_ssid = nm_utils_ssid_to_utf8 (ssid);
- 	format = g_strdup_printf ("%s %%d", str_ssid);
-@@ -2665,16 +2620,6 @@ act_stage1_prepare (NMDevice *dev, NMDev
+ 	str_ssid = nm_utils_ssid_to_utf8 (ssid->data, ssid->len);
+ 
+ 	nm_utils_complete_generic (connection,
+@@ -2538,16 +2490,6 @@ act_stage1_prepare (NMDevice *device, NM
  	}
  	g_object_notify (G_OBJECT (self), NM_DEVICE_WIFI_MODE);
  
@@ -111,19 +114,19 @@ Index: b/src/devices/wifi/nm-device-wifi.c
 -	 * 2.6.30 or so; until that's fixed, disable WPA-protected Ad-Hoc networks.
 -	 */
 -	if (is_adhoc_wpa (connection)) {
--		nm_log_warn (LOGD_WIFI, "Ad-Hoc WPA disabled due to kernel bugs");
+-		_LOGW (LOGD_WIFI, "Ad-Hoc WPA disabled due to kernel bugs");
 -		*reason = NM_DEVICE_STATE_REASON_SUPPLICANT_CONFIG_FAILED;
 -		return NM_ACT_STAGE_RETURN_FAILURE;
 -	}
 -
  	/* Set spoof MAC to the interface */
  	cloned_mac = nm_setting_wireless_get_cloned_mac_address (s_wireless);
- 	if (cloned_mac && (cloned_mac->len == ETH_ALEN))
+ 	if (cloned_mac)
 Index: b/src/settings/nm-settings.c
 ===================================================================
 --- a/src/settings/nm-settings.c
 +++ b/src/settings/nm-settings.c
-@@ -1062,38 +1062,6 @@ pk_add_cb (NMAuthChain *chain,
+@@ -1173,38 +1173,6 @@ pk_add_cb (NMAuthChain *chain,
  	nm_auth_chain_unref (chain);
  }
  
@@ -162,7 +165,7 @@ Index: b/src/settings/nm-settings.c
  void
  nm_settings_add_connection_dbus (NMSettings *self,
                              NMConnection *connection,
-@@ -1123,17 +1091,6 @@ nm_settings_add_connection_dbus (NMSetti
+@@ -1234,17 +1202,6 @@ nm_settings_add_connection_dbus (NMSetti
  		goto done;
  	}
  

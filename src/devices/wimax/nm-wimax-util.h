@@ -18,12 +18,17 @@
  * Copyright (C) 2009 Novell, Inc.
  */
 
-#ifndef NM_WIMAX_UTIL_H
-#define NM_WIMAX_UTIL_H
+#ifndef __NETWORKMANAGER_WIMAX_UTIL_H__
+#define __NETWORKMANAGER_WIMAX_UTIL_H__
 
 #include <glib.h>
 
+#include "nm-macros-internal.h"
+
+NM_PRAGMA_WARNING_DISABLE("-Wstrict-prototypes")
 #include <WiMaxType.h>
+NM_PRAGMA_WARNING_REENABLE
+
 #include <WiMaxError.h>
 #include "nm-wimax-types.h"
 

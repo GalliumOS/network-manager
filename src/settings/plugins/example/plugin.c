@@ -18,11 +18,11 @@
  * Copyright (C) 2012 Red Hat, Inc.
  */
 
-#include <config.h>
+#include "config.h"
+
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <netinet/ether.h>
 #include <string.h>
 
 #include <gmodule.h>
@@ -198,11 +198,8 @@ update_connection_settings_commit_cb (NMSettingsConnection *orig, GError *error,
 	 * an error here.
 	 */
 	if (error) {
-		nm_log_warn (LOGD_SETTINGS, "%s: '%s' / '%s' invalid: %d",
-		             __func__,
-		             error ? g_type_name (nm_connection_lookup_setting_type_by_quark (error->domain)) : "(none)",
-		             (error && error->message) ? error->message : "(none)",
-		             error ? error->code : -1);
+		nm_log_warn (LOGD_SETTINGS, "%s: connection invalid: %s",
+		             __func__, error->message);
 		g_clear_error (&error);
 
 		nm_settings_connection_signal_remove (orig);
@@ -560,7 +557,7 @@ get_unmanaged_specs (NMSystemConfigInterface *config)
 	ids = g_strsplit (str, ";", -1);
 	for (i = 0; ids[i] != NULL; i++) {
 		/* Verify unmanaged specification and add it to the list */
-		if (!strncmp (ids[i], "mac:", 4) && nm_utils_hwaddr_valid (ids[i] + 4)) {
+		if (!strncmp (ids[i], "mac:", 4) && nm_utils_hwaddr_valid (ids[i] + 4, -1)) {
 			specs = g_slist_append (specs, ids[i]);
 		} else if (!strncmp (ids[i], "interface-name:", 15) && nm_utils_iface_valid_name (ids[i] + 15)) {
 			specs = g_slist_append (specs, ids[i]);
@@ -850,7 +847,7 @@ nm_system_config_factory (void)
 		priv = SC_PLUGIN_EXAMPLE_GET_PRIVATE (singleton);
 
 		/* Cache the config file path */
-		priv->conf_file = nm_config_get_path (nm_config_get ());
+		priv->conf_file = nm_config_data_get_config_main_file (nm_config_get_data (nm_config_get ()));
 	} else {
 		/* This function should never be called twice */
 		g_assert_not_reached ();

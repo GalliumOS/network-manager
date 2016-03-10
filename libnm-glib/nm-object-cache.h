@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,7 +15,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 Red Hat, Inc.
+ * Copyright 2008 Red Hat, Inc.
  */
 
 #ifndef NM_OBJECT_CACHE_H
@@ -32,7 +30,7 @@ G_BEGIN_DECLS
 /* Returns referenced object from the cache */
 NMObject *_nm_object_cache_get (const char *path);
 void _nm_object_cache_add (NMObject *object);
-void _nm_object_cache_clear (NMObject *except);
+void _nm_object_cache_clear (void);
 
 G_END_DECLS
 

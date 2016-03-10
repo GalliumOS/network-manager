@@ -18,21 +18,20 @@
  * Copyright (C) 2008 - 2012 Red Hat, Inc.
  */
 
-#include <dbus/dbus-glib.h>
-
 #define NMD_SCRIPT_DIR_DEFAULT  NMCONFDIR "/dispatcher.d"
 #define NMD_SCRIPT_DIR_PRE_UP   NMD_SCRIPT_DIR_DEFAULT "/pre-up.d"
 #define NMD_SCRIPT_DIR_PRE_DOWN NMD_SCRIPT_DIR_DEFAULT "/pre-down.d"
 
-/* dbus-glib types for dispatcher call return value */
+/* dbus-glib types for dispatcher call return value (used by src/nm-dispatcher.c) */
 #define DISPATCHER_TYPE_RESULT       (dbus_g_type_get_struct ("GValueArray", G_TYPE_STRING, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_INVALID))
 #define DISPATCHER_TYPE_RESULT_ARRAY (dbus_g_type_get_collection ("GPtrArray", DISPATCHER_TYPE_RESULT))
 
-#define NM_DISPATCHER_DBUS_SERVICE "org.freedesktop.nm_dispatcher"
-#define NM_DISPATCHER_DBUS_IFACE   "org.freedesktop.nm_dispatcher"
-#define NM_DISPATCHER_DBUS_PATH    "/org/freedesktop/nm_dispatcher"
+#define NM_DISPATCHER_DBUS_SERVICE   "org.freedesktop.nm_dispatcher"
+#define NM_DISPATCHER_DBUS_INTERFACE "org.freedesktop.nm_dispatcher"
+#define NM_DISPATCHER_DBUS_PATH      "/org/freedesktop/nm_dispatcher"
 
 #define NMD_CONNECTION_PROPS_PATH         "path"
+#define NMD_CONNECTION_PROPS_FILENAME     "filename"
 
 #define NMD_DEVICE_PROPS_INTERFACE        "interface"
 #define NMD_DEVICE_PROPS_IP_INTERFACE     "ip-interface"

@@ -18,8 +18,8 @@
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_BT_H
-#define NM_DEVICE_BT_H
+#ifndef __NETWORKMANAGER_DEVICE_BT_H__
+#define __NETWORKMANAGER_DEVICE_BT_H__
 
 #include <nm-device.h>
 #include "nm-bluez-device.h"
@@ -33,12 +33,6 @@ G_BEGIN_DECLS
 #define NM_IS_DEVICE_BT(obj)		(G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE_BT))
 #define NM_IS_DEVICE_BT_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_BT))
 #define NM_DEVICE_BT_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_BT, NMDeviceBtClass))
-
-typedef enum {
-	NM_BT_ERROR_CONNECTION_NOT_BT = 0,   /*< nick=ConnectionNotBt >*/
-	NM_BT_ERROR_CONNECTION_INVALID,      /*< nick=ConnectionInvalid >*/
-	NM_BT_ERROR_CONNECTION_INCOMPATIBLE, /*< nick=ConnectionIncompatible >*/
-} NMBtError;
 
 #define NM_DEVICE_BT_NAME         "name"
 #define NM_DEVICE_BT_CAPABILITIES "bt-capabilities"
@@ -71,4 +65,4 @@ gboolean nm_device_bt_modem_added (NMDeviceBt *device,
 
 G_END_DECLS
 
-#endif /* NM_DEVICE_BT_H */
+#endif /* __NETWORKMANAGER_DEVICE_BT_H__ */

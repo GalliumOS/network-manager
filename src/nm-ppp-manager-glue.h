@@ -161,13 +161,14 @@ G_END_DECLS
 static const DBusGMethodInfo dbus_glib_nm_ppp_manager_methods[] = {
   { (GCallback) impl_ppp_manager_need_secrets, dbus_glib_marshal_nm_ppp_manager_NONE__POINTER, 0 },
   { (GCallback) impl_ppp_manager_set_ip4_config, dbus_glib_marshal_nm_ppp_manager_BOOLEAN__BOXED_POINTER, 84 },
-  { (GCallback) impl_ppp_manager_set_state, dbus_glib_marshal_nm_ppp_manager_BOOLEAN__UINT_POINTER, 150 },
+  { (GCallback) impl_ppp_manager_set_ip6_config, dbus_glib_marshal_nm_ppp_manager_BOOLEAN__BOXED_POINTER, 150 },
+  { (GCallback) impl_ppp_manager_set_state, dbus_glib_marshal_nm_ppp_manager_BOOLEAN__UINT_POINTER, 216 },
 };
 
 const DBusGObjectInfo dbus_glib_nm_ppp_manager_object_info = {  1,
   dbus_glib_nm_ppp_manager_methods,
-  3,
-"org.freedesktop.NetworkManager.PPP\0NeedSecrets\0A\0username\0O\0F\0N\0s\0password\0O\0F\0N\0s\0\0org.freedesktop.NetworkManager.PPP\0SetIp4Config\0S\0config\0I\0a{sv}\0\0org.freedesktop.NetworkManager.PPP\0SetState\0S\0state\0I\0u\0\0\0",
+  4,
+"org.freedesktop.NetworkManager.PPP\0NeedSecrets\0A\0username\0O\0F\0N\0s\0password\0O\0F\0N\0s\0\0org.freedesktop.NetworkManager.PPP\0SetIp4Config\0S\0config\0I\0a{sv}\0\0org.freedesktop.NetworkManager.PPP\0SetIp6Config\0S\0config\0I\0a{sv}\0\0org.freedesktop.NetworkManager.PPP\0SetState\0S\0state\0I\0u\0\0\0",
 "\0",
 "\0"
 };

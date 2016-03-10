@@ -1,7 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -17,8 +15,8 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2013 Red Hat, Inc.
+ * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright 2007 - 2013 Red Hat, Inc.
  */
 
 #ifndef NM_DEVICE_H
@@ -144,6 +142,8 @@ NM_AVAILABLE_IN_0_9_10
 const char *         nm_device_get_physical_port_id (NMDevice *device);
 NM_AVAILABLE_IN_0_9_10
 guint32              nm_device_get_mtu              (NMDevice *device);
+NM_AVAILABLE_IN_1_0
+gboolean             nm_device_is_software          (NMDevice *device);
 
 const char *         nm_device_get_product           (NMDevice  *device);
 const char *         nm_device_get_vendor            (NMDevice  *device);
@@ -153,10 +153,15 @@ NM_AVAILABLE_IN_0_9_10
 char **              nm_device_disambiguate_names    (NMDevice **devices,
                                                       int        num_devices);
 
-typedef void (*NMDeviceDeactivateFn) (NMDevice *device, GError *error, gpointer user_data);
+typedef void (*NMDeviceCallbackFn) (NMDevice *device, GError *error, gpointer user_data);
 
 void                 nm_device_disconnect           (NMDevice *device,
-                                                     NMDeviceDeactivateFn callback,
+                                                     NMDeviceCallbackFn callback,
+                                                     gpointer user_data);
+
+NM_AVAILABLE_IN_1_0
+void                 nm_device_delete               (NMDevice *device,
+                                                     NMDeviceCallbackFn callback,
                                                      gpointer user_data);
 
 GSList *             nm_device_filter_connections   (NMDevice *device,
@@ -171,6 +176,10 @@ gboolean             nm_device_connection_compatible (NMDevice *device,
 
 NM_AVAILABLE_IN_0_9_10
 GType                nm_device_get_setting_type     (NMDevice *device);
+
+/* Deprecated */
+NM_DEPRECATED_IN_1_0
+typedef void (*NMDeviceDeactivateFn) (NMDevice *device, GError *error, gpointer user_data);
 
 G_END_DECLS
 

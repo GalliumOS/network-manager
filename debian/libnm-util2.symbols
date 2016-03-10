@@ -12,6 +12,7 @@ libnm-util.so.2 libnm-util2 #MINVER#
  nm_connection_for_each_setting_value@Base 0.7.0
  nm_connection_get_connection_type@Base 0.9.10.0
  nm_connection_get_id@Base 0.8.998
+ nm_connection_get_interface_name@Base 1.0.0
  nm_connection_get_path@Base 0.7.0
  nm_connection_get_setting@Base 0.7.0
  nm_connection_get_setting_802_1x@Base 0.8.998
@@ -51,6 +52,7 @@ libnm-util.so.2 libnm-util2 #MINVER#
  nm_connection_need_secrets@Base 0.7.0
  nm_connection_new@Base 0.7.0
  nm_connection_new_from_hash@Base 0.7.0
+ nm_connection_normalize@Base 1.0.0
  nm_connection_remove_setting@Base 0.7.0
  nm_connection_replace_settings@Base 0.7.0
  nm_connection_replace_settings_from_connection@Base 0.9.10.0
@@ -364,6 +366,7 @@ libnm-util.so.2 libnm-util2 #MINVER#
  nm_setting_ip4_config_get_num_dns_searches@Base 0.7.0
  nm_setting_ip4_config_get_num_routes@Base 0.7.0
  nm_setting_ip4_config_get_route@Base 0.7.0
+ nm_setting_ip4_config_get_route_metric@Base 1.0.0
  nm_setting_ip4_config_get_type@Base 0.7.0
  nm_setting_ip4_config_new@Base 0.7.0
  nm_setting_ip4_config_remove_address@Base 0.7.0
@@ -399,6 +402,7 @@ libnm-util.so.2 libnm-util2 #MINVER#
  nm_setting_ip6_config_get_num_dns_searches@Base 0.7.999
  nm_setting_ip6_config_get_num_routes@Base 0.7.999
  nm_setting_ip6_config_get_route@Base 0.7.999
+ nm_setting_ip6_config_get_route_metric@Base 1.0.0
  nm_setting_ip6_config_get_type@Base 0.7.999
  nm_setting_ip6_config_new@Base 0.7.999
  nm_setting_ip6_config_privacy_get_type@Base 0.9.4.0
@@ -607,6 +611,7 @@ libnm-util.so.2 libnm-util2 #MINVER#
  nm_utils_deinit@Base 0.7.0
  nm_utils_escape_ssid@Base 0.7.0
  nm_utils_file_is_pkcs12@Base 0.9.5.96
+ nm_utils_file_search_in_paths@Base 1.0.0
  nm_utils_get_private@Base 0.9.10.0
  nm_utils_gvalue_hash_dup@Base 0.7.0
  nm_utils_hex2byte@Base 0.9.10.0

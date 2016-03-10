@@ -158,13 +158,14 @@ static const DBusGMethodInfo dbus_glib_nm_settings_connection_methods[] = {
   { (GCallback) impl_settings_connection_delete, dbus_glib_marshal_nm_settings_connection_NONE__POINTER, 175 },
   { (GCallback) impl_settings_connection_get_settings, dbus_glib_marshal_nm_settings_connection_NONE__POINTER, 236 },
   { (GCallback) impl_settings_connection_get_secrets, dbus_glib_marshal_nm_settings_connection_NONE__STRING_POINTER, 327 },
-  { (GCallback) impl_settings_connection_save, dbus_glib_marshal_nm_settings_connection_NONE__POINTER, 433 },
+  { (GCallback) impl_settings_connection_clear_secrets, dbus_glib_marshal_nm_settings_connection_NONE__POINTER, 433 },
+  { (GCallback) impl_settings_connection_save, dbus_glib_marshal_nm_settings_connection_NONE__POINTER, 500 },
 };
 
 const DBusGObjectInfo dbus_glib_nm_settings_connection_object_info = {  1,
   dbus_glib_nm_settings_connection_methods,
-  6,
-"org.freedesktop.NetworkManager.Settings.Connection\0Update\0A\0properties\0I\0a{sa{sv}}\0\0org.freedesktop.NetworkManager.Settings.Connection\0UpdateUnsaved\0A\0properties\0I\0a{sa{sv}}\0\0org.freedesktop.NetworkManager.Settings.Connection\0Delete\0A\0\0org.freedesktop.NetworkManager.Settings.Connection\0GetSettings\0A\0settings\0O\0F\0N\0a{sa{sv}}\0\0org.freedesktop.NetworkManager.Settings.Connection\0GetSecrets\0A\0setting_name\0I\0s\0secrets\0O\0F\0N\0a{sa{sv}}\0\0org.freedesktop.NetworkManager.Settings.Connection\0Save\0A\0\0\0",
+  7,
+"org.freedesktop.NetworkManager.Settings.Connection\0Update\0A\0properties\0I\0a{sa{sv}}\0\0org.freedesktop.NetworkManager.Settings.Connection\0UpdateUnsaved\0A\0properties\0I\0a{sa{sv}}\0\0org.freedesktop.NetworkManager.Settings.Connection\0Delete\0A\0\0org.freedesktop.NetworkManager.Settings.Connection\0GetSettings\0A\0settings\0O\0F\0N\0a{sa{sv}}\0\0org.freedesktop.NetworkManager.Settings.Connection\0GetSecrets\0A\0setting_name\0I\0s\0secrets\0O\0F\0N\0a{sa{sv}}\0\0org.freedesktop.NetworkManager.Settings.Connection\0ClearSecrets\0A\0\0org.freedesktop.NetworkManager.Settings.Connection\0Save\0A\0\0\0",
 "org.freedesktop.NetworkManager.Settings.Connection\0Updated\0org.freedesktop.NetworkManager.Settings.Connection\0Removed\0org.freedesktop.NetworkManager.Settings.Connection\0PropertiesChanged\0\0",
 "org.freedesktop.NetworkManager.Settings.Connection\0Unsaved\0unsaved\0read\0\0"
 };

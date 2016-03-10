@@ -18,10 +18,14 @@
  * Copyright (C) 2011 - 2014 Red Hat, Inc.
  */
 
+#include "config.h"
+
 #include <gmodule.h>
 
 #include "nm-device-factory.h"
 #include "nm-device-wimax.h"
+#include "nm-platform.h"
+#include "nm-setting-wimax.h"
 
 #define NM_TYPE_WIMAX_FACTORY            (nm_wimax_factory_get_type ())
 #define NM_WIMAX_FACTORY(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_WIMAX_FACTORY, NMWimaxFactory))
@@ -43,24 +47,16 @@ G_DEFINE_TYPE_EXTENDED (NMWimaxFactory, nm_wimax_factory, G_TYPE_OBJECT, 0,
 
 /**************************************************************************/
 
-#define PLUGIN_TYPE NM_DEVICE_TYPE_WIMAX
-
 G_MODULE_EXPORT NMDeviceFactory *
 nm_device_factory_create (GError **error)
 {
 	return (NMDeviceFactory *) g_object_new (NM_TYPE_WIMAX_FACTORY, NULL);
 }
 
-G_MODULE_EXPORT NMDeviceType
-nm_device_factory_get_device_type (void)
-{
-	return PLUGIN_TYPE;
-}
-
 /**************************************************************************/
 
 static NMDevice *
-new_link (NMDeviceFactory *factory, NMPlatformLink *plink, GError **error)
+new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
 {
 	/* FIXME: check udev 'DEVTYPE' instead; but since we only support Intel
 	 * WiMAX devices for now this is appropriate.
@@ -71,10 +67,16 @@ new_link (NMDeviceFactory *factory, NMPlatformLink *plink, GError **error)
 	return (NMDevice *) nm_device_wimax_new (plink);
 }
 
+NM_DEVICE_FACTORY_DECLARE_TYPES (
+	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES    (NM_LINK_TYPE_WIMAX)
+	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_WIMAX_SETTING_NAME)
+)
+
 static void
 device_factory_interface_init (NMDeviceFactory *factory_iface)
 {
 	factory_iface->new_link = new_link;
+	factory_iface->get_supported_types = get_supported_types;
 }
 
 static void

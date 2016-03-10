@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=ascii" /><title>NetworkManager D-Bus Interface Specification version 0.9.10.0</title><style type="text/css">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=ascii" /><title>NetworkManager D-Bus Interface Specification version 1.0.4</title><style type="text/css">
 
           body {
             font-family: sans-serif;
@@ -97,7 +97,7 @@
             margin-right: 4em;
           }
 
-        </style></head><body><h1 class="topbox">NetworkManager D-Bus Interface Specification</h1><h2>Version 0.9.10.0</h2><div>Copyright (C) 2008 - 2011 Red Hat, Inc.</div><div>Copyright (C) 2008 - 2009 Novell, Inc.</div><div class="license">
+        </style></head><body><h1 class="topbox">NetworkManager D-Bus Interface Specification</h1><h2>Version 1.0.4</h2><div>Copyright (C) 2008 - 2011 Red Hat, Inc.</div><div>Copyright (C) 2008 - 2009 Novell, Inc.</div><div class="license">
 <p>This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -162,11 +162,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         </dd></dl></div><div><h4>Returns</h4><dl><dt><code>active_connection</code> -
       <code>o</code></dt><dd>
           The path of the active connection object representing this active connection.
-        </dd></dl></div><div><h4>Possible errors</h4><dl><dt><code>org.freedesktop.NetworkManager.Error.UnknownConnection</code></dt><dd>
-        Connection was not provided by the settings service.
-    <em>(generic description)</em></dd><dt><code>org.freedesktop.NetworkManager.Error.UnknownDevice</code></dt><dd>
-        Unknown device.
-    <em>(generic description)</em></dd><dt><code>org.freedesktop.NetworkManager.Error.ConnectionActivating</code></dt><dd>Another connection is already activating or the same connection is already active.  FIXME: check if the error name is correct.  FIXME: split into 2 errors?</dd><dt><code>org.freedesktop.NetworkManager.Error.ConnectionInvalid</code></dt><dd>The connection is invalid for this device.</dd></dl></div></div><div class="method"><h3><a name="org.freedesktop.NetworkManager.AddAndActivateConnection" id="org.freedesktop.NetworkManager.AddAndActivateConnection">AddAndActivateConnection</a> (
+        </dd></dl></div></div><div class="method"><h3><a name="org.freedesktop.NetworkManager.AddAndActivateConnection" id="org.freedesktop.NetworkManager.AddAndActivateConnection">AddAndActivateConnection</a> (
         a{sa{sv}}: connection, o: device, o: specific_object
         ) &#8594;
         o, o</h3><div class="docstring">
@@ -195,11 +191,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         </dd><dt><code>active_connection</code> -
       <code>o</code></dt><dd>
           The path of the active connection object representing this active connection.
-        </dd></dl></div><div><h4>Possible errors</h4><dl><dt><code>org.freedesktop.NetworkManager.Error.UnknownConnection</code></dt><dd>
-        Connection was not provided by the settings service.
-    <em>(generic description)</em></dd><dt><code>org.freedesktop.NetworkManager.Error.UnknownDevice</code></dt><dd>
-        Unknown device.
-    <em>(generic description)</em></dd><dt><code>org.freedesktop.NetworkManager.Error.ConnectionInvalid</code></dt><dd>The connection is invalid for this device.</dd></dl></div></div><div class="method"><h3><a name="org.freedesktop.NetworkManager.DeactivateConnection" id="org.freedesktop.NetworkManager.DeactivateConnection">DeactivateConnection</a> (
+        </dd></dl></div></div><div class="method"><h3><a name="org.freedesktop.NetworkManager.DeactivateConnection" id="org.freedesktop.NetworkManager.DeactivateConnection">DeactivateConnection</a> (
         o: active_connection
         ) &#8594;
         nothing</h3><div class="docstring">
@@ -254,7 +246,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         Set logging verbosity and which operations are logged.
       </div><div><h4>Parameters</h4><dl><dt><code>level</code> -
       <code>s</code></dt><dd>
-          One of [ERR, WARN, INFO, DEBUG].
+          One of [ERR, WARN, INFO, DEBUG, TRACE].
         </dd><dt><code>domains</code> -
       <code>s</code></dt><dd>
           A combination of logging domains separated by commas (','), or "NONE"
@@ -277,7 +269,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         Get current logging verbosity level and operations domains.
       </div><div><h4>Returns</h4><dl><dt><code>level</code> -
       <code>s</code></dt><dd>
-          One of [ERR, WARN, INFO, DEBUG].
+          One of [ERR, WARN, INFO, DEBUG, TRACE].
         </dd><dt><code>domains</code> -
       <code>s</code></dt><dd>
           For available domains see SetLogging() call.
@@ -383,6 +375,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         indicates the connection that has the default route. If there
         is a VPN active with the default route, then this indicates
         the connection that contains the route to the VPN endpoint.
+      </dd><dt><code>PrimaryConnectionType</code> -
+      <code>s</code> -
+      <code>(read)</code></dt><dd>
+        The connection type of the "primary" active connection being
+        used to access the network. This is the same as the Type
+        property on the object indicated by PrimaryConnection.
       </dd><dt><code>ActivatingConnection</code> -
       <code>o</code> -
       <code>(read)</code></dt><dd>
@@ -491,6 +489,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         ) &#8594;
         nothing</h3><div class="docstring">
         Disconnects a device and prevents the device from automatically activating further connections without user intervention.
+      </div></div><div class="method"><h3><a name="org.freedesktop.NetworkManager.Device.Delete" id="org.freedesktop.NetworkManager.Device.Delete">Delete</a> (
+        
+        ) &#8594;
+        nothing</h3><div class="docstring">
+        Deletes a software device from NetworkManager and removes the interface from the system.
+        The method returns an error when called for a hardware device.
       </div></div><h2>Signals:</h2><div class="signal"><h3><a name="org.freedesktop.NetworkManager.Device.StateChanged" id="org.freedesktop.NetworkManager.Device.StateChanged">StateChanged</a> (
         u: new_state, u: old_state, u: reason
         )</h3><div class="docstring"></div><div><h4>Parameters</h4><dl><dt><code>new_state</code> -
@@ -603,7 +607,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         If TRUE, indicates the device is allowed to autoconnect.  If FALSE,
         manual intervention is required before the device will automatically
         connect to a known network, such as activating a connection using the
-        device, or setting this property to TRUE.
+        device, or setting this property to TRUE.  This property cannot be
+        set to TRUE for default-unmanaged devices, since they never autoconnect.
       </dd><dt><code>FirmwareMissing</code> -
       <code>b</code> -
       <code>(read)</code></dt><dd>
@@ -806,6 +811,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
           Modem now ready and available.
         </dd><dt><code>NM_DEVICE_STATE_REASON_SIM_PIN_INCORRECT = 59</code></dt><dd>
           The SIM PIN was incorrect.
+        </dd><dt><code>NM_DEVICE_STATE_REASON_NEW_ACTIVATION = 60</code></dt><dd>
+          A new connection activation was enqueued.
+        </dd><dt><code>NM_DEVICE_STATE_REASON_PARENT_CHANGED = 61</code></dt><dd>
+          The device's parent changed.
+        </dd><dt><code>NM_DEVICE_STATE_REASON_PARENT_MANAGED_CHANGED = 62</code></dt><dd>
+          The device parent's management changed.
         </dd></dl><h2>Sets of flags:</h2><h3 xmlns=""><a name="type-NM_DEVICE_CAP" id="type-NM_DEVICE_CAP">NM_DEVICE_CAP</a></h3><dl><dt><code>NM_DEVICE_CAP_NONE = 0x0</code></dt><dd>Null capability.</dd><dt><code>NM_DEVICE_CAP_NM_SUPPORTED = 0x1</code></dt><dd>The device is supported by NetworkManager.</dd><dt><code>NM_DEVICE_CAP_CARRIER_DETECT = 0x2</code></dt><dd>The device supports carrier detection.</dd></dl><h2>Structure types:</h2><div class="struct"><h3><a name="type-NM_DEVICE_STATE_REASON_STRUCT" id="type-NM_DEVICE_STATE_REASON_STRUCT">NM_DEVICE_STATE_REASON_STRUCT</a> - (
         u: state, u: reason
         )
@@ -874,7 +885,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         Request the device to scan
       </div><div><h4>Parameters</h4><dl><dt><code>options</code> -
       <code>a{sv}</code></dt><dd>
-          Options of scan
+          Options of scan (currently unused argument).
         </dd></dl></div></div><h2>Signals:</h2><div class="signal"><h3><a name="org.freedesktop.NetworkManager.Device.Wireless.PropertiesChanged" id="org.freedesktop.NetworkManager.Device.Wireless.PropertiesChanged">PropertiesChanged</a> (
         a{sv}: properties
         )</h3><div class="docstring">
@@ -932,7 +943,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         The capabilities of the wireless device.
       </dd></dl><h2>Sets of flags:</h2><h3 xmlns=""><a name="type-NM_802_11_DEVICE_CAP" id="type-NM_802_11_DEVICE_CAP">NM_802_11_DEVICE_CAP</a></h3>
         Flags describing the capabilities of a wireless device.
-      <dl><dt><code>NM_802_11_DEVICE_CAP_NONE = 0x0</code></dt><dd>Null capability - syntactic sugar for no capabilities supported.  Do not AND this with other capabilities!</dd><dt><code>NM_802_11_DEVICE_CAP_CIPHER_WEP40 = 0x1</code></dt><dd>The device supports the 40-bit WEP cipher.</dd><dt><code>NM_802_11_DEVICE_CAP_CIPHER_WEP104 = 0x2</code></dt><dd>The device supports the 104-bit WEP cipher.</dd><dt><code>NM_802_11_DEVICE_CAP_CIPHER_TKIP = 0x4</code></dt><dd>The device supports the TKIP cipher.</dd><dt><code>NM_802_11_DEVICE_CAP_CIPHER_CCMP = 0x8</code></dt><dd>The device supports the CCMP cipher.</dd><dt><code>NM_802_11_DEVICE_CAP_WPA = 0x10</code></dt><dd>The device supports the WPA encryption/authentication protocol.</dd><dt><code>NM_802_11_DEVICE_CAP_RSN = 0x20</code></dt><dd>The device supports the RSN encryption/authentication protocol.</dd><dt><code>NM_802_11_DEVICE_CAP_AP = 0x40</code></dt><dd>The device supports Access Point mode.</dd><dt><code>NM_802_11_DEVICE_CAP_ADHOC = 0x80</code></dt><dd>The device supports Ad-Hoc mode.</dd></dl>
+      <dl><dt><code>NM_802_11_DEVICE_CAP_NONE = 0x0</code></dt><dd>Null capability - syntactic sugar for no capabilities supported.  Do not AND this with other capabilities!</dd><dt><code>NM_802_11_DEVICE_CAP_CIPHER_WEP40 = 0x1</code></dt><dd>The device supports the 40-bit WEP cipher.</dd><dt><code>NM_802_11_DEVICE_CAP_CIPHER_WEP104 = 0x2</code></dt><dd>The device supports the 104-bit WEP cipher.</dd><dt><code>NM_802_11_DEVICE_CAP_CIPHER_TKIP = 0x4</code></dt><dd>The device supports the TKIP cipher.</dd><dt><code>NM_802_11_DEVICE_CAP_CIPHER_CCMP = 0x8</code></dt><dd>The device supports the CCMP cipher.</dd><dt><code>NM_802_11_DEVICE_CAP_WPA = 0x10</code></dt><dd>The device supports the WPA encryption/authentication protocol.</dd><dt><code>NM_802_11_DEVICE_CAP_RSN = 0x20</code></dt><dd>The device supports the RSN encryption/authentication protocol.</dd><dt><code>NM_802_11_DEVICE_CAP_AP = 0x40</code></dt><dd>The device supports Access Point mode.</dd><dt><code>NM_802_11_DEVICE_CAP_ADHOC = 0x80</code></dt><dd>The device supports Ad-Hoc mode.</dd><dt><code>NM_802_11_DEVICE_CAP_FREQ_VALID = 0x100</code></dt><dd>
+	  The device properly reports information about supported
+	  frequencies and thus both NM_802_11_DEVICE_CAP_FREQ_2GHZ and
+	  NM_802_11_DEVICE_CAP_FREQ_5GHZ are valid.
+	</dd><dt><code>NM_802_11_DEVICE_CAP_FREQ_2GHZ = 0x200</code></dt><dd>
+          The device supports 2.4GHz frequencies.
+        </dd><dt><code>NM_802_11_DEVICE_CAP_FREQ_5GHZ = 0x400</code></dt><dd>
+          The device supports 5GHz frequencies.
+        </dd></dl>
 
   <h1><a name="org.freedesktop.NetworkManager.Device.Modem" id="org.freedesktop.NetworkManager.Device.Modem"></a>org.freedesktop.NetworkManager.Device.Modem</h1><p>Interface has no methods.</p><h2>Signals:</h2><div class="signal"><h3><a name="org.freedesktop.NetworkManager.Device.Modem.PropertiesChanged" id="org.freedesktop.NetworkManager.Device.Modem.PropertiesChanged">PropertiesChanged</a> (
         a{sv}: properties
@@ -1212,6 +1231,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
       <code>b</code> -
       <code>(read)</code></dt><dd>
         Indicates whether the physical carrier is found (e.g. whether a cable is plugged in or not).
+      </dd><dt><code>Parent</code> -
+      <code>o</code> -
+      <code>(read)</code></dt><dd>
+        Object path of the parent device of this VLAN device.
       </dd><dt><code>VlanId</code> -
       <code>u</code> -
       <code>(read)</code></dt><dd>
@@ -1257,19 +1280,39 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
       (<a xmlns="" href="#type-String_Variant_Map">String_Variant_Map</a>)
     </dt><dd>
           A dictionary mapping property names to variant boxed values
-        </dd></dl></div></div><h2>Properties:</h2><dl><dt><code>Gateway</code> -
+        </dd></dl></div></div><h2>Properties:</h2><dl><dt><code>Addresses</code> -
+      <code>aau</code> -
+      <code>(read)</code></dt><dd>
+	Array of arrays of IPv4 address/prefix/gateway.  All 3
+	elements of each array are in network byte order.  Essentially:
+	[(addr, prefix, gateway), (addr, prefix, gateway), ...]
+
+	Deprecated: use AddressData and Gateway
+      </dd><dt><code>AddressData</code> -
+      <code>aa{sv}</code> -
+      <code>(read)</code></dt><dd>
+	Array of IP address data objects. All addresses will include
+	"address" (an IP address string), and "prefix" (a uint). Some
+	addresses may include additional attributes.
+      </dd><dt><code>Gateway</code> -
       <code>s</code> -
-      <code>(read)</code></dt><dd>The gateway in use.</dd><dt><code>Addresses</code> -
+      <code>(read)</code></dt><dd>The gateway in use.</dd><dt><code>Routes</code> -
       <code>aau</code> -
-      <code>(read)</code></dt><dd>Array of tuples of IPv4 address/prefix/gateway.  All 3
-      elements of each tuple are in network byte order.  Essentially:
-      [(addr, prefix, gateway), (addr, prefix, gateway), ...]
-      </dd><dt><code>Routes</code> -
-      <code>aau</code> -
-      <code>(read)</code></dt><dd>Tuples of IPv4 route/prefix/next-hop/metric.  All 4 elements
-      of each tuple are in network byte order.  'route' and 'next hop' are IPv4
-      addresses, while prefix and metric are simple unsigned integers.  Essentially:
-      [(route, prefix, next-hop, metric), (route, prefix, next-hop, metric), ...]
+      <code>(read)</code></dt><dd>
+	Arrays of IPv4 route/prefix/next-hop/metric. All 4 elements of
+	each tuple are in network byte order. 'route' and 'next hop'
+	are IPv4 addresses, while prefix and metric are simple
+	unsigned integers. Essentially: [(route, prefix, next-hop,
+	metric), (route, prefix, next-hop, metric), ...]
+
+	Deprecated: use RouteData
+      </dd><dt><code>RouteData</code> -
+      <code>aa{sv}</code> -
+      <code>(read)</code></dt><dd>
+	Array of IP route data objects. All routes will include "dest"
+	(an IP address string) and "prefix" (a uint). Some routes may
+	include "next-hop" (an IP address string), "metric" (a uint),
+	and additional attributes.
       </dd><dt><code>Nameservers</code> -
       <code>au</code> -
       <code>(read)</code></dt><dd>The nameservers in use.</dd><dt><code>Domains</code> -
@@ -1287,13 +1330,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
       (<a xmlns="" href="#type-String_Variant_Map">String_Variant_Map</a>)
     </dt><dd>
           A dictionary mapping property names to variant boxed values
-        </dd></dl></div></div><h2>Properties:</h2><dl><dt><code>Gateway</code> -
-      <code>s</code> -
-      <code>(read)</code></dt><dd>The gateway in use.</dd><dt><code>Addresses</code> -
+        </dd></dl></div></div><h2>Properties:</h2><dl><dt><code>Addresses</code> -
       <code>a(ayuay)</code> -
-      <code>(read)</code></dt><dd>Tuples of IPv6 address/prefix/gateway.</dd><dt><code>Routes</code> -
+      <code>(read)</code></dt><dd>
+	Array of tuples of IPv6 address/prefix/gateway.
+
+	Deprecated: use AddressData and Gateway.
+      </dd><dt><code>AddressData</code> -
+      <code>aa{sv}</code> -
+      <code>(read)</code></dt><dd>
+	Array of IP address data objects. All addresses will include
+	"address" (an IP address string), and "prefix" (a uint). Some
+	addresses may include additional attributes.
+      </dd><dt><code>Gateway</code> -
+      <code>s</code> -
+      <code>(read)</code></dt><dd>The gateway in use.</dd><dt><code>Routes</code> -
       <code>a(ayuayu)</code> -
-      <code>(read)</code></dt><dd>Tuples of IPv6 route/prefix/next-hop/metric.</dd><dt><code>Nameservers</code> -
+      <code>(read)</code></dt><dd>
+	Tuples of IPv6 route/prefix/next-hop/metric.
+
+	Deprecated: use RouteData
+      </dd><dt><code>RouteData</code> -
+      <code>aa{sv}</code> -
+      <code>(read)</code></dt><dd>
+	Array of IP route data objects. All routes will include "dest"
+	(an IP address string) and "prefix" (a uint). Some routes may
+	include "next-hop" (an IP address string), "metric" (a uint),
+	and additional attributes.
+      </dd><dt><code>Nameservers</code> -
       <code>aay</code> -
       <code>(read)</code></dt><dd>The nameservers in use.</dd><dt><code>Domains</code> -
       <code>as</code> -
@@ -1539,7 +1603,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
       (<a xmlns="" href="#type-String_String_Variant_Map_Map">String_String_Variant_Map_Map</a>)
     </dt><dd>
                     Nested settings maps containing secrets.
-                </dd></dl></div></div><div class="method"><h3><a name="org.freedesktop.NetworkManager.Settings.Connection.Save" id="org.freedesktop.NetworkManager.Settings.Connection.Save">Save</a> (
+                </dd></dl></div></div><div class="method"><h3><a name="org.freedesktop.NetworkManager.Settings.Connection.ClearSecrets" id="org.freedesktop.NetworkManager.Settings.Connection.ClearSecrets">ClearSecrets</a> (
+        
+        ) &#8594;
+        nothing</h3><div class="docstring">
+            Clear the secrets belonging to this network connection profile.
+          </div></div><div class="method"><h3><a name="org.freedesktop.NetworkManager.Settings.Connection.Save" id="org.freedesktop.NetworkManager.Settings.Connection.Save">Save</a> (
         
         ) &#8594;
         nothing</h3><div class="docstring">
@@ -2117,7 +2186,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         Emitted when the plugin state changes.
       </div><div><h4>Parameters</h4><dl><dt><code>state</code> -
       <code>u</code>
-      (<a xmlns="" href="#type-NM_VPN_CONNECTION_STATE">NM_VPN_CONNECTION_STATE</a>)
+      (<a xmlns="" href="#type-NM_VPN_SERVICE_STATE">NM_VPN_SERVICE_STATE</a>)
     </dt><dd>
           The new state of the plugin.
         </dd></dl></div></div><div class="signal"><h3><a name="org.freedesktop.NetworkManager.VPN.Plugin.SecretsRequired" id="org.freedesktop.NetworkManager.VPN.Plugin.SecretsRequired">SecretsRequired</a> (
@@ -2183,10 +2252,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
         </dd></dl></div></div><h2>Properties:</h2><dl><dt><code>State</code> -
       <code>u</code> -
       <code>(read)</code>
-      (<a xmlns="" href="#type-NM_VPN_CONNECTION_STATE">NM_VPN_CONNECTION_STATE</a>)
+      (<a xmlns="" href="#type-NM_VPN_SERVICE_STATE">NM_VPN_SERVICE_STATE</a>)
     </dt><dd>
         The state of the plugin.
-      </dd></dl><h2>Enumerated types:</h2><h3><a name="type-NM_VPN_PLUGIN_FAILURE" id="type-NM_VPN_PLUGIN_FAILURE">NM_VPN_PLUGIN_FAILURE</a></h3><dl><dt><code>NM_VPN_PLUGIN_FAILURE_LOGIN_FAILED = 0</code></dt><dd>
+      </dd></dl><h2>Enumerated types:</h2><h3><a name="type-NM_VPN_SERVICE_STATE" id="type-NM_VPN_SERVICE_STATE">NM_VPN_SERVICE_STATE</a></h3><dl><dt><code>NM_VPN_SERVICE_STATE_UNKNOWN = 0</code></dt><dd>
+          The state of the VPN plugin is unknown.
+        </dd><dt><code>NM_VPN_SERVICE_STATE_INIT = 1</code></dt><dd>
+          The VPN plugin is initialized.
+        </dd><dt><code>NM_VPN_SERVICE_STATE_SHUTDOWN = 2</code></dt><dd>
+          (Not used.)
+        </dd><dt><code>NM_VPN_SERVICE_STATE_STARTING = 3</code></dt><dd>
+          The plugin is attempting to connect to a VPN server.
+        </dd><dt><code>NM_VPN_SERVICE_STATE_STARTED = 4</code></dt><dd>
+          The plugin has connected to a VPN server.
+        </dd><dt><code>NM_VPN_SERVICE_STATE_STOPPING = 5</code></dt><dd>
+          The plugin is disconnecting from the VPN server.
+        </dd><dt><code>NM_VPN_SERVICE_STATE_STOPPED = 6</code></dt><dd>
+          The plugin has disconnected from the VPN server.
+        </dd></dl><h3><a name="type-NM_VPN_PLUGIN_FAILURE" id="type-NM_VPN_PLUGIN_FAILURE">NM_VPN_PLUGIN_FAILURE</a></h3><dl><dt><code>NM_VPN_PLUGIN_FAILURE_LOGIN_FAILED = 0</code></dt><dd>
           Login failed.
         </dd><dt><code>NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED = 1</code></dt><dd>
           Connect failed.
@@ -2295,6 +2378,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</
     - u</li><li><code><a href="#type-NM_VPN_CONNECTION_STATE">NM_VPN_CONNECTION_STATE</a></code>
     - u</li><li><code><a href="#type-NM_VPN_CONNECTION_STATE_REASON">NM_VPN_CONNECTION_STATE_REASON</a></code>
     - u</li><li><code><a href="#type-NM_VPN_PLUGIN_FAILURE">NM_VPN_PLUGIN_FAILURE</a></code>
+    - u</li><li><code><a href="#type-NM_VPN_SERVICE_STATE">NM_VPN_SERVICE_STATE</a></code>
     - u</li><li><code><a href="#type-NM_WIMAX_NSP_NETWORK_TYPE">NM_WIMAX_NSP_NETWORK_TYPE</a></code>
     - u</li><li><code><a href="#type-String_String_Map">String_String_Map</a></code>
     - a{ s &#8594; s }

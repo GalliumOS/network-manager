@@ -1,0 +1,26 @@
+From e0e043ef3918de54f8d19a3af07d3367962970e5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ji=C5=99=C3=AD=20Klime=C5=A1?= <jklimes@redhat.com>
+Date: Thu, 22 Oct 2015 10:17:20 +0200
+Subject: wifi: do no crash when getting BSSID fails
+
+https://bodhi.fedoraproject.org/updates/NetworkManager-1.0.6-7.fc23#comment-342089
+
+(cherry picked from commit e9bc18d2a7befb032052555ffba22bc72c9b8c2f)
+
+Index: network-manager-1.0.4/src/devices/wifi/nm-device-wifi.c
+===================================================================
+--- network-manager-1.0.4.orig/src/devices/wifi/nm-device-wifi.c
++++ network-manager-1.0.4/src/devices/wifi/nm-device-wifi.c
+@@ -1628,7 +1628,11 @@ try_fill_ssid_for_hidden_ap (NMAccessPoi
+ 	g_return_if_fail (nm_ap_get_ssid (ap) == NULL);
+ 
+ 	bssid = nm_ap_get_address (ap);
+-	g_assert (bssid);
++	if (!bssid) {
++		nm_log_dbg (LOGD_WIFI, "failed to get BSSID for hidden AP %s",
++		            str_if_set (nm_ap_get_supplicant_path (ap), "(none)"));
++		return;
++	}
+ 
+ 	/* Look for this AP's BSSID in the seen-bssids list of a connection,
+ 	 * and if a match is found, copy over the SSID */

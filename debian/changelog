@@ -1,11 +1,273 @@
-network-manager (0.9.10.0-4ubuntu15.3-galliumos1) vivid; urgency=medium
+network-manager (1.0.4-0ubuntu10) xenial; urgency=medium
 
-  * Removed default_powersave_on.patch
-  * Added increase_scan_frequency.patch
+  * No-change rebuild for gnutls transition.
 
- -- Hugh Greenberg <hugh@galliumos.org>  Fri, 15 Jan 2015 10:10:50 -0400
+ -- Matthias Klose <doko@ubuntu.com>  Wed, 17 Feb 2016 22:41:28 +0000
 
-network-manager (0.9.10.0-4ubuntu15.3) vivid; urgency=medium
+network-manager (1.0.4-0ubuntu9) xenial; urgency=medium
+
+  * debian/patches/git_fix_broken_ssid_01.patch,
+    debian/patches/git_fix_broken_ssid_02.patch:
+    - Fix broken ssid making network-manager segfault on some network
+      (LP: #1540153)
+
+ -- Didier Roche <didrocks@ubuntu.com>  Mon, 01 Feb 2016 18:17:45 +0000
+
+network-manager (1.0.4-0ubuntu8) xenial; urgency=medium
+
+  * Fix NetworkManager-wait-online.service so it is enabled so NFS
+    and other remote FS work with name resolution. (LP: #1515446)
+
+ -- Bryan Quigley <bryan.quigley@canonical.com>  Thu, 28 Jan 2016 10:45:31 +0100
+
+network-manager (1.0.4-0ubuntu7) xenial; urgency=medium
+
+  * debian/patches/lp1499827_device_avoid_undefined_mtu_c44069c1.patch
+    Cherry-pick commit c44069c1 from upstream: avoid changing the MTU if it's
+    undefined in NM code. (LP: #1499827)
+  * debian/patches/lp1499827_dont_change_unset_mtu_a92d8b0c.patch:
+    Cherry pick upstream commit a92d8b0c: don't change the MTU if we have a
+    value of 0 for it; it means "default", not "0 size packets". (LP: #1499827)
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Tue, 24 Nov 2015 16:13:37 -0500
+
+network-manager (1.0.4-0ubuntu6) xenial; urgency=medium
+
+  * debian/patches/git_fix_race_external_down_e29ab543.patch: fix race in
+    wrongly managing devices due to receiving udev signals late. (LP: #1512749)
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Tue, 03 Nov 2015 14:39:12 -0600
+
+network-manager (1.0.4-0ubuntu5) wily; urgency=medium
+
+  * debian/patches/git_set_vpn_mtu_9736327b.patch: set the MTU for the VPN
+    interface. (LP: #1498474) 
+  * debian/patches/lp1446689_git_use_kernel_pppoe_6fdfb031.patch: use the
+    kernel-provided pppoe interfaces rather than requiring the use of rp-pppoe
+    to use PPPoE; we switched to rp-pppoe some time ago to workaround a bug in
+    detecting disconnects which has seen been fixed and could be worked around
+    fairly simply with the right configuration. (LP: #1446689)
+  * debian/rules: don't pass --with-pppoe to configure; the option is removed
+    by the above patch.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Wed, 14 Oct 2015 12:33:53 -0400
+
+network-manager (1.0.4-0ubuntu4) wily; urgency=medium
+
+  [ Mathieu Trudel-Lapierre ]
+  * d/p/0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch:
+    Pre-initialize reason for ofono state changes to NULL; this avoids getting
+    to nm_device_set_state with an invalid reason string. (LP: #1499906)
+  * d/p/0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch:
+    cleanup ip_string_to_network_address() to work as its NMModemBroadband
+    version, and start setting NM_MODEM_IP4_METHOD to _STATIC so IP, prefix,
+    gateway and DNS get properly applied on an oFono modem as it comes up.
+  * debian/NetworkManager.conf: re-enable the ofono plugin (fixes a regression).
+  * debian/patches/add_ofono_settings_support.patch: don't link against
+    libnm-glib as this would cause type duplication and crashes. (LP: #1499904)
+  * debian/patches/lp1496434_warn_on_invalid_new_link.patch: don't outright
+    crash by dereferencing a NULL pointer if a device can't get created by its
+    NMDeviceFactory; we should warn though, as we want to know about these
+    failures; but no need to make all of NM sad. (LP: #1496434)
+
+  [ Tony Espy ]
+  * d/p/0002-wifi-cull-the-scan-list-before-signalling-ScanDone-b.patch:
+    Fix duplicate 'LastSeen' PropertiesChanged signals being generated
+    after every scan. The 'Last-Seen' property is now only updated when
+    a scan finishes, and schedule_scanlist_cull is no longer triggered
+    new_bss_cb or updated_bss_cb. (LP: #1480877)
+  * d/p/add_ofono_settings_support.patch: Fix memory leaks in plugin.
+  * d/p/add_ofono_settings_support.patch: Remove unused plugin DBus code.
+  * d/p/CVE-2015-1322.patch: Drop CVE which applied to removed DBus code
+    in ofono settings plugin.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Sat, 26 Sep 2015 00:02:02 -0400
+
+network-manager (1.0.4-0ubuntu3) wily; urgency=medium
+
+  * New upstream NM release post-feature-freeze. (LP: #1493934)
+    (previous revisions never transitioned from proposed)
+
+  [ Martin Pitt ]
+  * debian/tests/nm: Revert the previous disabling of tests, they are all
+    conceptually still valid.
+  * debian/tests/nm: Reduce timeouts to something reasonable; waiting 3
+    minutes for detecing an AP should not count as "success", and it takes too
+    long for tests to fail.
+  * debian/tests/nm: Fix ColdplugWifi.test_no_ap: with 1.0 the state is now
+    "UNAVAILABLE" instead of "DISCONNECTED"; so check for either.
+
+  [ Mathieu Trudel-Lapierre ]
+  * debian/patches/git_config_parse_cmdline_args_8a22a981.patch: don't shadow
+    the config_cli parameter for early config with a local copy. (LP: #1492168)
+  * d/p/0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch: fix
+    signal handling for oFono using GDBus; it's a little simpler now, watching
+    for signals in general and matching only ModemAdded/ModemRemoved. Inspired
+    from urfkill code. (LP: #1492126)
+  * debian/patches/git_fix_duplicate_unittest_names_7b70a840.patch: replace
+    duplicate unit test names, which is a new restriction set by GLib.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Thu, 10 Sep 2015 14:53:16 -0400
+
+network-manager (1.0.4-0ubuntu2) wily; urgency=medium
+
+  * debian/patches/only-ignore-host-side-veth.patch: remove unused patch; NM
+    doesn't automatically try to manage any side of veth devices anymore.
+  * debian/patches/disable_general_with_expect_test.patch: disable
+    test_general_with_expect; which is flaky on ppc64el and arm64.
+  * debian/tests/nm:
+    - Enable mucho logging when running tests, this helps a lot debugging when
+      the tests fail.
+    - Skip wifi tests for now; they appear to be broken, possibly due to
+      changes in wpa 2.4's interaction with mac80211_hwsim.
+    - test_manual_ip4 is an expectedFailure. It's not manual at all; and the
+      DHCP requests fail to complete.
+    - auto_detect_eth is an expectedFailure, both ends of the veth interfaces
+      are now unmanaged which causes the tests to fail. These tests will need
+      to be rewritten/adapted to the way the world really works.
+    - Allow for more than one activeConnection available; this is slightly
+      more solid when running tests locally in case other connections come up
+      automatically along with the tested ones (bridges, etc.)
+    - Check for expected connection UUID in the list of active connections
+      UUIDs rather than verifying that the two match exactly.
+  * debian/patches/series: clean up; remove some old commented-out patches.
+  * debian/patches: removed a bunch of old patch cruft.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Fri, 28 Aug 2015 15:28:24 -0400
+
+network-manager (1.0.4-0ubuntu1) wily; urgency=medium
+
+  * New upstream release.
+  * Patches removed because applied upstream:
+    - 0006-tui-fix-Wi-Fi-section-of-nmtui-connect-list-in-non-U.patch
+    - 0007-core-fix-checks-for-default-routes-by-comparing-the-.patch
+    - 0009-Support-building-against-libsystemd-library.patch
+    - 0010-tui-fix-requesting-and-displaying-secrets.patch
+    - 0011-tui-fix-updating-of-NmtPasswordFields-passwords-bgo-.patch
+    - 0012-fix-arping-path.patch
+    - 0013-fix-dhclient-abnormal-exit-due-to-SIGPIPE.patch
+    - 0014-log-DHCLIENT-exit-status-better.patch
+    - fix_default_routes.patch
+    - git_assert_test-remote-settings-client_746a13bd.patch
+    - git_fix_crash_test-remote-settings-client_98e7145f.patch
+    - git_fix_nmcli_multiple_wifi.patch
+    - git_ignore_cache_routes_faa7d8ab.patch
+    - git_primary_connection_type_aab7fbfc.patch
+  * Refreshed all patches.
+  * debian/patches/conditional_libteam_tests.patch: make team device tests as
+    conditional to libteam being available as the support for the devices.
+  * Resynchronise with Debian; remaining changes:
+    - debian/control: Updated Vcs tags; enabled autopkgtests.
+    - debian/control: Build-Depends on libgnutls-dev and libgcrypt20-dev.
+    - debian/control: reshuffle Depends for network-manager due to main
+      inclusion requirements, and add Breaks for old versions of plugins.
+    - debian/control: network-manager Conflicts with connman.
+    - debian/control: update network-manager Description since we don't ship
+      with team support yet, and dnsmasq-base isn't optional.
+    - debian/ifblacklist_migrate.sh: update to better handle interfaces stanza.
+    - debian/libnm*-dev.install: ship vala bindings.
+    - debian/NetworkManager.conf: enable the ofono plugin and dnsmasq use as a
+      local DNS cache.
+    - debian/network-manager.dirs: add /etc/NetworkManager/dnsmasq.d.
+    - debian/network-manager.install: add files for the ofono plugin.
+    - debian/network-manager.install: add Apport hook.
+    - debian/network-manager.links: link....
+    - debian/network-manager.postinst: Don't need to migrate from sysvinit,
+      just keep removing the sysvinit script symlinks.
+    - debian/network-manager.postinst: Don't add the netdev group.
+    - debian/network-manager.postinst: Notify the user a reboot may be
+      required after upgrade.
+    - debian/network-manager.upstart: ship an upstart job for NM.
+    - debian/rules: configure: disable libteam.
+    - debian/rules: configure: enable building vala bindings.
+    - debian/rules: configure: enable running tests during the build.
+    - debian/rules: don't install sysvinit scripts.
+    - debian/rules: copy over dnsmasq configuration files.
+    - debian/rules: don't restart NetworkManager on upgrade.
+    - debian/rules: run NM's unit tests in dh_auto_test via dbus-test-runner.
+    - debian/source_network-manager.py: ship an Apport hook.
+    - debian/tests: Ship autopkgtests for automated functional testing.
+  * debian/NetworkManager.conf: temporarily disable the ofono plugin, it needs
+    more porting (and possibly some g_type_ensure hack).
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Thu, 20 Aug 2015 16:18:32 +0200
+
+network-manager (0.9.10.0-4ubuntu23) wily; urgency=medium
+
+  [ Tony Espy ]
+  * d/p/lp1444162-add-ip6-config-to-nm-ofono-connections.patch: disable
+    IPv6 for ofono connections (LP: #1444162).
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Wed, 12 Aug 2015 15:45:38 -0400
+
+network-manager (0.9.10.0-4ubuntu22) wily; urgency=medium
+
+  [ Tony Espy ]
+  * d/p/lp1425172-fix-wifi-scanlist-cull.patch:  fix cull_scan_list
+    so that APs are removed when wpa_supplicant indicates that they've
+    been removed vs. waiting 6m to do so ( LP: #1425172 ).
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Wed, 11 Aug 2015 13:34:51 -0400
+
+network-manager (0.9.10.0-4ubuntu21) wily; urgency=medium
+
+  * debian/control:
+    - Switch build depends from transitional libgnutsl28-dev to libgnutls-dev
+
+ -- Robert Ancell <robert.ancell@canonical.com>  Tue, 11 Aug 2015 11:39:10 +1200
+
+network-manager (0.9.10.0-4ubuntu20) wily; urgency=medium
+
+  * debian/control:
+    - Switch build-depends from transitional libgcrypt11-dev to libgcrypt20-dev
+
+ -- Robert Ancell <robert.ancell@canonical.com>  Fri, 07 Aug 2015 13:04:35 +1200
+
+network-manager (0.9.10.0-4ubuntu19) wily; urgency=medium
+
+  [ Tony Espy ]
+  * debian/patches/add_ofono_settings_support.patch: remove code
+    that added APN, USERNAME and PASSWORD to NM_SETTING_GSM object.
+    NM doesn't actually need access to these settings, and USERNAME/
+    PASSWORD can cause issues with NM's secrets needed logic.
+  * debian/patches/0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch,
+    debian/patches/lp1461593-add-nm-settings-connection-reset-retries-methods.patch,
+    debian/patches/add_ofono_settings_support.patch,
+    debian/patches/lp1461593-add-modem-reconnect-delay-to-policy.patch: More changes
+    to NMModemOfono's modem_state handling.  Added get/set_reset_retries_timeout
+    methods to NMSettingsConnection, and use the set method to lower the timeout for
+    ofono connections to 30s.  Finally added a 5s delay to NM_POLICY's activation
+    logic triggered when a modem device is disconnected.  This allows modem time to
+    settle and NM to process the resulting DBus state changes. (LP: #1461593)
+  * debian/patches/0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch,
+    debian/patches/lp1445080-modify-device-modem-avail.patch,
+    debian/patches/lp1445080-nm-modem-check-for-set-mm-enabled-func.patch,
+    debian/patches/lp1461593-add-modem-reconnect-delay-to-policy.patch: These
+    changes collectively fix flight-mode on arale ( and other devices ), due to
+    some fundemental race conditions in the ofono logic. (LP: #1445080, #1440917)
+  * debian/patches/0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch,
+    debian/patches/add_ofono_settings_support.patch: Add support for the ofono
+    gprs-context 'Preferred' property. (LP: #1361864)
+
+  [ Mathieu Trudel-Lapierre ]
+  * d/p/0002-wifi-cull-the-scan-list-before-signalling-ScanDone-b.patch:
+    Re-add schedule_scan() call after we get the ScanDone signal from the
+    supplicant. Otherwise we'd do one scan on startup and never scan again.
+    (LP: #1445134)
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Wed, 05 Aug 2015 12:17:28 -0400
+
+network-manager (0.9.10.0-4ubuntu18) wily; urgency=medium
+
+  * debian/tests/nm, debian/tests/wpa-dhclient: 802.11a appears to no longer
+    have any supported channels for AP mode: mark all four 802.11a tests as
+    expectedFailures while I dig into hostapd/mac80211_hwsim to get them to
+    work again. Expected failure means we'll be notified as soon as they start
+    to succeed again.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Tue, 14 Jul 2015 18:11:58 -0400
+
+network-manager (0.9.10.0-4ubuntu17) wily; urgency=medium
 
   * debian/patches/git_route_fixes_part1_207ab013.patch,
     debian/patches/git_route_fixes_part2_529591d8.patch,
@@ -14,15 +276,15 @@ network-manager (0.9.10.0-4ubuntu15.3) vivid; urgency=medium
     to be installed with a device-type-based priority so that we can get
     multiple routes installed without conficting. (LP: #1436330)
 
- -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Tue, 15 Sep 2015 10:10:50 -0400
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Tue, 30 Jun 2015 15:00:26 -0400
 
-network-manager (0.9.10.0-4ubuntu15.2) vivid; urgency=medium
+network-manager (0.9.10.0-4ubuntu16) wily; urgency=medium
 
   * debian/patches/fix_default_routes.patch: rework routing priorities and how
     default routes are added for devices and VPNs so that we can successfully
     run multiple devices on the same subnet without packet loss. (LP: #1436330)
 
- -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Wed, 29 Apr 2015 14:44:54 -0400
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Fri, 08 May 2015 17:23:28 -0400
 
 network-manager (0.9.10.0-4ubuntu15.1) vivid-security; urgency=medium
 

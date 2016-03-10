@@ -18,13 +18,12 @@
  * Copyright (C) 2008 - 2012 Red Hat, Inc.
  */
 
-#ifndef NM_ACTIVE_CONNECTION_H
-#define NM_ACTIVE_CONNECTION_H
+#ifndef __NETWORKMANAGER_ACTIVE_CONNECTION_H__
+#define __NETWORKMANAGER_ACTIVE_CONNECTION_H__
 
 #include <glib-object.h>
 #include "nm-types.h"
 #include "nm-connection.h"
-#include "nm-auth-subject.h"
 
 #define NM_TYPE_ACTIVE_CONNECTION            (nm_active_connection_get_type ())
 #define NM_ACTIVE_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_ACTIVE_CONNECTION, NMActiveConnection))
@@ -57,9 +56,12 @@
 #define NM_ACTIVE_CONNECTION_INT_MASTER         "int-master"
 #define NM_ACTIVE_CONNECTION_INT_MASTER_READY   "int-master-ready"
 
-typedef struct {
+/* Internal signals*/
+#define NM_ACTIVE_CONNECTION_DEVICE_CHANGED     "device-changed"
+
+struct _NMActiveConnection {
 	GObject parent;
-} NMActiveConnection;
+};
 
 typedef struct {
 	GObjectClass parent;
@@ -72,6 +74,10 @@ typedef struct {
 	                              NMDeviceState new_state,
 	                              NMDeviceState old_state);
 	void (*master_failed)  (NMActiveConnection *connection);
+
+	void (*device_changed) (NMActiveConnection *connection,
+	                        NMDevice *new_device,
+	                        NMDevice *old_device);
 } NMActiveConnectionClass;
 
 GType         nm_active_connection_get_type (void);
@@ -142,4 +148,4 @@ void          nm_active_connection_set_assumed (NMActiveConnection *self,
 
 gboolean      nm_active_connection_get_assumed (NMActiveConnection *self);
 
-#endif /* NM_ACTIVE_CONNECTION_H */
+#endif /* __NETWORKMANAGER_ACTIVE_CONNECTION_H__ */
