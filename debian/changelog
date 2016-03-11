@@ -2,7 +2,7 @@ network-manager (1.0.4-0ubuntu10-galliumos1) xenial; urgency=medium
 
   * Removed default powersave patch
 
- -- Hugh Greenberg <hugh@galliumos.org> Wed, 9 Mar 2016 22:41:28 +0000
+ -- Hugh Greenberg <hugh@galliumos.org>  Wed, 9 Mar 2016 22:41:28 +0000
 
 network-manager (1.0.4-0ubuntu10) xenial; urgency=medium
 
