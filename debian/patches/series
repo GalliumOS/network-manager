@@ -27,7 +27,9 @@ adhoc_use_wpa_rsn_part2.patch
 wifi-Signal-on-the-wifi-device-when-its-supplicant-i.patch
 
 # wifi powersave
-default_powersave_on.patch
+#disabled for GalliumOS -- suspected of causing slow speeds and packet loss.
+#powersave should be handled by the kernel module and shouldn't be forced.
+#default_powersave_on.patch
 
 # touch-specific
 ignore_rild_modem_devices.patch
@@ -44,3 +46,6 @@ ignore_rfkill_if_urfkill_is_present.patch
 # more fixes
 conditional_libteam_tests.patch
 disable_general_with_expect_test.patch
+
+## galliumos patches
+galliumos-increase_scan_frequency.diff
