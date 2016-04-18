@@ -145,6 +145,8 @@ gboolean      nm_connection_diff          (NMConnection *a,
                                            GHashTable **out_settings);
 
 gboolean      nm_connection_verify        (NMConnection *connection, GError **error);
+NM_AVAILABLE_IN_1_2
+gboolean      nm_connection_verify_secrets (NMConnection *connection, GError **error);
 gboolean      nm_connection_normalize     (NMConnection *connection,
                                            GHashTable *parameters,
                                            gboolean *modified,
@@ -200,12 +202,17 @@ NMSettingDcb *             nm_connection_get_setting_dcb               (NMConnec
 NMSettingGeneric *         nm_connection_get_setting_generic           (NMConnection *connection);
 NMSettingGsm *             nm_connection_get_setting_gsm               (NMConnection *connection);
 NMSettingInfiniband *      nm_connection_get_setting_infiniband        (NMConnection *connection);
+NM_AVAILABLE_IN_1_2
+NMSettingIPTunnel *        nm_connection_get_setting_ip_tunnel         (NMConnection *connection);
 NMSettingIPConfig *        nm_connection_get_setting_ip4_config        (NMConnection *connection);
 NMSettingIPConfig *        nm_connection_get_setting_ip6_config        (NMConnection *connection);
+NM_AVAILABLE_IN_1_2
+NMSettingMacvlan *         nm_connection_get_setting_macvlan           (NMConnection *connection);
 NMSettingOlpcMesh *        nm_connection_get_setting_olpc_mesh         (NMConnection *connection);
 NMSettingPpp *             nm_connection_get_setting_ppp               (NMConnection *connection);
 NMSettingPppoe *           nm_connection_get_setting_pppoe             (NMConnection *connection);
 NMSettingSerial *          nm_connection_get_setting_serial            (NMConnection *connection);
+NMSettingTun *             nm_connection_get_setting_tun               (NMConnection *connection);
 NMSettingVpn *             nm_connection_get_setting_vpn               (NMConnection *connection);
 NMSettingWimax *           nm_connection_get_setting_wimax             (NMConnection *connection);
 NMSettingAdsl *            nm_connection_get_setting_adsl              (NMConnection *connection);
@@ -213,6 +220,8 @@ NMSettingWired *           nm_connection_get_setting_wired             (NMConnec
 NMSettingWireless *        nm_connection_get_setting_wireless          (NMConnection *connection);
 NMSettingWirelessSecurity *nm_connection_get_setting_wireless_security (NMConnection *connection);
 NMSettingVlan *            nm_connection_get_setting_vlan              (NMConnection *connection);
+NM_AVAILABLE_IN_1_2
+NMSettingVxlan *           nm_connection_get_setting_vxlan             (NMConnection *connection);
 
 G_END_DECLS
 

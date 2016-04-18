@@ -7,7 +7,7 @@
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingVlan.html" title="NMSettingVlan">
-<link rel="next" href="NMSettingWimax.html" title="NMSettingWimax">
+<link rel="next" href="NMSettingVxlan.html" title="NMSettingVxlan">
 <meta name="generator" content="GTK-Doc V1.24 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -22,7 +22,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="NMSettingVlan.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="NMSettingWimax.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="NMSettingVxlan.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NMSettingVpn"></a><div class="titlepage"></div>
@@ -157,6 +157,14 @@
 <a class="link" href="NMSettingVpn.html#nm-setting-vpn-foreach-secret" title="nm_setting_vpn_foreach_secret ()">nm_setting_vpn_foreach_secret</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint32</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingVpn.html#nm-setting-vpn-get-timeout" title="nm_setting_vpn_get_timeout ()">nm_setting_vpn_get_timeout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -190,6 +198,11 @@
 <td class="property_type">
 <span class="type">gchar</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--service-type" title="The “service-type” property">service-type</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--timeout" title="The “timeout” property">timeout</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
@@ -233,6 +246,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingVpn.html#NM-SETTING-VPN-SECRETS:CAPS" title="NM_SETTING_VPN_SECRETS">NM_SETTING_VPN_SECRETS</a></td>
 </tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingVpn.html#NM-SETTING-VPN-TIMEOUT:CAPS" title="NM_SETTING_VPN_TIMEOUT">NM_SETTING_VPN_TIMEOUT</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -262,7 +279,7 @@ properties.</p>
                   <em class="parameter"><code>const <span class="type">char</span> *value</code></em>,
                   <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.27.8.2.4"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.2.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -297,7 +314,7 @@ properties.</p>
 nm_setting_vpn_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.3.5"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.3.5"></a><h4>Returns</h4>
 <p> the new empty <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -310,7 +327,7 @@ nm_setting_vpn_get_service_type (<em class="parameter"><code><a class="link" hre
 <p>Returns the service name of the VPN, which identifies the specific VPN
 plugin that should be used to connect to this VPN.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -325,7 +342,7 @@ plugin that should be used to connect to this VPN.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.4.6"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.4.6"></a><h4>Returns</h4>
 <p> the VPN plugin's service name</p>
 </div>
 </div>
@@ -335,7 +352,7 @@ plugin that should be used to connect to this VPN.</p>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_vpn_get_user_name (<em class="parameter"><code><a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.27.8.5.4"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.5.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -350,7 +367,7 @@ nm_setting_vpn_get_user_name (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.5.5"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.5.5"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingVpn.html#NMSettingVpn--user-name" title="The “user-name” property"><span class="type">“user-name”</span></a> property of the setting</p>
 </div>
 </div>
@@ -360,7 +377,7 @@ nm_setting_vpn_get_user_name (<em class="parameter"><code><a class="link" href="
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_setting_vpn_get_persistent (<em class="parameter"><code><a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.27.8.6.4"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.6.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -375,7 +392,7 @@ nm_setting_vpn_get_persistent (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.6.5"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.6.5"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingVpn.html#NMSettingVpn--persistent" title="The “persistent” property"><span class="type">“persistent”</span></a> property of the setting</p>
 </div>
 </div>
@@ -386,7 +403,7 @@ nm_setting_vpn_get_persistent (<em class="parameter"><code><a class="link" href=
 nm_setting_vpn_get_num_data_items (<em class="parameter"><code><a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> *setting</code></em>);</pre>
 <p>Gets number of key/value pairs of VPN configuration data.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.7.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.7.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -401,7 +418,7 @@ nm_setting_vpn_get_num_data_items (<em class="parameter"><code><a class="link" h
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.7.6"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.7.6"></a><h4>Returns</h4>
 <p> the number of VPN plugin specific configuration data items</p>
 </div>
 </div>
@@ -418,7 +435,7 @@ nm_setting_vpn_add_data_item (<em class="parameter"><code><a class="link" href="
 setting which may be retrieved later.  Should not be used to store passwords
 or other secrets, which is what <a class="link" href="NMSettingVpn.html#nm-setting-vpn-add-secret" title="nm_setting_vpn_add_secret ()"><code class="function">nm_setting_vpn_add_secret()</code></a> is for.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.8.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.8.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -456,7 +473,7 @@ nm_setting_vpn_get_data_item (<em class="parameter"><code><a class="link" href="
 <p>Retrieves the data item of a key/value relationship previously established
 by <a class="link" href="NMSettingVpn.html#nm-setting-vpn-add-data-item" title="nm_setting_vpn_add_data_item ()"><code class="function">nm_setting_vpn_add_data_item()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.9.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.9.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -478,7 +495,7 @@ by <a class="link" href="NMSettingVpn.html#nm-setting-vpn-add-data-item" title="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.9.6"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.9.6"></a><h4>Returns</h4>
 <p> the data item, if any</p>
 </div>
 </div>
@@ -491,7 +508,7 @@ nm_setting_vpn_remove_data_item (<em class="parameter"><code><a class="link" hre
 <p>Deletes a key/value relationship previously established by
 <a class="link" href="NMSettingVpn.html#nm-setting-vpn-add-data-item" title="nm_setting_vpn_add_data_item ()"><code class="function">nm_setting_vpn_add_data_item()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.10.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.10.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -513,7 +530,7 @@ nm_setting_vpn_remove_data_item (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.10.6"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.10.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the data item was found and removed from the internal list,
 <code class="literal">FALSE</code> if it was not.</p>
 </div>
@@ -530,7 +547,7 @@ and modify data items inside <em class="parameter"><code>func</code></em>
 , though any additions or removals made
 during iteration will not be part of the iteration.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.11.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.11.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -565,7 +582,7 @@ during iteration will not be part of the iteration.</p>
 nm_setting_vpn_get_num_secrets (<em class="parameter"><code><a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> *setting</code></em>);</pre>
 <p>Gets number of VPN plugin specific secrets in the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.12.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.12.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -580,7 +597,7 @@ nm_setting_vpn_get_num_secrets (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.12.6"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.12.6"></a><h4>Returns</h4>
 <p> the number of VPN plugin specific secrets</p>
 </div>
 </div>
@@ -596,7 +613,7 @@ nm_setting_vpn_add_secret (<em class="parameter"><code><a class="link" href="NMS
  internally in the
 setting which may be retrieved later.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.13.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.13.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -634,7 +651,7 @@ nm_setting_vpn_get_secret (<em class="parameter"><code><a class="link" href="NMS
 <p>Retrieves the secret of a key/value relationship previously established
 by <a class="link" href="NMSettingVpn.html#nm-setting-vpn-add-secret" title="nm_setting_vpn_add_secret ()"><code class="function">nm_setting_vpn_add_secret()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.14.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.14.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -656,7 +673,7 @@ by <a class="link" href="NMSettingVpn.html#nm-setting-vpn-add-secret" title="nm_
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.14.6"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.14.6"></a><h4>Returns</h4>
 <p> the secret, if any</p>
 </div>
 </div>
@@ -669,7 +686,7 @@ nm_setting_vpn_remove_secret (<em class="parameter"><code><a class="link" href="
 <p>Deletes a key/value relationship previously established by
 <a class="link" href="NMSettingVpn.html#nm-setting-vpn-add-secret" title="nm_setting_vpn_add_secret ()"><code class="function">nm_setting_vpn_add_secret()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.15.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.15.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -691,7 +708,7 @@ nm_setting_vpn_remove_secret (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.27.8.15.6"></a><h4>Returns</h4>
+<a name="id-1.4.30.8.15.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the secret was found and removed from the internal list,
 <code class="literal">FALSE</code> if it was not.</p>
 </div>
@@ -708,7 +725,7 @@ and modify secrets inside <em class="parameter"><code>func</code></em>
 , though any additions or removals made during
 iteration will not be part of the iteration.</p>
 <div class="refsect3">
-<a name="id-1.4.27.8.16.5"></a><h4>Parameters</h4>
+<a name="id-1.4.30.8.16.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -735,6 +752,32 @@ iteration will not be part of the iteration.</p>
 </tbody>
 </table></div>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-vpn-get-timeout"></a><h3>nm_setting_vpn_get_timeout ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
+nm_setting_vpn_get_timeout (<em class="parameter"><code><a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.4.30.8.17.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.30.8.17.5"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSettingVpn.html#NMSettingVpn--timeout" title="The “timeout” property"><span class="type">“timeout”</span></a> property of the setting</p>
+</div>
+<p class="since">Since: 1.2</p>
 </div>
 </div>
 <div class="refsect1">
@@ -772,6 +815,12 @@ iteration will not be part of the iteration.</p>
 <div class="refsect2">
 <a name="NM-SETTING-VPN-SECRETS:CAPS"></a><h3>NM_SETTING_VPN_SECRETS</h3>
 <pre class="programlisting">#define NM_SETTING_VPN_SECRETS      "secrets"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-VPN-TIMEOUT:CAPS"></a><h3>NM_SETTING_VPN_TIMEOUT</h3>
+<pre class="programlisting">#define NM_SETTING_VPN_TIMEOUT      "timeout"
 </pre>
 </div>
 </div>
@@ -813,6 +862,19 @@ its network.  i.e. org.freedesktop.NetworkManager.vpnc for the vpnc
 plugin.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingVpn--timeout"></a><h3>The <code class="literal">“timeout”</code> property</h3>
+<pre class="programlisting">  “timeout”                  <span class="type">guint</span></pre>
+<p>Timeout for the VPN service to establish the connection. Some services
+may take quite a long time to connect.
+Value of 0 means a default timeout, which is 60 seconds (unless overriden
+by vpn.timeout in configuration file). Values greater than zero mean
+timeout in seconds.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">

@@ -14,13 +14,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2010 - 2014 Red Hat, Inc.
+ * Copyright 2010 - 2015 Red Hat, Inc.
  */
 
 #ifndef NMC_NMCLI_H
 #define NMC_NMCLI_H
-
-#include "config.h"
 
 #include <NetworkManager.h>
 #include <nm-secret-agent-old.h>
@@ -69,6 +67,28 @@ typedef enum {
 } NMCResultCode;
 
 typedef enum {
+	NMC_TERM_COLOR_NORMAL  = 0,
+	NMC_TERM_COLOR_BLACK   = 1,
+	NMC_TERM_COLOR_RED     = 2,
+	NMC_TERM_COLOR_GREEN   = 3,
+	NMC_TERM_COLOR_YELLOW  = 4,
+	NMC_TERM_COLOR_BLUE    = 5,
+	NMC_TERM_COLOR_MAGENTA = 6,
+	NMC_TERM_COLOR_CYAN    = 7,
+	NMC_TERM_COLOR_WHITE   = 8
+} NmcTermColor;
+
+typedef enum {
+	NMC_TERM_FORMAT_NORMAL,
+	NMC_TERM_FORMAT_BOLD,
+	NMC_TERM_FORMAT_DIM,
+	NMC_TERM_FORMAT_UNDERLINE,
+	NMC_TERM_FORMAT_BLINK,
+	NMC_TERM_FORMAT_REVERSE,
+	NMC_TERM_FORMAT_HIDDEN,
+} NmcTermFormat;
+
+typedef enum {
 	NMC_PRINT_TERSE = 0,
 	NMC_PRINT_NORMAL = 1,
 	NMC_PRINT_PRETTY = 2
@@ -90,6 +110,8 @@ typedef struct _NmcOutputField {
 	gboolean value_is_array;        /* Whether value is char** instead of char* */
 	gboolean free_value;            /* Whether to free the value */
 	guint32 flags;                  /* Flags - whether and how to print values/field names/headers */
+	NmcTermColor color;             /* Use this color to print value */
+	NmcTermFormat color_fmt;        /* Use this terminal format to print value */
 } NmcOutputField;
 
 typedef struct {
@@ -99,16 +121,10 @@ typedef struct {
 } NmcPrintFields;
 
 typedef enum {
-	NMC_TERM_COLOR_NORMAL  = 0,
-	NMC_TERM_COLOR_BLACK   = 1,
-	NMC_TERM_COLOR_RED     = 2,
-	NMC_TERM_COLOR_GREEN   = 3,
-	NMC_TERM_COLOR_YELLOW  = 4,
-	NMC_TERM_COLOR_BLUE    = 5,
-	NMC_TERM_COLOR_MAGENTA = 6,
-	NMC_TERM_COLOR_CYAN    = 7,
-	NMC_TERM_COLOR_WHITE   = 8
-} NmcTermColor;
+	NMC_USE_COLOR_AUTO,
+	NMC_USE_COLOR_YES,
+	NMC_USE_COLOR_NO,
+} NmcColorOption;
 
 /* NmCli - main structure */
 typedef struct _NmCli {
@@ -126,17 +142,19 @@ typedef struct _NmCli {
 	GHashTable *pwds_hash;                            /* Hash table with passwords in passwd-file */
 	NMPolkitListener *pk_listener ;                   /* polkit agent listener */
 
-	gboolean should_wait;                             /* Indication that nmcli should not end yet */
+	int should_wait;                                  /* Semaphore indicating whether nmcli should not end or not yet */
 	gboolean nowait_flag;                             /* '--nowait' option; used for passing to callbacks */
 	NMCPrintOutput print_output;                      /* Output mode */
 	gboolean multiline_output;                        /* Multiline output instead of default tabular */
 	gboolean mode_specified;                          /* Whether tabular/multiline mode was specified via '--mode' option */
+	NmcColorOption use_colors;                        /* Whether to use colors for output: option '--color' */
 	gboolean escape_values;                           /* Whether to escape ':' and '\' in terse tabular mode */
 	char *required_fields;                            /* Required fields in output: '--fields' option */
 	GPtrArray *output_data;                           /* GPtrArray of arrays of NmcOutputField structs - accumulates data for output */
 	NmcPrintFields print_fields;                      /* Structure with field indices to print */
 	gboolean nocheck_ver;                             /* Don't check nmcli and NM versions: option '--nocheck' */
 	gboolean ask;                                     /* Ask for missing parameters: option '--ask' */
+	gboolean show_secrets;                            /* Whether to display secrets (both input and output): option '--show-secrets' */
 	gboolean in_editor;                               /* Whether running the editor - nmcli con edit' */
 	gboolean editor_status_line;                      /* Whether to display status line in connection editor */
 	gboolean editor_save_confirmation;                /* Whether to ask for confirmation on saving connections with 'autoconnect=yes' */

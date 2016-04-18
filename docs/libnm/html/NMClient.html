@@ -281,6 +281,13 @@
 </td>
 </tr>
 <tr>
+<td class="function_type">const <span class="returnvalue">GPtrArray</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-get-all-devices" title="nm_client_get_all_devices ()">nm_client_get_all_devices</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">
 <a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
 </td>
@@ -495,6 +502,12 @@
 <td class="property_flags">Read</td>
 </tr>
 <tr>
+<td class="property_type">
+<span class="type">GPtrArray</span> *</td>
+<td class="property_name"><a class="link" href="NMClient.html#NMClient--all-devices" title="The “all-devices” property">all-devices</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
 <td class="property_type"><span class="type">gboolean</span></td>
 <td class="property_name"><a class="link" href="NMClient.html#NMClient--can-modify" title="The “can-modify” property">can-modify</a></td>
 <td class="property_flags">Read</td>
@@ -520,6 +533,11 @@
 <td class="property_type">
 <span class="type">gchar</span> *</td>
 <td class="property_name"><a class="link" href="NMClient.html#NMClient--hostname" title="The “hostname” property">hostname</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMClient.html#NMClient--metered" title="The “metered” property">metered</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
@@ -596,6 +614,16 @@
 <col width="200px" class="signals_flags">
 </colgroup>
 <tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="NMClient.html#NMClient-any-device-added" title="The “any-device-added” signal">any-device-added</a></td>
+<td class="signal_flags">Run First</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="NMClient.html#NMClient-any-device-removed" title="The “any-device-removed” signal">any-device-removed</a></td>
+<td class="signal_flags">Run First</td>
+</tr>
 <tr>
 <td class="signal_type"><span class="returnvalue">void</span></td>
 <td class="signal_name"><a class="link" href="NMClient.html#NMClient-connection-added" title="The “connection-added” signal">connection-added</a></td>
@@ -698,6 +726,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-ALL-DEVICES:CAPS" title="NM_CLIENT_ALL_DEVICES">NM_CLIENT_ALL_DEVICES</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-CONNECTIONS:CAPS" title="NM_CLIENT_CONNECTIONS">NM_CLIENT_CONNECTIONS</a></td>
 </tr>
 <tr>
@@ -710,11 +742,23 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-METERED:CAPS" title="NM_CLIENT_METERED">NM_CLIENT_METERED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-DEVICE-ADDED:CAPS" title="NM_CLIENT_DEVICE_ADDED">NM_CLIENT_DEVICE_ADDED</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-DEVICE-REMOVED:CAPS" title="NM_CLIENT_DEVICE_REMOVED">NM_CLIENT_DEVICE_REMOVED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-ANY-DEVICE-ADDED:CAPS" title="NM_CLIENT_ANY_DEVICE_ADDED">NM_CLIENT_ANY_DEVICE_ADDED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-ANY-DEVICE-REMOVED:CAPS" title="NM_CLIENT_ANY_DEVICE_REMOVED">NM_CLIENT_ANY_DEVICE_REMOVED</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -1767,13 +1811,50 @@ containing all the <a href="NMDevice.html"><span class="type">NMDevices</span></
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-client-get-all-devices"></a><h3>nm_client_get_all_devices ()</h3>
+<pre class="programlisting">const <span class="returnvalue">GPtrArray</span> *
+nm_client_get_all_devices (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>Gets both real devices and device placeholders (eg, software devices which
+do not currently exist, but could be created automatically by NetworkManager
+if one of their NMDevice::ActivatableConnections was activated).  Use
+<a class="link" href="NMDevice.html#nm-device-is-real" title="nm_device_is_real ()"><code class="function">nm_device_is_real()</code></a> to determine whether each device is a real device or
+a placeholder.</p>
+<p>Use <code class="function">nm_device_get_type()</code> or the <code class="function">NM_IS_DEVICE_XXXX()</code> functions to determine
+what kind of device each member of the returned array is, and then you may
+use device-specific methods such as <a class="link" href="NMDeviceEthernet.html#nm-device-ethernet-get-hw-address" title="nm_device_ethernet_get_hw_address ()"><code class="function">nm_device_ethernet_get_hw_address()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.2.9.32.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.2.9.32.7"></a><h4>Returns</h4>
+<p> a <span class="type">GPtrArray</span>
+containing all the <a href="NMDevice.html"><span class="type">NMDevices</span></a>.  The returned array is owned by the
+<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-client-get-device-by-path"></a><h3>nm_client_get_device_by_path ()</h3>
 <pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
 nm_client_get_device_by_path (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                               <em class="parameter"><code>const <span class="type">char</span> *object_path</code></em>);</pre>
 <p>Gets a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> from a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.32.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.33.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1795,7 +1876,7 @@ nm_client_get_device_by_path (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.32.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.33.6"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> for the given <em class="parameter"><code>object_path</code></em>
 or <code class="literal">NULL</code> if none is found. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1809,7 +1890,7 @@ nm_client_get_device_by_iface (<em class="parameter"><code><a class="link" href=
                                <em class="parameter"><code>const <span class="type">char</span> *iface</code></em>);</pre>
 <p>Gets a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> from a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.33.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.34.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1831,7 +1912,7 @@ nm_client_get_device_by_iface (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.33.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.34.6"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> for the given <em class="parameter"><code>iface</code></em>
 or <code class="literal">NULL</code> if none is found. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1844,7 +1925,7 @@ or <code class="literal">NULL</code> if none is found. </p>
 nm_client_get_active_connections (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
 <p>Gets the active connections.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.34.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.35.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1859,7 +1940,7 @@ nm_client_get_active_connections (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.34.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.35.6"></a><h4>Returns</h4>
 <p> a <span class="type">GPtrArray</span>
 containing all the active <a href="NMActiveConnection.html"><span class="type">NMActiveConnections</span></a>.
 The returned array is owned by the client and should not be modified. </p>
@@ -1881,7 +1962,7 @@ route to the VPN endpoint.</p>
 <p>If there is no default route, or the default route is over a
 non-NetworkManager-recognized device, this will return <code class="literal">NULL</code>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.35.7"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.36.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1896,7 +1977,7 @@ non-NetworkManager-recognized device, this will return <code class="literal">NUL
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.35.8"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.36.8"></a><h4>Returns</h4>
 <p> the appropriate <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>, if
 any. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1911,7 +1992,7 @@ nm_client_get_activating_connection (<em class="parameter"><code><a class="link"
 currently-activating connection that is expected to become the new
 <a class="link" href="NMClient.html#NMClient--primary-connection" title="The “primary-connection” property"><span class="type">“primary-connection”</span></a> upon successful activation.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.36.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.37.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1926,7 +2007,7 @@ currently-activating connection that is expected to become the new
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.36.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.37.6"></a><h4>Returns</h4>
 <p> the appropriate <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>, if
 any. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1962,7 +2043,7 @@ the new connection, not when it finishes. You can used the returned
 <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a class="link" href="NMActiveConnection.html#NMActiveConnection--state" title="The “state” property"><span class="type">“state”</span></a>) to
 track the activation to its completion.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.37.7"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.38.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2026,7 +2107,7 @@ nm_client_activate_connection_finish (<em class="parameter"><code><a class="link
                                       <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMClient.html#nm-client-activate-connection-async" title="nm_client_activate_connection_async ()"><code class="function">nm_client_activate_connection_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.38.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.39.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2053,7 +2134,7 @@ nm_client_activate_connection_finish (<em class="parameter"><code><a class="link
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.38.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.39.6"></a><h4>Returns</h4>
 <p> the new <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> on success, <code class="literal">NULL</code> on
 failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
@@ -2082,7 +2163,7 @@ the new connection, not when it finishes. You can used the returned
 <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a class="link" href="NMActiveConnection.html#NMActiveConnection--state" title="The “state” property"><span class="type">“state”</span></a>) to
 track the activation to its completion.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.39.6"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.40.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2153,7 +2234,7 @@ nm_client_add_and_activate_connection_finish
 <p>You can call <a class="link" href="NMActiveConnection.html#nm-active-connection-get-connection" title="nm_active_connection_get_connection ()"><code class="function">nm_active_connection_get_connection()</code></a> on the returned
 <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> to find the path of the created <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.40.6"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.41.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2180,7 +2261,7 @@ nm_client_add_and_activate_connection_finish
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.40.7"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.41.7"></a><h4>Returns</h4>
 <p> the new <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> on success, <code class="literal">NULL</code> on
 failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
@@ -2197,7 +2278,7 @@ nm_client_deactivate_connection (<em class="parameter"><code><a class="link" hre
                                  <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Deactivates an active <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.41.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.42.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2229,7 +2310,7 @@ nm_client_deactivate_connection (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.41.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.42.6"></a><h4>Returns</h4>
 <p> success or failure</p>
 </div>
 </div>
@@ -2244,7 +2325,7 @@ nm_client_deactivate_connection_async (<em class="parameter"><code><a class="lin
                                        <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>Asynchronously deactivates an active <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.42.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.43.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2292,7 +2373,7 @@ nm_client_deactivate_connection_finish
                                 <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMClient.html#nm-client-deactivate-connection-async" title="nm_client_deactivate_connection_async ()"><code class="function">nm_client_deactivate_connection_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.43.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.44.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2319,7 +2400,7 @@ nm_client_deactivate_connection_finish
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.43.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.44.6"></a><h4>Returns</h4>
 <p> success or failure</p>
 </div>
 </div>
@@ -2329,7 +2410,7 @@ nm_client_deactivate_connection_finish
 <pre class="programlisting">const <span class="returnvalue">GPtrArray</span> *
 nm_client_get_connections (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.3.2.9.44.4"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.45.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2344,10 +2425,12 @@ nm_client_get_connections (<em class="parameter"><code><a class="link" href="NMC
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.44.5"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.45.5"></a><h4>Returns</h4>
 <p> an array
 containing all connections provided by the remote settings service.  The
-returned array is owned by the <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified. </p>
+returned array is owned by the <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified.</p>
+<p>The connections are as received from D-Bus and might not validate according
+to <a class="link" href="libnm-NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMRemoteConnection]</span></p>
 </div>
 </div>
@@ -2360,7 +2443,7 @@ nm_client_get_connection_by_id (<em class="parameter"><code><a class="link" href
 <p>Returns the first matching <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><code class="literal">NMRemoteConnection</code></a> matching a given <em class="parameter"><code>id</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.45.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.46.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2382,9 +2465,11 @@ nm_client_get_connection_by_id (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.45.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.46.6"></a><h4>Returns</h4>
 <p> the remote connection object on success, or <code class="literal">NULL</code> if no
-matching object was found. </p>
+matching object was found.</p>
+<p>The connection is as received from D-Bus and might not validate according
+to <a class="link" href="libnm-NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
@@ -2397,7 +2482,7 @@ nm_client_get_connection_by_path (<em class="parameter"><code><a class="link" hr
 <p>Returns the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><code class="literal">NMRemoteConnection</code></a> representing the connection at <em class="parameter"><code>path</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.46.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.47.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2419,9 +2504,11 @@ nm_client_get_connection_by_path (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.46.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.47.6"></a><h4>Returns</h4>
 <p> the remote connection object on success, or <code class="literal">NULL</code> if the object was
-not known. </p>
+not known</p>
+<p>The connection is as received from D-Bus and might not validate according
+to <a class="link" href="libnm-NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
@@ -2434,7 +2521,7 @@ nm_client_get_connection_by_uuid (<em class="parameter"><code><a class="link" hr
 <p>Returns the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><code class="literal">NMRemoteConnection</code></a> identified by <em class="parameter"><code>uuid</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.47.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.48.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2456,9 +2543,11 @@ nm_client_get_connection_by_uuid (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.47.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.48.6"></a><h4>Returns</h4>
 <p> the remote connection object on success, or <code class="literal">NULL</code> if the object was
-not known. </p>
+not known</p>
+<p>The connection is as received from D-Bus and might not validate according
+to <a class="link" href="libnm-NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
@@ -2490,7 +2579,7 @@ identical settings to <em class="parameter"><code>connection</code></em>
  as NetworkManager may perform automatic
 completion and/or normalization of connection properties.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.48.7"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.49.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2543,7 +2632,7 @@ nm_client_add_connection_finish (<em class="parameter"><code><a class="link" hre
                                  <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMClient.html#nm-client-add-connection-async" title="nm_client_add_connection_async ()"><code class="function">nm_client_add_connection_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.49.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.50.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2570,7 +2659,7 @@ nm_client_add_connection_finish (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.49.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.50.6"></a><h4>Returns</h4>
 <p> the new <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> on success, <code class="literal">NULL</code> on
 failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
@@ -2599,7 +2688,7 @@ then <em class="parameter"><code>failures</code></em>
  will be set to a <code class="literal">NULL</code>-terminated array of the
 filenames that failed to load.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.50.7"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.51.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2637,7 +2726,7 @@ filenames that failed to load. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.50.8"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.51.8"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if NetworkManager at least tried to load <em class="parameter"><code>filenames</code></em>
 ,
 <code class="literal">FALSE</code> if an error occurred (eg, permission denied).</p>
@@ -2656,7 +2745,7 @@ nm_client_load_connections_async (<em class="parameter"><code><a class="link" hr
 given files, adding or updating the connections described within.</p>
 <p>See <a class="link" href="NMClient.html#nm-client-load-connections" title="nm_client_load_connections ()"><code class="function">nm_client_load_connections()</code></a> for more details.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.51.6"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.52.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2705,7 +2794,7 @@ nm_client_load_connections_finish (<em class="parameter"><code><a class="link" h
 <p>Gets the result of an <a class="link" href="NMClient.html#nm-client-load-connections-async" title="nm_client_load_connections_async ()"><code class="function">nm_client_load_connections_async()</code></a> call.</p>
 <p>See <a class="link" href="NMClient.html#nm-client-load-connections" title="nm_client_load_connections ()"><code class="function">nm_client_load_connections()</code></a> for more details.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.52.6"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.53.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2738,7 +2827,7 @@ filenames that failed to load. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.52.7"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.53.7"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if NetworkManager at least tried to load <em class="parameter"><code>filenames</code></em>
 ,
 <code class="literal">FALSE</code> if an error occurred (eg, permission denied).</p>
@@ -2755,7 +2844,7 @@ nm_client_reload_connections (<em class="parameter"><code><a class="link" href="
 files from disk, adding, updating, and removing connections until
 the in-memory state matches the on-disk state.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.53.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.54.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2782,7 +2871,7 @@ the in-memory state matches the on-disk state.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.53.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.54.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on failure</p>
 </div>
 </div>
@@ -2798,7 +2887,7 @@ nm_client_reload_connections_async (<em class="parameter"><code><a class="link" 
 files from disk, adding, updating, and removing connections until the
 in-memory state matches the on-disk state.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.54.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.55.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2840,7 +2929,7 @@ nm_client_reload_connections_finish (<em class="parameter"><code><a class="link"
                                      <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of an <a class="link" href="NMClient.html#nm-client-reload-connections-async" title="nm_client_reload_connections_async ()"><code class="function">nm_client_reload_connections_async()</code></a> call.</p>
 <div class="refsect3">
-<a name="id-1.3.2.9.55.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.9.56.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2867,7 +2956,7 @@ nm_client_reload_connections_finish (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.2.9.55.6"></a><h4>Returns</h4>
+<a name="id-1.3.2.9.56.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on failure</p>
 </div>
 </div>
@@ -2971,6 +3060,12 @@ nm_client_reload_connections_finish (<em class="parameter"><code><a class="link"
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-CLIENT-ALL-DEVICES:CAPS"></a><h3>NM_CLIENT_ALL_DEVICES</h3>
+<pre class="programlisting">#define NM_CLIENT_ALL_DEVICES "all-devices"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-CLIENT-CONNECTIONS:CAPS"></a><h3>NM_CLIENT_CONNECTIONS</h3>
 <pre class="programlisting">#define NM_CLIENT_CONNECTIONS "connections"
 </pre>
@@ -2989,6 +3084,12 @@ nm_client_reload_connections_finish (<em class="parameter"><code><a class="link"
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-CLIENT-METERED:CAPS"></a><h3>NM_CLIENT_METERED</h3>
+<pre class="programlisting">#define NM_CLIENT_METERED "metered"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-CLIENT-DEVICE-ADDED:CAPS"></a><h3>NM_CLIENT_DEVICE_ADDED</h3>
 <pre class="programlisting">#define NM_CLIENT_DEVICE_ADDED "device-added"
 </pre>
@@ -2997,6 +3098,18 @@ nm_client_reload_connections_finish (<em class="parameter"><code><a class="link"
 <div class="refsect2">
 <a name="NM-CLIENT-DEVICE-REMOVED:CAPS"></a><h3>NM_CLIENT_DEVICE_REMOVED</h3>
 <pre class="programlisting">#define NM_CLIENT_DEVICE_REMOVED "device-removed"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-ANY-DEVICE-ADDED:CAPS"></a><h3>NM_CLIENT_ANY_DEVICE_ADDED</h3>
+<pre class="programlisting">#define NM_CLIENT_ANY_DEVICE_ADDED "any-device-added"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-ANY-DEVICE-REMOVED:CAPS"></a><h3>NM_CLIENT_ANY_DEVICE_REMOVED</h3>
+<pre class="programlisting">#define NM_CLIENT_ANY_DEVICE_REMOVED "any-device-removed"
 </pre>
 </div>
 <hr>
@@ -3023,7 +3136,7 @@ nm_client_reload_connections_finish (<em class="parameter"><code><a class="link"
 <p><a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a> values indicate various permissions that NetworkManager
 clients can obtain to perform certain tasks on behalf of the current user.</p>
 <div class="refsect3">
-<a name="id-1.3.2.10.26.4"></a><h4>Members</h4>
+<a name="id-1.3.2.10.30.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3143,7 +3256,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <p><a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult"><span class="type">NMClientPermissionResult</span></a> values indicate what authorizations and permissions
 the user requires to obtain a given <a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a></p>
 <div class="refsect3">
-<a name="id-1.3.2.10.27.4"></a><h4>Members</h4>
+<a name="id-1.3.2.10.31.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3192,7 +3305,7 @@ the user requires to obtain a given <a class="link" href="NMClient.html#NMClient
 <p>D-Bus operations may also return errors from other domains, including
 <a class="link" href="libnm-nm-errors.html#NMManagerError" title="enum NMManagerError"><span class="type">NMManagerError</span></a>, <a class="link" href="libnm-nm-errors.html#NMSettingsError" title="enum NMSettingsError"><span class="type">NMSettingsError</span></a>, <a class="link" href="libnm-nm-errors.html#NMAgentManagerError" title="enum NMAgentManagerError"><span class="type">NMAgentManagerError</span></a>, and <a class="link" href="libnm-nm-errors.html#NMConnectionError" title="enum NMConnectionError"><span class="type">NMConnectionError</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.2.10.28.5"></a><h4>Members</h4>
+<a name="id-1.3.2.10.32.5"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3255,6 +3368,15 @@ likely to become the new <a class="link" href="NMClient.html#NMClient--primary-c
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMClient--all-devices"></a><h3>The <code class="literal">“all-devices”</code> property</h3>
+<pre class="programlisting">  “all-devices”              <span class="type">GPtrArray</span> *</pre>
+<p>List of both real devices and device placeholders.</p>
+<p>Element-type: NMDevice</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMClient--can-modify"></a><h3>The <code class="literal">“can-modify”</code> property</h3>
 <pre class="programlisting">  “can-modify”               <span class="type">gboolean</span></pre>
 <p>If <code class="literal">TRUE</code>, adding and modifying connections is supported.</p>
@@ -3284,7 +3406,7 @@ permission to read the details of.)</p>
 <div class="refsect2">
 <a name="NMClient--devices"></a><h3>The <code class="literal">“devices”</code> property</h3>
 <pre class="programlisting">  “devices”                  <span class="type">GPtrArray</span> *</pre>
-<p>List of known network devices.</p>
+<p>List of real network devices.  Does not include placeholder devices.</p>
 <p>Element-type: NMDevice</p>
 <p>Flags: Read</p>
 </div>
@@ -3296,6 +3418,15 @@ permission to read the details of.)</p>
 modified by calling <a class="link" href="NMClient.html#nm-client-save-hostname" title="nm_client_save_hostname ()"><code class="function">nm_client_save_hostname()</code></a>.</p>
 <p>Flags: Read</p>
 <p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient--metered"></a><h3>The <code class="literal">“metered”</code> property</h3>
+<pre class="programlisting">  “metered”                  <span class="type">guint</span></pre>
+<p>Whether the connectivity is metered.</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -3397,6 +3528,82 @@ see <a class="link" href="NMClient.html#nm-client-get-primary-connection" title=
 <div class="refsect1">
 <a name="NMClient.signal-details"></a><h2>Signal Details</h2>
 <div class="refsect2">
+<a name="NMClient-any-device-added"></a><h3>The <code class="literal">“any-device-added”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
+               <span class="type">GObject</span>  *device,
+               <span class="type">gpointer</span>  user_data)</pre>
+<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is added.  This signal is emitted for both
+regular devices and placeholder devices.</p>
+<div class="refsect3">
+<a name="id-1.3.2.12.2.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>the client that received the signal</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p> the new device. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMDevice]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run First</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClient-any-device-removed"></a><h3>The <code class="literal">“any-device-removed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
+               <span class="type">GObject</span>  *device,
+               <span class="type">gpointer</span>  user_data)</pre>
+<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is removed.  This signal is emitted for both
+regular devices and placeholder devices.</p>
+<div class="refsect3">
+<a name="id-1.3.2.12.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>the client that received the signal</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p> the removed device. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMDevice]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run First</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMClient-connection-added"></a><h3>The <code class="literal">“connection-added”</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>           *client,
@@ -3404,7 +3611,7 @@ user_function (<a class="link" href="NMClient.html" title="NMClient"><span class
                <span class="type">gpointer</span>            user_data)</pre>
 <p>Notifies that a <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> has been added.</p>
 <div class="refsect3">
-<a name="id-1.3.2.12.2.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.12.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3441,7 +3648,7 @@ user_function (<a class="link" href="NMClient.html" title="NMClient"><span class
                <span class="type">gpointer</span>            user_data)</pre>
 <p>Notifies that a <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> has been removed.</p>
 <div class="refsect3">
-<a name="id-1.3.2.12.3.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.12.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3476,9 +3683,10 @@ user_function (<a class="link" href="NMClient.html" title="NMClient"><span class
 user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
                <span class="type">GObject</span>  *device,
                <span class="type">gpointer</span>  user_data)</pre>
-<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is added.</p>
+<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is added.  This signal is not emitted for
+placeholder devices.</p>
 <div class="refsect3">
-<a name="id-1.3.2.12.4.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.12.6.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3513,9 +3721,10 @@ user_function (<a class="link" href="NMClient.html" title="NMClient"><span class
 user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
                <span class="type">GObject</span>  *device,
                <span class="type">gpointer</span>  user_data)</pre>
-<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is removed.</p>
+<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is removed.  This signal is not emitted for
+placeholder devices.</p>
 <div class="refsect3">
-<a name="id-1.3.2.12.5.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.12.7.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3553,7 +3762,7 @@ user_function (<a class="link" href="NMClient.html" title="NMClient"><span class
                <span class="type">gpointer</span>  user_data)</pre>
 <p>Notifies that a permission has changed</p>
 <div class="refsect3">
-<a name="id-1.3.2.12.6.5"></a><h4>Parameters</h4>
+<a name="id-1.3.2.12.8.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">

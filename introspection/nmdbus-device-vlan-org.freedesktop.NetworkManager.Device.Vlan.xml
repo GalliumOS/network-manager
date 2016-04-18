@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<refentry id="gdbus-org.freedesktop.NetworkManager.Device.Vlan">
+  <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Vlan.top_of_page">org.freedesktop.NetworkManager.Device.Vlan</refentrytitle>
+  <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Vlan.top_of_page"><primary sortas=".Device.Vlan">org.freedesktop.NetworkManager.Device.Vlan</primary></indexterm>
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Vlan</refname>    <refpurpose></refpurpose>  </refnamediv>  <refsect1 role="signal_proto">
+    <title role="signal_proto.title">Signals</title>
+    <synopsis>
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Device-Vlan.PropertiesChanged">PropertiesChanged</link> (a{sv} properties);
+</synopsis>
+  </refsect1>
+  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis>
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.HwAddress">HwAddress</link>  readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Carrier">Carrier</link>    readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Parent">Parent</link>     readable   o
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.VlanId">VlanId</link>     readable   u
+</synopsis>
+  </refsect1>
+<refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Vlan">
+  <title role="desc.title">Description</title>
+  <para></para>
+</refsect1>
+<refsect1 role="details" id="gdbus-signals-org.freedesktop.NetworkManager.Device.Vlan">
+  <title role="details.title">Signal Details</title>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Device-Vlan.PropertiesChanged">
+  <title>The "PropertiesChanged" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Device-Vlan.PropertiesChanged"><primary sortas=".Device.Vlan::PropertiesChanged">org.freedesktop.NetworkManager.Device.Vlan::PropertiesChanged</primary></indexterm>
+<programlisting>
+PropertiesChanged (a{sv} properties);
+</programlisting>
+<para></para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>a{sv} <parameter>properties</parameter></literal>:</term>
+  <listitem><para>A dictionary mapping property names to variant boxed values</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+</refsect1>
+<refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Vlan">
+  <title role="details.title">Property Details</title>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.HwAddress">
+  <title>The "HwAddress" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.HwAddress"><primary sortas=".Device.Vlan:HwAddress">org.freedesktop.NetworkManager.Device.Vlan:HwAddress</primary></indexterm>
+<programlisting>
+HwAddress  readable   s
+</programlisting>
+<para>        Hardware address of the device.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Carrier">
+  <title>The "Carrier" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Carrier"><primary sortas=".Device.Vlan:Carrier">org.freedesktop.NetworkManager.Device.Vlan:Carrier</primary></indexterm>
+<programlisting>
+Carrier  readable   b
+</programlisting>
+<para>        Indicates whether the physical carrier is found (e.g. whether a cable is
+        plugged in or not).
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Parent">
+  <title>The "Parent" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Parent"><primary sortas=".Device.Vlan:Parent">org.freedesktop.NetworkManager.Device.Vlan:Parent</primary></indexterm>
+<programlisting>
+Parent  readable   o
+</programlisting>
+<para>        Object path of the parent device of this VLAN device.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.VlanId">
+  <title>The "VlanId" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.VlanId"><primary sortas=".Device.Vlan:VlanId">org.freedesktop.NetworkManager.Device.Vlan:VlanId</primary></indexterm>
+<programlisting>
+VlanId  readable   u
+</programlisting>
+<para>        The VLAN ID of this VLAN interface.
+</para>
+</refsect2>
+</refsect1>
+</refentry>
+

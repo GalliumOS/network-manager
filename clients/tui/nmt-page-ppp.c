@@ -21,12 +21,9 @@
  * @short_description: The editor page for PPP configuration
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <stdlib.h>
-
-#include <glib.h>
-#include <glib/gi18n-lib.h>
 
 #include "nmt-page-ppp.h"
 #include "nmt-newt-section.h"

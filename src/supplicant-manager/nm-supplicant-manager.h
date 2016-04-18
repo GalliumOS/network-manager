@@ -22,7 +22,7 @@
 #ifndef __NETWORKMANAGER_SUPPLICANT_MANAGER_H__
 #define __NETWORKMANAGER_SUPPLICANT_MANAGER_H__
 
-#include <glib-object.h>
+#include "nm-default.h"
 #include "nm-supplicant-types.h"
 #include "nm-device.h"
 
@@ -49,11 +49,8 @@ GType nm_supplicant_manager_get_type (void);
 
 NMSupplicantManager *nm_supplicant_manager_get (void);
 
-NMSupplicantInterface *nm_supplicant_manager_iface_get (NMSupplicantManager *mgr,
-                                                        const char *ifname,
-                                                        gboolean is_wireless);
-
-void nm_supplicant_manager_iface_release (NMSupplicantManager *mgr,
-                                          NMSupplicantInterface *iface);
+NMSupplicantInterface *nm_supplicant_manager_create_interface (NMSupplicantManager *mgr,
+                                                               const char *ifname,
+                                                               gboolean is_wireless);
 
 #endif /* __NETWORKMANAGER_SUPPLICANT_MANAGER_H__ */

@@ -20,20 +20,19 @@
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
+
+#include "nm-setting-8021x.h"
 
 #include <string.h>
 #include <dbus/dbus-glib.h>
-#include <glib/gi18n-lib.h>
 
-#include "nm-setting-8021x.h"
 #include "nm-param-spec-specialized.h"
 #include "nm-utils.h"
 #include "nm-dbus-glib-types.h"
 #include "crypto.h"
 #include "nm-utils-private.h"
 #include "nm-setting-private.h"
-#include "nm-macros-internal.h"
 
 /**
  * SECTION:nm-setting-8021x
@@ -432,16 +431,16 @@ get_cert_scheme (GByteArray *array)
 		return NM_SETTING_802_1X_CK_SCHEME_UNKNOWN;
 
 	/* interpret the blob as PATH if it starts with "file://". */
-	if (   array->len >= STRLEN (SCHEME_PATH)
-	    && !memcmp (array->data, SCHEME_PATH, STRLEN (SCHEME_PATH))) {
+	if (   array->len >= NM_STRLEN (SCHEME_PATH)
+	    && !memcmp (array->data, SCHEME_PATH, NM_STRLEN (SCHEME_PATH))) {
 		/* But it must also be NUL terminated, contain at least
 		 * one non-NUL character, and contain only one trailing NUL
 		 * chracter.
 		 * And ensure it's UTF-8 valid too so we can pass it through
 		 * D-Bus and stuff like that. */
-		if (   array->len > STRLEN (SCHEME_PATH) + 1
+		if (   array->len > NM_STRLEN (SCHEME_PATH) + 1
 		    && array->data[array->len - 1] == '\0'
-		    && g_utf8_validate ((const char *) &array->data[STRLEN (SCHEME_PATH)], array->len - (STRLEN (SCHEME_PATH) + 1), NULL))
+		    && g_utf8_validate ((const char *) &array->data[NM_STRLEN (SCHEME_PATH)], array->len - (NM_STRLEN (SCHEME_PATH) + 1), NULL))
 			return NM_SETTING_802_1X_CK_SCHEME_PATH;
 		return NM_SETTING_802_1X_CK_SCHEME_UNKNOWN;
 	}
@@ -2879,8 +2878,8 @@ set_property (GObject *object, guint prop_id,
 		}
 		priv->ca_cert = set_cert_prop_helper (value, NM_SETTING_802_1X_CA_CERT, &error);
 		if (error) {
-			g_warning ("Error setting certificate (invalid data): (%d) %s",
-			           error->code, error->message);
+			g_warning ("Error setting certificate (invalid data): %s",
+			           error->message);
 			g_error_free (error);
 		}
 		break;
@@ -2903,8 +2902,8 @@ set_property (GObject *object, guint prop_id,
 		}
 		priv->client_cert = set_cert_prop_helper (value, NM_SETTING_802_1X_CLIENT_CERT, &error);
 		if (error) {
-			g_warning ("Error setting certificate (invalid data): (%d) %s",
-			           error->code, error->message);
+			g_warning ("Error setting certificate (invalid data): %s",
+			           error->message);
 			g_error_free (error);
 		}
 		break;
@@ -2935,8 +2934,8 @@ set_property (GObject *object, guint prop_id,
 		}
 		priv->phase2_ca_cert = set_cert_prop_helper (value, NM_SETTING_802_1X_PHASE2_CA_CERT, &error);
 		if (error) {
-			g_warning ("Error setting certificate (invalid data): (%d) %s",
-			           error->code, error->message);
+			g_warning ("Error setting certificate (invalid data): %s",
+			           error->message);
 			g_error_free (error);
 		}
 		break;
@@ -2959,8 +2958,8 @@ set_property (GObject *object, guint prop_id,
 		}
 		priv->phase2_client_cert = set_cert_prop_helper (value, NM_SETTING_802_1X_PHASE2_CLIENT_CERT, &error);
 		if (error) {
-			g_warning ("Error setting certificate (invalid data): (%d) %s",
-			           error->code, error->message);
+			g_warning ("Error setting certificate (invalid data): %s",
+			           error->message);
 			g_error_free (error);
 		}
 		break;
@@ -2986,8 +2985,8 @@ set_property (GObject *object, guint prop_id,
 		}
 		priv->private_key = set_cert_prop_helper (value, NM_SETTING_802_1X_PRIVATE_KEY, &error);
 		if (error) {
-			g_warning ("Error setting private key (invalid data): (%d) %s",
-			           error->code, error->message);
+			g_warning ("Error setting private key (invalid data): %s",
+			           error->message);
 			g_error_free (error);
 		}
 		break;
@@ -3005,8 +3004,8 @@ set_property (GObject *object, guint prop_id,
 		}
 		priv->phase2_private_key = set_cert_prop_helper (value, NM_SETTING_802_1X_PHASE2_PRIVATE_KEY, &error);
 		if (error) {
-			g_warning ("Error setting private key (invalid data): (%d) %s",
-			           error->code, error->message);
+			g_warning ("Error setting private key (invalid data): %s",
+			           error->message);
 			g_error_free (error);
 		}
 		break;
@@ -3727,8 +3726,8 @@ nm_setting_802_1x_class_init (NMSetting8021xClass *setting_class)
 
 	/* Initialize crypto lbrary. */
 	if (!nm_utils_init (&error)) {
-		g_warning ("Couldn't initilize nm-utils/crypto system: %d %s",
-		           error->code, error->message);
+		g_warning ("Couldn't initilize nm-utils/crypto system: %s",
+		           error->message);
 		g_error_free (error);
 	}
 }

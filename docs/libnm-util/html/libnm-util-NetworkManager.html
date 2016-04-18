@@ -510,9 +510,8 @@
 <div class="refsect2">
 <a name="NMState"></a><h3>enum NMState</h3>
 <p><a class="link" href="libnm-util-NetworkManager.html#NMState" title="enum NMState"><span class="type">NMState</span></a> values indicate the current overall networking state.</p>
-<p>(Corresponds to the NM_STATE type in nm-manager.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.42.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.42.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -589,9 +588,8 @@
 <hr>
 <div class="refsect2">
 <a name="NMConnectivityState"></a><h3>enum NMConnectivityState</h3>
-<p>(Corresponds to the NM_CONNECTIVITY type in nm-manager.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.44.4"></a><h4>Members</h4>
+<a name="id-1.2.31.6.44.3"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -647,9 +645,8 @@
 <a name="NMDeviceType"></a><h3>enum NMDeviceType</h3>
 <p><a class="link" href="libnm-util-NetworkManager.html#NMDeviceType" title="enum NMDeviceType"><span class="type">NMDeviceType</span></a> values indicate the type of hardware represented by
 an <a href="https://developer.gnome.org/libnm-glib/0.9/NMDevice.html"><span class="type">NMDevice</span></a>.</p>
-<p>(Corresponds to the NM_DEVICE_TYPE type in nm-device.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.45.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.45.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -770,6 +767,41 @@ GSM/UMTS, or LTE network access protocols</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-TUN:CAPS"></a>NM_DEVICE_TYPE_TUN</p></td>
+<td class="enum_member_description">
+<p>a TUN/TAP interface</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-IP-TUNNEL:CAPS"></a>NM_DEVICE_TYPE_IP_TUNNEL</p></td>
+<td class="enum_member_description">
+<p>an IP tunnel interface</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-MACVLAN:CAPS"></a>NM_DEVICE_TYPE_MACVLAN</p></td>
+<td class="enum_member_description">
+<p>a MACVLAN interface</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-VXLAN:CAPS"></a>NM_DEVICE_TYPE_VXLAN</p></td>
+<td class="enum_member_description">
+<p>a VXLAN interface</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-VETH:CAPS"></a>NM_DEVICE_TYPE_VETH</p></td>
+<td class="enum_member_description">
+<p>a VETH interface</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -778,9 +810,8 @@ GSM/UMTS, or LTE network access protocols</p>
 <div class="refsect2">
 <a name="NMDeviceCapabilities"></a><h3>enum NMDeviceCapabilities</h3>
 <p>General device capability flags.</p>
-<p>(Corresponds to the NM_DEVICE_CAP type in nm-device-wifi.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.46.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.46.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -824,9 +855,8 @@ GSM/UMTS, or LTE network access protocols</p>
 <div class="refsect2">
 <a name="NMDeviceWifiCapabilities"></a><h3>enum NMDeviceWifiCapabilities</h3>
 <p>802.11 specific device encryption and authentication capabilities.</p>
-<p>(Corresponds to the NM_802_11_DEVICE_CAP type in nm-device-wifi.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.47.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.47.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -926,9 +956,8 @@ GSM/UMTS, or LTE network access protocols</p>
 <div class="refsect2">
 <a name="NM80211ApFlags"></a><h3>enum NM80211ApFlags</h3>
 <p>802.11 access point flags.</p>
-<p>(Corresponds to the NM_802_11_AP_FLAGS type in nm-access-point.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.48.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.48.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -961,9 +990,8 @@ encryption (usually means WEP)</p>
 <p>802.11 access point security and authentication flags.  These flags describe
 the current security requirements of an access point as determined from the
 access point's beacon.</p>
-<p>(Corresponds to the NM_802_11_AP_SEC type in nm-access-point.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.49.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.49.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1063,9 +1091,8 @@ is supported</p>
 <div class="refsect2">
 <a name="NM80211Mode"></a><h3>enum NM80211Mode</h3>
 <p>Indicates the 802.11 mode an access point or device is currently in.</p>
-<p>(Corresponds to the NM_802_11_MODE type in generic-types.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.50.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.50.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1116,9 +1143,8 @@ is supported</p>
 <a name="NMBluetoothCapabilities"></a><h3>enum NMBluetoothCapabilities</h3>
 <p><a class="link" href="libnm-util-NetworkManager.html#NMBluetoothCapabilities" title="enum NMBluetoothCapabilities"><span class="type">NMBluetoothCapabilities</span></a> values indicate the usable capabilities of a
 Bluetooth device.</p>
-<p>(Corresponds to the NM_BT_CAPABILITY type in nm-device-bt.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.51.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.51.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1158,9 +1184,8 @@ Bluetooth device.</p>
 technology families a modem device supports.  For more information on the
 specific access technologies the device supports use the ModemManager D-Bus
 API.</p>
-<p>(Corresponds to the NM_DEVICE_MODEM_CAPABILITY type in nm-device-modem.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.52.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.52.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1213,9 +1238,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceState"></a><h3>enum NMDeviceState</h3>
-<p>(Corresponds to the NM_DEVICE_STATE type in nm-device.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.53.4"></a><h4>Members</h4>
+<a name="id-1.2.31.6.53.3"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1344,9 +1368,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <div class="refsect2">
 <a name="NMDeviceStateReason"></a><h3>enum NMDeviceStateReason</h3>
 <p>Device state change reason codes</p>
-<p>(Corresponds to the NM_DEVICE_STATE_REASON type in nm-device.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.54.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.54.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1810,9 +1833,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <p><a class="link" href="libnm-util-NetworkManager.html#NMActiveConnectionState" title="enum NMActiveConnectionState"><span class="type">NMActiveConnectionState</span></a> values indicate the state of a connection to a
 specific network while it is starting, connected, or disconnecting from that
 network.</p>
-<p>(Corresponds to the NM_ACTIVE_CONNECTION_STATE type in nm-active-connection.xml.)</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.55.5"></a><h4>Members</h4>
+<a name="id-1.2.31.6.55.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

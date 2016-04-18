@@ -21,10 +21,8 @@
  */
 
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
-#include <glib/gi18n.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -36,9 +34,9 @@
 #include "nm-dhcp-dhcpcd.h"
 #include "nm-dhcp-manager.h"
 #include "nm-utils.h"
-#include "nm-logging.h"
 #include "NetworkManagerUtils.h"
 #include "nm-dhcp-listener.h"
+#include "nm-dhcp-client-logging.h"
 
 G_DEFINE_TYPE (NMDhcpDhcpcd, nm_dhcp_dhcpcd, NM_TYPE_DHCP_CLIENT)
 
@@ -61,12 +59,14 @@ nm_dhcp_dhcpcd_get_path (void)
 static gboolean
 ip4_start (NMDhcpClient *client, const char *dhcp_anycast_addr, const char *last_ip4_address)
 {
-	NMDhcpDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (client);
+	NMDhcpDhcpcd *self = NM_DHCP_DHCPCD (client);
+	NMDhcpDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (self);
 	GPtrArray *argv = NULL;
 	pid_t pid = -1;
 	GError *error = NULL;
-	char *pid_contents = NULL, *binary_name, *cmd_str;
-	const char *iface, *dhcpcd_path, *hostname;
+	char *pid_contents = NULL, *binary_name, *cmd_str, *dot;
+	const char *iface, *dhcpcd_path, *hostname, *fqdn;
+	gs_free char *prefix = NULL;
 
 	g_return_val_if_fail (priv->pid_file == NULL, FALSE);
 
@@ -79,7 +79,7 @@ ip4_start (NMDhcpClient *client, const char *dhcp_anycast_addr, const char *last
 
 	dhcpcd_path = nm_dhcp_dhcpcd_get_path ();
 	if (!dhcpcd_path) {
-		nm_log_warn (LOGD_DHCP4, "dhcpcd could not be found");
+		_LOGW ("dhcpcd could not be found");
 		return FALSE;
 	}
 
@@ -95,7 +95,7 @@ ip4_start (NMDhcpClient *client, const char *dhcp_anycast_addr, const char *last
 
 	g_ptr_array_add (argv, (gpointer) "-K");	/* Disable built-in carrier detection */
 
-	g_ptr_array_add (argv, (gpointer) "-L");	/* Disable built-in IPv4LL since we use avahi-autoipd */
+	g_ptr_array_add (argv, (gpointer) "-L");	/* Disable built-in IPv4LL */
 
 	/* --noarp. Don't request or claim the address by ARP; this also disables IPv4LL. */
 	g_ptr_array_add (argv, (gpointer) "-A");
@@ -114,26 +114,39 @@ ip4_start (NMDhcpClient *client, const char *dhcp_anycast_addr, const char *last
 #endif
 
 	hostname = nm_dhcp_client_get_hostname (client);
-	if (hostname) {
+	fqdn = nm_dhcp_client_get_fqdn (client);
+
+	if (fqdn) {
+		g_ptr_array_add (argv, (gpointer) "-h");
+		g_ptr_array_add (argv, (gpointer) fqdn);
+		g_ptr_array_add (argv, (gpointer) "-F");
+		g_ptr_array_add (argv, (gpointer) "both");
+	} else if (hostname) {
+		prefix = strdup (hostname);
+		dot = strchr (prefix, '.');
+		/* get rid of the domain */
+		if (dot)
+			*dot = '\0';
+
 		g_ptr_array_add (argv, (gpointer) "-h");	/* Send hostname to DHCP server */
-		g_ptr_array_add (argv, (gpointer) hostname );
+		g_ptr_array_add (argv, (gpointer) prefix);
 	}
 
 	g_ptr_array_add (argv, (gpointer) iface);
 	g_ptr_array_add (argv, NULL);
 
 	cmd_str = g_strjoinv (" ", (gchar **) argv->pdata);
-	nm_log_dbg (LOGD_DHCP4, "running: %s", cmd_str);
+	_LOGD ("running: %s", cmd_str);
 	g_free (cmd_str);
 
 	if (g_spawn_async (NULL, (char **) argv->pdata, NULL,
 	                   G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_STDERR_TO_DEV_NULL,
 	                   nm_utils_setpgid, NULL, &pid, &error)) {
 		g_assert (pid > 0);
-		nm_log_info (LOGD_DHCP4, "dhcpcd started with pid %d", pid);
+		_LOGI ("dhcpcd started with pid %d", pid);
 		nm_dhcp_client_watch_child (client, pid);
 	} else {
-		nm_log_warn (LOGD_DHCP4, "dhcpcd failed to start.  error: '%s'", error->message);
+		_LOGW ("dhcpcd failed to start, error: '%s'", error->message);
 		g_error_free (error);
 	}
 
@@ -145,25 +158,29 @@ ip4_start (NMDhcpClient *client, const char *dhcp_anycast_addr, const char *last
 static gboolean
 ip6_start (NMDhcpClient *client,
            const char *dhcp_anycast_addr,
+           const struct in6_addr *ll_addr,
            gboolean info_only,
            NMSettingIP6ConfigPrivacy privacy,
            const GByteArray *duid)
 {
-	nm_log_warn (LOGD_DHCP6, "the dhcpcd backend does not support IPv6.");
+	NMDhcpDhcpcd *self = NM_DHCP_DHCPCD (client);
+
+	_LOGW ("the dhcpcd backend does not support IPv6");
 	return FALSE;
 }
 
 static void
 stop (NMDhcpClient *client, gboolean release, const GByteArray *duid)
 {
-	NMDhcpDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (client);
+	NMDhcpDhcpcd *self = NM_DHCP_DHCPCD (client);
+	NMDhcpDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (self);
 
 	/* Chain up to parent */
 	NM_DHCP_CLIENT_CLASS (nm_dhcp_dhcpcd_parent_class)->stop (client, release, duid);
 
 	if (priv->pid_file) {
 		if (remove (priv->pid_file) == -1)
-			nm_log_dbg (LOGD_DHCP, "Could not remove dhcp pid file \"%s\": %d (%s)", priv->pid_file, errno, g_strerror (errno));
+			_LOGD ("could not remove dhcp pid file \"%s\": %d (%s)", priv->pid_file, errno, g_strerror (errno));
 	}
 
 	/* FIXME: implement release... */
@@ -213,7 +230,7 @@ nm_dhcp_dhcpcd_class_init (NMDhcpDhcpcdClass *dhcpcd_class)
 static void __attribute__((constructor))
 register_dhcp_dhclient (void)
 {
-	g_type_init ();
+	nm_g_type_init ();
 	_nm_dhcp_client_register (NM_TYPE_DHCP_DHCPCD,
 	                          "dhcpcd",
 	                          nm_dhcp_dhcpcd_get_path,

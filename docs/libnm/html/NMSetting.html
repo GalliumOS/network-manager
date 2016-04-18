@@ -105,6 +105,14 @@
 <span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
+<a class="link" href="NMSetting.html#nm-setting-verify-secrets" title="nm_setting_verify_secrets ()">nm_setting_verify_secrets</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
 <a class="link" href="NMSetting.html#nm-setting-compare" title="nm_setting_compare ()">nm_setting_compare</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -195,6 +203,10 @@
 <td class="function_name"><a class="link" href="NMSetting.html#NMSettingCompareFlags" title="enum NMSettingCompareFlags">NMSettingCompareFlags</a></td>
 </tr>
 <tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="NMSetting.html#NMSettingMacRandomization" title="enum NMSettingMacRandomization">NMSettingMacRandomization</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword">struct</td>
 <td class="function_name"><a class="link" href="NMSetting.html#NMSetting-struct" title="struct NMSetting">NMSetting</a></td>
 </tr>
@@ -209,7 +221,8 @@
 <a name="NMSetting.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">├──</span> NMSettingCompareFlags
-    <span class="lineart">╰──</span> NMSettingDiffResult
+    <span class="lineart">├──</span> NMSettingDiffResult
+    <span class="lineart">╰──</span> NMSettingMacRandomization
     <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
     <span class="lineart">╰──</span> NMSettingSecretFlags
     GObject
@@ -226,15 +239,19 @@
         <span class="lineart">├──</span> <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric">NMSettingGeneric</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband">NMSettingInfiniband</a>
+        <span class="lineart">├──</span> <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel">NMSettingIPTunnel</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+        <span class="lineart">├──</span> <a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan">NMSettingMacvlan</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh">NMSettingOlpcMesh</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingPpp.html" title="NMSettingPpp">NMSettingPpp</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe">NMSettingPppoe</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingSerial.html" title="NMSettingSerial">NMSettingSerial</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+        <span class="lineart">├──</span> <a class="link" href="NMSettingTun.html" title="NMSettingTun">NMSettingTun</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingVlan.html" title="NMSettingVlan">NMSettingVlan</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingVpn.html" title="NMSettingVpn">NMSettingVpn</a>
+        <span class="lineart">├──</span> <a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan">NMSettingVxlan</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingWimax.html" title="NMSettingWimax">NMSettingWimax</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
         <span class="lineart">├──</span> <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
@@ -494,6 +511,54 @@ is being verified in isolation. </p></td>
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-setting-verify-secrets"></a><h3>nm_setting_verify_secrets ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+nm_setting_verify_secrets (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
+                           <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                           <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Verifies the secrets in the setting.
+The returned <span class="type">GError</span> contains information about which secret of the setting
+failed validation, and in what way that secret failed validation.
+The secret validation is done separately from main setting validation, because
+in some cases connection failure is not desired just for the secrets.</p>
+<div class="refsect3">
+<a name="id-1.4.4.8.11.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> to verify secrets in</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p> the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
+came from, or
+<code class="literal">NULL</code> if <em class="parameter"><code>setting</code></em>
+is being verified in isolation. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>location to store error, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.4.8.11.6"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the setting secrets are valid, <code class="literal">FALSE</code> if they are not</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-compare"></a><h3>nm_setting_compare ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_setting_compare (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *a</code></em>,
@@ -503,7 +568,7 @@ nm_setting_compare (<em class="parameter"><code><a class="link" href="NMSetting.
 modified by a set of flags.  See the documentation for <a class="link" href="NMSetting.html#NMSettingCompareFlags" title="enum NMSettingCompareFlags"><span class="type">NMSettingCompareFlags</span></a>
 for a description of each flag's behavior.</p>
 <div class="refsect3">
-<a name="id-1.4.4.8.11.5"></a><h4>Parameters</h4>
+<a name="id-1.4.4.8.12.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -530,7 +595,7 @@ for a description of each flag's behavior.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.4.8.11.6"></a><h4>Returns</h4>
+<a name="id-1.4.4.8.12.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the comparison succeeds, <code class="literal">FALSE</code> if it does not</p>
 </div>
 </div>
@@ -550,7 +615,7 @@ of each setting that differ from the other are added to <em class="parameter"><c
 , mapped to
 one or more <a class="link" href="NMSetting.html#NMSettingDiffResult" title="enum NMSettingDiffResult"><span class="type">NMSettingDiffResult</span></a> values.</p>
 <div class="refsect3">
-<a name="id-1.4.4.8.12.5"></a><h4>Parameters</h4>
+<a name="id-1.4.4.8.13.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -592,7 +657,7 @@ in and the settings differ, a new one is created and returned. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.4.8.12.6"></a><h4>Returns</h4>
+<a name="id-1.4.4.8.13.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the settings contain the same values, <code class="literal">FALSE</code> if they do not</p>
 </div>
 </div>
@@ -606,7 +671,7 @@ nm_setting_enumerate_values (<em class="parameter"><code><a class="link" href="N
 <p>Iterates over each property of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object, calling the supplied
 user function for each property.</p>
 <div class="refsect3">
-<a name="id-1.4.4.8.13.5"></a><h4>Parameters</h4>
+<a name="id-1.4.4.8.14.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -643,7 +708,7 @@ nm_setting_to_string (<em class="parameter"><code><a class="link" href="NMSettin
 be used for serialization of the setting, or machine-parsed in any way. The
 output format is not guaranteed to be stable and may change at any time.</p>
 <div class="refsect3">
-<a name="id-1.4.4.8.14.5"></a><h4>Parameters</h4>
+<a name="id-1.4.4.8.15.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -658,7 +723,7 @@ output format is not guaranteed to be stable and may change at any time.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.4.8.14.6"></a><h4>Returns</h4>
+<a name="id-1.4.4.8.15.6"></a><h4>Returns</h4>
 <p> an allocated string containing a textual representation of the
 setting's properties and values (including secrets!), which the caller should
 free with <code class="function">g_free()</code></p>
@@ -675,7 +740,7 @@ nm_setting_get_secret_flags (<em class="parameter"><code><a class="link" href="N
 <p>For a given secret, retrieves the <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> describing how to
 handle that secret.</p>
 <div class="refsect3">
-<a name="id-1.4.4.8.15.5"></a><h4>Parameters</h4>
+<a name="id-1.4.4.8.16.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -707,7 +772,7 @@ handle that secret.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.4.8.15.6"></a><h4>Returns</h4>
+<a name="id-1.4.4.8.16.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success (if the given secret name was a valid property of
 this setting, and if that property is secret), <code class="literal">FALSE</code> if not</p>
 </div>
@@ -723,7 +788,7 @@ nm_setting_set_secret_flags (<em class="parameter"><code><a class="link" href="N
 <p>For a given secret, stores the <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> describing how to
 handle that secret.</p>
 <div class="refsect3">
-<a name="id-1.4.4.8.16.5"></a><h4>Parameters</h4>
+<a name="id-1.4.4.8.17.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -755,7 +820,7 @@ handle that secret.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.4.8.16.6"></a><h4>Returns</h4>
+<a name="id-1.4.4.8.17.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success (if the given secret name was a valid property of
 this setting, and if that property is secret), <code class="literal">FALSE</code> if not</p>
 </div>
@@ -770,7 +835,7 @@ nm_setting_get_dbus_property_type (<em class="parameter"><code><a class="link" h
  is a D-Bus
 property name, which may not necessarily be a <span class="type">GObject</span> property.</p>
 <div class="refsect3">
-<a name="id-1.4.4.8.17.5"></a><h4>Parameters</h4>
+<a name="id-1.4.4.8.18.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -793,7 +858,7 @@ to get the type of</p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.4.8.17.6"></a><h4>Returns</h4>
+<a name="id-1.4.4.8.18.6"></a><h4>Returns</h4>
 <p> the D-Bus marshalling type of <em class="parameter"><code>property</code></em>
 on <em class="parameter"><code>setting</code></em>
 .</p>
@@ -970,6 +1035,45 @@ two connections.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingMacRandomization"></a><h3>enum NMSettingMacRandomization</h3>
+<p>Controls if and how the MAC address of a device is randomzied.</p>
+<div class="refsect3">
+<a name="id-1.4.4.9.5.4"></a><h4>Members</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-MAC-RANDOMIZATION-DEFAULT:CAPS"></a>NM_SETTING_MAC_RANDOMIZATION_DEFAULT</p></td>
+<td class="enum_member_description">
+<p>the default value, which unless
+overridden by user-controlled defaults configuration, is "never".</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-MAC-RANDOMIZATION-NEVER:CAPS"></a>NM_SETTING_MAC_RANDOMIZATION_NEVER</p></td>
+<td class="enum_member_description">
+<p>the device's MAC address is always used.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-MAC-RANDOMIZATION-ALWAYS:CAPS"></a>NM_SETTING_MAC_RANDOMIZATION_ALWAYS</p></td>
+<td class="enum_member_description">
+<p>a random MAC address is used.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSetting-struct"></a><h3>struct NMSetting</h3>
 <pre class="programlisting">struct NMSetting;</pre>
 <p>The NMSetting struct contains only private data.
@@ -980,7 +1084,7 @@ It should only be accessed through the functions described below.</p>
 <a name="NMSettingDiffResult"></a><h3>enum NMSettingDiffResult</h3>
 <p>These values indicate the result of a setting difference operation.</p>
 <div class="refsect3">
-<a name="id-1.4.4.9.6.4"></a><h4>Members</h4>
+<a name="id-1.4.4.9.7.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

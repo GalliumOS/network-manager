@@ -1,0 +1,844 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>NMSettingIPTunnel: libnm Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="libnm Reference Manual">
+<link rel="up" href="ch03.html" title="Connection and Setting API Reference">
+<link rel="prev" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
+<link rel="next" href="NMSettingMacvlan.html" title="NMSettingMacvlan">
+<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#NMSettingIPTunnel.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMSettingIPTunnel.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMSettingIPTunnel.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="NMSettingIPConfig.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="NMSettingMacvlan.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="NMSettingIPTunnel"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingIPTunnel.top_of_page"></a>NMSettingIPTunnel</span></h2>
+<p>NMSettingIPTunnel — Describes connection properties for IP tunnel devices</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="NMSettingIPTunnel.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-new" title="nm_setting_ip_tunnel_new ()">nm_setting_ip_tunnel_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-parent" title="nm_setting_ip_tunnel_get_parent ()">nm_setting_ip_tunnel_get_parent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libnm-nm-dbus-interface.html#NMIPTunnelMode" title="enum NMIPTunnelMode"><span class="returnvalue">NMIPTunnelMode</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-mode" title="nm_setting_ip_tunnel_get_mode ()">nm_setting_ip_tunnel_get_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-local" title="nm_setting_ip_tunnel_get_local ()">nm_setting_ip_tunnel_get_local</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-remote" title="nm_setting_ip_tunnel_get_remote ()">nm_setting_ip_tunnel_get_remote</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-ttl" title="nm_setting_ip_tunnel_get_ttl ()">nm_setting_ip_tunnel_get_ttl</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-tos" title="nm_setting_ip_tunnel_get_tos ()">nm_setting_ip_tunnel_get_tos</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-path-mtu-discovery" title="nm_setting_ip_tunnel_get_path_mtu_discovery ()">nm_setting_ip_tunnel_get_path_mtu_discovery</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-input-key" title="nm_setting_ip_tunnel_get_input_key ()">nm_setting_ip_tunnel_get_input_key</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-output-key" title="nm_setting_ip_tunnel_get_output_key ()">nm_setting_ip_tunnel_get_output_key</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-encapsulation-limit" title="nm_setting_ip_tunnel_get_encapsulation_limit ()">nm_setting_ip_tunnel_get_encapsulation_limit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-flow-label" title="nm_setting_ip_tunnel_get_flow_label ()">nm_setting_ip_tunnel_get_flow_label</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-mtu" title="nm_setting_ip_tunnel_get_mtu ()">nm_setting_ip_tunnel_get_mtu</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMSettingIPTunnel.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--encapsulation-limit" title="The “encapsulation-limit” property">encapsulation-limit</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--flow-label" title="The “flow-label” property">flow-label</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">gchar</span> *</td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--input-key" title="The “input-key” property">input-key</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">gchar</span> *</td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--local" title="The “local” property">local</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mode" title="The “mode” property">mode</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mtu" title="The “mtu” property">mtu</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">gchar</span> *</td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--output-key" title="The “output-key” property">output-key</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">gchar</span> *</td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--parent" title="The “parent” property">parent</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--path-mtu-discovery" title="The “path-mtu-discovery” property">path-mtu-discovery</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">gchar</span> *</td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--remote" title="The “remote” property">remote</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--tos" title="The “tos” property">tos</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--ttl" title="The “ttl” property">ttl</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMSettingIPTunnel.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-SETTING-NAME:CAPS" title="NM_SETTING_IP_TUNNEL_SETTING_NAME">NM_SETTING_IP_TUNNEL_SETTING_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-PARENT:CAPS" title="NM_SETTING_IP_TUNNEL_PARENT">NM_SETTING_IP_TUNNEL_PARENT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-MODE:CAPS" title="NM_SETTING_IP_TUNNEL_MODE">NM_SETTING_IP_TUNNEL_MODE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-LOCAL:CAPS" title="NM_SETTING_IP_TUNNEL_LOCAL">NM_SETTING_IP_TUNNEL_LOCAL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-REMOTE:CAPS" title="NM_SETTING_IP_TUNNEL_REMOTE">NM_SETTING_IP_TUNNEL_REMOTE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-TTL:CAPS" title="NM_SETTING_IP_TUNNEL_TTL">NM_SETTING_IP_TUNNEL_TTL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-TOS:CAPS" title="NM_SETTING_IP_TUNNEL_TOS">NM_SETTING_IP_TUNNEL_TOS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-PATH-MTU-DISCOVERY:CAPS" title="NM_SETTING_IP_TUNNEL_PATH_MTU_DISCOVERY">NM_SETTING_IP_TUNNEL_PATH_MTU_DISCOVERY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-INPUT-KEY:CAPS" title="NM_SETTING_IP_TUNNEL_INPUT_KEY">NM_SETTING_IP_TUNNEL_INPUT_KEY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-OUTPUT-KEY:CAPS" title="NM_SETTING_IP_TUNNEL_OUTPUT_KEY">NM_SETTING_IP_TUNNEL_OUTPUT_KEY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-ENCAPSULATION-LIMIT:CAPS" title="NM_SETTING_IP_TUNNEL_ENCAPSULATION_LIMIT">NM_SETTING_IP_TUNNEL_ENCAPSULATION_LIMIT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-FLOW-LABEL:CAPS" title="NM_SETTING_IP_TUNNEL_FLOW_LABEL">NM_SETTING_IP_TUNNEL_FLOW_LABEL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-MTU:CAPS" title="NM_SETTING_IP_TUNNEL_MTU">NM_SETTING_IP_TUNNEL_MTU</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMSettingIPTunnel.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
+        <span class="lineart">╰──</span> NMSettingIPTunnel
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingIPTunnel.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="NMSettingIPTunnel.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-new"></a><h3>nm_setting_ip_tunnel_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
+nm_setting_ip_tunnel_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> object with default values.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.2.5"></a><h4>Returns</h4>
+<p> the new empty <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> object. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-parent"></a><h3>nm_setting_ip_tunnel_get_parent ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--parent" title="The “parent” property"><span class="type">“parent”</span></a> property of the setting</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.3.6"></a><h4>Returns</h4>
+<p> the parent device</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-mode"></a><h3>nm_setting_ip_tunnel_get_mode ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMIPTunnelMode" title="enum NMIPTunnelMode"><span class="returnvalue">NMIPTunnelMode</span></a>
+nm_setting_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mode" title="The “mode” property"><span class="type">“mode”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.4.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.4.6"></a><h4>Returns</h4>
+<p> the tunnel mode</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-local"></a><h3>nm_setting_ip_tunnel_get_local ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--local" title="The “local” property"><span class="type">“local”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.5.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.5.6"></a><h4>Returns</h4>
+<p> the local endpoint</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-remote"></a><h3>nm_setting_ip_tunnel_get_remote ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--remote" title="The “remote” property"><span class="type">“remote”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.6.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.6.6"></a><h4>Returns</h4>
+<p> the remote endpoint</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-ttl"></a><h3>nm_setting_ip_tunnel_get_ttl ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--ttl" title="The “ttl” property"><span class="type">“ttl”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.7.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.7.6"></a><h4>Returns</h4>
+<p> the Time-to-live value</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-tos"></a><h3>nm_setting_ip_tunnel_get_tos ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_ip_tunnel_get_tos (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--tos" title="The “tos” property"><span class="type">“tos”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.8.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.8.6"></a><h4>Returns</h4>
+<p> the TOS value</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-path-mtu-discovery"></a><h3>nm_setting_ip_tunnel_get_path_mtu_discovery ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+nm_setting_ip_tunnel_get_path_mtu_discovery
+                               (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--path-mtu-discovery" title="The “path-mtu-discovery” property"><span class="type">“path-mtu-discovery”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.9.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.9.6"></a><h4>Returns</h4>
+<p> whether path MTU discovery is enabled</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-input-key"></a><h3>nm_setting_ip_tunnel_get_input_key ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--input-key" title="The “input-key” property"><span class="type">“input-key”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.10.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.10.6"></a><h4>Returns</h4>
+<p> the input key</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-output-key"></a><h3>nm_setting_ip_tunnel_get_output_key ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--output-key" title="The “output-key” property"><span class="type">“output-key”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.11.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.11.6"></a><h4>Returns</h4>
+<p> the output key</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-encapsulation-limit"></a><h3>nm_setting_ip_tunnel_get_encapsulation_limit ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_ip_tunnel_get_encapsulation_limit
+                               (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--encapsulation-limit" title="The “encapsulation-limit” property"><span class="type">“encapsulation-limit”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.12.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.12.6"></a><h4>Returns</h4>
+<p> the encapsulation limit value</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-flow-label"></a><h3>nm_setting_ip_tunnel_get_flow_label ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--flow-label" title="The “flow-label” property"><span class="type">“flow-label”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.13.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.13.6"></a><h4>Returns</h4>
+<p> the flow label value</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-tunnel-get-mtu"></a><h3>nm_setting_ip_tunnel_get_mtu ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_ip_tunnel_get_mtu (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
+<p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mtu" title="The “mtu” property"><span class="type">“mtu”</span></a> property of the setting.</p>
+<div class="refsect3">
+<a name="id-1.4.20.8.14.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.20.8.14.6"></a><h4>Returns</h4>
+<p> the MTU</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingIPTunnel.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-SETTING-NAME:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_SETTING_NAME        "ip-tunnel"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-PARENT:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_PARENT</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_PARENT              "parent"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-MODE:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_MODE</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_MODE                "mode"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-LOCAL:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_LOCAL</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_LOCAL               "local"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-REMOTE:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_REMOTE</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_REMOTE              "remote"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-TTL:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_TTL</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_TTL                 "ttl"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-TOS:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_TOS</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_TOS                 "tos"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-PATH-MTU-DISCOVERY:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_PATH_MTU_DISCOVERY</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_PATH_MTU_DISCOVERY  "path-mtu-discovery"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-INPUT-KEY:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_INPUT_KEY</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_INPUT_KEY           "input-key"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-OUTPUT-KEY:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_OUTPUT_KEY</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_OUTPUT_KEY          "output-key"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-ENCAPSULATION-LIMIT:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_ENCAPSULATION_LIMIT</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_ENCAPSULATION_LIMIT "encapsulation-limit"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-FLOW-LABEL:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_FLOW_LABEL</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_FLOW_LABEL          "flow-label"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-TUNNEL-MTU:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_MTU</h3>
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_MTU                 "mtu"
+</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingIPTunnel.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--encapsulation-limit"></a><h3>The <code class="literal">“encapsulation-limit”</code> property</h3>
+<pre class="programlisting">  “encapsulation-limit”      <span class="type">guint</span></pre>
+<p>How many additional levels of encapsulation are permitted to be prepended
+to packets. This property applies only to IPv6 tunnels.</p>
+<p>Flags: Read / Write / Construct</p>
+<p>Allowed values: &lt;= 255</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--flow-label"></a><h3>The <code class="literal">“flow-label”</code> property</h3>
+<pre class="programlisting">  “flow-label”               <span class="type">guint</span></pre>
+<p>The flow label to assign to tunnel packets. This property applies only to
+IPv6 tunnels.</p>
+<p>Flags: Read / Write / Construct</p>
+<p>Allowed values: &lt;= 1048575</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--input-key"></a><h3>The <code class="literal">“input-key”</code> property</h3>
+<pre class="programlisting">  “input-key”                <span class="type">gchar</span> *</pre>
+<p>The key used for tunnel input packets; the property is valid only for
+certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--local"></a><h3>The <code class="literal">“local”</code> property</h3>
+<pre class="programlisting">  “local”                    <span class="type">gchar</span> *</pre>
+<p>The local endpoint of the tunnel; the value can be empty, otherwise it
+must contain an IPv4 or IPv6 address.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--mode"></a><h3>The <code class="literal">“mode”</code> property</h3>
+<pre class="programlisting">  “mode”                     <span class="type">guint</span></pre>
+<p>The tunneling mode, for example <a class="link" href="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-IPIP:CAPS"><code class="literal">NM_IP_TUNNEL_MODE_IPIP</code></a> or
+<a class="link" href="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-GRE:CAPS"><code class="literal">NM_IP_TUNNEL_MODE_GRE</code></a>.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--mtu"></a><h3>The <code class="literal">“mtu”</code> property</h3>
+<pre class="programlisting">  “mtu”                      <span class="type">guint</span></pre>
+<p>Flags: Read / Write / Construct</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--output-key"></a><h3>The <code class="literal">“output-key”</code> property</h3>
+<pre class="programlisting">  “output-key”               <span class="type">gchar</span> *</pre>
+<p>The key used for tunnel output packets; the property is valid only for
+certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--parent"></a><h3>The <code class="literal">“parent”</code> property</h3>
+<pre class="programlisting">  “parent”                   <span class="type">gchar</span> *</pre>
+<p>If given, specifies the parent interface name or parent connection UUID
+the new device will be bound to so that tunneled packets will only be
+routed via that interface.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--path-mtu-discovery"></a><h3>The <code class="literal">“path-mtu-discovery”</code> property</h3>
+<pre class="programlisting">  “path-mtu-discovery”       <span class="type">gboolean</span></pre>
+<p>Whether to enable Path MTU Discovery on this tunnel.</p>
+<p>Flags: Read / Write / Construct</p>
+<p>Default value: TRUE</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--remote"></a><h3>The <code class="literal">“remote”</code> property</h3>
+<pre class="programlisting">  “remote”                   <span class="type">gchar</span> *</pre>
+<p>The remote endpoint of the tunnel; the value must contain an IPv4 or IPv6
+address.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--tos"></a><h3>The <code class="literal">“tos”</code> property</h3>
+<pre class="programlisting">  “tos”                      <span class="type">guint</span></pre>
+<p>The type of service (IPv4) or traffic class (IPv6) field to be set on
+tunneled packets.</p>
+<p>Flags: Read / Write / Construct</p>
+<p>Allowed values: &lt;= 255</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPTunnel--ttl"></a><h3>The <code class="literal">“ttl”</code> property</h3>
+<pre class="programlisting">  “ttl”                      <span class="type">guint</span></pre>
+<p>The TTL to assign to tunneled packets. 0 is a special value meaning that
+packets inherit the TTL value.</p>
+<p>Flags: Read / Write / Construct</p>
+<p>Allowed values: &lt;= 255</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.24</div>
+</body>
+</html>

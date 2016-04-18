@@ -59,6 +59,8 @@ G_BEGIN_DECLS
 #define NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES "autoconnect-slaves"
 #define NM_SETTING_CONNECTION_SECONDARIES    "secondaries"
 #define NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT "gateway-ping-timeout"
+#define NM_SETTING_CONNECTION_METERED        "metered"
+#define NM_SETTING_CONNECTION_LLDP           "lldp"
 
 /* Types for property values */
 /**
@@ -72,13 +74,25 @@ G_BEGIN_DECLS
  * #NMSettingConnectionAutoconnectSlaves values indicate whether slave connections
  * should be activated when master is activated.
  */
-NM_AVAILABLE_IN_1_0_4
 typedef enum {
 	NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_DEFAULT = -1,
 	NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_NO = 0,
 	NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_YES = 1,
 } NMSettingConnectionAutoconnectSlaves;
 
+/**
+ * NMSettingConnectionLldp:
+ * @NM_SETTING_CONNECTION_LLDP_DEFAULT: default value
+ * @NM_SETTING_CONNECTION_LLDP_DISABLE: disable LLDP
+ * @NM_SETTING_CONNECTION_LLDP_ENABLE_RX: enable reception of LLDP frames
+ *
+ * #NMSettingConnectionLldp values indicate whether LLDP should be enabled.
+ */
+typedef enum {
+	NM_SETTING_CONNECTION_LLDP_DEFAULT = -1,
+	NM_SETTING_CONNECTION_LLDP_DISABLE = 0,
+	NM_SETTING_CONNECTION_LLDP_ENABLE_RX = 1,
+} NMSettingConnectionLldp;
 
 /**
  * NMSettingConnection:
@@ -132,7 +146,7 @@ const char *nm_setting_connection_get_master           (NMSettingConnection *set
 gboolean    nm_setting_connection_is_slave_type        (NMSettingConnection *setting,
                                                         const char *type);
 const char *nm_setting_connection_get_slave_type       (NMSettingConnection *setting);
-NM_AVAILABLE_IN_1_0_4
+NM_AVAILABLE_IN_1_2
 NMSettingConnectionAutoconnectSlaves nm_setting_connection_get_autoconnect_slaves (NMSettingConnection *setting);
 
 guint32     nm_setting_connection_get_num_secondaries  (NMSettingConnection *setting);
@@ -142,6 +156,10 @@ void        nm_setting_connection_remove_secondary     (NMSettingConnection *set
 gboolean    nm_setting_connection_remove_secondary_by_value (NMSettingConnection *setting, const char *sec_uuid);
 
 guint32     nm_setting_connection_get_gateway_ping_timeout (NMSettingConnection *setting);
+NM_AVAILABLE_IN_1_2
+NMMetered   nm_setting_connection_get_metered (NMSettingConnection *setting);
+NM_AVAILABLE_IN_1_2
+NMSettingConnectionLldp nm_setting_connection_get_lldp (NMSettingConnection *setting);
 
 G_END_DECLS
 

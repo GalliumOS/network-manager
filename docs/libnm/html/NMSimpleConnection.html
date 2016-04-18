@@ -98,8 +98,8 @@ but might be used in the process of creating a new one.</p>
 nm_simple_connection_new_from_dbus (<em class="parameter"><code><span class="type">GVariant</span> *dict</code></em>,
                                     <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a> from a hash table describing the
-connection.  See <a class="link" href="libnm-NMConnection.html#nm-connection-to-dbus" title="nm_connection_to_dbus ()"><code class="function">nm_connection_to_dbus()</code></a> for a description of the expected
-hash table.</p>
+connection and normalize the connection.  See <a class="link" href="libnm-NMConnection.html#nm-connection-to-dbus" title="nm_connection_to_dbus ()"><code class="function">nm_connection_to_dbus()</code></a> for a
+description of the expected hash table.</p>
 <div class="refsect3">
 <a name="id-1.4.3.6.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -126,7 +126,7 @@ hash table.</p>
 <a name="id-1.4.3.6.3.6"></a><h4>Returns</h4>
 <p> the new <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a> object, populated with
 settings created from the values in the hash table, or <code class="literal">NULL</code> if the
-connection failed to validate. </p>
+connection failed to normalize. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>

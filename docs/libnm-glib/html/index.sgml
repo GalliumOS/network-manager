@@ -12,6 +12,7 @@
 <ANCHOR id="nm-client-new-async" href="libnm-glib/NMClient.html#nm-client-new-async">
 <ANCHOR id="nm-client-new-finish" href="libnm-glib/NMClient.html#nm-client-new-finish">
 <ANCHOR id="nm-client-get-devices" href="libnm-glib/NMClient.html#nm-client-get-devices">
+<ANCHOR id="nm-client-get-all-devices" href="libnm-glib/NMClient.html#nm-client-get-all-devices">
 <ANCHOR id="nm-client-get-device-by-path" href="libnm-glib/NMClient.html#nm-client-get-device-by-path">
 <ANCHOR id="nm-client-get-device-by-iface" href="libnm-glib/NMClient.html#nm-client-get-device-by-iface">
 <ANCHOR id="NMClientActivateFn" href="libnm-glib/NMClient.html#NMClientActivateFn">
@@ -62,6 +63,7 @@
 <ANCHOR id="NM-CLIENT-PRIMARY-CONNECTION:CAPS" href="libnm-glib/NMClient.html#NM-CLIENT-PRIMARY-CONNECTION:CAPS">
 <ANCHOR id="NM-CLIENT-ACTIVATING-CONNECTION:CAPS" href="libnm-glib/NMClient.html#NM-CLIENT-ACTIVATING-CONNECTION:CAPS">
 <ANCHOR id="NM-CLIENT-DEVICES:CAPS" href="libnm-glib/NMClient.html#NM-CLIENT-DEVICES:CAPS">
+<ANCHOR id="NM-CLIENT-ALL-DEVICES:CAPS" href="libnm-glib/NMClient.html#NM-CLIENT-ALL-DEVICES:CAPS">
 <ANCHOR id="NMClientPermission" href="libnm-glib/NMClient.html#NMClientPermission">
 <ANCHOR id="NM-CLIENT-PERMISSION-NONE:CAPS" href="libnm-glib/NMClient.html#NM-CLIENT-PERMISSION-NONE:CAPS">
 <ANCHOR id="NM-CLIENT-PERMISSION-ENABLE-DISABLE-NETWORK:CAPS" href="libnm-glib/NMClient.html#NM-CLIENT-PERMISSION-ENABLE-DISABLE-NETWORK:CAPS">
@@ -88,6 +90,7 @@
 <ANCHOR id="NMClient.property-details" href="libnm-glib/NMClient.html#NMClient.property-details">
 <ANCHOR id="NMClient--activating-connection" href="libnm-glib/NMClient.html#NMClient--activating-connection">
 <ANCHOR id="NMClient--active-connections" href="libnm-glib/NMClient.html#NMClient--active-connections">
+<ANCHOR id="NMClient--all-devices" href="libnm-glib/NMClient.html#NMClient--all-devices">
 <ANCHOR id="NMClient--connectivity" href="libnm-glib/NMClient.html#NMClient--connectivity">
 <ANCHOR id="NMClient--devices" href="libnm-glib/NMClient.html#NMClient--devices">
 <ANCHOR id="NMClient--manager-running" href="libnm-glib/NMClient.html#NMClient--manager-running">
@@ -103,6 +106,8 @@
 <ANCHOR id="NMClient--wwan-enabled" href="libnm-glib/NMClient.html#NMClient--wwan-enabled">
 <ANCHOR id="NMClient--wwan-hardware-enabled" href="libnm-glib/NMClient.html#NMClient--wwan-hardware-enabled">
 <ANCHOR id="NMClient.signal-details" href="libnm-glib/NMClient.html#NMClient.signal-details">
+<ANCHOR id="NMClient-any-device-added" href="libnm-glib/NMClient.html#NMClient-any-device-added">
+<ANCHOR id="NMClient-any-device-removed" href="libnm-glib/NMClient.html#NMClient-any-device-removed">
 <ANCHOR id="NMClient-device-added" href="libnm-glib/NMClient.html#NMClient-device-added">
 <ANCHOR id="NMClient-device-removed" href="libnm-glib/NMClient.html#NMClient-device-removed">
 <ANCHOR id="NMClient-permission-changed" href="libnm-glib/NMClient.html#NMClient-permission-changed">
@@ -182,6 +187,7 @@
 <ANCHOR id="nm-device-get-hw-address" href="libnm-glib/NMDevice.html#nm-device-get-hw-address">
 <ANCHOR id="nm-device-get-capabilities" href="libnm-glib/NMDevice.html#nm-device-get-capabilities">
 <ANCHOR id="nm-device-get-managed" href="libnm-glib/NMDevice.html#nm-device-get-managed">
+<ANCHOR id="nm-device-set-managed" href="libnm-glib/NMDevice.html#nm-device-set-managed">
 <ANCHOR id="nm-device-get-autoconnect" href="libnm-glib/NMDevice.html#nm-device-get-autoconnect">
 <ANCHOR id="nm-device-set-autoconnect" href="libnm-glib/NMDevice.html#nm-device-set-autoconnect">
 <ANCHOR id="nm-device-get-firmware-missing" href="libnm-glib/NMDevice.html#nm-device-get-firmware-missing">
@@ -196,6 +202,7 @@
 <ANCHOR id="nm-device-get-physical-port-id" href="libnm-glib/NMDevice.html#nm-device-get-physical-port-id">
 <ANCHOR id="nm-device-get-mtu" href="libnm-glib/NMDevice.html#nm-device-get-mtu">
 <ANCHOR id="nm-device-is-software" href="libnm-glib/NMDevice.html#nm-device-is-software">
+<ANCHOR id="nm-device-is-real" href="libnm-glib/NMDevice.html#nm-device-is-real">
 <ANCHOR id="nm-device-get-product" href="libnm-glib/NMDevice.html#nm-device-get-product">
 <ANCHOR id="nm-device-get-vendor" href="libnm-glib/NMDevice.html#nm-device-get-vendor">
 <ANCHOR id="nm-device-get-description" href="libnm-glib/NMDevice.html#nm-device-get-description">
@@ -221,6 +228,7 @@
 <ANCHOR id="NM-DEVICE-DRIVER-VERSION:CAPS" href="libnm-glib/NMDevice.html#NM-DEVICE-DRIVER-VERSION:CAPS">
 <ANCHOR id="NM-DEVICE-FIRMWARE-VERSION:CAPS" href="libnm-glib/NMDevice.html#NM-DEVICE-FIRMWARE-VERSION:CAPS">
 <ANCHOR id="NM-DEVICE-CAPABILITIES:CAPS" href="libnm-glib/NMDevice.html#NM-DEVICE-CAPABILITIES:CAPS">
+<ANCHOR id="NM-DEVICE-REAL:CAPS" href="libnm-glib/NMDevice.html#NM-DEVICE-REAL:CAPS">
 <ANCHOR id="NM-DEVICE-MANAGED:CAPS" href="libnm-glib/NMDevice.html#NM-DEVICE-MANAGED:CAPS">
 <ANCHOR id="NM-DEVICE-AUTOCONNECT:CAPS" href="libnm-glib/NMDevice.html#NM-DEVICE-AUTOCONNECT:CAPS">
 <ANCHOR id="NM-DEVICE-FIRMWARE-MISSING:CAPS" href="libnm-glib/NMDevice.html#NM-DEVICE-FIRMWARE-MISSING:CAPS">
@@ -256,6 +264,7 @@
 <ANCHOR id="NMDevice--mtu" href="libnm-glib/NMDevice.html#NMDevice--mtu">
 <ANCHOR id="NMDevice--physical-port-id" href="libnm-glib/NMDevice.html#NMDevice--physical-port-id">
 <ANCHOR id="NMDevice--product" href="libnm-glib/NMDevice.html#NMDevice--product">
+<ANCHOR id="NMDevice--real" href="libnm-glib/NMDevice.html#NMDevice--real">
 <ANCHOR id="NMDevice--state" href="libnm-glib/NMDevice.html#NMDevice--state">
 <ANCHOR id="NMDevice--state-reason" href="libnm-glib/NMDevice.html#NMDevice--state-reason">
 <ANCHOR id="NMDevice--udi" href="libnm-glib/NMDevice.html#NMDevice--udi">
@@ -678,6 +687,7 @@
 <ANCHOR id="nm-access-point-get-mode" href="libnm-glib/NMAccessPoint.html#nm-access-point-get-mode">
 <ANCHOR id="nm-access-point-get-max-bitrate" href="libnm-glib/NMAccessPoint.html#nm-access-point-get-max-bitrate">
 <ANCHOR id="nm-access-point-get-strength" href="libnm-glib/NMAccessPoint.html#nm-access-point-get-strength">
+<ANCHOR id="nm-access-point-get-last-seen" href="libnm-glib/NMAccessPoint.html#nm-access-point-get-last-seen">
 <ANCHOR id="nm-access-point-filter-connections" href="libnm-glib/NMAccessPoint.html#nm-access-point-filter-connections">
 <ANCHOR id="nm-access-point-connection-valid" href="libnm-glib/NMAccessPoint.html#nm-access-point-connection-valid">
 <ANCHOR id="nm-access-point-get-hw-address" href="libnm-glib/NMAccessPoint.html#nm-access-point-get-hw-address">
@@ -691,12 +701,14 @@
 <ANCHOR id="NM-ACCESS-POINT-MODE:CAPS" href="libnm-glib/NMAccessPoint.html#NM-ACCESS-POINT-MODE:CAPS">
 <ANCHOR id="NM-ACCESS-POINT-MAX-BITRATE:CAPS" href="libnm-glib/NMAccessPoint.html#NM-ACCESS-POINT-MAX-BITRATE:CAPS">
 <ANCHOR id="NM-ACCESS-POINT-STRENGTH:CAPS" href="libnm-glib/NMAccessPoint.html#NM-ACCESS-POINT-STRENGTH:CAPS">
+<ANCHOR id="NM-ACCESS-POINT-LAST-SEEN:CAPS" href="libnm-glib/NMAccessPoint.html#NM-ACCESS-POINT-LAST-SEEN:CAPS">
 <ANCHOR id="NM-ACCESS-POINT-HW-ADDRESS:CAPS" href="libnm-glib/NMAccessPoint.html#NM-ACCESS-POINT-HW-ADDRESS:CAPS">
 <ANCHOR id="NMAccessPoint.property-details" href="libnm-glib/NMAccessPoint.html#NMAccessPoint.property-details">
 <ANCHOR id="NMAccessPoint--bssid" href="libnm-glib/NMAccessPoint.html#NMAccessPoint--bssid">
 <ANCHOR id="NMAccessPoint--flags" href="libnm-glib/NMAccessPoint.html#NMAccessPoint--flags">
 <ANCHOR id="NMAccessPoint--frequency" href="libnm-glib/NMAccessPoint.html#NMAccessPoint--frequency">
 <ANCHOR id="NMAccessPoint--hw-address" href="libnm-glib/NMAccessPoint.html#NMAccessPoint--hw-address">
+<ANCHOR id="NMAccessPoint--last-seen" href="libnm-glib/NMAccessPoint.html#NMAccessPoint--last-seen">
 <ANCHOR id="NMAccessPoint--max-bitrate" href="libnm-glib/NMAccessPoint.html#NMAccessPoint--max-bitrate">
 <ANCHOR id="NMAccessPoint--mode" href="libnm-glib/NMAccessPoint.html#NMAccessPoint--mode">
 <ANCHOR id="NMAccessPoint--rsn-flags" href="libnm-glib/NMAccessPoint.html#NMAccessPoint--rsn-flags">
@@ -1029,6 +1041,26 @@
 <ANCHOR id="NM-VPN-PLUGIN-UI-INTERFACE-PROP-NAME:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-PLUGIN-UI-INTERFACE-PROP-NAME:CAPS">
 <ANCHOR id="NM-VPN-PLUGIN-UI-INTERFACE-PROP-DESC:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-PLUGIN-UI-INTERFACE-PROP-DESC:CAPS">
 <ANCHOR id="NM-VPN-PLUGIN-UI-INTERFACE-PROP-SERVICE:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-PLUGIN-UI-INTERFACE-PROP-SERVICE:CAPS">
+<ANCHOR id="nm-vpn-editor-plugin-factory" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-factory">
+<ANCHOR id="NMVpnEditorPluginCapability" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NMVpnEditorPluginCapability">
+<ANCHOR id="NM-VPN-EDITOR-PLUGIN-CAPABILITY-NONE:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-CAPABILITY-NONE:CAPS">
+<ANCHOR id="NM-VPN-EDITOR-PLUGIN-CAPABILITY-IMPORT:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-CAPABILITY-IMPORT:CAPS">
+<ANCHOR id="NM-VPN-EDITOR-PLUGIN-CAPABILITY-EXPORT:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-CAPABILITY-EXPORT:CAPS">
+<ANCHOR id="NM-VPN-EDITOR-PLUGIN-CAPABILITY-IPV6:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-CAPABILITY-IPV6:CAPS">
+<ANCHOR id="NM-VPN-EDITOR-PLUGIN-NAME:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-NAME:CAPS">
+<ANCHOR id="NM-VPN-EDITOR-PLUGIN-DESCRIPTION:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-DESCRIPTION:CAPS">
+<ANCHOR id="NM-VPN-EDITOR-PLUGIN-SERVICE:CAPS" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-SERVICE:CAPS">
+<ANCHOR id="NMVpnEditorPluginInterface" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NMVpnEditorPluginInterface">
+<ANCHOR id="get-editor" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#get-editor">
+<ANCHOR id="get-suggested-filename" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#get-suggested-filename">
+<ANCHOR id="nm-vpn-editor-plugin-get-editor" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-get-editor">
+<ANCHOR id="nm-vpn-editor-plugin-get-capabilities" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-get-capabilities">
+<ANCHOR id="nm-vpn-editor-plugin-import" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-import">
+<ANCHOR id="nm-vpn-editor-plugin-export" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-export">
+<ANCHOR id="nm-vpn-editor-plugin-get-suggested-filename" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-get-suggested-filename">
+<ANCHOR id="NMVpnEditorInterface" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NMVpnEditorInterface">
+<ANCHOR id="nm-vpn-editor-get-widget" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-get-widget">
+<ANCHOR id="nm-vpn-editor-update-connection" href="libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-update-connection">
 <ANCHOR id="libnm-glib-nm-vpn-plugin-utils" href="libnm-glib/libnm-glib-nm-vpn-plugin-utils.html">
 <ANCHOR id="libnm-glib-nm-vpn-plugin-utils.functions" href="libnm-glib/libnm-glib-nm-vpn-plugin-utils.html#libnm-glib-nm-vpn-plugin-utils.functions">
 <ANCHOR id="libnm-glib-nm-vpn-plugin-utils.description" href="libnm-glib/libnm-glib-nm-vpn-plugin-utils.html#libnm-glib-nm-vpn-plugin-utils.description">

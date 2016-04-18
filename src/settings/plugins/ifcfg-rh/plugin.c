@@ -21,7 +21,7 @@
  * Copyright (C) 2007 - 2011 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -30,68 +30,41 @@
 #include <sys/stat.h>
 
 #include <gmodule.h>
-#include <glib-object.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
 
-#include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-
-#if HAVE_SELINUX
-#include <selinux/selinux.h>
-#endif
-
-#include <nm-setting-connection.h>
+#include "nm-setting-connection.h"
 
 #include "common.h"
-#include "nm-dbus-glib-types.h"
 #include "plugin.h"
-#include "nm-system-config-interface.h"
+#include "nm-settings-plugin.h"
 #include "nm-config.h"
-#include "nm-logging.h"
 #include "NetworkManagerUtils.h"
 
 #include "nm-ifcfg-connection.h"
-#include "nm-inotify-helper.h"
 #include "shvar.h"
 #include "reader.h"
 #include "writer.h"
 #include "utils.h"
-#include "gsystem-local-alloc.h"
+#include "nm-dbus-compat.h"
+#include "nm-exported-object.h"
 
-#define DBUS_SERVICE_NAME "com.redhat.ifcfgrh1"
-#define DBUS_OBJECT_PATH "/com/redhat/ifcfgrh1"
+#include "nmdbus-ifcfg-rh.h"
 
+#define IFCFGRH1_DBUS_SERVICE_NAME "com.redhat.ifcfgrh1"
+#define IFCFGRH1_DBUS_OBJECT_PATH "/com/redhat/ifcfgrh1"
 
-#define _LOG_DEFAULT_DOMAIN  LOGD_SETTINGS
-
-#define _LOG(level, domain, ...) \
+#define _NMLOG_DOMAIN  LOGD_SETTINGS
+#define _NMLOG(level, ...) \
     G_STMT_START { \
-        nm_log ((level), (domain), \
+        nm_log ((level), (_NMLOG_DOMAIN), \
                 "%s" _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
                 "ifcfg-rh: " \
                 _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
     } G_STMT_END
 
-#define _LOGT(...)      _LOG (LOGL_TRACE, _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-#define _LOGD(...)      _LOG (LOGL_DEBUG, _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-#define _LOGI(...)      _LOG (LOGL_INFO,  _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-#define _LOGW(...)      _LOG (LOGL_WARN,  _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-#define _LOGE(...)      _LOG (LOGL_ERR,   _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-
 #define ERR_GET_MSG(err) (((err) && (err)->message) ? (err)->message : "(unknown)")
 
 
-static gboolean impl_ifcfgrh_get_ifcfg_details (SCPluginIfcfg *plugin,
-                                                const char *in_ifcfg,
-                                                const char **out_uuid,
-                                                const char **out_path,
-                                                GError **error);
-
-#include "nm-ifcfg-rh-glue.h"
-
-static NMIfcfgConnection *update_connection (SCPluginIfcfg *plugin,
+static NMIfcfgConnection *update_connection (SettingsPluginIfcfg *plugin,
                                              NMConnection *source,
                                              const char *full_path,
                                              NMIfcfgConnection *connection,
@@ -99,37 +72,40 @@ static NMIfcfgConnection *update_connection (SCPluginIfcfg *plugin,
                                              GHashTable *protected_connections,
                                              GError **error);
 
-static void system_config_interface_init (NMSystemConfigInterface *system_config_interface_class);
+static void settings_plugin_interface_init (NMSettingsPluginInterface *plugin_iface);
 
-G_DEFINE_TYPE_EXTENDED (SCPluginIfcfg, sc_plugin_ifcfg, G_TYPE_OBJECT, 0,
-						G_IMPLEMENT_INTERFACE (NM_TYPE_SYSTEM_CONFIG_INTERFACE,
-											   system_config_interface_init))
+G_DEFINE_TYPE_EXTENDED (SettingsPluginIfcfg, settings_plugin_ifcfg, G_TYPE_OBJECT, 0,
+                        G_IMPLEMENT_INTERFACE (NM_TYPE_SETTINGS_PLUGIN,
+                                               settings_plugin_interface_init))
 
-#define SC_PLUGIN_IFCFG_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SC_TYPE_PLUGIN_IFCFG, SCPluginIfcfgPrivate))
+#define SETTINGS_PLUGIN_IFCFG_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SETTINGS_TYPE_PLUGIN_IFCFG, SettingsPluginIfcfgPrivate))
 
 
 typedef struct {
-	GHashTable *connections;  /* uuid::connection */
+	NMConfig *config;
 
+	struct {
+		GDBusConnection *connection;
+		GDBusInterfaceSkeleton *interface;
+		GCancellable *cancellable;
+		gulong signal_id;
+	} dbus;
+
+	GHashTable *connections;  /* uuid::connection */
 	gboolean initialized;
-	gulong ih_event_id;
-	int sc_network_wd;
-	GFileMonitor *hostname_monitor;
-	guint hostname_monitor_id;
-	char *hostname;
 
 	GFileMonitor *ifcfg_monitor;
-	guint ifcfg_monitor_id;
+	gulong ifcfg_monitor_id;
+} SettingsPluginIfcfgPrivate;
 
-	DBusGConnection *bus;
-} SCPluginIfcfgPrivate;
-
+static SettingsPluginIfcfg *settings_plugin_ifcfg_get (void);
+NM_DEFINE_SINGLETON_GETTER (SettingsPluginIfcfg, settings_plugin_ifcfg_get, SETTINGS_TYPE_PLUGIN_IFCFG);
 
 static void
 connection_ifcfg_changed (NMIfcfgConnection *connection, gpointer user_data)
 {
-	SCPluginIfcfg *self = SC_PLUGIN_IFCFG (user_data);
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (self);
+	SettingsPluginIfcfg *self = SETTINGS_PLUGIN_IFCFG (user_data);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
 	const char *path;
 
 	path = nm_settings_connection_get_filename (NM_SETTINGS_CONNECTION (connection));
@@ -149,14 +125,14 @@ connection_ifcfg_changed (NMIfcfgConnection *connection, gpointer user_data)
 static void
 connection_removed_cb (NMSettingsConnection *obj, gpointer user_data)
 {
-	g_hash_table_remove (SC_PLUGIN_IFCFG_GET_PRIVATE (user_data)->connections,
+	g_hash_table_remove (SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (user_data)->connections,
 	                     nm_connection_get_uuid (NM_CONNECTION (obj)));
 }
 
 static void
-remove_connection (SCPluginIfcfg *self, NMIfcfgConnection *connection)
+remove_connection (SettingsPluginIfcfg *self, NMIfcfgConnection *connection)
 {
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (self);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
 	gboolean unmanaged, unrecognized;
 
 	g_return_if_fail (self != NULL);
@@ -175,15 +151,15 @@ remove_connection (SCPluginIfcfg *self, NMIfcfgConnection *connection)
 
 	/* Emit changes _after_ removing the connection */
 	if (unmanaged)
-		g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED);
+		g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_UNMANAGED_SPECS_CHANGED);
 	if (unrecognized)
-		g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_UNRECOGNIZED_SPECS_CHANGED);
+		g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_UNRECOGNIZED_SPECS_CHANGED);
 }
 
 static NMIfcfgConnection *
-find_by_path (SCPluginIfcfg *self, const char *path)
+find_by_path (SettingsPluginIfcfg *self, const char *path)
 {
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (self);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
 	GHashTableIter iter;
 	NMSettingsConnection *candidate = NULL;
 
@@ -198,7 +174,7 @@ find_by_path (SCPluginIfcfg *self, const char *path)
 }
 
 static NMIfcfgConnection *
-update_connection (SCPluginIfcfg *self,
+update_connection (SettingsPluginIfcfg *self,
                    NMConnection *source,
                    const char *full_path,
                    NMIfcfgConnection *connection,
@@ -206,7 +182,7 @@ update_connection (SCPluginIfcfg *self,
                    GHashTable *protected_connections,
                    GError **error)
 {
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (self);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
 	NMIfcfgConnection *connection_new;
 	NMIfcfgConnection *connection_by_uuid;
 	GError *local = NULL;
@@ -231,8 +207,10 @@ update_connection (SCPluginIfcfg *self,
 		    && !protect_existing_connection
 		    && (!protected_connections || !g_hash_table_contains (protected_connections, connection)))
 			remove_connection (self, connection);
-		if (!source && !ignore_error)
-			_LOGW ("loading \"%s\" fails: %s", full_path, local ? local->message : "(unknown reason)");
+		if (!source) {
+			_NMLOG (ignore_error ? LOGL_DEBUG : LOGL_WARN,
+			        "loading \"%s\" fails: %s", full_path, local ? local->message : "(unknown reason)");
+		}
 		g_propagate_error (error, local);
 		return NULL;
 	}
@@ -353,18 +331,18 @@ update_connection (SCPluginIfcfg *self,
 				if (old_unmanaged /* && !new_unmanaged */) {
 					_LOGI ("Managing connection "NM_IFCFG_CONNECTION_LOG_FMT" and its device because NM_CONTROLLED was true.",
 					       NM_IFCFG_CONNECTION_LOG_ARG (connection_new));
-					g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED, connection_by_uuid);
+					g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_CONNECTION_ADDED, connection_by_uuid);
 				} else if (old_unrecognized /* && !new_unrecognized */) {
 					_LOGI ("Managing connection "NM_IFCFG_CONNECTION_LOG_FMT" because it is now a recognized type.",
 					       NM_IFCFG_CONNECTION_LOG_ARG (connection_new));
-					g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED, connection_by_uuid);
+					g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_CONNECTION_ADDED, connection_by_uuid);
 				}
 			}
 
 			if (unmanaged_changed)
-				g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED);
+				g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_UNMANAGED_SPECS_CHANGED);
 			if (unrecognized_changed)
-				g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_UNRECOGNIZED_SPECS_CHANGED);
+				g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_UNRECOGNIZED_SPECS_CHANGED);
 		}
 		nm_settings_connection_set_filename (NM_SETTINGS_CONNECTION (connection_by_uuid), full_path);
 		g_object_unref (connection_new);
@@ -408,11 +386,11 @@ update_connection (SCPluginIfcfg *self,
 			/* Only raise the signal if we were called without source, i.e. if we read the connection from file.
 			 * Otherwise, we were called by add_connection() which does not expect the signal. */
 			if (nm_ifcfg_connection_get_unmanaged_spec (connection_new))
-				g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED);
+				g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_UNMANAGED_SPECS_CHANGED);
 			else if (nm_ifcfg_connection_get_unrecognized_spec (connection_new))
-				g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_UNRECOGNIZED_SPECS_CHANGED);
+				g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_UNRECOGNIZED_SPECS_CHANGED);
 			else
-				g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED, connection_new);
+				g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_CONNECTION_ADDED, connection_new);
 		}
 		return connection_new;
 	}
@@ -425,7 +403,7 @@ ifcfg_dir_changed (GFileMonitor *monitor,
                    GFileMonitorEvent event_type,
                    gpointer user_data)
 {
-	SCPluginIfcfg *plugin = SC_PLUGIN_IFCFG (user_data);
+	SettingsPluginIfcfg *plugin = SETTINGS_PLUGIN_IFCFG (user_data);
 	char *path, *ifcfg_path;
 	NMIfcfgConnection *connection;
 
@@ -454,9 +432,9 @@ ifcfg_dir_changed (GFileMonitor *monitor,
 }
 
 static void
-setup_ifcfg_monitoring (SCPluginIfcfg *plugin)
+setup_ifcfg_monitoring (SettingsPluginIfcfg *plugin)
 {
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (plugin);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (plugin);
 	GFile *file;
 	GFileMonitor *monitor;
 
@@ -509,9 +487,9 @@ _sort_paths (const char **f1, const char **f2, GHashTable *paths)
 }
 
 static void
-read_connections (SCPluginIfcfg *plugin)
+read_connections (SettingsPluginIfcfg *plugin)
 {
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (plugin);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (plugin);
 	GDir *dir;
 	GError *err = NULL;
 	const char *item;
@@ -581,10 +559,10 @@ read_connections (SCPluginIfcfg *plugin)
 }
 
 static GSList *
-get_connections (NMSystemConfigInterface *config)
+get_connections (NMSettingsPlugin *config)
 {
-	SCPluginIfcfg *plugin = SC_PLUGIN_IFCFG (config);
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (plugin);
+	SettingsPluginIfcfg *plugin = SETTINGS_PLUGIN_IFCFG (config);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (plugin);
 	GSList *list = NULL;
 	GHashTableIter iter;
 	NMIfcfgConnection *connection;
@@ -607,10 +585,10 @@ get_connections (NMSystemConfigInterface *config)
 }
 
 static gboolean
-load_connection (NMSystemConfigInterface *config,
+load_connection (NMSettingsPlugin *config,
                  const char *filename)
 {
-	SCPluginIfcfg *plugin = SC_PLUGIN_IFCFG (config);
+	SettingsPluginIfcfg *plugin = SETTINGS_PLUGIN_IFCFG (config);
 	NMIfcfgConnection *connection;
 	int dir_len = strlen (IFCFG_DIR);
 	char *ifcfg_path;
@@ -636,18 +614,18 @@ load_connection (NMSystemConfigInterface *config,
 }
 
 static void
-reload_connections (NMSystemConfigInterface *config)
+reload_connections (NMSettingsPlugin *config)
 {
-	SCPluginIfcfg *plugin = SC_PLUGIN_IFCFG (config);
+	SettingsPluginIfcfg *plugin = SETTINGS_PLUGIN_IFCFG (config);
 
 	read_connections (plugin);
 }
 
 static GSList *
-get_unhandled_specs (NMSystemConfigInterface *config,
+get_unhandled_specs (NMSettingsPlugin *config,
                      const char *property)
 {
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (config);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (config);
 	GSList *list = NULL, *list_iter;
 	GHashTableIter iter;
 	gpointer connection;
@@ -675,24 +653,24 @@ get_unhandled_specs (NMSystemConfigInterface *config,
 }
 
 static GSList *
-get_unmanaged_specs (NMSystemConfigInterface *config)
+get_unmanaged_specs (NMSettingsPlugin *config)
 {
 	return get_unhandled_specs (config, NM_IFCFG_CONNECTION_UNMANAGED_SPEC);
 }
 
 static GSList *
-get_unrecognized_specs (NMSystemConfigInterface *config)
+get_unrecognized_specs (NMSettingsPlugin *config)
 {
 	return get_unhandled_specs (config, NM_IFCFG_CONNECTION_UNRECOGNIZED_SPEC);
 }
 
 static NMSettingsConnection *
-add_connection (NMSystemConfigInterface *config,
+add_connection (NMSettingsPlugin *config,
                 NMConnection *connection,
                 gboolean save_to_disk,
                 GError **error)
 {
-	SCPluginIfcfg *self = SC_PLUGIN_IFCFG (config);
+	SettingsPluginIfcfg *self = SETTINGS_PLUGIN_IFCFG (config);
 	gs_free char *path = NULL;
 
 	/* Ensure we reject attempts to add the connection long before we're
@@ -708,312 +686,316 @@ add_connection (NMSystemConfigInterface *config,
 	return NM_SETTINGS_CONNECTION (update_connection (self, connection, path, NULL, FALSE, NULL, error));
 }
 
-#define SC_NETWORK_FILE "/etc/sysconfig/network"
-#define HOSTNAME_FILE   "/etc/hostname"
-
-static char *
-plugin_get_hostname (SCPluginIfcfg *plugin)
-{
-	shvarFile *network;
-	char *hostname;
-	gboolean ignore_localhost;
-
-	if (g_file_get_contents (HOSTNAME_FILE, &hostname, NULL, NULL)) {
-		g_strchomp (hostname);
-		return hostname;
-	}
-
-	network = svOpenFile (SC_NETWORK_FILE, NULL);
-	if (!network) {
-		_LOGW ("Could not get hostname: failed to read " SC_NETWORK_FILE);
-		return NULL;
-	}
-
-	hostname = svGetValue (network, "HOSTNAME", FALSE);
-	ignore_localhost = svTrueValue (network, "NM_IGNORE_HOSTNAME_LOCALHOST", FALSE);
-	if (ignore_localhost) {
-		/* Ignore a default hostname ('localhost[6]' or 'localhost[6].localdomain[6]')
-		 * to preserve 'network' service behavior.
-		 */
-		if (hostname && !nm_utils_is_specific_hostname (hostname)) {
-			g_free (hostname);
-			hostname = NULL;
-		}
-	}
-
-	svCloseFile (network);
-	return hostname;
-}
-
-static gboolean
-plugin_set_hostname (SCPluginIfcfg *plugin, const char *hostname)
-{
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (plugin);
-	shvarFile *network;
-	char *hostname_eol;
-	gboolean ret;
-#if HAVE_SELINUX
-	security_context_t se_ctx_prev = NULL, se_ctx = NULL;
-	struct stat file_stat = { .st_mode = 0 };
-	mode_t st_mode = 0;
-
-	/* Get default context for HOSTNAME_FILE and set it for fscreate */
-	if (stat (HOSTNAME_FILE, &file_stat) == 0)
-		st_mode = file_stat.st_mode;
-	matchpathcon (HOSTNAME_FILE, st_mode, &se_ctx);
-	matchpathcon_fini ();
-	getfscreatecon (&se_ctx_prev);
-	setfscreatecon (se_ctx);
-#endif
-
-	hostname_eol = g_strdup_printf ("%s\n", hostname);
-	ret = g_file_set_contents (HOSTNAME_FILE, hostname_eol, -1, NULL);
-
-#if HAVE_SELINUX
-	/* Restore previous context and cleanup */
-	setfscreatecon (se_ctx_prev);
-	freecon (se_ctx);
-	freecon (se_ctx_prev);
-#endif
-
-	if (!ret) {
-		_LOGW ("Could not save hostname: failed to create/open " HOSTNAME_FILE);
-		g_free (hostname_eol);
-		return FALSE;
-	}
-
-	g_free (priv->hostname);
-	priv->hostname = g_strdup (hostname);
-	g_free (hostname_eol);
-
-	/* Remove "HOSTNAME" from SC_NETWORK_FILE, if present */
-	network = svOpenFile (SC_NETWORK_FILE, NULL);
-	if (network) {
-		svSetValue (network, "HOSTNAME", NULL, FALSE);
-		svWriteFile (network, 0644, NULL);
-		svCloseFile (network);
-	}
-
-	return TRUE;
-}
-
 static void
-hostname_maybe_changed (SCPluginIfcfg *plugin)
-{
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (plugin);
-	char *new_hostname;
-
-	new_hostname = plugin_get_hostname (plugin);
-	if (   (new_hostname && !priv->hostname)
-	    || (!new_hostname && priv->hostname)
-	    || (priv->hostname && new_hostname && strcmp (priv->hostname, new_hostname))) {
-		g_free (priv->hostname);
-		priv->hostname = new_hostname;
-		g_object_notify (G_OBJECT (plugin), NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME);
-	} else
-		g_free (new_hostname);
-}
-
-static void
-sc_network_changed_cb (NMInotifyHelper *ih,
-                       struct inotify_event *evt,
-                       const char *path,
-                       gpointer user_data)
-{
-	SCPluginIfcfg *plugin = SC_PLUGIN_IFCFG (user_data);
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (plugin);
-
-	if (evt->wd != priv->sc_network_wd)
-		return;
-
-	hostname_maybe_changed (plugin);
-}
-
-static void
-hostname_changed_cb (GFileMonitor *monitor,
-                     GFile *file,
-                     GFile *other_file,
-                     GFileMonitorEvent event_type,
-                     gpointer user_data)
-{
-	SCPluginIfcfg *plugin = SC_PLUGIN_IFCFG (user_data);
-
-	hostname_maybe_changed (plugin);
-}
-
-static gboolean
-impl_ifcfgrh_get_ifcfg_details (SCPluginIfcfg *plugin,
-                                const char *in_ifcfg,
-                                const char **out_uuid,
-                                const char **out_path,
-                                GError **error)
+impl_ifcfgrh_get_ifcfg_details (SettingsPluginIfcfg *plugin,
+                                GDBusMethodInvocation *context,
+                                const char *in_ifcfg)
 {
 	NMIfcfgConnection *connection;
 	NMSettingConnection *s_con;
 	const char *uuid;
 	const char *path;
+	gs_free char *ifcfg_path = NULL;
 
 	if (!g_path_is_absolute (in_ifcfg)) {
-		g_set_error (error,
-		             NM_SETTINGS_ERROR,
-		             NM_SETTINGS_ERROR_INVALID_CONNECTION,
-		             "ifcfg path '%s' is not absolute", in_ifcfg);
-		return FALSE;
+		g_dbus_method_invocation_return_error (context,
+		                                       NM_SETTINGS_ERROR,
+		                                       NM_SETTINGS_ERROR_INVALID_CONNECTION,
+		                                       "ifcfg path '%s' is not absolute", in_ifcfg);
+		return;
 	}
 
-	connection = find_by_path (plugin, in_ifcfg);
+	ifcfg_path = utils_detect_ifcfg_path (in_ifcfg, TRUE);
+	if (!ifcfg_path) {
+		g_dbus_method_invocation_return_error (context,
+		                                       NM_SETTINGS_ERROR,
+		                                       NM_SETTINGS_ERROR_INVALID_CONNECTION,
+		                                       "ifcfg path '%s' is not an ifcfg base file", in_ifcfg);
+		return;
+	}
+
+	connection = find_by_path (plugin, ifcfg_path);
 	if (   !connection
 	    || nm_ifcfg_connection_get_unmanaged_spec (connection)
 	    || nm_ifcfg_connection_get_unrecognized_spec (connection)) {
-		g_set_error (error,
-		             NM_SETTINGS_ERROR,
-		             NM_SETTINGS_ERROR_INVALID_CONNECTION,
-		             "ifcfg file '%s' unknown", in_ifcfg);
-		return FALSE;
+		g_dbus_method_invocation_return_error (context,
+		                                       NM_SETTINGS_ERROR,
+		                                       NM_SETTINGS_ERROR_INVALID_CONNECTION,
+		                                       "ifcfg file '%s' unknown", in_ifcfg);
+		return;
 	}
 
 	s_con = nm_connection_get_setting_connection (NM_CONNECTION (connection));
 	if (!s_con) {
-		g_set_error (error,
-		             NM_SETTINGS_ERROR,
-		             NM_SETTINGS_ERROR_FAILED,
-		             "unable to retrieve the connection setting");
-		return FALSE;
+		g_dbus_method_invocation_return_error (context,
+		                                       NM_SETTINGS_ERROR,
+		                                       NM_SETTINGS_ERROR_FAILED,
+		                                       "unable to retrieve the connection setting");
+		return;
 	}
 
 	uuid = nm_setting_connection_get_uuid (s_con);
 	if (!uuid) {
-		g_set_error (error,
-		             NM_SETTINGS_ERROR,
-		             NM_SETTINGS_ERROR_FAILED,
-		             "unable to get the UUID");
-		return FALSE;
+		g_dbus_method_invocation_return_error (context,
+		                                       NM_SETTINGS_ERROR,
+		                                       NM_SETTINGS_ERROR_FAILED,
+		                                       "unable to get the UUID");
+		return;
 	}
-	
+
 	path = nm_connection_get_path (NM_CONNECTION (connection));
 	if (!path) {
-		g_set_error (error,
-		             NM_SETTINGS_ERROR,
-		             NM_SETTINGS_ERROR_FAILED,
-		             "unable to get the connection D-Bus path");
-		return FALSE;
+		g_dbus_method_invocation_return_error (context,
+		                                       NM_SETTINGS_ERROR,
+		                                       NM_SETTINGS_ERROR_FAILED,
+		                                       "unable to get the connection D-Bus path");
+		return;
 	}
 
-	*out_uuid = g_strdup (uuid);
-	*out_path = g_strdup (path);
+	g_dbus_method_invocation_return_value (context,
+	                                       g_variant_new ("(so)", uuid, path));
+}
 
-	return TRUE;
+/*****************************************************************************/
+
+static void
+_dbus_clear (SettingsPluginIfcfg *self)
+{
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
+
+	nm_clear_g_signal_handler (priv->dbus.connection, &priv->dbus.signal_id);
+
+	nm_clear_g_cancellable (&priv->dbus.cancellable);
+
+	if (priv->dbus.interface) {
+		g_dbus_interface_skeleton_unexport (priv->dbus.interface);
+		nm_exported_object_skeleton_release (priv->dbus.interface);
+		priv->dbus.interface = NULL;
+	}
+
+	g_clear_object (&priv->dbus.connection);
 }
 
 static void
-init (NMSystemConfigInterface *config)
+_dbus_connection_closed (GDBusConnection *connection,
+                         gboolean         remote_peer_vanished,
+                         GError          *error,
+                         gpointer         user_data)
 {
+	_LOGW ("dbus: %s bus closed", IFCFGRH1_DBUS_SERVICE_NAME);
+	_dbus_clear (SETTINGS_PLUGIN_IFCFG (user_data));
+
+	/* Retry or recover? */
 }
 
 static void
-sc_plugin_ifcfg_init (SCPluginIfcfg *plugin)
+_dbus_request_name_done (GObject *source_object,
+                         GAsyncResult *res,
+                         gpointer user_data)
 {
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (plugin);
-	NMInotifyHelper *ih;
-	GError *error = NULL;
-	gboolean success = FALSE;
-	GFile *file;
-	GFileMonitor *monitor;
+	GDBusConnection *connection = G_DBUS_CONNECTION (source_object);
+	SettingsPluginIfcfg *self;
+	SettingsPluginIfcfgPrivate *priv;
+	gs_free_error GError *error = NULL;
+	gs_unref_variant GVariant *ret = NULL;
+	guint32 result;
 
-	priv->connections = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+	ret = g_dbus_connection_call_finish (connection, res, &error);
+	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+		return;
 
-	/* We watch SC_NETWORK_FILE via NMInotifyHelper (which doesn't track file creation but
-	 * *does* track modifications made via other hard links), since we expect it to always
-	 * exist. But we watch HOSTNAME_FILE via GFileMonitor (which has the opposite
-	 * semantics), since /etc/hostname might not exist, but is unlikely to have hard
-	 * links. bgo 532815 is the bug for being able to just use GFileMonitor for both.
-	 */
+	self = SETTINGS_PLUGIN_IFCFG (user_data);
+	priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
 
-	ih = nm_inotify_helper_get ();
-	priv->ih_event_id = g_signal_connect (ih, "event", G_CALLBACK (sc_network_changed_cb), plugin);
-	priv->sc_network_wd = nm_inotify_helper_add_watch (ih, SC_NETWORK_FILE);
+	g_clear_object (&priv->dbus.cancellable);
 
-	file = g_file_new_for_path (HOSTNAME_FILE);
-	monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL, NULL);
-	g_object_unref (file);
-	if (monitor) {
-		priv->hostname_monitor_id =
-			g_signal_connect (monitor, "changed", G_CALLBACK (hostname_changed_cb), plugin);
-		priv->hostname_monitor = monitor;
+	if (!ret) {
+		_LOGW ("dbus: couldn't acquire D-Bus service: %s", error->message);
+		_dbus_clear (self);
+		return;
 	}
 
-	priv->hostname = plugin_get_hostname (plugin);
+	g_variant_get (ret, "(u)", &result);
 
-	priv->bus = dbus_g_bus_get (DBUS_BUS_SYSTEM, &error);
-	if (!priv->bus) {
-		_LOGW ("Couldn't connect to D-Bus: %s", error->message);
-		g_clear_error (&error);
-	} else {
-		DBusConnection *tmp;
-		DBusGProxy *proxy;
-		int result;
-
-		tmp = dbus_g_connection_get_connection (priv->bus);
-		dbus_connection_set_exit_on_disconnect (tmp, FALSE);
-
-		proxy = dbus_g_proxy_new_for_name (priv->bus,
-		                                   "org.freedesktop.DBus",
-		                                   "/org/freedesktop/DBus",
-		                                   "org.freedesktop.DBus");
-
-		if (!dbus_g_proxy_call (proxy, "RequestName", &error,
-		                        G_TYPE_STRING, DBUS_SERVICE_NAME,
-		                        G_TYPE_UINT, DBUS_NAME_FLAG_DO_NOT_QUEUE,
-		                        G_TYPE_INVALID,
-		                        G_TYPE_UINT, &result,
-		                        G_TYPE_INVALID)) {
-			_LOGW ("Couldn't acquire D-Bus service: %s", error->message);
-			g_clear_error (&error);
-		} else if (result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
-			_LOGW ("Couldn't acquire ifcfgrh1 D-Bus service (already taken)");
-		} else
-			success = TRUE;
+	if (result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
+		_LOGW ("dbus: couldn't acquire ifcfgrh1 D-Bus service (already taken)");
+		_dbus_clear (self);
+		return;
 	}
 
-	if (!success) {
-		if (priv->bus) {
-			dbus_g_connection_unref (priv->bus);
-			priv->bus = NULL;
+	{
+		GType skeleton_type = NMDBUS_TYPE_IFCFGRH1_SKELETON;
+		gs_free char *method_name_get_ifcfg_details = NULL;
+		NMExportedObjectDBusMethodImpl methods[] = {
+			{
+				.method_name = (method_name_get_ifcfg_details = nm_exported_object_skeletonify_method_name ("GetIfcfgDetails")),
+				.impl = G_CALLBACK (impl_ifcfgrh_get_ifcfg_details),
+			},
+		};
+
+		priv->dbus.interface = nm_exported_object_skeleton_create (skeleton_type,
+		                                                           g_type_class_peek (SETTINGS_TYPE_PLUGIN_IFCFG),
+		                                                           methods,
+		                                                           G_N_ELEMENTS (methods),
+		                                                           (GObject *) self);
+
+		if (!g_dbus_interface_skeleton_export (priv->dbus.interface,
+		                                       priv->dbus.connection,
+		                                       IFCFGRH1_DBUS_OBJECT_PATH,
+		                                       &error)) {
+			nm_exported_object_skeleton_release (priv->dbus.interface);
+			priv->dbus.interface = NULL;
+			_LOGW ("dbus: failed exporting interface: %s", error->message);
+			_dbus_clear (self);
+			return;
 		}
 	}
+
+	_LOGD ("dbus: aquired D-Bus service %s and exported %s object",
+	       IFCFGRH1_DBUS_SERVICE_NAME,
+	       IFCFGRH1_DBUS_OBJECT_PATH);
+}
+
+static void
+_dbus_create_done (GObject *source_object,
+                   GAsyncResult *res,
+                   gpointer user_data)
+{
+	SettingsPluginIfcfg *self;
+	SettingsPluginIfcfgPrivate *priv;
+	gs_free_error GError *error = NULL;
+	GDBusConnection *connection;
+
+	connection = g_dbus_connection_new_for_address_finish (res, &error);
+	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+		return;
+
+	self = SETTINGS_PLUGIN_IFCFG (user_data);
+	priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
+
+	g_clear_object (&priv->dbus.cancellable);
+
+	if (!connection) {
+		_LOGW ("dbus: couldn't initialize system bus: %s", error->message);
+		return;
+	}
+
+	priv->dbus.connection = connection;
+	priv->dbus.cancellable = g_cancellable_new ();
+
+	priv->dbus.signal_id = g_signal_connect (priv->dbus.connection,
+	                                         "closed",
+	                                         G_CALLBACK (_dbus_connection_closed),
+	                                         self);
+
+	g_dbus_connection_call (priv->dbus.connection,
+	                        DBUS_SERVICE_DBUS,
+	                        DBUS_PATH_DBUS,
+	                        DBUS_INTERFACE_DBUS,
+	                        "RequestName",
+	                        g_variant_new ("(su)",
+	                                       IFCFGRH1_DBUS_SERVICE_NAME,
+	                                       DBUS_NAME_FLAG_DO_NOT_QUEUE),
+	                        G_VARIANT_TYPE ("(u)"),
+	                        G_DBUS_CALL_FLAGS_NONE,
+	                        -1,
+	                        priv->dbus.cancellable,
+	                        _dbus_request_name_done,
+	                        self);
+}
+
+static void
+_dbus_setup (SettingsPluginIfcfg *self)
+{
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
+	gs_free char *address = NULL;
+	gs_free_error GError *error = NULL;
+
+	g_return_if_fail (!priv->dbus.connection);
+
+	address = g_dbus_address_get_for_bus_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
+	if (address == NULL) {
+		_LOGW ("dbus: failed getting address for system bus: %s", error->message);
+		return;
+	}
+
+	priv->dbus.cancellable = g_cancellable_new ();
+
+	g_dbus_connection_new_for_address (address,
+	                                   G_DBUS_CONNECTION_FLAGS_AUTHENTICATION_CLIENT
+	                                   | G_DBUS_CONNECTION_FLAGS_MESSAGE_BUS_CONNECTION,
+	                                   NULL,
+	                                   priv->dbus.cancellable,
+	                                   _dbus_create_done,
+	                                   self);
+}
+
+static void
+config_changed_cb (NMConfig *config,
+                   NMConfigData *config_data,
+                   NMConfigChangeFlags changes,
+                   NMConfigData *old_data,
+                   SettingsPluginIfcfg *self)
+{
+	/* If the dbus connection for some reason is borked the D-Bus service
+	 * won't be offered.
+	 *
+	 * On SIGHUP and SIGUSR1 try to re-connect to D-Bus. So in the unlikely
+	 * event that the D-Bus conneciton is broken, that allows for recovery
+	 * without need for restarting NetworkManager. */
+	if (   NM_FLAGS_HAS (changes, NM_CONFIG_CHANGE_SIGHUP)
+	    || NM_FLAGS_HAS (changes, NM_CONFIG_CHANGE_SIGUSR1)) {
+		if (!SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self)->dbus.connection)
+			_dbus_setup (self);
+	}
+}
+
+/*****************************************************************************/
+
+static void
+init (NMSettingsPlugin *config)
+{
+}
+
+static void
+settings_plugin_ifcfg_init (SettingsPluginIfcfg *plugin)
+{
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (plugin);
+
+	priv->connections = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+}
+
+static void
+constructed (GObject *object)
+{
+	SettingsPluginIfcfg *self = SETTINGS_PLUGIN_IFCFG (object);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
+
+	G_OBJECT_CLASS (settings_plugin_ifcfg_parent_class)->constructed (object);
+
+	priv->config = nm_config_get ();
+	g_object_add_weak_pointer ((GObject *) priv->config, (gpointer *) &priv->config);
+	g_signal_connect (priv->config,
+	                  NM_CONFIG_SIGNAL_CONFIG_CHANGED,
+	                  G_CALLBACK (config_changed_cb),
+	                  self);
+
+	_dbus_setup (self);
 }
 
 static void
 dispose (GObject *object)
 {
-	SCPluginIfcfg *plugin = SC_PLUGIN_IFCFG (object);
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (plugin);
-	NMInotifyHelper *ih;
+	SettingsPluginIfcfg *self = SETTINGS_PLUGIN_IFCFG (object);
+	SettingsPluginIfcfgPrivate *priv = SETTINGS_PLUGIN_IFCFG_GET_PRIVATE (self);
 
-	if (priv->bus) {
-		dbus_g_connection_unref (priv->bus);
-		priv->bus = NULL;
+	if (priv->config) {
+		g_object_remove_weak_pointer ((GObject *) priv->config, (gpointer *) &priv->config);
+		g_signal_handlers_disconnect_by_func (priv->config, config_changed_cb, self);
+		priv->config = NULL;
 	}
 
-	if (priv->ih_event_id) {
-		ih = nm_inotify_helper_get ();
-
-		g_signal_handler_disconnect (ih, priv->ih_event_id);
-		priv->ih_event_id = 0;
-
-		if (priv->sc_network_wd >= 0)
-			nm_inotify_helper_remove_watch (ih, priv->sc_network_wd);
-	}
-
-	if (priv->hostname_monitor) {
-		if (priv->hostname_monitor_id)
-			g_signal_handler_disconnect (priv->hostname_monitor, priv->hostname_monitor_id);
-
-		g_file_monitor_cancel (priv->hostname_monitor);
-		g_object_unref (priv->hostname_monitor);
-	}
-
-	g_free (priv->hostname);
+	_dbus_clear (self);
 
 	if (priv->connections) {
 		g_hash_table_destroy (priv->connections);
@@ -1028,27 +1010,22 @@ dispose (GObject *object)
 		g_object_unref (priv->ifcfg_monitor);
 	}
 
-	G_OBJECT_CLASS (sc_plugin_ifcfg_parent_class)->dispose (object);
+	G_OBJECT_CLASS (settings_plugin_ifcfg_parent_class)->dispose (object);
 }
 
 static void
 get_property (GObject *object, guint prop_id,
 			  GValue *value, GParamSpec *pspec)
 {
-	SCPluginIfcfgPrivate *priv = SC_PLUGIN_IFCFG_GET_PRIVATE (object);
-
 	switch (prop_id) {
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_NAME:
+	case NM_SETTINGS_PLUGIN_PROP_NAME:
 		g_value_set_string (value, IFCFG_PLUGIN_NAME);
 		break;
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_INFO:
+	case NM_SETTINGS_PLUGIN_PROP_INFO:
 		g_value_set_string (value, IFCFG_PLUGIN_INFO);
 		break;
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_CAPABILITIES:
-		g_value_set_uint (value, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS | NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME);
-		break;
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME:
-		g_value_set_string (value, priv->hostname);
+	case NM_SETTINGS_PLUGIN_PROP_CAPABILITIES:
+		g_value_set_uint (value, NM_SETTINGS_PLUGIN_CAP_MODIFY_CONNECTIONS);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1060,15 +1037,7 @@ static void
 set_property (GObject *object, guint prop_id,
 			  const GValue *value, GParamSpec *pspec)
 {
-	const char *hostname;
-
 	switch (prop_id) {
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME:
-		hostname = g_value_get_string (value);
-		if (hostname && strlen (hostname) < 1)
-			hostname = NULL;
-		plugin_set_hostname (SC_PLUGIN_IFCFG (object), hostname);
-		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1076,65 +1045,45 @@ set_property (GObject *object, guint prop_id,
 }
 
 static void
-sc_plugin_ifcfg_class_init (SCPluginIfcfgClass *req_class)
+settings_plugin_ifcfg_class_init (SettingsPluginIfcfgClass *req_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (req_class);
 
-	g_type_class_add_private (req_class, sizeof (SCPluginIfcfgPrivate));
+	g_type_class_add_private (req_class, sizeof (SettingsPluginIfcfgPrivate));
 
+	object_class->constructed = constructed;
 	object_class->dispose = dispose;
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 
 	g_object_class_override_property (object_class,
-	                                  NM_SYSTEM_CONFIG_INTERFACE_PROP_NAME,
-	                                  NM_SYSTEM_CONFIG_INTERFACE_NAME);
+	                                  NM_SETTINGS_PLUGIN_PROP_NAME,
+	                                  NM_SETTINGS_PLUGIN_NAME);
 
 	g_object_class_override_property (object_class,
-	                                  NM_SYSTEM_CONFIG_INTERFACE_PROP_INFO,
-	                                  NM_SYSTEM_CONFIG_INTERFACE_INFO);
+	                                  NM_SETTINGS_PLUGIN_PROP_INFO,
+	                                  NM_SETTINGS_PLUGIN_INFO);
 
 	g_object_class_override_property (object_class,
-	                                  NM_SYSTEM_CONFIG_INTERFACE_PROP_CAPABILITIES,
-	                                  NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES);
-
-	g_object_class_override_property (object_class,
-	                                  NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME,
-	                                  NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME);
-
-	dbus_g_object_type_install_info (G_TYPE_FROM_CLASS (req_class),
-									 &dbus_glib_nm_ifcfg_rh_object_info);
+	                                  NM_SETTINGS_PLUGIN_PROP_CAPABILITIES,
+	                                  NM_SETTINGS_PLUGIN_CAPABILITIES);
 }
 
 static void
-system_config_interface_init (NMSystemConfigInterface *system_config_interface_class)
+settings_plugin_interface_init (NMSettingsPluginInterface *plugin_iface)
 {
 	/* interface implementation */
-	system_config_interface_class->get_connections = get_connections;
-	system_config_interface_class->add_connection = add_connection;
-	system_config_interface_class->load_connection = load_connection;
-	system_config_interface_class->reload_connections = reload_connections;
-	system_config_interface_class->get_unmanaged_specs = get_unmanaged_specs;
-	system_config_interface_class->get_unrecognized_specs = get_unrecognized_specs;
-	system_config_interface_class->init = init;
+	plugin_iface->get_connections = get_connections;
+	plugin_iface->add_connection = add_connection;
+	plugin_iface->load_connection = load_connection;
+	plugin_iface->reload_connections = reload_connections;
+	plugin_iface->get_unmanaged_specs = get_unmanaged_specs;
+	plugin_iface->get_unrecognized_specs = get_unrecognized_specs;
+	plugin_iface->init = init;
 }
 
 G_MODULE_EXPORT GObject *
-nm_system_config_factory (void)
+nm_settings_plugin_factory (void)
 {
-	static SCPluginIfcfg *singleton = NULL;
-	SCPluginIfcfgPrivate *priv;
-
-	if (!singleton) {
-		singleton = SC_PLUGIN_IFCFG (g_object_new (SC_TYPE_PLUGIN_IFCFG, NULL));
-		priv = SC_PLUGIN_IFCFG_GET_PRIVATE (singleton);
-		if (priv->bus)
-			dbus_g_connection_register_g_object (priv->bus,
-			                                     DBUS_OBJECT_PATH,
-			                                     G_OBJECT (singleton));
-		_LOGD ("Acquired D-Bus service %s", DBUS_SERVICE_NAME);
-	} else
-		g_object_ref (singleton);
-
-	return G_OBJECT (singleton);
+	return g_object_ref (settings_plugin_ifcfg_get ());
 }

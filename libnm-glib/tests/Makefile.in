@@ -116,8 +116,11 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_TESTS_TRUE@am__EXEEXT_1 = test-nm-client$(EXEEXT) \
 @ENABLE_TESTS_TRUE@	test-remote-settings-client$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
-am__test_nm_client_SOURCES_DIST = common.c common.h test-nm-client.c
-@ENABLE_TESTS_TRUE@am_test_nm_client_OBJECTS = common.$(OBJEXT) \
+am__test_nm_client_SOURCES_DIST =  \
+	$(top_builddir)/shared/nm-test-utils-impl.c \
+	$(top_builddir)/shared/nm-test-libnm-utils.h test-nm-client.c
+@ENABLE_TESTS_TRUE@am_test_nm_client_OBJECTS =  \
+@ENABLE_TESTS_TRUE@	nm-test-utils-impl.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	test-nm-client.$(OBJEXT)
 test_nm_client_OBJECTS = $(am_test_nm_client_OBJECTS)
 am__DEPENDENCIES_1 =
@@ -129,10 +132,12 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am__test_remote_settings_client_SOURCES_DIST = common.c common.h \
+am__test_remote_settings_client_SOURCES_DIST =  \
+	$(top_builddir)/shared/nm-test-utils-impl.c \
+	$(top_builddir)/shared/nm-test-libnm-utils.h \
 	test-remote-settings-client.c
 @ENABLE_TESTS_TRUE@am_test_remote_settings_client_OBJECTS =  \
-@ENABLE_TESTS_TRUE@	common.$(OBJEXT) \
+@ENABLE_TESTS_TRUE@	nm-test-utils-impl.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	test-remote-settings-client.$(OBJEXT)
 test_remote_settings_client_OBJECTS =  \
 	$(am_test_remote_settings_client_OBJECTS)
@@ -424,7 +429,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -436,8 +440,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -447,6 +449,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -501,16 +504,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -531,6 +531,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -546,6 +547,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -574,7 +577,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -589,6 +591,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -649,6 +653,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -656,6 +661,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -672,21 +678,22 @@ with_netconfig = @with_netconfig@
 with_resolvconf = @with_resolvconf@
 with_valgrind = @with_valgrind@
 @ENABLE_TESTS_TRUE@AM_CPPFLAGS = \
-@ENABLE_TESTS_TRUE@	-I$(top_srcdir)/include \
+@ENABLE_TESTS_TRUE@	-I$(top_srcdir)/shared \
+@ENABLE_TESTS_TRUE@	-I$(top_builddir)/shared \
 @ENABLE_TESTS_TRUE@	-I$(top_srcdir)/libnm-util \
 @ENABLE_TESTS_TRUE@	-I$(top_builddir)/libnm-util \
 @ENABLE_TESTS_TRUE@	-I$(top_srcdir)/libnm-glib \
-@ENABLE_TESTS_TRUE@	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+@ENABLE_TESTS_TRUE@	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY \
 @ENABLE_TESTS_TRUE@	-DTEST_NM_SERVICE=\"$(abs_top_srcdir)/tools/test-networkmanager-service.py\" \
 @ENABLE_TESTS_TRUE@	$(GLIB_CFLAGS) \
 @ENABLE_TESTS_TRUE@	$(DBUS_CFLAGS)
 
-@ENABLE_TESTS_TRUE@@WITH_VALGRIND_FALSE@LOG_COMPILER = $(srcdir)/libnm-glib-test-launch.sh
+@ENABLE_TESTS_TRUE@@WITH_VALGRIND_FALSE@LOG_COMPILER = $(top_srcdir)/tools/run-test-dbus-session.sh
 
 ####### NMClient and non-settings tests #######
 @ENABLE_TESTS_TRUE@test_nm_client_SOURCES = \
-@ENABLE_TESTS_TRUE@	common.c \
-@ENABLE_TESTS_TRUE@	common.h \
+@ENABLE_TESTS_TRUE@	$(top_builddir)/shared/nm-test-utils-impl.c \
+@ENABLE_TESTS_TRUE@	$(top_builddir)/shared/nm-test-libnm-utils.h \
 @ENABLE_TESTS_TRUE@	test-nm-client.c
 
 @ENABLE_TESTS_TRUE@test_nm_client_LDADD = \
@@ -698,8 +705,8 @@ with_valgrind = @with_valgrind@
 
 ####### remote settings client test #######
 @ENABLE_TESTS_TRUE@test_remote_settings_client_SOURCES = \
-@ENABLE_TESTS_TRUE@	common.c \
-@ENABLE_TESTS_TRUE@	common.h \
+@ENABLE_TESTS_TRUE@	$(top_builddir)/shared/nm-test-utils-impl.c \
+@ENABLE_TESTS_TRUE@	$(top_builddir)/shared/nm-test-libnm-utils.h \
 @ENABLE_TESTS_TRUE@	test-remote-settings-client.c
 
 @ENABLE_TESTS_TRUE@test_remote_settings_client_LDADD = \
@@ -708,9 +715,6 @@ with_valgrind = @with_valgrind@
 @ENABLE_TESTS_TRUE@	$(GLIB_LIBS) \
 @ENABLE_TESTS_TRUE@	$(DBUS_LIBS)
 
-
-###########################################
-EXTRA_DIST = libnm-glib-test-launch.sh
 all: all-am
 
 .SUFFIXES:
@@ -768,7 +772,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/common.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-test-utils-impl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-nm-client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-remote-settings-client.Po@am__quote@
 
@@ -792,6 +796,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+nm-test-utils-impl.o: $(top_builddir)/shared/nm-test-utils-impl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-test-utils-impl.o -MD -MP -MF $(DEPDIR)/nm-test-utils-impl.Tpo -c -o nm-test-utils-impl.o `test -f '$(top_builddir)/shared/nm-test-utils-impl.c' || echo '$(srcdir)/'`$(top_builddir)/shared/nm-test-utils-impl.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-test-utils-impl.Tpo $(DEPDIR)/nm-test-utils-impl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_builddir)/shared/nm-test-utils-impl.c' object='nm-test-utils-impl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-test-utils-impl.o `test -f '$(top_builddir)/shared/nm-test-utils-impl.c' || echo '$(srcdir)/'`$(top_builddir)/shared/nm-test-utils-impl.c
+
+nm-test-utils-impl.obj: $(top_builddir)/shared/nm-test-utils-impl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-test-utils-impl.obj -MD -MP -MF $(DEPDIR)/nm-test-utils-impl.Tpo -c -o nm-test-utils-impl.obj `if test -f '$(top_builddir)/shared/nm-test-utils-impl.c'; then $(CYGPATH_W) '$(top_builddir)/shared/nm-test-utils-impl.c'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/shared/nm-test-utils-impl.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-test-utils-impl.Tpo $(DEPDIR)/nm-test-utils-impl.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_builddir)/shared/nm-test-utils-impl.c' object='nm-test-utils-impl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-test-utils-impl.obj `if test -f '$(top_builddir)/shared/nm-test-utils-impl.c'; then $(CYGPATH_W) '$(top_builddir)/shared/nm-test-utils-impl.c'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/shared/nm-test-utils-impl.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1180,6 +1198,8 @@ uninstall-am:
 
 
 @ENABLE_TESTS_TRUE@@WITH_VALGRIND_TRUE@@VALGRIND_RULES@ --launch-dbus
+
+###########################################
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

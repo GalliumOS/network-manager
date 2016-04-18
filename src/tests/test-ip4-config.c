@@ -18,14 +18,15 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
 #include <string.h>
 #include <arpa/inet.h>
 
 #include "nm-ip4-config.h"
 #include "nm-platform.h"
+
+#include "nm-test-utils.h"
 
 static void
 addr_init (NMPlatformIP4Address *a, const char *addr, const char *peer, guint plen)
@@ -34,6 +35,8 @@ addr_init (NMPlatformIP4Address *a, const char *addr, const char *peer, guint pl
 	g_assert (inet_pton (AF_INET, addr, (void *) &a->address) == 1);
 	if (peer)
 		g_assert (inet_pton (AF_INET, peer, (void *) &a->peer_address) == 1);
+	else
+		a->peer_address = a->address;
 	a->plen = plen;
 }
 
@@ -71,7 +74,7 @@ build_test_config (void)
 	NMPlatformIP4Route route;
 
 	/* Build up the config to subtract */
-	config = nm_ip4_config_new ();
+	config = nm_ip4_config_new (1);
 
 	addr_init (&addr, "192.168.1.10", "1.2.3.4", 24);
 	nm_ip4_config_add_address (config, &addr);
@@ -150,7 +153,7 @@ test_subtract (void)
 	test_addr = nm_ip4_config_get_address (dst, 0);
 	g_assert (test_addr != NULL);
 	g_assert_cmpuint (test_addr->address, ==, addr_to_num (expected_addr));
-	g_assert_cmpuint (test_addr->peer_address, ==, 0);
+	g_assert_cmpuint (test_addr->peer_address, ==, test_addr->address);
 	g_assert_cmpuint (test_addr->plen, ==, expected_addr_plen);
 
 	g_assert_cmpuint (nm_ip4_config_get_gateway (dst), ==, 0);
@@ -191,8 +194,8 @@ test_compare_with_source (void)
 	NMPlatformIP4Address addr;
 	NMPlatformIP4Route route;
 
-	a = nm_ip4_config_new ();
-	b = nm_ip4_config_new ();
+	a = nm_ip4_config_new (1);
+	b = nm_ip4_config_new (2);
 
 	/* Address */
 	addr_init (&addr, "1.2.3.4", NULL, 24);
@@ -224,7 +227,7 @@ test_add_address_with_source (void)
 	NMPlatformIP4Address addr;
 	const NMPlatformIP4Address *test_addr;
 
-	a = nm_ip4_config_new ();
+	a = nm_ip4_config_new (1);
 
 	/* Test that a higher priority source is not overwritten */
 	addr_init (&addr, "1.2.3.4", NULL, 24);
@@ -264,7 +267,7 @@ test_add_route_with_source (void)
 	NMPlatformIP4Route route;
 	const NMPlatformIP4Route *test_route;
 
-	a = nm_ip4_config_new ();
+	a = nm_ip4_config_new (1);
 
 	/* Test that a higher priority source is not overwritten */
 	route_new (&route, "1.2.3.4", 24, "1.2.3.1");
@@ -316,12 +319,12 @@ test_merge_subtract_mss_mtu (void)
 	nm_ip4_config_set_mss (cfg3, expected_mss3);
 	nm_ip4_config_set_mtu (cfg3, expected_mtu3, NM_IP_CONFIG_SOURCE_UNKNOWN);
 
-	nm_ip4_config_merge (cfg1, cfg2);
+	nm_ip4_config_merge (cfg1, cfg2, NM_IP_CONFIG_MERGE_DEFAULT);
 	/* ensure MSS and MTU are in cfg1 */
 	g_assert_cmpuint (nm_ip4_config_get_mss (cfg1), ==, expected_mss2);
 	g_assert_cmpuint (nm_ip4_config_get_mtu (cfg1), ==, expected_mtu2);
 
-	nm_ip4_config_merge (cfg1, cfg3);
+	nm_ip4_config_merge (cfg1, cfg3, NM_IP_CONFIG_MERGE_DEFAULT);
 	/* ensure again the MSS and MTU in cfg1 got overriden */
 	g_assert_cmpuint (nm_ip4_config_get_mss (cfg1), ==, expected_mss3);
 	g_assert_cmpuint (nm_ip4_config_get_mtu (cfg1), ==, expected_mtu3);
@@ -336,22 +339,42 @@ test_merge_subtract_mss_mtu (void)
 	g_object_unref (cfg3);
 }
 
+static void
+test_strip_search_trailing_dot (void)
+{
+	NMIP4Config *config;
+
+	config = nm_ip4_config_new (1);
+
+	nm_ip4_config_add_search (config, ".");
+	nm_ip4_config_add_search (config, "foo");
+	nm_ip4_config_add_search (config, "bar.");
+	nm_ip4_config_add_search (config, "baz.com");
+	nm_ip4_config_add_search (config, "baz.com.");
+
+	g_assert_cmpuint (nm_ip4_config_get_num_searches (config), ==, 3);
+	g_assert_cmpstr (nm_ip4_config_get_search (config, 0), ==, "foo");
+	g_assert_cmpstr (nm_ip4_config_get_search (config, 1), ==, "bar");
+	g_assert_cmpstr (nm_ip4_config_get_search (config, 2), ==, "baz.com");
+
+	g_object_unref (config);
+}
+
 /*******************************************/
+
+NMTST_DEFINE ();
 
 int
 main (int argc, char **argv)
 {
-	g_test_init (&argc, &argv, NULL);
-
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
+	nmtst_init_with_logging (&argc, &argv, NULL, "DEFAULT");
 
 	g_test_add_func ("/ip4-config/subtract", test_subtract);
 	g_test_add_func ("/ip4-config/compare-with-source", test_compare_with_source);
 	g_test_add_func ("/ip4-config/add-address-with-source", test_add_address_with_source);
 	g_test_add_func ("/ip4-config/add-route-with-source", test_add_route_with_source);
 	g_test_add_func ("/ip4-config/merge-subtract-mss-mtu", test_merge_subtract_mss_mtu);
+	g_test_add_func ("/ip4-config/strip-search-trailing-dot", test_strip_search_trailing_dot);
 
 	return g_test_run ();
 }

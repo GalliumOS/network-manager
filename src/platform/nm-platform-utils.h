@@ -21,11 +21,10 @@
 #ifndef __NM_PLATFORM_UTILS_H__
 #define __NM_PLATFORM_UTILS_H__
 
-#include "config.h"
-
 #include <gudev/gudev.h>
 
 #include "nm-platform.h"
+#include "nm-setting-wired.h"
 
 
 const char *nmp_utils_ethtool_get_driver (const char *ifname);
@@ -33,6 +32,9 @@ gboolean nmp_utils_ethtool_supports_carrier_detect (const char *ifname);
 gboolean nmp_utils_ethtool_supports_vlans (const char *ifname);
 int nmp_utils_ethtool_get_peer_ifindex (const char *ifname);
 gboolean nmp_utils_ethtool_get_wake_on_lan (const char *ifname);
+gboolean nmp_utils_ethtool_set_wake_on_lan (const char *ifname, NMSettingWiredWakeOnLan wol,
+                                            const char *wol_password);
+
 gboolean nmp_utils_ethtool_get_link_speed (const char *ifname, guint32 *out_speed);
 
 gboolean nmp_utils_ethtool_get_driver_info (const char *ifname,
@@ -50,17 +52,6 @@ gboolean nmp_utils_mii_supports_carrier_detect (const char *ifname);
 
 const char *nmp_utils_udev_get_driver (GUdevDevice *device);
 
-guint32 nmp_utils_lifetime_rebase_relative_time_on_now (guint32 timestamp,
-                                                        guint32 duration,
-                                                        guint32 now,
-                                                        guint32 padding);
-
-gboolean nmp_utils_lifetime_get (guint32 timestamp,
-                                 guint32 lifetime,
-                                 guint32 preferred,
-                                 guint32 now,
-                                 guint32 padding,
-                                 guint32 *out_lifetime,
-                                 guint32 *out_preferred);
+gboolean nmp_utils_device_exists (const char *name);
 
 #endif /* __NM_PLATFORM_UTILS_H__ */

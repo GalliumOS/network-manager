@@ -31,7 +31,7 @@
 #ifndef _SHVAR_H
 #define _SHVAR_H
 
-#include <glib.h>
+#include "nm-default.h"
 
 G_BEGIN_DECLS
 
@@ -58,11 +58,13 @@ shvarFile *svOpenFile (const char *name, GError **error);
 char *svGetValue (shvarFile *s, const char *key, gboolean verbatim);
 char *svGetValueFull (shvarFile *s, const char *key, gboolean verbatim);
 
+gint svParseBoolean (const char *value, gint def);
+
 /* return TRUE if <key> resolves to any truth value (e.g. "yes", "y", "true")
  * return FALSE if <key> resolves to any non-truth value (e.g. "no", "n", "false")
  * return <def> otherwise
  */
-gboolean svTrueValue (shvarFile *s, const char *key, gboolean def);
+gint svGetValueBoolean (shvarFile *s, const char *key, gint def);
 
 gint64 svGetValueInt64 (shvarFile *s, const char *key, guint base, gint64 min, gint64 max, gint64 fallback);
 
@@ -73,6 +75,7 @@ gint64 svGetValueInt64 (shvarFile *s, const char *key, guint base, gint64 min, g
  */
 void svSetValue (shvarFile *s, const char *key, const char *value, gboolean verbatim);
 void svSetValueFull (shvarFile *s, const char *key, const char *value, gboolean verbatim);
+void svSetValueInt64 (shvarFile *s, const char *key, gint64 value);
 
 
 /* Write the current contents iff modified.  Returns FALSE on error

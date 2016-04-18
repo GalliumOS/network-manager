@@ -39,6 +39,7 @@ IGNORE_HFILES= \
 	nm-dbus-helpers.h \
 	nm-core-internal.h \
 	nm-core-types.h \
+	nm-core-types-internal.h \
 	nm-device-private.h \
 	nm-dhcp4-config.h \
 	nm-dhcp6-config.h \
@@ -53,7 +54,10 @@ IGNORE_HFILES= \
 	nm-setting-private.h \
 	nm-types.h \
 	nm-utils-private.h \
-	nm-vpn-plugin-old.h
+	nm-core-tests-enum-types.h \
+	nm-keyfile-internal.h \
+	nm-keyfile-utils.h \
+	test-general-enums.h
 
 # Images to copy into HTML directory.
 HTML_IMAGES = libnm.png
@@ -73,6 +77,7 @@ GTKDOC_CFLAGS =				\
 	-I$(top_srcdir)/libnm		\
 	-I$(top_builddir)/libnm		\
 	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-DNM_VERSION_MIN_REQUIRED=NM_VERSION_0_9_8 \
 	$(GLIB_CFLAGS)
 
 GTKDOC_LIBS =  \

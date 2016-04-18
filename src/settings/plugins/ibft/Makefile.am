@@ -14,13 +14,12 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/ \
 	-I$(top_srcdir)/src/platform \
 	-I$(top_srcdir)/src/settings \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
 	$(GLIB_CFLAGS) \
-	$(DBUS_CFLAGS) \
 	-DG_LOG_DOMAIN=\""NetworkManager-ibft"\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DSBINDIR=\"$(sbindir)\"

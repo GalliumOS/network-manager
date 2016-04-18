@@ -20,11 +20,10 @@
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <net/ethernet.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-setting-bluetooth.h"
 #include "nm-setting-cdma.h"

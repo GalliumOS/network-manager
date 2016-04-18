@@ -18,7 +18,7 @@
  * Copyright (C) 2009 - 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <gudev/gudev.h>
@@ -28,8 +28,7 @@
 #include "nm-setting-adsl.h"
 #include "nm-device-adsl.h"
 #include "nm-device-factory.h"
-#include "nm-logging.h"
-#include "nm-glib-compat.h"
+#include "nm-platform.h"
 
 typedef struct {
 	GUdevClient *client;
@@ -40,7 +39,7 @@ typedef struct {
 
 static GType nm_atm_manager_get_type (void);
 
-static void device_factory_interface_init (NMDeviceFactory *factory_iface);
+static void device_factory_interface_init (NMDeviceFactoryInterface *factory_iface);
 
 G_DEFINE_TYPE_EXTENDED (NMAtmManager, nm_atm_manager, G_TYPE_OBJECT, 0,
                         G_IMPLEMENT_INTERFACE (NM_TYPE_DEVICE_FACTORY, device_factory_interface_init))
@@ -103,6 +102,8 @@ adsl_add (NMAtmManager *self, GUdevDevice *udev_device)
 	NMAtmManagerPrivate *priv = NM_ATM_MANAGER_GET_PRIVATE (self);
 	const char *ifname, *sysfs_path = NULL;
 	char *driver = NULL;
+	gs_free char *atm_index_path = NULL;
+	int atm_index;
 	NMDevice *device;
 
 	g_return_if_fail (udev_device != NULL);
@@ -115,20 +116,34 @@ adsl_add (NMAtmManager *self, GUdevDevice *udev_device)
 
 	nm_log_dbg (LOGD_HW, "(%s): found ATM device", ifname);
 
-	if (dev_get_attrs (udev_device, &sysfs_path, &driver)) {
-		g_assert (sysfs_path);
-
-		device = nm_device_adsl_new (sysfs_path, ifname, driver);
-		g_assert (device);
-
-		priv->devices = g_slist_prepend (priv->devices, device);
-		g_object_weak_ref (G_OBJECT (device), device_destroyed, self);
-
-		g_signal_emit_by_name (self, NM_DEVICE_FACTORY_DEVICE_ADDED, device);
-		g_object_unref (device);
-
-		g_free (driver);
+	atm_index_path = g_strdup_printf ("/sys/class/atm/%s/atmindex",
+	                                  NM_ASSERT_VALID_PATH_COMPONENT (ifname));
+	atm_index = (int) nm_platform_sysctl_get_int_checked (NM_PLATFORM_GET,
+	                                                      atm_index_path,
+	                                                      10, 0, G_MAXINT,
+	                                                      -1);
+	if (atm_index < 0) {
+		nm_log_warn (LOGD_HW, "(%s): failed to get ATM index", ifname);
+		return;
 	}
+
+	if (!dev_get_attrs (udev_device, &sysfs_path, &driver)) {
+		nm_log_warn (LOGD_HW, "(%s): failed to get ATM attributes", ifname);
+		return;
+	}
+
+	g_assert (sysfs_path);
+
+	device = nm_device_adsl_new (sysfs_path, ifname, driver, atm_index);
+	g_assert (device);
+
+	priv->devices = g_slist_prepend (priv->devices, device);
+	g_object_weak_ref (G_OBJECT (device), device_destroyed, self);
+
+	g_signal_emit_by_name (self, NM_DEVICE_FACTORY_DEVICE_ADDED, device);
+	g_object_unref (device);
+
+	g_free (driver);
 }
 
 static void
@@ -221,7 +236,7 @@ nm_atm_manager_init (NMAtmManager *self)
 }
 
 static void
-device_factory_interface_init (NMDeviceFactory *factory_iface)
+device_factory_interface_init (NMDeviceFactoryInterface *factory_iface)
 {
 	factory_iface->get_supported_types = get_supported_types;
 	factory_iface->start = start;

@@ -88,10 +88,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = nmcli$(EXEEXT)
-@WITH_POLKIT_AGENT_TRUE@am__append_1 = $(POLKIT_CFLAGS)
-@WITH_POLKIT_AGENT_TRUE@am__append_2 = $(srcdir)/../common/nm-polkit-listener.c $(srcdir)/../common/nm-polkit-listener.h
-@WITH_POLKIT_AGENT_TRUE@am__append_3 = $(POLKIT_LIBS)
+@BUILD_NMCLI_TRUE@bin_PROGRAMS = nmcli$(EXEEXT)
+@BUILD_NMCLI_TRUE@@WITH_POLKIT_AGENT_TRUE@am__append_1 = $(POLKIT_CFLAGS)
+@BUILD_NMCLI_TRUE@@WITH_POLKIT_AGENT_TRUE@am__append_2 = $(srcdir)/../common/nm-polkit-listener.c $(srcdir)/../common/nm-polkit-listener.h
+@BUILD_NMCLI_TRUE@@WITH_POLKIT_AGENT_TRUE@am__append_3 = $(POLKIT_LIBS)
 subdir = clients/cli
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_lib_readline.m4 \
@@ -122,19 +122,25 @@ am__nmcli_SOURCES_DIST = agent.c agent.h common.c common.h \
 	utils.h polkit-agent.c polkit-agent.h \
 	$(srcdir)/../common/nm-secret-agent-simple.c \
 	$(srcdir)/../common/nm-secret-agent-simple.h \
+	$(srcdir)/../common/nm-vpn-helpers.c \
+	$(srcdir)/../common/nm-vpn-helpers.h \
 	$(srcdir)/../common/nm-polkit-listener.c \
 	$(srcdir)/../common/nm-polkit-listener.h
-@WITH_POLKIT_AGENT_TRUE@am__objects_1 = nm-polkit-listener.$(OBJEXT)
-am_nmcli_OBJECTS = agent.$(OBJEXT) common.$(OBJEXT) \
-	connections.$(OBJEXT) devices.$(OBJEXT) general.$(OBJEXT) \
-	settings.$(OBJEXT) nmcli.$(OBJEXT) utils.$(OBJEXT) \
-	polkit-agent.$(OBJEXT) nm-secret-agent-simple.$(OBJEXT) \
-	$(am__objects_1)
+@BUILD_NMCLI_TRUE@@WITH_POLKIT_AGENT_TRUE@am__objects_1 = nm-polkit-listener.$(OBJEXT)
+@BUILD_NMCLI_TRUE@am_nmcli_OBJECTS = agent.$(OBJEXT) common.$(OBJEXT) \
+@BUILD_NMCLI_TRUE@	connections.$(OBJEXT) devices.$(OBJEXT) \
+@BUILD_NMCLI_TRUE@	general.$(OBJEXT) settings.$(OBJEXT) \
+@BUILD_NMCLI_TRUE@	nmcli.$(OBJEXT) utils.$(OBJEXT) \
+@BUILD_NMCLI_TRUE@	polkit-agent.$(OBJEXT) \
+@BUILD_NMCLI_TRUE@	nm-secret-agent-simple.$(OBJEXT) \
+@BUILD_NMCLI_TRUE@	nm-vpn-helpers.$(OBJEXT) $(am__objects_1)
 nmcli_OBJECTS = $(am_nmcli_OBJECTS)
 am__DEPENDENCIES_1 =
-@WITH_POLKIT_AGENT_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
-nmcli_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(top_builddir)/libnm/libnm.la $(am__DEPENDENCIES_2)
+@BUILD_NMCLI_TRUE@@WITH_POLKIT_AGENT_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
+@BUILD_NMCLI_TRUE@nmcli_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+@BUILD_NMCLI_TRUE@	$(am__DEPENDENCIES_1) \
+@BUILD_NMCLI_TRUE@	$(top_builddir)/libnm/libnm.la \
+@BUILD_NMCLI_TRUE@	$(am__DEPENDENCIES_2)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -217,7 +223,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -229,8 +234,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -240,6 +243,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -294,16 +298,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -324,6 +325,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -339,6 +341,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -367,7 +371,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -382,6 +385,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -442,6 +447,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -449,6 +455,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -464,26 +471,35 @@ with_dhcpcd = @with_dhcpcd@
 with_netconfig = @with_netconfig@
 with_resolvconf = @with_resolvconf@
 with_valgrind = @with_valgrind@
-AM_CPPFLAGS = -I${top_srcdir} -I${top_builddir} \
-	-I${top_srcdir}/include -I${top_srcdir}/libnm-core \
-	-I${top_builddir}/libnm-core -I${top_srcdir}/libnm \
-	-I${top_builddir}/libnm -I${top_srcdir}/clients/common \
-	$(GLIB_CFLAGS) -DG_LOG_DOMAIN=\""nmcli"\" \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
-	-DNMCLI_LOCALEDIR=\"$(datadir)/locale\" $(am__append_1)
-nmcli_SOURCES = agent.c agent.h common.c common.h connections.c \
-	connections.h devices.c devices.h general.c general.h \
-	settings.c settings.h nmcli.c nmcli.h utils.c utils.h \
-	polkit-agent.c polkit-agent.h \
-	$(srcdir)/../common/nm-secret-agent-simple.c \
-	$(srcdir)/../common/nm-secret-agent-simple.h $(NULL) \
-	$(am__append_2)
-nmcli_LDADD = $(GLIB_LIBS) $(READLINE_LIBS) \
-	$(top_builddir)/libnm/libnm.la $(am__append_3)
-@BUILD_SETTING_DOCS_TRUE@BUILT_SOURCES = settings-docs.c
-@BUILD_SETTING_DOCS_TRUE@CLEANFILES = settings-docs.c
-EXTRA_DIST = settings-docs.c settings-docs.xsl nmcli-completion
-completiondir = $(datadir)/bash-completion/completions
+@BUILD_NMCLI_TRUE@AM_CPPFLAGS = -I${top_srcdir} -I${top_builddir} \
+@BUILD_NMCLI_TRUE@	-I${top_srcdir}/shared \
+@BUILD_NMCLI_TRUE@	-I$(top_builddir)/shared \
+@BUILD_NMCLI_TRUE@	-I${top_srcdir}/libnm-core \
+@BUILD_NMCLI_TRUE@	-I${top_builddir}/libnm-core \
+@BUILD_NMCLI_TRUE@	-I${top_srcdir}/libnm \
+@BUILD_NMCLI_TRUE@	-I${top_builddir}/libnm \
+@BUILD_NMCLI_TRUE@	-I${top_srcdir}/clients/common \
+@BUILD_NMCLI_TRUE@	$(GLIB_CFLAGS) -DG_LOG_DOMAIN=\""nmcli"\" \
+@BUILD_NMCLI_TRUE@	-DNMCLI_LOCALEDIR=\"$(datadir)/locale\" \
+@BUILD_NMCLI_TRUE@	$(am__append_1)
+@BUILD_NMCLI_TRUE@nmcli_SOURCES = agent.c agent.h common.c common.h \
+@BUILD_NMCLI_TRUE@	connections.c connections.h devices.c \
+@BUILD_NMCLI_TRUE@	devices.h general.c general.h settings.c \
+@BUILD_NMCLI_TRUE@	settings.h nmcli.c nmcli.h utils.c utils.h \
+@BUILD_NMCLI_TRUE@	polkit-agent.c polkit-agent.h \
+@BUILD_NMCLI_TRUE@	$(srcdir)/../common/nm-secret-agent-simple.c \
+@BUILD_NMCLI_TRUE@	$(srcdir)/../common/nm-secret-agent-simple.h \
+@BUILD_NMCLI_TRUE@	$(srcdir)/../common/nm-vpn-helpers.c \
+@BUILD_NMCLI_TRUE@	$(srcdir)/../common/nm-vpn-helpers.h $(NULL) \
+@BUILD_NMCLI_TRUE@	$(am__append_2)
+@BUILD_NMCLI_TRUE@nmcli_LDADD = $(GLIB_LIBS) $(READLINE_LIBS) \
+@BUILD_NMCLI_TRUE@	$(top_builddir)/libnm/libnm.la \
+@BUILD_NMCLI_TRUE@	$(am__append_3)
+@BUILD_NMCLI_TRUE@@BUILD_SETTING_DOCS_TRUE@BUILT_SOURCES = settings-docs.c
+@BUILD_NMCLI_TRUE@@BUILD_SETTING_DOCS_TRUE@CLEANFILES = settings-docs.c
+@BUILD_NMCLI_TRUE@EXTRA_DIST = settings-docs.c settings-docs.xsl \
+@BUILD_NMCLI_TRUE@	nmcli-completion
+@BUILD_NMCLI_TRUE@completiondir = $(datadir)/bash-completion/completions
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -585,6 +601,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/general.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-polkit-listener.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-secret-agent-simple.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-helpers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmcli.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/polkit-agent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/settings.Po@am__quote@
@@ -624,6 +641,20 @@ nm-secret-agent-simple.obj: $(srcdir)/../common/nm-secret-agent-simple.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/../common/nm-secret-agent-simple.c' object='nm-secret-agent-simple.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-secret-agent-simple.obj `if test -f '$(srcdir)/../common/nm-secret-agent-simple.c'; then $(CYGPATH_W) '$(srcdir)/../common/nm-secret-agent-simple.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../common/nm-secret-agent-simple.c'; fi`
+
+nm-vpn-helpers.o: $(srcdir)/../common/nm-vpn-helpers.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-vpn-helpers.o -MD -MP -MF $(DEPDIR)/nm-vpn-helpers.Tpo -c -o nm-vpn-helpers.o `test -f '$(srcdir)/../common/nm-vpn-helpers.c' || echo '$(srcdir)/'`$(srcdir)/../common/nm-vpn-helpers.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-vpn-helpers.Tpo $(DEPDIR)/nm-vpn-helpers.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/../common/nm-vpn-helpers.c' object='nm-vpn-helpers.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-vpn-helpers.o `test -f '$(srcdir)/../common/nm-vpn-helpers.c' || echo '$(srcdir)/'`$(srcdir)/../common/nm-vpn-helpers.c
+
+nm-vpn-helpers.obj: $(srcdir)/../common/nm-vpn-helpers.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-vpn-helpers.obj -MD -MP -MF $(DEPDIR)/nm-vpn-helpers.Tpo -c -o nm-vpn-helpers.obj `if test -f '$(srcdir)/../common/nm-vpn-helpers.c'; then $(CYGPATH_W) '$(srcdir)/../common/nm-vpn-helpers.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../common/nm-vpn-helpers.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-vpn-helpers.Tpo $(DEPDIR)/nm-vpn-helpers.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/../common/nm-vpn-helpers.c' object='nm-vpn-helpers.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-vpn-helpers.obj `if test -f '$(srcdir)/../common/nm-vpn-helpers.c'; then $(CYGPATH_W) '$(srcdir)/../common/nm-vpn-helpers.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../common/nm-vpn-helpers.c'; fi`
 
 nm-polkit-listener.o: $(srcdir)/../common/nm-polkit-listener.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-polkit-listener.o -MD -MP -MF $(DEPDIR)/nm-polkit-listener.Tpo -c -o nm-polkit-listener.o `test -f '$(srcdir)/../common/nm-polkit-listener.c' || echo '$(srcdir)/'`$(srcdir)/../common/nm-polkit-listener.c
@@ -768,6 +799,8 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+@BUILD_NMCLI_FALSE@install-data-hook:
+@BUILD_NMCLI_FALSE@uninstall-hook:
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
@@ -861,15 +894,15 @@ uninstall-am: uninstall-binPROGRAMS
 .PRECIOUS: Makefile
 
 
-@BUILD_SETTING_DOCS_TRUE@settings-docs.c: settings-docs.xsl $(top_builddir)/libnm/nm-property-docs.xml
-@BUILD_SETTING_DOCS_TRUE@	$(AM_V_GEN) xsltproc --output $@ $^
+@BUILD_NMCLI_TRUE@@BUILD_SETTING_DOCS_TRUE@settings-docs.c: settings-docs.xsl $(top_builddir)/libnm/nm-property-docs.xml
+@BUILD_NMCLI_TRUE@@BUILD_SETTING_DOCS_TRUE@	$(AM_V_GEN) xsltproc --output $@ $^
 
-install-data-hook:
-	$(mkinstalldirs) $(DESTDIR)$(completiondir)
-	$(INSTALL_DATA) $(srcdir)/nmcli-completion $(DESTDIR)$(completiondir)/nmcli
+@BUILD_NMCLI_TRUE@install-data-hook:
+@BUILD_NMCLI_TRUE@	$(mkinstalldirs) $(DESTDIR)$(completiondir)
+@BUILD_NMCLI_TRUE@	$(INSTALL_DATA) $(srcdir)/nmcli-completion $(DESTDIR)$(completiondir)/nmcli
 
-uninstall-hook:
-	rm -f $(DESTDIR)$(completiondir)/nmcli
+@BUILD_NMCLI_TRUE@uninstall-hook:
+@BUILD_NMCLI_TRUE@	rm -f $(DESTDIR)$(completiondir)/nmcli
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

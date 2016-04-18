@@ -1,8 +1,101 @@
-network-manager (1.0.4-0ubuntu10-galliumos1) xenial; urgency=medium
+network-manager (1.1.93-0ubuntu4) xenial; urgency=medium
 
-  * Removed default powersave patch
+  * Re-enable NetworkManager-wait-online.service for NFS and other remote FS
+    services, so they work with name resolution. This had been dropped by
+    mistake in the update to the new release. (LP: #1569649)
 
- -- Hugh Greenberg <hugh@galliumos.org>  Wed, 9 Mar 2016 22:41:28 +0000
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Fri, 15 Apr 2016 15:41:05 -0400
+
+network-manager (1.1.93-0ubuntu3) xenial; urgency=medium
+
+  * Put back debian/network-manager.upstart so that NM starts again under
+    upstart. (LP: #1569204)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 12 Apr 2016 10:01:56 +0200
+
+network-manager (1.1.93-0ubuntu2) xenial; urgency=medium
+
+  * debian/tests/nm: NM defaults to stable-privacy addrgenmode for new
+    connections; in other words, it tells the kernel to do address generation
+    using stable privacy addresses (which aren't strictly EUI-64, and so don't
+    carry "fe:ff" in the middle). Adjust our IPv6 test case to allow for this.
+    (LP: #1568912)
+
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Mon, 11 Apr 2016 11:11:30 -0400
+
+network-manager (1.1.93-0ubuntu1) xenial; urgency=medium
+
+  * New upstream release.
+  * Resynchronize with Debian; remaining changes:
+    - debian/control:
+      - Build-Depends on libgnutls-dev and libgcrypt20-dev; drop libteam-dev;
+        added valac and dbus-test-runner.
+      - Updated Vcs tags; enabled autopkgtests.
+      - Reshuffle Depends for network-manager due to main
+        inclusion requirements, and add Breaks for old versions of plugins.
+      - network-manager Conflicts with connman.
+      - update network-manager Description since we don't ship with team
+        support yet, and dnsmasq-base isn't optional.
+    - debian/ifblacklist_migrate.sh: update to better handle interfaces stanza.
+    - debian/libnm*-dev.install: ship vala bindings.
+    - debian/NetworkManager.conf: enable the ofono plugin and dnsmasq use as a
+      local DNS cache.
+    - debian/network-manager.dnsmasq: enable bind-interfaces for dnsmasq config.
+    - debian/network-manager.install: ship the ofono plugin, Apport hook and
+      examples. 
+    - debian/network-manager.links: link apport hook to the right directory.
+    - debian/network-manager.postinst: Don't need to migrate from sysvinit,
+      just keep removing the sysvinit script symlinks.
+    - debian/network-manager.postinst: Don't add the netdev group.
+    - debian/network-manager.postinst: Notify the user a reboot may be
+      required after upgrade.
+    - Remaining patches:
+      - whoopsie-daisy-dbus-support.patch
+      - 0001-dns-use-DBus-to-make-dnsmasq-nameserver-changes.patch
+      - nm-change-dnsmasq-parameters.diff
+      - dnsmasq-vpn-dns-filtering.patch
+      - lp936712_dnsmasq_ip6_ns_ordering.patch
+      - adhoc_use_wpa_rsn_part1.patch
+      - adhoc_use_wpa_rsn_part2.patch
+      - default_powersave_on.patch
+      - ignore_rmnet_devices.patch
+      - lp1099983_ignore-p2p-wifi-devices.patch
+      - wwan-add-ofono-modem-support.patch
+      - lp1461593-add-nm-settings-connection-reset-retries-methods.patch
+      - add_ofono_settings_support.patch
+      - lp1445080-modify-device-modem-avail.patch
+      - ignore_rfkill_if_urfkill_is_present.patch
+      - conditional_libteam_tests.patch
+      - disable_general_with_expect_test.patch
+    - debian/rules:
+      - configure: disable libteam.
+      - configure: enable building vala bindings.
+      - configure: enable running tests during the build.
+      - don't install sysvinit scripts.
+      - copy over dnsmasq configuration files.
+      - don't restart NetworkManager on upgrade.
+      - add --with-udev-dir to ensure rules end up
+        in the right place.
+    - debian/source_network-manager.py: ship an Apport hook.
+    - debian/tests: Ship autopkgtests for automated functional testing.
+  * Refreshed all patches.
+  * Renamed 0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch
+    to wwan-add-ofono-modem-support.patch as this patch needed to be
+    extensively re-worked due to dbus-glib being deprecated in NM1.2.
+  * Remove upstreamed patches:
+    - tests-fix-bashism-in-run-test-dbus-session.sh.patch
+    - wifi-hack-for-wext-devices-reporting-IW_MODE_AUTO-configu.patch
+    - lp1496434_warn_on_invalid_new_link.patch: alternate fix landed
+      upstream which ensures that a valid error instance is returned
+      by the factory_create_link method.
+  * Update all symbols files.
+  * Rename ignore_rmnet_devices.path to ignore_rild_modem_devices.patch
+  * Restore wifi-Signal-on-the-wifi-device-when-its-supplicant-i.patch
+  * debian/tests/nm: output format for NM messages changed a bit to include
+    a timestamp and message source; adjust our "watchdog" for a new added
+    device message to take this into account.
+
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Fri, 08 Apr 2016 16:01:54 -0400
 
 network-manager (1.0.4-0ubuntu10) xenial; urgency=medium
 

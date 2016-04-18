@@ -20,15 +20,15 @@
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
+
+#include "nm-setting-connection.h"
 
 #include <string.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-utils.h"
 #include "nm-utils-private.h"
 #include "nm-core-enum-types.h"
-#include "nm-setting-connection.h"
 #include "nm-connection-private.h"
 #include "nm-setting-bond.h"
 #include "nm-setting-bridge.h"
@@ -76,6 +76,8 @@ typedef struct {
 	char *zone;
 	GSList *secondaries; /* secondary connections to activate with the base connection */
 	guint gateway_ping_timeout;
+	NMMetered metered;
+	NMSettingConnectionLldp lldp;
 } NMSettingConnectionPrivate;
 
 enum {
@@ -95,6 +97,8 @@ enum {
 	PROP_AUTOCONNECT_SLAVES,
 	PROP_SECONDARIES,
 	PROP_GATEWAY_PING_TIMEOUT,
+	PROP_METERED,
+	PROP_LLDP,
 
 	LAST_PROP
 };
@@ -614,7 +618,7 @@ nm_setting_connection_is_slave_type (NMSettingConnection *setting,
  * Returns: whether slaves of the connection should be activated together
  *          with the connection.
  *
- * Since: 1.0.4
+ * Since: 1.2
  **/
 NMSettingConnectionAutoconnectSlaves
 nm_setting_connection_get_autoconnect_slaves (NMSettingConnection *setting)
@@ -623,6 +627,9 @@ nm_setting_connection_get_autoconnect_slaves (NMSettingConnection *setting)
 
 	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->autoconnect_slaves;
 }
+NM_BACKPORT_SYMBOL (libnm_1_0_4, NMSettingConnectionAutoconnectSlaves, nm_setting_connection_get_autoconnect_slaves, (NMSettingConnection *setting), (setting));
+
+NM_BACKPORT_SYMBOL (libnm_1_0_4, GType, nm_setting_connection_autoconnect_slaves_get_type, (void), ());
 
 /**
  * nm_setting_connection_get_num_secondaries:
@@ -758,6 +765,46 @@ nm_setting_connection_get_gateway_ping_timeout (NMSettingConnection *setting)
 	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), 0);
 
 	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->gateway_ping_timeout;
+}
+
+/**
+ * nm_setting_connection_get_metered:
+ * @setting: the #NMSettingConnection
+ *
+ * Returns: the #NMSettingConnection:metered property of the setting.
+ *
+ * Since: 1.2
+ **/
+NMMetered
+nm_setting_connection_get_metered (NMSettingConnection *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting),
+	                      NM_METERED_UNKNOWN);
+
+	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->metered;
+}
+
+NM_BACKPORT_SYMBOL (libnm_1_0_6, NMMetered, nm_setting_connection_get_metered, (NMSettingConnection *setting), (setting));
+
+NM_BACKPORT_SYMBOL (libnm_1_0_6, GType, nm_metered_get_type, (void), ());
+
+/**
+ * nm_setting_connection_get_lldp:
+ * @setting: the #NMSettingConnection
+ *
+ * Returns the #NMSettingConnection:lldp property of the connection.
+ *
+ * Returns: a %NMSettingConnectionLldp which indicates whether LLDP must be
+ * enabled for the connection.
+ *
+ * Since: 1.2
+ **/
+NMSettingConnectionLldp
+nm_setting_connection_get_lldp (NMSettingConnection *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), NM_SETTING_CONNECTION_LLDP_DEFAULT);
+
+	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->lldp;
 }
 
 static void
@@ -921,6 +968,18 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		}
 	}
 
+	if (priv->metered != NM_METERED_UNKNOWN &&
+	    priv->metered != NM_METERED_YES &&
+	    priv->metered != NM_METERED_NO) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("metered value %d is not valid"), priv->metered);
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME,
+		                NM_SETTING_CONNECTION_METERED);
+		return FALSE;
+	}
+
 	/* *** errors above here should be always fatal, below NORMALIZABLE_ERROR *** */
 
 	if (!priv->uuid) {
@@ -996,11 +1055,13 @@ find_virtual_interface_name (GVariant *connection_dict)
 	return interface_name;
 }
 
-static void
+static gboolean
 nm_setting_connection_set_interface_name (NMSetting *setting,
                                           GVariant *connection_dict,
                                           const char *property,
-                                          GVariant *value)
+                                          GVariant *value,
+                                          NMSettingParseFlags parse_flags,
+                                          GError **error)
 {
 	const char *interface_name;
 
@@ -1015,12 +1076,16 @@ nm_setting_connection_set_interface_name (NMSetting *setting,
 	g_object_set (G_OBJECT (setting),
 	              NM_SETTING_CONNECTION_INTERFACE_NAME, interface_name,
 	              NULL);
+
+	return TRUE;
 }
 
-static void
+static gboolean
 nm_setting_connection_no_interface_name (NMSetting *setting,
                                          GVariant *connection_dict,
-                                         const char *property)
+                                         const char *property,
+                                         NMSettingParseFlags parse_flags,
+                                         GError **error)
 {
 	const char *virtual_interface_name;
 
@@ -1028,6 +1093,7 @@ nm_setting_connection_no_interface_name (NMSetting *setting,
 	g_object_set (G_OBJECT (setting),
 	              NM_SETTING_CONNECTION_INTERFACE_NAME, virtual_interface_name,
 	              NULL);
+	return TRUE;
 }
 
 static gboolean
@@ -1154,6 +1220,12 @@ set_property (GObject *object, guint prop_id,
 	case PROP_GATEWAY_PING_TIMEOUT:
 		priv->gateway_ping_timeout = g_value_get_uint (value);
 		break;
+	case PROP_METERED:
+		priv->metered = g_value_get_enum (value);
+		break;
+	case PROP_LLDP:
+		priv->lldp = g_value_get_int (value);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1226,6 +1298,12 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_GATEWAY_PING_TIMEOUT:
 		g_value_set_uint (value, priv->gateway_ping_timeout);
+		break;
+	case PROP_METERED:
+		g_value_set_enum (value, priv->metered);
+		break;
+	case PROP_LLDP:
+		g_value_set_int (value, priv->lldp);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1488,6 +1566,9 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 	 * (for example "Home", "Work", "Public").  %NULL or unspecified zone means
 	 * the connection will be placed in the default zone as defined by the
 	 * firewall.
+	 *
+	 * When updating this property on a currently activated connection,
+	 * the change takes effect immediately.
 	 **/
 	/* ---ifcfg-rh---
 	 * property: zone
@@ -1504,6 +1585,7 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 		                      G_PARAM_READWRITE |
 		                      G_PARAM_CONSTRUCT |
 		                      NM_SETTING_PARAM_FUZZY_IGNORE |
+		                      NM_SETTING_PARAM_REAPPLY_IMMEDIATELY |
 		                      G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -1562,7 +1644,7 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 	 * If -1 (default) is set, global connection.autoconnect-slaves is read to
 	 * determine the real value. If it is default as well, this fallbacks to 0.
 	 *
-	 * Since: 1.0.4
+	 * Since: 1.2
 	 **/
 	/* ---ifcfg-rh---
 	 * property: autoconnect-slaves
@@ -1626,4 +1708,56 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 		                    G_PARAM_READWRITE |
 		                    G_PARAM_CONSTRUCT |
 		                    G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingConnection:metered:
+	 *
+	 * Whether the connection is metered.
+	 *
+	 * When updating this property on a currently activated connection,
+	 * the change takes effect immediately.
+	 *
+	 * Since: 1.2
+	 **/
+	/* ---ifcfg-rh---
+	 * property: metered
+	 * variable: CONNECTION_METERED
+	 * values: yes,no,unknown
+	 * description: Whether the device is metered
+	 * example: CONNECTION_METERED=yes
+	 * ---end---
+	 */
+	g_object_class_install_property
+		(object_class, PROP_METERED,
+		 g_param_spec_enum (NM_SETTING_CONNECTION_METERED, "", "",
+		                    NM_TYPE_METERED,
+		                    NM_METERED_UNKNOWN,
+		                    G_PARAM_READWRITE |
+		                    NM_SETTING_PARAM_REAPPLY_IMMEDIATELY |
+		                    G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingConnection:lldp:
+	 *
+	 * Whether LLDP is enabled for the connection.
+	 *
+	 * Since: 1.2
+	 **/
+	/* ---ifcfg-rh---
+	 * property: lldp
+	 * variable: LLDP
+	 * values: boolean value or 'rx'
+	 * default: missing variable means global default
+	 * description: whether LLDP is enabled for the connection
+	 * example: LLDP=no
+	 * ---end---
+	 */
+	g_object_class_install_property
+		(object_class, PROP_LLDP,
+		 g_param_spec_int (NM_SETTING_CONNECTION_LLDP, "", "",
+		                   G_MININT32, G_MAXINT32, NM_SETTING_CONNECTION_LLDP_DEFAULT,
+		                   NM_SETTING_PARAM_FUZZY_IGNORE |
+		                   G_PARAM_READWRITE |
+		                   G_PARAM_CONSTRUCT |
+		                   G_PARAM_STATIC_STRINGS));
 }

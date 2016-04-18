@@ -17,15 +17,13 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#include "nm-logging.h"
 #include "nm-dhcp-utils.h"
 #include "nm-utils.h"
 #include "NetworkManagerUtils.h"
@@ -321,7 +319,7 @@ process_classful_routes (GHashTable *options, guint32 priority, NMIP4Config *ip4
 
 		nm_ip4_config_add_route (ip4_config, &route);
 		nm_log_info (LOGD_DHCP, "  static route %s",
-		             nm_platform_ip4_route_to_string (&route));
+		             nm_platform_ip4_route_to_string (&route, NULL, 0));
 	}
 
 out:
@@ -374,27 +372,28 @@ ip4_add_domain_search (gpointer data, gpointer user_data)
 }
 
 NMIP4Config *
-nm_dhcp_utils_ip4_config_from_options (const char *iface,
+nm_dhcp_utils_ip4_config_from_options (int ifindex,
+                                       const char *iface,
                                        GHashTable *options,
                                        guint32 priority)
 {
 	NMIP4Config *ip4_config = NULL;
 	guint32 tmp_addr;
+	in_addr_t addr;
 	NMPlatformIP4Address address;
 	char *str = NULL;
 	guint32 gwaddr = 0, plen = 0;
 
 	g_return_val_if_fail (options != NULL, NULL);
 
-	ip4_config = nm_ip4_config_new ();
+	ip4_config = nm_ip4_config_new (ifindex);
 	memset (&address, 0, sizeof (address));
 	address.timestamp = nm_utils_get_monotonic_timestamp_s ();
 
 	str = g_hash_table_lookup (options, "ip_address");
-	if (str && (inet_pton (AF_INET, str, &tmp_addr) > 0)) {
-		address.address = tmp_addr;
+	if (str && (inet_pton (AF_INET, str, &addr) > 0))
 		nm_log_info (LOGD_DHCP4, "  address %s", str);
-	} else
+	else
 		goto error;
 
 	str = g_hash_table_lookup (options, "subnet_mask");
@@ -403,10 +402,10 @@ nm_dhcp_utils_ip4_config_from_options (const char *iface,
 		nm_log_info (LOGD_DHCP4, "  plen %d (%s)", plen, str);
 	} else {
 		/* Get default netmask for the IP according to appropriate class. */
-		plen = nm_utils_ip4_get_default_prefix (address.address);
+		plen = nm_utils_ip4_get_default_prefix (addr);
 		nm_log_info (LOGD_DHCP4, "  plen %d (default)", plen);
 	}
-	address.plen = plen;
+	nm_platform_ip4_address_set_addr (&address, addr, plen);
 
 	/* Routes: if the server returns classless static routes, we MUST ignore
 	 * the 'static_routes' option.
@@ -469,7 +468,7 @@ nm_dhcp_utils_ip4_config_from_options (const char *iface,
 				route.metric = priority;
 				nm_ip4_config_add_route (ip4_config, &route);
 				nm_log_dbg (LOGD_IP, "adding route for server identifier: %s",
-				                      nm_platform_ip4_route_to_string (&route));
+				                      nm_platform_ip4_route_to_string (&route, NULL, 0));
 			}
 		}
 		else
@@ -479,7 +478,7 @@ nm_dhcp_utils_ip4_config_from_options (const char *iface,
 	str = g_hash_table_lookup (options, "dhcp_lease_time");
 	if (str) {
 		address.lifetime = address.preferred = strtoul (str, NULL, 10);
-		nm_log_info (LOGD_DHCP4, "  lease time %d", address.lifetime);
+		nm_log_info (LOGD_DHCP4, "  lease time %u", address.lifetime);
 	}
 
 	address.source = NM_IP_CONFIG_SOURCE_DHCP;
@@ -575,6 +574,9 @@ nm_dhcp_utils_ip4_config_from_options (const char *iface,
 		g_strfreev (nis);
 	}
 
+	str = g_hash_table_lookup (options, "vendor_encapsulated_options");
+	nm_ip4_config_set_metered (ip4_config, str && strstr (str, "ANDROID_METERED"));
+
 	return ip4_config;
 
 error:
@@ -591,7 +593,8 @@ ip6_add_domain_search (gpointer data, gpointer user_data)
 }
 
 NMIP6Config *
-nm_dhcp_utils_ip6_config_from_options (const char *iface,
+nm_dhcp_utils_ip6_config_from_options (int ifindex,
+                                       const char *iface,
                                        GHashTable *options,
                                        guint32 priority,
                                        gboolean info_only)
@@ -615,18 +618,18 @@ nm_dhcp_utils_ip6_config_from_options (const char *iface,
 		            iface, (const char *) key, (const char *) value);
 	}
 
-	ip6_config = nm_ip6_config_new ();
+	ip6_config = nm_ip6_config_new (ifindex);
 
 	str = g_hash_table_lookup (options, "max_life");
 	if (str) {
 		address.lifetime = strtoul (str, NULL, 10);
-		nm_log_info (LOGD_DHCP6, "  valid_lft %d", address.lifetime);
+		nm_log_info (LOGD_DHCP6, "  valid_lft %u", address.lifetime);
 	}
 
 	str = g_hash_table_lookup (options, "preferred_life");
 	if (str) {
 		address.preferred = strtoul (str, NULL, 10);
-		nm_log_info (LOGD_DHCP6, "  preferred_lft %d", address.preferred);
+		nm_log_info (LOGD_DHCP6, "  preferred_lft %u", address.preferred);
 	}
 
 	str = g_hash_table_lookup (options, "ip6_address");

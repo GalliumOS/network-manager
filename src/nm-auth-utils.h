@@ -21,11 +21,8 @@
 #ifndef __NETWORKMANAGER_MANAGER_AUTH_H__
 #define __NETWORKMANAGER_MANAGER_AUTH_H__
 
-#include <glib.h>
-#include <dbus/dbus-glib.h>
-
 #include <nm-connection.h>
-#include "nm-types.h"
+#include "nm-default.h"
 
 #define NM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK     "org.freedesktop.NetworkManager.enable-disable-network"
 #define NM_AUTH_PERMISSION_SLEEP_WAKE                 "org.freedesktop.NetworkManager.sleep-wake"
@@ -38,6 +35,7 @@
 #define NM_AUTH_PERMISSION_SETTINGS_MODIFY_SYSTEM     "org.freedesktop.NetworkManager.settings.modify.system"
 #define NM_AUTH_PERMISSION_SETTINGS_MODIFY_OWN        "org.freedesktop.NetworkManager.settings.modify.own"
 #define NM_AUTH_PERMISSION_SETTINGS_MODIFY_HOSTNAME   "org.freedesktop.NetworkManager.settings.modify.hostname"
+#define NM_AUTH_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS "org.freedesktop.NetworkManager.settings.modify.global-dns"
 
 
 typedef struct NMAuthChain NMAuthChain;
@@ -51,15 +49,15 @@ typedef enum {
 
 typedef void (*NMAuthChainResultFunc) (NMAuthChain *chain,
                                        GError *error,
-                                       DBusGMethodInvocation *context,
+                                       GDBusMethodInvocation *context,
                                        gpointer user_data);
 
-NMAuthChain *nm_auth_chain_new_context (DBusGMethodInvocation *context,
+NMAuthChain *nm_auth_chain_new_context (GDBusMethodInvocation *context,
                                         NMAuthChainResultFunc done_func,
                                         gpointer user_data);
 
 NMAuthChain *nm_auth_chain_new_subject (NMAuthSubject *subject,
-                                        DBusGMethodInvocation *context,
+                                        GDBusMethodInvocation *context,
                                         NMAuthChainResultFunc done_func,
                                         gpointer user_data);
 
@@ -89,9 +87,10 @@ void nm_auth_chain_unref (NMAuthChain *chain);
 
 /* Caller must free returned error description */
 gboolean nm_auth_is_subject_in_acl (NMConnection *connection,
-                                    NMSessionMonitor *smon,
                                     NMAuthSubject *subect,
                                     char **out_error_desc);
+
+NMAuthSubject *nm_auth_chain_get_subject (NMAuthChain *self);
 
 #endif /* __NETWORKMANAGER_MANAGER_AUTH_H__ */
 

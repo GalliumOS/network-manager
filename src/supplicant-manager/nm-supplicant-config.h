@@ -22,10 +22,10 @@
 #ifndef __NETWORKMANAGER_SUPPLICANT_CONFIG_H__
 #define __NETWORKMANAGER_SUPPLICANT_CONFIG_H__
 
-#include <glib-object.h>
 #include <nm-setting-wireless.h>
 #include <nm-setting-wireless-security.h>
 #include <nm-setting-8021x.h>
+#include "nm-default.h"
 #include "nm-supplicant-types.h"
 
 G_BEGIN_DECLS
@@ -54,8 +54,7 @@ NMSupplicantConfig *nm_supplicant_config_new (void);
 
 guint32 nm_supplicant_config_get_ap_scan (NMSupplicantConfig *self);
 
-void nm_supplicant_config_set_ap_scan (NMSupplicantConfig *self,
-                                       guint32 ap_scan);
+const char *nm_supplicant_config_get_mac_randomization (NMSupplicantConfig *self);
 
 gboolean nm_supplicant_config_fast_required (NMSupplicantConfig *self);
 
@@ -65,19 +64,27 @@ GHashTable *nm_supplicant_config_get_blobs (NMSupplicantConfig *self);
 
 gboolean nm_supplicant_config_add_setting_wireless (NMSupplicantConfig *self,
                                                     NMSettingWireless *setting,
-                                                    guint32 fixed_freq);
+                                                    guint32 fixed_freq,
+                                                    NMSupplicantFeature mac_randomization_support,
+                                                    NMSettingMacRandomization mac_randomization_fallback,
+                                                    GError **error);
 
 gboolean nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
                                                              NMSettingWirelessSecurity *setting,
                                                              NMSetting8021x *setting_8021x,
-                                                             const char *con_uuid);
+                                                             const char *con_uuid,
+                                                             guint32 mtu,
+                                                             GError **error);
 
-gboolean nm_supplicant_config_add_no_security (NMSupplicantConfig *self);
+gboolean nm_supplicant_config_add_no_security (NMSupplicantConfig *self,
+                                               GError **error);
 
 gboolean nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
                                                  NMSetting8021x *setting,
                                                  const char *con_uuid,
-                                                 gboolean wired);
+                                                 guint32 mtu,
+                                                 gboolean wired,
+                                                 GError **error);
 
 G_END_DECLS
 

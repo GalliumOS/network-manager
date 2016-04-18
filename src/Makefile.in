@@ -90,37 +90,35 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@WITH_MODEM_MANAGER_1_TRUE@am__append_1 = \
-@WITH_MODEM_MANAGER_1_TRUE@	devices/wwan			\
-@WITH_MODEM_MANAGER_1_TRUE@	devices/bluetooth
-
+@WITH_MODEM_MANAGER_1_TRUE@am__append_1 = devices/wwan	devices/bluetooth
 @WITH_WIFI_TRUE@am__append_2 = devices/wifi
-@WITH_WIMAX_TRUE@am__append_3 = devices/wimax
-@WITH_TEAMDCTL_TRUE@am__append_4 = devices/team
-@ENABLE_TESTS_TRUE@am__append_5 = \
+@WITH_TEAMDCTL_TRUE@am__append_3 = devices/team
+@ENABLE_TESTS_TRUE@am__append_4 = \
 @ENABLE_TESTS_TRUE@	dhcp-manager/tests \
 @ENABLE_TESTS_TRUE@	dnsmasq-manager/tests \
 @ENABLE_TESTS_TRUE@	platform \
+@ENABLE_TESTS_TRUE@	devices \
 @ENABLE_TESTS_TRUE@	rdisc \
 @ENABLE_TESTS_TRUE@	supplicant-manager/tests \
 @ENABLE_TESTS_TRUE@	tests
 
+
+######################
+# libsystemd-nm-base
+######################
+@ENABLE_TESTS_TRUE@am__append_5 = \
+@ENABLE_TESTS_TRUE@	libNetworkManager-base.la
+
 sbin_PROGRAMS = NetworkManager$(EXEEXT)
-@SESSION_TRACKING_SYSTEMD_TRUE@am__append_6 = nm-session-monitor-systemd.c
-@SESSION_TRACKING_CK_TRUE@@SESSION_TRACKING_SYSTEMD_FALSE@am__append_7 = nm-session-monitor-ck.c
-@SESSION_TRACKING_CK_FALSE@@SESSION_TRACKING_SYSTEMD_FALSE@am__append_8 = nm-session-monitor-null.c
-@SUSPEND_RESUME_SYSTEMD_TRUE@am__append_9 = nm-sleep-monitor-systemd.c
-# UPower suspend/resume used whenever systemd is not enabled
-@SUSPEND_RESUME_SYSTEMD_FALSE@am__append_10 = nm-sleep-monitor-upower.c
-@WITH_WEXT_TRUE@am__append_11 = \
+@SUSPEND_RESUME_UPOWER_TRUE@am__append_6 = nm-sleep-monitor-upower.c
+# systemd/consolekit suspend/resume used whenever upower is not enabled
+@SUSPEND_RESUME_UPOWER_FALSE@am__append_7 = nm-sleep-monitor-systemd.c
+@WITH_WEXT_TRUE@am__append_8 = \
 @WITH_WEXT_TRUE@	platform/wifi/wifi-utils-wext.c \
 @WITH_WEXT_TRUE@	platform/wifi/wifi-utils-wext.h
 
-@WITH_WIMAX_TRUE@am__append_12 = devices/wimax/nm-device-wimax.h
-@WITH_WIMAX_TRUE@am__append_13 = -I$(top_srcdir)/src/devices/wimax
-@SESSION_TRACKING_CK_TRUE@am__append_14 = -DCKDB_PATH=\"${CKDB_PATH}\"
-@WITH_LIBSOUP_TRUE@am__append_15 = $(LIBSOUP_LIBS)
-@WITH_WEXT_TRUE@am__append_16 = \
+@WITH_LIBSOUP_TRUE@am__append_9 = $(LIBSOUP_LIBS)
+@WITH_WEXT_TRUE@am__append_10 = \
 @WITH_WEXT_TRUE@	platform/wifi/wifi-utils-wext.c \
 @WITH_WEXT_TRUE@	platform/wifi/wifi-utils-wext.h
 
@@ -149,9 +147,26 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 am__DEPENDENCIES_1 =
+@ENABLE_TESTS_TRUE@libNetworkManager_base_la_DEPENDENCIES =  \
+@ENABLE_TESTS_TRUE@	$(top_builddir)/libnm-core/libnm-core.la \
+@ENABLE_TESTS_TRUE@	$(am__DEPENDENCIES_1)
+am__libNetworkManager_base_la_SOURCES_DIST = nm-core-utils.c \
+	nm-core-utils.h nm-logging.c nm-logging.h
+@ENABLE_TESTS_TRUE@am_libNetworkManager_base_la_OBJECTS =  \
+@ENABLE_TESTS_TRUE@	libNetworkManager_base_la-nm-core-utils.lo \
+@ENABLE_TESTS_TRUE@	libNetworkManager_base_la-nm-logging.lo
+libNetworkManager_base_la_OBJECTS =  \
+	$(am_libNetworkManager_base_la_OBJECTS)
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
+@ENABLE_TESTS_TRUE@am_libNetworkManager_base_la_rpath =
 @WITH_LIBSOUP_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
 libNetworkManager_la_DEPENDENCIES =  \
-	$(top_builddir)/libnm-core/libnm-core.la libsystemd-dhcp.la \
+	$(top_builddir)/libnm-core/libnm-core.la \
+	$(top_builddir)/introspection/libnmdbus.la libsystemd-nm.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
@@ -159,20 +174,24 @@ libNetworkManager_la_DEPENDENCIES =  \
 	$(am__DEPENDENCIES_2)
 am__libNetworkManager_la_SOURCES_DIST = devices/nm-device-bond.h \
 	devices/nm-device-bridge.h devices/nm-device-ethernet.h \
-	devices/nm-device-gre.h devices/nm-device-infiniband.h \
+	devices/nm-device-infiniband.h devices/nm-device-ip-tunnel.h \
 	devices/nm-device-macvlan.h devices/nm-device-tun.h \
 	devices/nm-device-veth.h devices/nm-device-vlan.h \
 	devices/nm-device-vxlan.h dhcp-manager/nm-dhcp-dhclient.h \
 	dhcp-manager/nm-dhcp-dhclient-utils.h \
 	dhcp-manager/nm-dhcp-dhcpcd.h dhcp-manager/nm-dhcp-systemd.h \
 	devices/nm-device.c devices/nm-device.h \
+	devices/nm-lldp-listener.c devices/nm-lldp-listener.h \
+	devices/nm-arping-manager.c devices/nm-arping-manager.h \
 	devices/nm-device-ethernet-utils.c \
 	devices/nm-device-ethernet-utils.h devices/nm-device-factory.c \
 	devices/nm-device-factory.h devices/nm-device-generic.c \
 	devices/nm-device-generic.h devices/nm-device-logging.h \
 	devices/nm-device-private.h dhcp-manager/nm-dhcp-client.c \
-	dhcp-manager/nm-dhcp-client.h dhcp-manager/nm-dhcp-utils.c \
-	dhcp-manager/nm-dhcp-utils.h dhcp-manager/nm-dhcp-listener.c \
+	dhcp-manager/nm-dhcp-client.h \
+	dhcp-manager/nm-dhcp-client-logging.h \
+	dhcp-manager/nm-dhcp-utils.c dhcp-manager/nm-dhcp-utils.h \
+	dhcp-manager/nm-dhcp-listener.c \
 	dhcp-manager/nm-dhcp-listener.h dhcp-manager/nm-dhcp-manager.c \
 	dhcp-manager/nm-dhcp-manager.h dns-manager/nm-dns-dnsmasq.c \
 	dns-manager/nm-dns-dnsmasq.h dns-manager/nm-dns-unbound.c \
@@ -183,12 +202,13 @@ am__libNetworkManager_la_SOURCES_DIST = devices/nm-device-bond.h \
 	dnsmasq-manager/nm-dnsmasq-manager.c \
 	dnsmasq-manager/nm-dnsmasq-manager.h \
 	dnsmasq-manager/nm-dnsmasq-utils.c \
-	dnsmasq-manager/nm-dnsmasq-utils.h platform/nm-fake-platform.c \
-	platform/nm-fake-platform.h platform/nm-linux-platform.c \
-	platform/nm-linux-platform.h platform/nm-platform.c \
-	platform/nm-platform.h platform/nm-platform-utils.c \
-	platform/nm-platform-utils.h platform/nmp-object.c \
-	platform/nmp-object.h platform/wifi/wifi-utils-nl80211.c \
+	dnsmasq-manager/nm-dnsmasq-utils.h platform/nmp-netns.c \
+	platform/nmp-netns.h platform/nmp-object.c \
+	platform/nmp-object.h platform/nm-platform-utils.c \
+	platform/nm-platform-utils.h platform/nm-platform.c \
+	platform/nm-platform.h platform/nm-linux-platform.c \
+	platform/nm-linux-platform.h platform/nm-fake-platform.c \
+	platform/nm-fake-platform.h platform/wifi/wifi-utils-nl80211.c \
 	platform/wifi/wifi-utils-nl80211.h \
 	platform/wifi/wifi-utils-private.h platform/wifi/wifi-utils.c \
 	platform/wifi/wifi-utils.h rdisc/nm-fake-rdisc.c \
@@ -200,10 +220,9 @@ am__libNetworkManager_la_SOURCES_DIST = devices/nm-device-bond.h \
 	settings/nm-inotify-helper.c settings/nm-inotify-helper.h \
 	settings/nm-secret-agent.c settings/nm-secret-agent.h \
 	settings/nm-settings-connection.c \
-	settings/nm-settings-connection.h settings/nm-settings.c \
-	settings/nm-settings.h settings/nm-system-config-interface.c \
-	settings/nm-system-config-interface.h \
-	settings/plugins/keyfile/common.h \
+	settings/nm-settings-connection.h \
+	settings/nm-settings-plugin.c settings/nm-settings-plugin.h \
+	settings/nm-settings.c settings/nm-settings.h \
 	settings/plugins/keyfile/nm-keyfile-connection.c \
 	settings/plugins/keyfile/nm-keyfile-connection.h \
 	settings/plugins/keyfile/plugin.c \
@@ -225,151 +244,151 @@ am__libNetworkManager_la_SOURCES_DIST = devices/nm-device-bond.h \
 	supplicant-manager/nm-supplicant-types.h \
 	vpn-manager/nm-vpn-connection.c \
 	vpn-manager/nm-vpn-connection.h vpn-manager/nm-vpn-manager.c \
-	vpn-manager/nm-vpn-manager.h vpn-manager/nm-vpn-service.c \
-	vpn-manager/nm-vpn-service.h nm-activation-request.c \
+	vpn-manager/nm-vpn-manager.h nm-activation-request.c \
 	nm-activation-request.h nm-active-connection.c \
-	nm-active-connection.h nm-config.c nm-config.h \
+	nm-active-connection.h nm-audit-manager.c nm-audit-manager.h \
+	nm-bus-manager.c nm-bus-manager.h nm-config.c nm-config.h \
 	nm-config-data.c nm-config-data.h nm-connection-provider.c \
 	nm-connection-provider.h nm-connectivity.c nm-connectivity.h \
-	nm-dbus-manager.c nm-dbus-manager.h nm-dcb.c nm-dcb.h \
-	nm-route-manager.c nm-route-manager.h \
+	nm-dcb.c nm-dcb.h nm-route-manager.c nm-route-manager.h \
 	nm-default-route-manager.c nm-default-route-manager.h \
 	nm-dhcp4-config.c nm-dhcp4-config.h nm-dhcp6-config.c \
 	nm-dhcp6-config.h nm-dispatcher.c nm-dispatcher.h \
-	nm-enum-types.c nm-enum-types.h nm-firewall-manager.c \
+	nm-enum-types.c nm-enum-types.h nm-exported-object.c \
+	nm-exported-object.h nm-firewall-manager.c \
 	nm-firewall-manager.h nm-ip4-config.c nm-ip4-config.h \
 	nm-ip6-config.c nm-ip6-config.h nm-logging.c nm-logging.h \
 	nm-auth-manager.c nm-auth-manager.h nm-auth-subject.c \
 	nm-auth-subject.h nm-auth-utils.c nm-auth-utils.h nm-manager.c \
 	nm-manager.h nm-multi-index.c nm-multi-index.h nm-policy.c \
-	nm-policy.h nm-properties-changed-signal.c \
-	nm-properties-changed-signal.h nm-rfkill-manager.c \
-	nm-rfkill-manager.h nm-session-monitor.h nm-session-utils.c \
-	nm-session-utils.h nm-sleep-monitor.h nm-types.h \
+	nm-policy.h nm-rfkill-manager.c nm-rfkill-manager.h \
+	nm-session-monitor.h nm-session-monitor.c nm-sleep-monitor.h \
+	nm-types.h nm-core-utils.c nm-core-utils.h \
 	NetworkManagerUtils.c NetworkManagerUtils.h \
-	nm-session-monitor-systemd.c nm-session-monitor-ck.c \
-	nm-session-monitor-null.c nm-sleep-monitor-systemd.c \
-	nm-sleep-monitor-upower.c platform/wifi/wifi-utils-wext.c \
-	platform/wifi/wifi-utils-wext.h nm-access-point-glue.h \
-	nm-active-connection-glue.h nm-agent-manager-glue.h \
-	nm-device-bond-glue.h nm-device-bridge-glue.h \
-	nm-device-ethernet-glue.h nm-device-generic-glue.h \
-	nm-device-glue.h nm-device-gre-glue.h \
-	nm-device-infiniband-glue.h nm-device-macvlan-glue.h \
-	nm-device-tun-glue.h nm-device-veth-glue.h \
-	nm-device-vlan-glue.h nm-device-vxlan-glue.h \
-	nm-dhcp4-config-glue.h nm-dhcp6-config-glue.h \
-	nm-ip4-config-glue.h nm-ip6-config-glue.h nm-manager-glue.h \
-	nm-ppp-manager-glue.h nm-settings-connection-glue.h \
-	nm-settings-glue.h nm-vpn-connection-glue.h
+	nm-sleep-monitor-upower.c nm-sleep-monitor-systemd.c \
+	platform/wifi/wifi-utils-wext.c \
+	platform/wifi/wifi-utils-wext.h
 am__objects_1 =
-@SESSION_TRACKING_SYSTEMD_TRUE@am__objects_2 =  \
-@SESSION_TRACKING_SYSTEMD_TRUE@	nm-session-monitor-systemd.lo
-@SESSION_TRACKING_CK_TRUE@@SESSION_TRACKING_SYSTEMD_FALSE@am__objects_3 = nm-session-monitor-ck.lo
-@SESSION_TRACKING_CK_FALSE@@SESSION_TRACKING_SYSTEMD_FALSE@am__objects_4 = nm-session-monitor-null.lo
-@SUSPEND_RESUME_SYSTEMD_TRUE@am__objects_5 =  \
-@SUSPEND_RESUME_SYSTEMD_TRUE@	nm-sleep-monitor-systemd.lo
-@SUSPEND_RESUME_SYSTEMD_FALSE@am__objects_6 =  \
-@SUSPEND_RESUME_SYSTEMD_FALSE@	nm-sleep-monitor-upower.lo
-@WITH_WEXT_TRUE@am__objects_7 = wifi-utils-wext.lo
-am__objects_8 = $(am__objects_1) $(am__objects_1) nm-device.lo \
+@SUSPEND_RESUME_UPOWER_TRUE@am__objects_2 =  \
+@SUSPEND_RESUME_UPOWER_TRUE@	nm-sleep-monitor-upower.lo
+@SUSPEND_RESUME_UPOWER_FALSE@am__objects_3 =  \
+@SUSPEND_RESUME_UPOWER_FALSE@	nm-sleep-monitor-systemd.lo
+@WITH_WEXT_TRUE@am__objects_4 = wifi-utils-wext.lo
+am_libNetworkManager_la_OBJECTS = $(am__objects_1) $(am__objects_1) \
+	nm-device.lo nm-lldp-listener.lo nm-arping-manager.lo \
 	nm-device-ethernet-utils.lo nm-device-factory.lo \
 	nm-device-generic.lo nm-dhcp-client.lo nm-dhcp-utils.lo \
 	nm-dhcp-listener.lo nm-dhcp-manager.lo nm-dns-dnsmasq.lo \
 	nm-dns-unbound.lo nm-dns-manager.lo nm-dns-plugin.lo \
 	nm-dns-utils.lo nm-dnsmasq-manager.lo nm-dnsmasq-utils.lo \
-	nm-fake-platform.lo nm-linux-platform.lo nm-platform.lo \
-	nm-platform-utils.lo nmp-object.lo wifi-utils-nl80211.lo \
+	nmp-netns.lo nmp-object.lo nm-platform-utils.lo nm-platform.lo \
+	nm-linux-platform.lo nm-fake-platform.lo wifi-utils-nl80211.lo \
 	wifi-utils.lo nm-fake-rdisc.lo nm-lndp-rdisc.lo nm-rdisc.lo \
 	nm-ppp-manager.lo nm-agent-manager.lo nm-inotify-helper.lo \
-	nm-secret-agent.lo nm-settings-connection.lo nm-settings.lo \
-	nm-system-config-interface.lo nm-keyfile-connection.lo \
+	nm-secret-agent.lo nm-settings-connection.lo \
+	nm-settings-plugin.lo nm-settings.lo nm-keyfile-connection.lo \
 	plugin.lo reader.lo utils.lo writer.lo nm-supplicant-config.lo \
 	nm-supplicant-interface.lo nm-supplicant-manager.lo \
 	nm-supplicant-settings-verify.lo nm-vpn-connection.lo \
-	nm-vpn-manager.lo nm-vpn-service.lo nm-activation-request.lo \
-	nm-active-connection.lo nm-config.lo nm-config-data.lo \
-	nm-connection-provider.lo nm-connectivity.lo \
-	nm-dbus-manager.lo nm-dcb.lo nm-route-manager.lo \
+	nm-vpn-manager.lo nm-activation-request.lo \
+	nm-active-connection.lo nm-audit-manager.lo nm-bus-manager.lo \
+	nm-config.lo nm-config-data.lo nm-connection-provider.lo \
+	nm-connectivity.lo nm-dcb.lo nm-route-manager.lo \
 	nm-default-route-manager.lo nm-dhcp4-config.lo \
 	nm-dhcp6-config.lo nm-dispatcher.lo nm-enum-types.lo \
-	nm-firewall-manager.lo nm-ip4-config.lo nm-ip6-config.lo \
-	nm-logging.lo nm-auth-manager.lo nm-auth-subject.lo \
-	nm-auth-utils.lo nm-manager.lo nm-multi-index.lo nm-policy.lo \
-	nm-properties-changed-signal.lo nm-rfkill-manager.lo \
-	nm-session-utils.lo NetworkManagerUtils.lo $(am__objects_2) \
-	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
-	$(am__objects_6) $(am__objects_7)
-am_libNetworkManager_la_OBJECTS = $(am__objects_8) $(am__objects_1)
+	nm-exported-object.lo nm-firewall-manager.lo nm-ip4-config.lo \
+	nm-ip6-config.lo nm-logging.lo nm-auth-manager.lo \
+	nm-auth-subject.lo nm-auth-utils.lo nm-manager.lo \
+	nm-multi-index.lo nm-policy.lo nm-rfkill-manager.lo \
+	nm-session-monitor.lo nm-core-utils.lo NetworkManagerUtils.lo \
+	$(am__objects_2) $(am__objects_3) $(am__objects_4)
 libNetworkManager_la_OBJECTS = $(am_libNetworkManager_la_OBJECTS)
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
 libnm_iface_helper_la_DEPENDENCIES =  \
-	$(top_builddir)/libnm-core/libnm-core.la libsystemd-dhcp.la \
+	$(top_builddir)/libnm-core/libnm-core.la \
+	$(top_builddir)/introspection/libnmdbus.la libsystemd-nm.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__libnm_iface_helper_la_SOURCES_DIST =  \
 	dhcp-manager/nm-dhcp-client.c dhcp-manager/nm-dhcp-client.h \
+	dhcp-manager/nm-dhcp-client-logging.h \
 	dhcp-manager/nm-dhcp-utils.c dhcp-manager/nm-dhcp-utils.h \
 	dhcp-manager/nm-dhcp-manager.c dhcp-manager/nm-dhcp-manager.h \
-	platform/nm-linux-platform.c platform/nm-linux-platform.h \
-	platform/nm-platform.c platform/nm-platform.h \
-	platform/nm-platform-utils.c platform/nm-platform-utils.h \
+	platform/nmp-netns.c platform/nmp-netns.h \
 	platform/nmp-object.c platform/nmp-object.h \
+	platform/nm-platform-utils.c platform/nm-platform-utils.h \
+	platform/nm-platform.c platform/nm-platform.h \
+	platform/nm-linux-platform.c platform/nm-linux-platform.h \
 	platform/wifi/wifi-utils-nl80211.c \
 	platform/wifi/wifi-utils-nl80211.h \
 	platform/wifi/wifi-utils-private.h platform/wifi/wifi-utils.c \
 	platform/wifi/wifi-utils.h rdisc/nm-fake-rdisc.c \
 	rdisc/nm-fake-rdisc.h rdisc/nm-lndp-rdisc.c \
 	rdisc/nm-lndp-rdisc.h rdisc/nm-rdisc.c rdisc/nm-rdisc.h \
-	nm-route-manager.c nm-route-manager.h nm-ip4-config.c \
-	nm-ip4-config.h nm-ip6-config.c nm-ip6-config.h \
-	nm-enum-types.c nm-enum-types.h nm-logging.c nm-logging.h \
-	nm-multi-index.c nm-multi-index.h NetworkManagerUtils.c \
-	NetworkManagerUtils.h platform/wifi/wifi-utils-wext.c \
+	nm-route-manager.c nm-route-manager.h nm-exported-object.c \
+	nm-exported-object.h nm-ip4-config.c nm-ip4-config.h \
+	nm-ip6-config.c nm-ip6-config.h nm-enum-types.c \
+	nm-enum-types.h nm-logging.c nm-logging.h nm-multi-index.c \
+	nm-multi-index.h nm-core-utils.c nm-core-utils.h \
+	NetworkManagerUtils.c NetworkManagerUtils.h \
+	platform/wifi/wifi-utils-wext.c \
 	platform/wifi/wifi-utils-wext.h
 am_libnm_iface_helper_la_OBJECTS = nm-dhcp-client.lo nm-dhcp-utils.lo \
-	nm-dhcp-manager.lo nm-linux-platform.lo nm-platform.lo \
-	nm-platform-utils.lo nmp-object.lo wifi-utils-nl80211.lo \
-	wifi-utils.lo nm-fake-rdisc.lo nm-lndp-rdisc.lo nm-rdisc.lo \
-	nm-route-manager.lo nm-ip4-config.lo nm-ip6-config.lo \
+	nm-dhcp-manager.lo nmp-netns.lo nmp-object.lo \
+	nm-platform-utils.lo nm-platform.lo nm-linux-platform.lo \
+	wifi-utils-nl80211.lo wifi-utils.lo nm-fake-rdisc.lo \
+	nm-lndp-rdisc.lo nm-rdisc.lo nm-route-manager.lo \
+	nm-exported-object.lo nm-ip4-config.lo nm-ip6-config.lo \
 	nm-enum-types.lo nm-logging.lo nm-multi-index.lo \
-	NetworkManagerUtils.lo $(am__objects_7)
+	nm-core-utils.lo NetworkManagerUtils.lo $(am__objects_4)
 libnm_iface_helper_la_OBJECTS = $(am_libnm_iface_helper_la_OBJECTS)
-libsystemd_dhcp_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_libsystemd_dhcp_la_OBJECTS = libsystemd_dhcp_la-dhcp-network.lo \
-	libsystemd_dhcp_la-dhcp-packet.lo \
-	libsystemd_dhcp_la-dhcp6-network.lo \
-	libsystemd_dhcp_la-dhcp6-option.lo \
-	libsystemd_dhcp_la-network-internal.lo \
-	libsystemd_dhcp_la-sd-dhcp-lease.lo \
-	libsystemd_dhcp_la-sd-dhcp-client.lo \
-	libsystemd_dhcp_la-dhcp-option.lo \
-	libsystemd_dhcp_la-sd-dhcp6-lease.lo \
-	libsystemd_dhcp_la-sd-dhcp6-client.lo \
-	libsystemd_dhcp_la-time-util.lo libsystemd_dhcp_la-util.lo \
-	libsystemd_dhcp_la-in-addr-util.lo \
-	libsystemd_dhcp_la-siphash24.lo libsystemd_dhcp_la-fileio.lo \
-	libsystemd_dhcp_la-strv.lo libsystemd_dhcp_la-utf8.lo \
-	libsystemd_dhcp_la-nm-sd-adapt.lo
-libsystemd_dhcp_la_OBJECTS = $(am_libsystemd_dhcp_la_OBJECTS)
+libsystemd_nm_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am_libsystemd_nm_la_OBJECTS = libsystemd_nm_la-nm-sd.lo \
+	libsystemd_nm_la-nm-sd-adapt.lo libsystemd_nm_la-alloc-util.lo \
+	libsystemd_nm_la-escape.lo libsystemd_nm_la-ether-addr-util.lo \
+	libsystemd_nm_la-fd-util.lo libsystemd_nm_la-fileio.lo \
+	libsystemd_nm_la-fs-util.lo libsystemd_nm_la-hash-funcs.lo \
+	libsystemd_nm_la-hashmap.lo libsystemd_nm_la-hexdecoct.lo \
+	libsystemd_nm_la-hostname-util.lo \
+	libsystemd_nm_la-in-addr-util.lo libsystemd_nm_la-io-util.lo \
+	libsystemd_nm_la-mempool.lo libsystemd_nm_la-parse-util.lo \
+	libsystemd_nm_la-path-util.lo libsystemd_nm_la-prioq.lo \
+	libsystemd_nm_la-random-util.lo libsystemd_nm_la-siphash24.lo \
+	libsystemd_nm_la-socket-util.lo \
+	libsystemd_nm_la-string-table.lo \
+	libsystemd_nm_la-string-util.lo libsystemd_nm_la-strv.lo \
+	libsystemd_nm_la-time-util.lo libsystemd_nm_la-utf8.lo \
+	libsystemd_nm_la-util.lo libsystemd_nm_la-arp-util.lo \
+	libsystemd_nm_la-dhcp-identifier.lo \
+	libsystemd_nm_la-dhcp-network.lo \
+	libsystemd_nm_la-dhcp-option.lo \
+	libsystemd_nm_la-dhcp-packet.lo \
+	libsystemd_nm_la-dhcp6-network.lo \
+	libsystemd_nm_la-dhcp6-option.lo \
+	libsystemd_nm_la-lldp-neighbor.lo \
+	libsystemd_nm_la-lldp-network.lo \
+	libsystemd_nm_la-network-internal.lo \
+	libsystemd_nm_la-sd-dhcp-client.lo \
+	libsystemd_nm_la-sd-dhcp-lease.lo \
+	libsystemd_nm_la-sd-dhcp6-client.lo \
+	libsystemd_nm_la-sd-dhcp6-lease.lo \
+	libsystemd_nm_la-sd-ipv4acd.lo libsystemd_nm_la-sd-ipv4ll.lo \
+	libsystemd_nm_la-sd-lldp.lo libsystemd_nm_la-sd-event.lo \
+	libsystemd_nm_la-sd-id128.lo libsystemd_nm_la-dns-domain.lo
+libsystemd_nm_la_OBJECTS = $(am_libsystemd_nm_la_OBJECTS)
 am__installdirs = "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(sbindir)" \
 	"$(DESTDIR)$(dbusservicedir)"
 PROGRAMS = $(libexec_PROGRAMS) $(sbin_PROGRAMS)
-am__objects_9 = nm-device-bond.$(OBJEXT) nm-device-bridge.$(OBJEXT) \
-	nm-device-ethernet.$(OBJEXT) nm-device-gre.$(OBJEXT) \
-	nm-device-infiniband.$(OBJEXT) nm-device-macvlan.$(OBJEXT) \
+am__objects_5 = nm-device-bond.$(OBJEXT) nm-device-bridge.$(OBJEXT) \
+	nm-device-ethernet.$(OBJEXT) nm-device-infiniband.$(OBJEXT) \
+	nm-device-ip-tunnel.$(OBJEXT) nm-device-macvlan.$(OBJEXT) \
 	nm-device-tun.$(OBJEXT) nm-device-veth.$(OBJEXT) \
 	nm-device-vlan.$(OBJEXT) nm-device-vxlan.$(OBJEXT)
-am__objects_10 = nm-dhcp-dhclient.$(OBJEXT) \
+am__objects_6 = nm-dhcp-dhclient.$(OBJEXT) \
 	nm-dhcp-dhclient-utils.$(OBJEXT) nm-dhcp-dhcpcd.$(OBJEXT) \
 	nm-dhcp-systemd.$(OBJEXT)
-am_NetworkManager_OBJECTS = $(am__objects_9) $(am__objects_1) \
-	$(am__objects_10) $(am__objects_1) main-utils.$(OBJEXT) \
+am_NetworkManager_OBJECTS = $(am__objects_5) $(am__objects_1) \
+	$(am__objects_6) $(am__objects_1) main-utils.$(OBJEXT) \
 	main.$(OBJEXT)
 NetworkManager_OBJECTS = $(am_NetworkManager_OBJECTS)
 NetworkManager_DEPENDENCIES = libNetworkManager.la
@@ -381,7 +400,7 @@ am_nm_iface_helper_OBJECTS = nm-dhcp-systemd.$(OBJEXT) \
 	nm-iface-helper.$(OBJEXT) main-utils.$(OBJEXT)
 nm_iface_helper_OBJECTS = $(am_nm_iface_helper_OBJECTS)
 nm_iface_helper_DEPENDENCIES =  \
-	$(top_builddir)/libnm-core/libnm-core.la libsystemd-dhcp.la \
+	$(top_builddir)/libnm-core/libnm-core.la libsystemd-nm.la \
 	libnm-iface-helper.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
@@ -424,12 +443,14 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libNetworkManager_la_SOURCES) \
-	$(libnm_iface_helper_la_SOURCES) $(libsystemd_dhcp_la_SOURCES) \
+SOURCES = $(libNetworkManager_base_la_SOURCES) \
+	$(libNetworkManager_la_SOURCES) \
+	$(libnm_iface_helper_la_SOURCES) $(libsystemd_nm_la_SOURCES) \
 	$(NetworkManager_SOURCES) $(nm_iface_helper_SOURCES)
-DIST_SOURCES = $(am__libNetworkManager_la_SOURCES_DIST) \
+DIST_SOURCES = $(am__libNetworkManager_base_la_SOURCES_DIST) \
+	$(am__libNetworkManager_la_SOURCES_DIST) \
 	$(am__libnm_iface_helper_la_SOURCES_DIST) \
-	$(libsystemd_dhcp_la_SOURCES) $(NetworkManager_SOURCES) \
+	$(libsystemd_nm_la_SOURCES) $(NetworkManager_SOURCES) \
 	$(nm_iface_helper_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
@@ -499,11 +520,10 @@ am__define_uniq_tagged_files = \
   done | $(am__uniquify_input)`
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = . devices/adsl dhcp-manager ppp-manager \
-	settings/plugins devices/wwan devices/bluetooth devices/wifi \
-	devices/wimax devices/team dhcp-manager/tests \
-	dnsmasq-manager/tests platform rdisc supplicant-manager/tests \
-	tests
+DIST_SUBDIRS = . dhcp-manager ppp-manager settings/plugins \
+	devices/adsl devices/wwan devices/bluetooth devices/wifi \
+	devices/team dhcp-manager/tests dnsmasq-manager/tests platform \
+	devices rdisc supplicant-manager/tests tests
 am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(top_srcdir)/build-aux/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -547,7 +567,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -559,8 +578,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -570,6 +587,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -624,16 +642,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -654,6 +669,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -669,6 +685,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -697,7 +715,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -712,6 +729,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -772,6 +791,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -779,6 +799,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -794,105 +815,191 @@ with_dhcpcd = @with_dhcpcd@
 with_netconfig = @with_netconfig@
 with_resolvconf = @with_resolvconf@
 with_valgrind = @with_valgrind@
-SUBDIRS = . devices/adsl dhcp-manager ppp-manager settings/plugins \
+SUBDIRS = . dhcp-manager ppp-manager settings/plugins devices/adsl \
 	$(am__append_1) $(am__append_2) $(am__append_3) \
-	$(am__append_4) $(am__append_5)
+	$(am__append_4)
 
 # add each subdirectory that contains a libNM source file. $(sort) is being used
 # primarily for its side effect of removing duplicates.
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/libnm-core \
+AM_CPPFLAGS = -I$(top_srcdir)/shared -I$(top_builddir)/shared \
+	-I$(top_builddir)/introspection -I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core -I$(top_srcdir)/callouts \
 	-DPREFIX=\"$(prefix)\" -DG_LOG_DOMAIN=\""NetworkManager"\" \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE $(foreach \
-	d,$(sort $(dir \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
+	$(foreach d,$(sort $(dir \
 	$(libNetworkManager_la_SOURCES))),-I$(top_srcdir)/src/$d) \
-	$(am__append_13) $(DBUS_CFLAGS) $(GLIB_CFLAGS) $(GUDEV_CFLAGS) \
-	$(LIBNL_CFLAGS) $(LIBNDP_CFLAGS) $(LIBSOUP_CFLAGS) \
-	$(SYSTEMD_LOGIN_CFLAGS) $(SYSTEMD_DHCP_CFLAGS) \
+	$(GLIB_CFLAGS) $(GUDEV_CFLAGS) $(LIBNL_CFLAGS) \
+	$(LIBNDP_CFLAGS) $(LIBSOUP_CFLAGS) $(SELINUX_CFLAGS) \
+	$(LIBAUDIT_CFLAGS) $(SYSTEMD_LOGIN_CFLAGS) \
+	$(SYSTEMD_JOURNAL_CFLAGS) $(SYSTEMD_NM_CFLAGS_PATHS) \
 	-DBINDIR=\"$(bindir)\" -DDATADIR=\"$(datadir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\" \
-	-DLOCALSTATEDIR=\"$(localstatedir)\" -DSBINDIR=\"$(sbindir)\" \
+	-DLOCALSTATEDIR=\"$(localstatedir)\" \
+	-DRUNSTATEDIR=\"$(runstatedir)\" -DSBINDIR=\"$(sbindir)\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" -DRUNDIR=\"$(rundir)\" \
 	-DNMCONFDIR=\"$(nmconfdir)\" \
 	-DNMLOCALEDIR=\"$(datadir)/locale\" \
 	-DNMPLUGINDIR=\"$(pkglibdir)\" -DNMRUNDIR=\"$(nmrundir)\" \
-	-DNMSTATEDIR=\"$(nmstatedir)\" \
+	-DNMSTATEDIR=\"$(nmstatedir)\" -DNMLIBDIR=\"$(nmlibdir)\" \
 	-DDHCLIENT_PATH=\"$(DHCLIENT_PATH)\" \
 	-DDHCPCD_PATH=\"$(DHCPCD_PATH)\" \
-	-DPPPD_PLUGIN_DIR=\"$(PPPD_PLUGIN_DIR)\" $(NULL) \
-	$(am__append_14)
-noinst_LTLIBRARIES = \
-	libNetworkManager.la \
-	libnm-iface-helper.la \
-	libsystemd-dhcp.la
-
+	-DPPPD_PLUGIN_DIR=\"$(PPPD_PLUGIN_DIR)\" $(NULL)
+noinst_LTLIBRARIES = libNetworkManager.la libnm-iface-helper.la \
+	libsystemd-nm.la $(am__append_5)
 
 ######################
-# libsystemd-dhcp
+# libsystemd-nm
 ######################
-SYSTEMD_DHCP_CFLAGS = \
-	-I$(top_srcdir)/src/dhcp-manager/systemd-dhcp/src/systemd \
-	-I$(top_srcdir)/src/dhcp-manager/systemd-dhcp/src/libsystemd-network \
-	-I$(top_srcdir)/src/dhcp-manager/systemd-dhcp/src/shared \
-	-I$(top_srcdir)/src/dhcp-manager/systemd-dhcp
+SYSTEMD_NM_CFLAGS_PATHS = \
+	-I$(top_srcdir)/src/systemd/src/systemd \
+	-I$(top_srcdir)/src/systemd/src/libsystemd-network \
+	-I$(top_srcdir)/src/systemd/src/basic \
+	-I$(top_srcdir)/src/systemd
 
-libsystemd_dhcp_la_SOURCES = \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-network.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-packet.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-internal.h \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-network.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-lease-internal.h \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-option.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/network-internal.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-lease.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-client.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-option.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/network-internal.h \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-lease.c \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-protocol.h \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-internal.h \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-protocol.h \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-lease-internal.h \
-	dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-client.c \
-	dhcp-manager/systemd-dhcp/src/shared/async.h \
-	dhcp-manager/systemd-dhcp/src/shared/time-util.h \
-	dhcp-manager/systemd-dhcp/src/shared/siphash24.h \
-	dhcp-manager/systemd-dhcp/src/shared/time-util.c \
-	dhcp-manager/systemd-dhcp/src/shared/socket-util.h \
-	dhcp-manager/systemd-dhcp/src/shared/sparse-endian.h \
-	dhcp-manager/systemd-dhcp/src/shared/macro.h \
-	dhcp-manager/systemd-dhcp/src/shared/refcnt.h \
-	dhcp-manager/systemd-dhcp/src/shared/util.c \
-	dhcp-manager/systemd-dhcp/src/shared/in-addr-util.c \
-	dhcp-manager/systemd-dhcp/src/shared/siphash24.c \
-	dhcp-manager/systemd-dhcp/src/shared/util.h \
-	dhcp-manager/systemd-dhcp/src/shared/in-addr-util.h \
-	dhcp-manager/systemd-dhcp/src/shared/list.h \
-	dhcp-manager/systemd-dhcp/src/shared/fileio.h \
-	dhcp-manager/systemd-dhcp/src/shared/fileio.c \
-	dhcp-manager/systemd-dhcp/src/shared/strv.h \
-	dhcp-manager/systemd-dhcp/src/shared/strv.c \
-	dhcp-manager/systemd-dhcp/src/shared/unaligned.h \
-	dhcp-manager/systemd-dhcp/src/shared/utf8.h \
-	dhcp-manager/systemd-dhcp/src/shared/utf8.c \
-	dhcp-manager/systemd-dhcp/src/systemd/sd-dhcp-lease.h \
-	dhcp-manager/systemd-dhcp/src/systemd/sd-dhcp-client.h \
-	dhcp-manager/systemd-dhcp/src/systemd/sd-id128.h \
-	dhcp-manager/systemd-dhcp/src/systemd/sd-dhcp6-lease.h \
-	dhcp-manager/systemd-dhcp/src/systemd/sd-dhcp6-client.h \
-	dhcp-manager/systemd-dhcp/src/systemd/sd-event.h \
-	dhcp-manager/systemd-dhcp/src/systemd/_sd-common.h \
-	dhcp-manager/systemd-dhcp/nm-sd-adapt.h \
-	dhcp-manager/systemd-dhcp/nm-sd-adapt.c
+libsystemd_nm_la_SOURCES = \
+	systemd/nm-sd.c \
+	systemd/nm-sd.h \
+	systemd/nm-sd-adapt.c \
+	systemd/nm-sd-adapt.h \
+	systemd/src/basic/alloc-util.c \
+	systemd/src/basic/alloc-util.h \
+	systemd/src/basic/async.h \
+	systemd/src/basic/escape.c \
+	systemd/src/basic/escape.h \
+	systemd/src/basic/ether-addr-util.c \
+	systemd/src/basic/ether-addr-util.h \
+	systemd/src/basic/fd-util.c \
+	systemd/src/basic/fd-util.h \
+	systemd/src/basic/fileio.c \
+	systemd/src/basic/fileio.h \
+	systemd/src/basic/fs-util.c \
+	systemd/src/basic/fs-util.h \
+	systemd/src/basic/hash-funcs.c \
+	systemd/src/basic/hash-funcs.h \
+	systemd/src/basic/hashmap.c \
+	systemd/src/basic/hashmap.h \
+	systemd/src/basic/hexdecoct.c \
+	systemd/src/basic/hexdecoct.h \
+	systemd/src/basic/hostname-util.c \
+	systemd/src/basic/hostname-util.h \
+	systemd/src/basic/in-addr-util.c \
+	systemd/src/basic/in-addr-util.h \
+	systemd/src/basic/io-util.c \
+	systemd/src/basic/io-util.h \
+	systemd/src/basic/list.h \
+	systemd/src/basic/log.h \
+	systemd/src/basic/macro.h \
+	systemd/src/basic/mempool.c \
+	systemd/src/basic/mempool.h \
+	systemd/src/basic/parse-util.c \
+	systemd/src/basic/parse-util.h \
+	systemd/src/basic/path-util.c \
+	systemd/src/basic/path-util.h \
+	systemd/src/basic/prioq.c \
+	systemd/src/basic/prioq.h \
+	systemd/src/basic/random-util.c \
+	systemd/src/basic/random-util.h \
+	systemd/src/basic/refcnt.h \
+	systemd/src/basic/set.h \
+	systemd/src/basic/siphash24.c \
+	systemd/src/basic/siphash24.h \
+	systemd/src/basic/socket-util.c \
+	systemd/src/basic/socket-util.h \
+	systemd/src/basic/sparse-endian.h \
+	systemd/src/basic/stdio-util.h \
+	systemd/src/basic/string-table.c \
+	systemd/src/basic/string-table.h \
+	systemd/src/basic/string-util.c \
+	systemd/src/basic/string-util.h \
+	systemd/src/basic/strv.c \
+	systemd/src/basic/strv.h \
+	systemd/src/basic/time-util.c \
+	systemd/src/basic/time-util.h \
+	systemd/src/basic/umask-util.h \
+	systemd/src/basic/unaligned.h \
+	systemd/src/basic/utf8.c \
+	systemd/src/basic/utf8.h \
+	systemd/src/basic/util.c \
+	systemd/src/basic/util.h \
+	systemd/src/libsystemd-network/arp-util.c \
+	systemd/src/libsystemd-network/arp-util.h \
+	systemd/src/libsystemd-network/dhcp-identifier.c \
+	systemd/src/libsystemd-network/dhcp-identifier.h \
+	systemd/src/libsystemd-network/dhcp-internal.h \
+	systemd/src/libsystemd-network/dhcp-lease-internal.h \
+	systemd/src/libsystemd-network/dhcp-network.c \
+	systemd/src/libsystemd-network/dhcp-option.c \
+	systemd/src/libsystemd-network/dhcp-packet.c \
+	systemd/src/libsystemd-network/dhcp-protocol.h \
+	systemd/src/libsystemd-network/dhcp6-internal.h \
+	systemd/src/libsystemd-network/dhcp6-lease-internal.h \
+	systemd/src/libsystemd-network/dhcp6-network.c \
+	systemd/src/libsystemd-network/dhcp6-option.c \
+	systemd/src/libsystemd-network/dhcp6-protocol.h \
+	systemd/src/libsystemd-network/lldp-internal.h \
+	systemd/src/libsystemd-network/lldp-neighbor.c \
+	systemd/src/libsystemd-network/lldp-neighbor.h \
+	systemd/src/libsystemd-network/lldp-network.c \
+	systemd/src/libsystemd-network/lldp-network.h \
+	systemd/src/libsystemd-network/network-internal.c \
+	systemd/src/libsystemd-network/network-internal.h \
+	systemd/src/libsystemd-network/sd-dhcp-client.c \
+	systemd/src/libsystemd-network/sd-dhcp-lease.c \
+	systemd/src/libsystemd-network/sd-dhcp6-client.c \
+	systemd/src/libsystemd-network/sd-dhcp6-lease.c \
+	systemd/src/libsystemd-network/sd-ipv4acd.c \
+	systemd/src/libsystemd-network/sd-ipv4ll.c \
+	systemd/src/libsystemd-network/sd-lldp.c \
+	systemd/src/libsystemd/sd-event/sd-event.c \
+	systemd/src/libsystemd/sd-id128/sd-id128.c \
+	systemd/src/shared/dns-domain.c \
+	systemd/src/shared/dns-domain.h \
+	systemd/src/systemd/_sd-common.h \
+	systemd/src/systemd/sd-dhcp-client.h \
+	systemd/src/systemd/sd-dhcp-lease.h \
+	systemd/src/systemd/sd-dhcp6-client.h \
+	systemd/src/systemd/sd-dhcp6-lease.h \
+	systemd/src/systemd/sd-event.h \
+	systemd/src/systemd/sd-id128.h \
+	systemd/src/systemd/sd-ipv4acd.h \
+	systemd/src/systemd/sd-ipv4ll.h \
+	systemd/src/systemd/sd-lldp.h \
+	systemd/src/systemd/sd-ndisc.h
 
-libsystemd_dhcp_la_CPPFLAGS = \
-	-I$(top_srcdir)/include \
-	$(SYSTEMD_DHCP_CFLAGS) \
+libsystemd_nm_la_CPPFLAGS = \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
+	-I$(top_srcdir)/libnm-core \
+	-I$(top_builddir)/libnm-core \
+	$(SYSTEMD_NM_CFLAGS_PATHS) \
+	-I$(top_srcdir)/src/systemd/src/shared \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_SYSTEMD \
 	$(GLIB_CFLAGS)
 
-libsystemd_dhcp_la_LIBADD = \
+libsystemd_nm_la_LIBADD = \
 	$(GLIB_LIBS)
+
+@ENABLE_TESTS_TRUE@libNetworkManager_base_la_SOURCES = \
+@ENABLE_TESTS_TRUE@	nm-core-utils.c \
+@ENABLE_TESTS_TRUE@	nm-core-utils.h \
+@ENABLE_TESTS_TRUE@	nm-logging.c \
+@ENABLE_TESTS_TRUE@	nm-logging.h
+
+@ENABLE_TESTS_TRUE@libNetworkManager_base_la_CPPFLAGS = \
+@ENABLE_TESTS_TRUE@	-I$(top_srcdir)/shared \
+@ENABLE_TESTS_TRUE@	-I$(top_builddir)/shared \
+@ENABLE_TESTS_TRUE@	-I$(top_srcdir)/libnm-core \
+@ENABLE_TESTS_TRUE@	-I$(top_builddir)/libnm-core \
+@ENABLE_TESTS_TRUE@	-I$(top_srcdir)/src/platform \
+@ENABLE_TESTS_TRUE@	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
+@ENABLE_TESTS_TRUE@	-DNO_SYSTEMD_JOURNAL \
+@ENABLE_TESTS_TRUE@	-DPREFIX=\"$(prefix)\" \
+@ENABLE_TESTS_TRUE@	-DNMSTATEDIR=\"$(nmstatedir)\" \
+@ENABLE_TESTS_TRUE@	$(GLIB_CFLAGS)
+
+@ENABLE_TESTS_TRUE@libNetworkManager_base_la_LIBADD = \
+@ENABLE_TESTS_TRUE@	$(top_builddir)/libnm-core/libnm-core.la \
+@ENABLE_TESTS_TRUE@	$(GLIB_LIBS)
 
 NetworkManager_SOURCES = \
 	$(nm_device_sources) $(nm_device_headers) \
@@ -906,8 +1013,8 @@ nm_device_sources = \
 	devices/nm-device-bond.c \
 	devices/nm-device-bridge.c \
 	devices/nm-device-ethernet.c \
-	devices/nm-device-gre.c \
 	devices/nm-device-infiniband.c \
+	devices/nm-device-ip-tunnel.c \
 	devices/nm-device-macvlan.c \
 	devices/nm-device-tun.c \
 	devices/nm-device-veth.c \
@@ -919,8 +1026,8 @@ nm_device_headers = \
 	devices/nm-device-bond.h \
 	devices/nm-device-bridge.h \
 	devices/nm-device-ethernet.h \
-	devices/nm-device-gre.h \
 	devices/nm-device-infiniband.h \
+	devices/nm-device-ip-tunnel.h \
 	devices/nm-device-macvlan.h \
 	devices/nm-device-tun.h \
 	devices/nm-device-veth.h \
@@ -939,15 +1046,19 @@ nm_dhcp_client_headers = \
 	dhcp-manager/nm-dhcp-dhcpcd.h \
 	dhcp-manager/nm-dhcp-systemd.h
 
-nm_sources = $(nm_device_headers) $(nm_dhcp_client_headers) \
-	devices/nm-device.c devices/nm-device.h \
-	devices/nm-device-ethernet-utils.c \
+libNetworkManager_la_SOURCES = $(nm_device_headers) \
+	$(nm_dhcp_client_headers) devices/nm-device.c \
+	devices/nm-device.h devices/nm-lldp-listener.c \
+	devices/nm-lldp-listener.h devices/nm-arping-manager.c \
+	devices/nm-arping-manager.h devices/nm-device-ethernet-utils.c \
 	devices/nm-device-ethernet-utils.h devices/nm-device-factory.c \
 	devices/nm-device-factory.h devices/nm-device-generic.c \
 	devices/nm-device-generic.h devices/nm-device-logging.h \
 	devices/nm-device-private.h dhcp-manager/nm-dhcp-client.c \
-	dhcp-manager/nm-dhcp-client.h dhcp-manager/nm-dhcp-utils.c \
-	dhcp-manager/nm-dhcp-utils.h dhcp-manager/nm-dhcp-listener.c \
+	dhcp-manager/nm-dhcp-client.h \
+	dhcp-manager/nm-dhcp-client-logging.h \
+	dhcp-manager/nm-dhcp-utils.c dhcp-manager/nm-dhcp-utils.h \
+	dhcp-manager/nm-dhcp-listener.c \
 	dhcp-manager/nm-dhcp-listener.h dhcp-manager/nm-dhcp-manager.c \
 	dhcp-manager/nm-dhcp-manager.h dns-manager/nm-dns-dnsmasq.c \
 	dns-manager/nm-dns-dnsmasq.h dns-manager/nm-dns-unbound.c \
@@ -958,12 +1069,13 @@ nm_sources = $(nm_device_headers) $(nm_dhcp_client_headers) \
 	dnsmasq-manager/nm-dnsmasq-manager.c \
 	dnsmasq-manager/nm-dnsmasq-manager.h \
 	dnsmasq-manager/nm-dnsmasq-utils.c \
-	dnsmasq-manager/nm-dnsmasq-utils.h platform/nm-fake-platform.c \
-	platform/nm-fake-platform.h platform/nm-linux-platform.c \
-	platform/nm-linux-platform.h platform/nm-platform.c \
-	platform/nm-platform.h platform/nm-platform-utils.c \
-	platform/nm-platform-utils.h platform/nmp-object.c \
-	platform/nmp-object.h platform/wifi/wifi-utils-nl80211.c \
+	dnsmasq-manager/nm-dnsmasq-utils.h platform/nmp-netns.c \
+	platform/nmp-netns.h platform/nmp-object.c \
+	platform/nmp-object.h platform/nm-platform-utils.c \
+	platform/nm-platform-utils.h platform/nm-platform.c \
+	platform/nm-platform.h platform/nm-linux-platform.c \
+	platform/nm-linux-platform.h platform/nm-fake-platform.c \
+	platform/nm-fake-platform.h platform/wifi/wifi-utils-nl80211.c \
 	platform/wifi/wifi-utils-nl80211.h \
 	platform/wifi/wifi-utils-private.h platform/wifi/wifi-utils.c \
 	platform/wifi/wifi-utils.h rdisc/nm-fake-rdisc.c \
@@ -975,10 +1087,9 @@ nm_sources = $(nm_device_headers) $(nm_dhcp_client_headers) \
 	settings/nm-inotify-helper.c settings/nm-inotify-helper.h \
 	settings/nm-secret-agent.c settings/nm-secret-agent.h \
 	settings/nm-settings-connection.c \
-	settings/nm-settings-connection.h settings/nm-settings.c \
-	settings/nm-settings.h settings/nm-system-config-interface.c \
-	settings/nm-system-config-interface.h \
-	settings/plugins/keyfile/common.h \
+	settings/nm-settings-connection.h \
+	settings/nm-settings-plugin.c settings/nm-settings-plugin.h \
+	settings/nm-settings.c settings/nm-settings.h \
 	settings/plugins/keyfile/nm-keyfile-connection.c \
 	settings/plugins/keyfile/nm-keyfile-connection.h \
 	settings/plugins/keyfile/plugin.c \
@@ -1000,95 +1111,78 @@ nm_sources = $(nm_device_headers) $(nm_dhcp_client_headers) \
 	supplicant-manager/nm-supplicant-types.h \
 	vpn-manager/nm-vpn-connection.c \
 	vpn-manager/nm-vpn-connection.h vpn-manager/nm-vpn-manager.c \
-	vpn-manager/nm-vpn-manager.h vpn-manager/nm-vpn-service.c \
-	vpn-manager/nm-vpn-service.h nm-activation-request.c \
+	vpn-manager/nm-vpn-manager.h nm-activation-request.c \
 	nm-activation-request.h nm-active-connection.c \
-	nm-active-connection.h nm-config.c nm-config.h \
+	nm-active-connection.h nm-audit-manager.c nm-audit-manager.h \
+	nm-bus-manager.c nm-bus-manager.h nm-config.c nm-config.h \
 	nm-config-data.c nm-config-data.h nm-connection-provider.c \
 	nm-connection-provider.h nm-connectivity.c nm-connectivity.h \
-	nm-dbus-manager.c nm-dbus-manager.h nm-dcb.c nm-dcb.h \
-	nm-route-manager.c nm-route-manager.h \
+	nm-dcb.c nm-dcb.h nm-route-manager.c nm-route-manager.h \
 	nm-default-route-manager.c nm-default-route-manager.h \
 	nm-dhcp4-config.c nm-dhcp4-config.h nm-dhcp6-config.c \
 	nm-dhcp6-config.h nm-dispatcher.c nm-dispatcher.h \
-	nm-enum-types.c nm-enum-types.h nm-firewall-manager.c \
+	nm-enum-types.c nm-enum-types.h nm-exported-object.c \
+	nm-exported-object.h nm-firewall-manager.c \
 	nm-firewall-manager.h nm-ip4-config.c nm-ip4-config.h \
 	nm-ip6-config.c nm-ip6-config.h nm-logging.c nm-logging.h \
 	nm-auth-manager.c nm-auth-manager.h nm-auth-subject.c \
 	nm-auth-subject.h nm-auth-utils.c nm-auth-utils.h nm-manager.c \
 	nm-manager.h nm-multi-index.c nm-multi-index.h nm-policy.c \
-	nm-policy.h nm-properties-changed-signal.c \
-	nm-properties-changed-signal.h nm-rfkill-manager.c \
-	nm-rfkill-manager.h nm-session-monitor.h nm-session-utils.c \
-	nm-session-utils.h nm-sleep-monitor.h nm-types.h \
+	nm-policy.h nm-rfkill-manager.c nm-rfkill-manager.h \
+	nm-session-monitor.h nm-session-monitor.c nm-sleep-monitor.h \
+	nm-types.h nm-core-utils.c nm-core-utils.h \
 	NetworkManagerUtils.c NetworkManagerUtils.h $(am__append_6) \
-	$(am__append_7) $(am__append_8) $(am__append_9) \
-	$(am__append_10) $(am__append_11)
+	$(am__append_7) $(am__append_8)
 GLIB_GENERATED = nm-enum-types.h nm-enum-types.c
 GLIB_MKENUMS_H_FLAGS = --identifier-prefix NM --fhead '\#include <nm-core-enum-types.h>\n'
 GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM
-nm_enum_types_sources = $(nm_sources) $(am__append_12)
-BUILT_SOURCES = $(GLIB_GENERATED) $(glue_sources)
-glue_sources = \
-	nm-access-point-glue.h \
-	nm-active-connection-glue.h \
-	nm-agent-manager-glue.h \
-	nm-device-bond-glue.h \
-	nm-device-bridge-glue.h \
-	nm-device-ethernet-glue.h \
-	nm-device-generic-glue.h \
-	nm-device-glue.h \
-	nm-device-gre-glue.h \
-	nm-device-infiniband-glue.h \
-	nm-device-macvlan-glue.h \
-	nm-device-tun-glue.h \
-	nm-device-veth-glue.h \
-	nm-device-vlan-glue.h \
-	nm-device-vxlan-glue.h \
-	nm-dhcp4-config-glue.h \
-	nm-dhcp6-config-glue.h \
-	nm-ip4-config-glue.h \
-	nm-ip6-config-glue.h \
-	nm-manager-glue.h \
-	nm-ppp-manager-glue.h \
-	nm-settings-connection-glue.h \
-	nm-settings-glue.h \
-	nm-vpn-connection-glue.h
+nm_enum_types_sources = $(filter-out \
+                              %/nm-device-private.h \
+                              %/nm-rdisc-private.h \
+                              %/wifi-utils-private.h \
+                              %/nm-dhcp-client-logging.h \
+                              %/nm-device-logging.h \
+                              , $(libNetworkManager_la_SOURCES))
 
-libNetworkManager_la_SOURCES = \
-	$(nm_sources) \
-	$(glue_sources)
-
+BUILT_SOURCES = $(GLIB_GENERATED)
 libNetworkManager_la_LIBADD =  \
-	$(top_builddir)/libnm-core/libnm-core.la libsystemd-dhcp.la \
-	$(DBUS_LIBS) $(GLIB_LIBS) $(GUDEV_LIBS) $(LIBNL_LIBS) \
-	$(SYSTEMD_LOGIN_LIBS) $(LIBNDP_LIBS) $(LIBDL) $(LIBM) \
-	$(am__append_15)
-NetworkManager_LDFLAGS = -rdynamic
+	$(top_builddir)/libnm-core/libnm-core.la \
+	$(top_builddir)/introspection/libnmdbus.la libsystemd-nm.la \
+	$(GLIB_LIBS) $(GUDEV_LIBS) $(LIBNL_LIBS) $(SYSTEMD_LOGIN_LIBS) \
+	$(SYSTEMD_JOURNAL_LIBS) $(LIBNDP_LIBS) $(LIBDL) $(LIBM) \
+	$(SELINUX_LIBS) $(LIBAUDIT_LIBS) $(am__append_9)
+NetworkManager_LDFLAGS = \
+	-rdynamic \
+	-Wl,--version-script="$(srcdir)/NetworkManager.ver"
+
 
 ######################
 libnm_iface_helper_la_SOURCES = dhcp-manager/nm-dhcp-client.c \
-	dhcp-manager/nm-dhcp-client.h dhcp-manager/nm-dhcp-utils.c \
-	dhcp-manager/nm-dhcp-utils.h dhcp-manager/nm-dhcp-manager.c \
-	dhcp-manager/nm-dhcp-manager.h platform/nm-linux-platform.c \
-	platform/nm-linux-platform.h platform/nm-platform.c \
-	platform/nm-platform.h platform/nm-platform-utils.c \
-	platform/nm-platform-utils.h platform/nmp-object.c \
-	platform/nmp-object.h platform/wifi/wifi-utils-nl80211.c \
+	dhcp-manager/nm-dhcp-client.h \
+	dhcp-manager/nm-dhcp-client-logging.h \
+	dhcp-manager/nm-dhcp-utils.c dhcp-manager/nm-dhcp-utils.h \
+	dhcp-manager/nm-dhcp-manager.c dhcp-manager/nm-dhcp-manager.h \
+	platform/nmp-netns.c platform/nmp-netns.h \
+	platform/nmp-object.c platform/nmp-object.h \
+	platform/nm-platform-utils.c platform/nm-platform-utils.h \
+	platform/nm-platform.c platform/nm-platform.h \
+	platform/nm-linux-platform.c platform/nm-linux-platform.h \
+	platform/wifi/wifi-utils-nl80211.c \
 	platform/wifi/wifi-utils-nl80211.h \
 	platform/wifi/wifi-utils-private.h platform/wifi/wifi-utils.c \
 	platform/wifi/wifi-utils.h rdisc/nm-fake-rdisc.c \
 	rdisc/nm-fake-rdisc.h rdisc/nm-lndp-rdisc.c \
 	rdisc/nm-lndp-rdisc.h rdisc/nm-rdisc.c rdisc/nm-rdisc.h \
-	nm-route-manager.c nm-route-manager.h nm-ip4-config.c \
-	nm-ip4-config.h nm-ip6-config.c nm-ip6-config.h \
-	nm-enum-types.c nm-enum-types.h nm-logging.c nm-logging.h \
-	nm-multi-index.c nm-multi-index.h NetworkManagerUtils.c \
-	NetworkManagerUtils.h $(am__append_16)
+	nm-route-manager.c nm-route-manager.h nm-exported-object.c \
+	nm-exported-object.h nm-ip4-config.c nm-ip4-config.h \
+	nm-ip6-config.c nm-ip6-config.h nm-enum-types.c \
+	nm-enum-types.h nm-logging.c nm-logging.h nm-multi-index.c \
+	nm-multi-index.h nm-core-utils.c nm-core-utils.h \
+	NetworkManagerUtils.c NetworkManagerUtils.h $(am__append_10)
 libnm_iface_helper_la_LIBADD = \
 	$(top_builddir)/libnm-core/libnm-core.la \
-	libsystemd-dhcp.la \
-	$(DBUS_LIBS) \
+	$(top_builddir)/introspection/libnmdbus.la \
+	libsystemd-nm.la \
 	$(GLIB_LIBS) \
 	$(GUDEV_LIBS) \
 	$(LIBNL_LIBS) \
@@ -1105,11 +1199,11 @@ nm_iface_helper_SOURCES = \
 
 nm_iface_helper_LDADD = \
 	$(top_builddir)/libnm-core/libnm-core.la \
-	libsystemd-dhcp.la \
+	libsystemd-nm.la \
 	libnm-iface-helper.la \
-	$(DBUS_LIBS) \
 	$(GLIB_LIBS) \
 	$(GUDEV_LIBS) \
+	$(SYSTEMD_JOURNAL_LIBS) \
 	$(LIBNL_LIBS) \
 	$(LIBNDP_LIBS) \
 	$(LIBM)
@@ -1121,15 +1215,13 @@ dbusservicedir = $(DBUS_SYS_DIR)
 dbusservice_DATA = org.freedesktop.NetworkManager.conf
 EXTRA_DIST = \
 	$(dbusservice_DATA) \
-	$(NetworkManager_DATA)
+	$(NetworkManager_DATA) \
+	NetworkManager.ver
 
-rundir = $(localstatedir)/run/NetworkManager
+rundir = $(runstatedir)/NetworkManager
 statedir = $(localstatedir)/lib/NetworkManager
 CLEANFILES = \
-	$(BUILT_SOURCES) \
-	settings/*-glue.h \
-	devices/*-glue.h \
-	devices/*/*-glue.h
+	$(BUILT_SOURCES)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -1177,14 +1269,17 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
+libNetworkManager-base.la: $(libNetworkManager_base_la_OBJECTS) $(libNetworkManager_base_la_DEPENDENCIES) $(EXTRA_libNetworkManager_base_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(LINK) $(am_libNetworkManager_base_la_rpath) $(libNetworkManager_base_la_OBJECTS) $(libNetworkManager_base_la_LIBADD) $(LIBS)
+
 libNetworkManager.la: $(libNetworkManager_la_OBJECTS) $(libNetworkManager_la_DEPENDENCIES) $(EXTRA_libNetworkManager_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(LINK)  $(libNetworkManager_la_OBJECTS) $(libNetworkManager_la_LIBADD) $(LIBS)
 
 libnm-iface-helper.la: $(libnm_iface_helper_la_OBJECTS) $(libnm_iface_helper_la_DEPENDENCIES) $(EXTRA_libnm_iface_helper_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(LINK)  $(libnm_iface_helper_la_OBJECTS) $(libnm_iface_helper_la_LIBADD) $(LIBS)
 
-libsystemd-dhcp.la: $(libsystemd_dhcp_la_OBJECTS) $(libsystemd_dhcp_la_DEPENDENCIES) $(EXTRA_libsystemd_dhcp_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(LINK)  $(libsystemd_dhcp_la_OBJECTS) $(libsystemd_dhcp_la_LIBADD) $(LIBS)
+libsystemd-nm.la: $(libsystemd_nm_la_OBJECTS) $(libsystemd_nm_la_DEPENDENCIES) $(EXTRA_libsystemd_nm_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(LINK)  $(libsystemd_nm_la_OBJECTS) $(libsystemd_nm_la_LIBADD) $(LIBS)
 install-libexecPROGRAMS: $(libexec_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	@list='$(libexec_PROGRAMS)'; test -n "$(libexecdir)" || list=; \
@@ -1299,37 +1394,71 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NetworkManagerUtils.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-dhcp-network.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-dhcp-option.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-dhcp-packet.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-dhcp6-network.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-dhcp6-option.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-fileio.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-in-addr-util.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-network-internal.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-nm-sd-adapt.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-sd-dhcp-client.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-sd-dhcp-lease.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-sd-dhcp6-client.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-sd-dhcp6-lease.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-siphash24.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-strv.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-time-util.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-utf8.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_dhcp_la-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNetworkManager_base_la-nm-core-utils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNetworkManager_base_la-nm-logging.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-alloc-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-arp-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-dhcp-identifier.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-dhcp-network.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-dhcp-option.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-dhcp-packet.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-dhcp6-network.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-dhcp6-option.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-dns-domain.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-escape.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-ether-addr-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-fd-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-fileio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-fs-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-hash-funcs.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-hashmap.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-hexdecoct.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-hostname-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-in-addr-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-io-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-lldp-neighbor.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-lldp-network.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-mempool.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-network-internal.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-nm-sd-adapt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-nm-sd.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-parse-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-path-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-prioq.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-random-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-dhcp-client.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-dhcp-lease.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-dhcp6-client.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-dhcp6-lease.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-event.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-id128.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-ipv4acd.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-ipv4ll.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-sd-lldp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-siphash24.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-socket-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-string-table.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-string-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-strv.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-time-util.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-utf8.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsystemd_nm_la-util.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-activation-request.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-active-connection.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-agent-manager.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-arping-manager.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-audit-manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-auth-manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-auth-subject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-auth-utils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-bus-manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-config-data.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-config.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-connection-provider.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-connectivity.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-dbus-manager.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-core-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-dcb.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-default-route-manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-bond.Po@am__quote@
@@ -1338,8 +1467,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-ethernet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-factory.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-generic.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-gre.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-infiniband.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-ip-tunnel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-macvlan.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-tun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-veth.Po@am__quote@
@@ -1365,6 +1494,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-dnsmasq-manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-dnsmasq-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-enum-types.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-exported-object.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-fake-platform.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-fake-rdisc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-firewall-manager.Plo@am__quote@
@@ -1374,6 +1504,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-ip6-config.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-keyfile-connection.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-linux-platform.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-lldp-listener.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-lndp-rdisc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-logging.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-manager.Plo@am__quote@
@@ -1382,16 +1513,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-platform.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-policy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-ppp-manager.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-properties-changed-signal.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-rdisc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-rfkill-manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-route-manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-secret-agent.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-session-monitor-ck.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-session-monitor-null.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-session-monitor-systemd.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-session-utils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-session-monitor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-settings-connection.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-settings-plugin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-settings.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-sleep-monitor-systemd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-sleep-monitor-upower.Plo@am__quote@
@@ -1399,10 +1527,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-supplicant-interface.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-supplicant-manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-supplicant-settings-verify.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-system-config-interface.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-connection.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-manager.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-service.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmp-netns.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmp-object.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plugin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reader.Plo@am__quote@
@@ -1433,12 +1560,40 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
+libNetworkManager_base_la-nm-core-utils.lo: nm-core-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNetworkManager_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libNetworkManager_base_la-nm-core-utils.lo -MD -MP -MF $(DEPDIR)/libNetworkManager_base_la-nm-core-utils.Tpo -c -o libNetworkManager_base_la-nm-core-utils.lo `test -f 'nm-core-utils.c' || echo '$(srcdir)/'`nm-core-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libNetworkManager_base_la-nm-core-utils.Tpo $(DEPDIR)/libNetworkManager_base_la-nm-core-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nm-core-utils.c' object='libNetworkManager_base_la-nm-core-utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNetworkManager_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libNetworkManager_base_la-nm-core-utils.lo `test -f 'nm-core-utils.c' || echo '$(srcdir)/'`nm-core-utils.c
+
+libNetworkManager_base_la-nm-logging.lo: nm-logging.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNetworkManager_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libNetworkManager_base_la-nm-logging.lo -MD -MP -MF $(DEPDIR)/libNetworkManager_base_la-nm-logging.Tpo -c -o libNetworkManager_base_la-nm-logging.lo `test -f 'nm-logging.c' || echo '$(srcdir)/'`nm-logging.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libNetworkManager_base_la-nm-logging.Tpo $(DEPDIR)/libNetworkManager_base_la-nm-logging.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nm-logging.c' object='libNetworkManager_base_la-nm-logging.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNetworkManager_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libNetworkManager_base_la-nm-logging.lo `test -f 'nm-logging.c' || echo '$(srcdir)/'`nm-logging.c
+
 nm-device.lo: devices/nm-device.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device.lo -MD -MP -MF $(DEPDIR)/nm-device.Tpo -c -o nm-device.lo `test -f 'devices/nm-device.c' || echo '$(srcdir)/'`devices/nm-device.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-device.Tpo $(DEPDIR)/nm-device.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='devices/nm-device.c' object='nm-device.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-device.lo `test -f 'devices/nm-device.c' || echo '$(srcdir)/'`devices/nm-device.c
+
+nm-lldp-listener.lo: devices/nm-lldp-listener.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-lldp-listener.lo -MD -MP -MF $(DEPDIR)/nm-lldp-listener.Tpo -c -o nm-lldp-listener.lo `test -f 'devices/nm-lldp-listener.c' || echo '$(srcdir)/'`devices/nm-lldp-listener.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-lldp-listener.Tpo $(DEPDIR)/nm-lldp-listener.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='devices/nm-lldp-listener.c' object='nm-lldp-listener.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-lldp-listener.lo `test -f 'devices/nm-lldp-listener.c' || echo '$(srcdir)/'`devices/nm-lldp-listener.c
+
+nm-arping-manager.lo: devices/nm-arping-manager.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-arping-manager.lo -MD -MP -MF $(DEPDIR)/nm-arping-manager.Tpo -c -o nm-arping-manager.lo `test -f 'devices/nm-arping-manager.c' || echo '$(srcdir)/'`devices/nm-arping-manager.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-arping-manager.Tpo $(DEPDIR)/nm-arping-manager.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='devices/nm-arping-manager.c' object='nm-arping-manager.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-arping-manager.lo `test -f 'devices/nm-arping-manager.c' || echo '$(srcdir)/'`devices/nm-arping-manager.c
 
 nm-device-ethernet-utils.lo: devices/nm-device-ethernet-utils.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device-ethernet-utils.lo -MD -MP -MF $(DEPDIR)/nm-device-ethernet-utils.Tpo -c -o nm-device-ethernet-utils.lo `test -f 'devices/nm-device-ethernet-utils.c' || echo '$(srcdir)/'`devices/nm-device-ethernet-utils.c
@@ -1538,26 +1693,19 @@ nm-dnsmasq-utils.lo: dnsmasq-manager/nm-dnsmasq-utils.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-dnsmasq-utils.lo `test -f 'dnsmasq-manager/nm-dnsmasq-utils.c' || echo '$(srcdir)/'`dnsmasq-manager/nm-dnsmasq-utils.c
 
-nm-fake-platform.lo: platform/nm-fake-platform.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-fake-platform.lo -MD -MP -MF $(DEPDIR)/nm-fake-platform.Tpo -c -o nm-fake-platform.lo `test -f 'platform/nm-fake-platform.c' || echo '$(srcdir)/'`platform/nm-fake-platform.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-fake-platform.Tpo $(DEPDIR)/nm-fake-platform.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nm-fake-platform.c' object='nm-fake-platform.lo' libtool=yes @AMDEPBACKSLASH@
+nmp-netns.lo: platform/nmp-netns.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nmp-netns.lo -MD -MP -MF $(DEPDIR)/nmp-netns.Tpo -c -o nmp-netns.lo `test -f 'platform/nmp-netns.c' || echo '$(srcdir)/'`platform/nmp-netns.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nmp-netns.Tpo $(DEPDIR)/nmp-netns.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nmp-netns.c' object='nmp-netns.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-fake-platform.lo `test -f 'platform/nm-fake-platform.c' || echo '$(srcdir)/'`platform/nm-fake-platform.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nmp-netns.lo `test -f 'platform/nmp-netns.c' || echo '$(srcdir)/'`platform/nmp-netns.c
 
-nm-linux-platform.lo: platform/nm-linux-platform.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-linux-platform.lo -MD -MP -MF $(DEPDIR)/nm-linux-platform.Tpo -c -o nm-linux-platform.lo `test -f 'platform/nm-linux-platform.c' || echo '$(srcdir)/'`platform/nm-linux-platform.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-linux-platform.Tpo $(DEPDIR)/nm-linux-platform.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nm-linux-platform.c' object='nm-linux-platform.lo' libtool=yes @AMDEPBACKSLASH@
+nmp-object.lo: platform/nmp-object.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nmp-object.lo -MD -MP -MF $(DEPDIR)/nmp-object.Tpo -c -o nmp-object.lo `test -f 'platform/nmp-object.c' || echo '$(srcdir)/'`platform/nmp-object.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nmp-object.Tpo $(DEPDIR)/nmp-object.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nmp-object.c' object='nmp-object.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-linux-platform.lo `test -f 'platform/nm-linux-platform.c' || echo '$(srcdir)/'`platform/nm-linux-platform.c
-
-nm-platform.lo: platform/nm-platform.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-platform.lo -MD -MP -MF $(DEPDIR)/nm-platform.Tpo -c -o nm-platform.lo `test -f 'platform/nm-platform.c' || echo '$(srcdir)/'`platform/nm-platform.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-platform.Tpo $(DEPDIR)/nm-platform.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nm-platform.c' object='nm-platform.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-platform.lo `test -f 'platform/nm-platform.c' || echo '$(srcdir)/'`platform/nm-platform.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nmp-object.lo `test -f 'platform/nmp-object.c' || echo '$(srcdir)/'`platform/nmp-object.c
 
 nm-platform-utils.lo: platform/nm-platform-utils.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-platform-utils.lo -MD -MP -MF $(DEPDIR)/nm-platform-utils.Tpo -c -o nm-platform-utils.lo `test -f 'platform/nm-platform-utils.c' || echo '$(srcdir)/'`platform/nm-platform-utils.c
@@ -1566,12 +1714,26 @@ nm-platform-utils.lo: platform/nm-platform-utils.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-platform-utils.lo `test -f 'platform/nm-platform-utils.c' || echo '$(srcdir)/'`platform/nm-platform-utils.c
 
-nmp-object.lo: platform/nmp-object.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nmp-object.lo -MD -MP -MF $(DEPDIR)/nmp-object.Tpo -c -o nmp-object.lo `test -f 'platform/nmp-object.c' || echo '$(srcdir)/'`platform/nmp-object.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nmp-object.Tpo $(DEPDIR)/nmp-object.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nmp-object.c' object='nmp-object.lo' libtool=yes @AMDEPBACKSLASH@
+nm-platform.lo: platform/nm-platform.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-platform.lo -MD -MP -MF $(DEPDIR)/nm-platform.Tpo -c -o nm-platform.lo `test -f 'platform/nm-platform.c' || echo '$(srcdir)/'`platform/nm-platform.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-platform.Tpo $(DEPDIR)/nm-platform.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nm-platform.c' object='nm-platform.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nmp-object.lo `test -f 'platform/nmp-object.c' || echo '$(srcdir)/'`platform/nmp-object.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-platform.lo `test -f 'platform/nm-platform.c' || echo '$(srcdir)/'`platform/nm-platform.c
+
+nm-linux-platform.lo: platform/nm-linux-platform.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-linux-platform.lo -MD -MP -MF $(DEPDIR)/nm-linux-platform.Tpo -c -o nm-linux-platform.lo `test -f 'platform/nm-linux-platform.c' || echo '$(srcdir)/'`platform/nm-linux-platform.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-linux-platform.Tpo $(DEPDIR)/nm-linux-platform.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nm-linux-platform.c' object='nm-linux-platform.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-linux-platform.lo `test -f 'platform/nm-linux-platform.c' || echo '$(srcdir)/'`platform/nm-linux-platform.c
+
+nm-fake-platform.lo: platform/nm-fake-platform.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-fake-platform.lo -MD -MP -MF $(DEPDIR)/nm-fake-platform.Tpo -c -o nm-fake-platform.lo `test -f 'platform/nm-fake-platform.c' || echo '$(srcdir)/'`platform/nm-fake-platform.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-fake-platform.Tpo $(DEPDIR)/nm-fake-platform.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='platform/nm-fake-platform.c' object='nm-fake-platform.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-fake-platform.lo `test -f 'platform/nm-fake-platform.c' || echo '$(srcdir)/'`platform/nm-fake-platform.c
 
 wifi-utils-nl80211.lo: platform/wifi/wifi-utils-nl80211.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT wifi-utils-nl80211.lo -MD -MP -MF $(DEPDIR)/wifi-utils-nl80211.Tpo -c -o wifi-utils-nl80211.lo `test -f 'platform/wifi/wifi-utils-nl80211.c' || echo '$(srcdir)/'`platform/wifi/wifi-utils-nl80211.c
@@ -1643,19 +1805,19 @@ nm-settings-connection.lo: settings/nm-settings-connection.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-settings-connection.lo `test -f 'settings/nm-settings-connection.c' || echo '$(srcdir)/'`settings/nm-settings-connection.c
 
+nm-settings-plugin.lo: settings/nm-settings-plugin.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-settings-plugin.lo -MD -MP -MF $(DEPDIR)/nm-settings-plugin.Tpo -c -o nm-settings-plugin.lo `test -f 'settings/nm-settings-plugin.c' || echo '$(srcdir)/'`settings/nm-settings-plugin.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-settings-plugin.Tpo $(DEPDIR)/nm-settings-plugin.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='settings/nm-settings-plugin.c' object='nm-settings-plugin.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-settings-plugin.lo `test -f 'settings/nm-settings-plugin.c' || echo '$(srcdir)/'`settings/nm-settings-plugin.c
+
 nm-settings.lo: settings/nm-settings.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-settings.lo -MD -MP -MF $(DEPDIR)/nm-settings.Tpo -c -o nm-settings.lo `test -f 'settings/nm-settings.c' || echo '$(srcdir)/'`settings/nm-settings.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-settings.Tpo $(DEPDIR)/nm-settings.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='settings/nm-settings.c' object='nm-settings.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-settings.lo `test -f 'settings/nm-settings.c' || echo '$(srcdir)/'`settings/nm-settings.c
-
-nm-system-config-interface.lo: settings/nm-system-config-interface.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-system-config-interface.lo -MD -MP -MF $(DEPDIR)/nm-system-config-interface.Tpo -c -o nm-system-config-interface.lo `test -f 'settings/nm-system-config-interface.c' || echo '$(srcdir)/'`settings/nm-system-config-interface.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-system-config-interface.Tpo $(DEPDIR)/nm-system-config-interface.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='settings/nm-system-config-interface.c' object='nm-system-config-interface.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-system-config-interface.lo `test -f 'settings/nm-system-config-interface.c' || echo '$(srcdir)/'`settings/nm-system-config-interface.c
 
 nm-keyfile-connection.lo: settings/plugins/keyfile/nm-keyfile-connection.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-keyfile-connection.lo -MD -MP -MF $(DEPDIR)/nm-keyfile-connection.Tpo -c -o nm-keyfile-connection.lo `test -f 'settings/plugins/keyfile/nm-keyfile-connection.c' || echo '$(srcdir)/'`settings/plugins/keyfile/nm-keyfile-connection.c
@@ -1734,13 +1896,6 @@ nm-vpn-manager.lo: vpn-manager/nm-vpn-manager.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-vpn-manager.lo `test -f 'vpn-manager/nm-vpn-manager.c' || echo '$(srcdir)/'`vpn-manager/nm-vpn-manager.c
 
-nm-vpn-service.lo: vpn-manager/nm-vpn-service.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-vpn-service.lo -MD -MP -MF $(DEPDIR)/nm-vpn-service.Tpo -c -o nm-vpn-service.lo `test -f 'vpn-manager/nm-vpn-service.c' || echo '$(srcdir)/'`vpn-manager/nm-vpn-service.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-vpn-service.Tpo $(DEPDIR)/nm-vpn-service.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='vpn-manager/nm-vpn-service.c' object='nm-vpn-service.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-vpn-service.lo `test -f 'vpn-manager/nm-vpn-service.c' || echo '$(srcdir)/'`vpn-manager/nm-vpn-service.c
-
 wifi-utils-wext.lo: platform/wifi/wifi-utils-wext.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT wifi-utils-wext.lo -MD -MP -MF $(DEPDIR)/wifi-utils-wext.Tpo -c -o wifi-utils-wext.lo `test -f 'platform/wifi/wifi-utils-wext.c' || echo '$(srcdir)/'`platform/wifi/wifi-utils-wext.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wifi-utils-wext.Tpo $(DEPDIR)/wifi-utils-wext.Plo
@@ -1748,131 +1903,334 @@ wifi-utils-wext.lo: platform/wifi/wifi-utils-wext.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o wifi-utils-wext.lo `test -f 'platform/wifi/wifi-utils-wext.c' || echo '$(srcdir)/'`platform/wifi/wifi-utils-wext.c
 
-libsystemd_dhcp_la-dhcp-network.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-network.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-dhcp-network.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-dhcp-network.Tpo -c -o libsystemd_dhcp_la-dhcp-network.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-network.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-network.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-dhcp-network.Tpo $(DEPDIR)/libsystemd_dhcp_la-dhcp-network.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-network.c' object='libsystemd_dhcp_la-dhcp-network.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-nm-sd.lo: systemd/nm-sd.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-nm-sd.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-nm-sd.Tpo -c -o libsystemd_nm_la-nm-sd.lo `test -f 'systemd/nm-sd.c' || echo '$(srcdir)/'`systemd/nm-sd.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-nm-sd.Tpo $(DEPDIR)/libsystemd_nm_la-nm-sd.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/nm-sd.c' object='libsystemd_nm_la-nm-sd.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-dhcp-network.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-network.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-network.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-nm-sd.lo `test -f 'systemd/nm-sd.c' || echo '$(srcdir)/'`systemd/nm-sd.c
 
-libsystemd_dhcp_la-dhcp-packet.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-packet.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-dhcp-packet.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-dhcp-packet.Tpo -c -o libsystemd_dhcp_la-dhcp-packet.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-packet.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-packet.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-dhcp-packet.Tpo $(DEPDIR)/libsystemd_dhcp_la-dhcp-packet.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-packet.c' object='libsystemd_dhcp_la-dhcp-packet.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-nm-sd-adapt.lo: systemd/nm-sd-adapt.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-nm-sd-adapt.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-nm-sd-adapt.Tpo -c -o libsystemd_nm_la-nm-sd-adapt.lo `test -f 'systemd/nm-sd-adapt.c' || echo '$(srcdir)/'`systemd/nm-sd-adapt.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-nm-sd-adapt.Tpo $(DEPDIR)/libsystemd_nm_la-nm-sd-adapt.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/nm-sd-adapt.c' object='libsystemd_nm_la-nm-sd-adapt.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-dhcp-packet.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-packet.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-packet.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-nm-sd-adapt.lo `test -f 'systemd/nm-sd-adapt.c' || echo '$(srcdir)/'`systemd/nm-sd-adapt.c
 
-libsystemd_dhcp_la-dhcp6-network.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-network.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-dhcp6-network.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-dhcp6-network.Tpo -c -o libsystemd_dhcp_la-dhcp6-network.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-network.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-network.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-dhcp6-network.Tpo $(DEPDIR)/libsystemd_dhcp_la-dhcp6-network.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-network.c' object='libsystemd_dhcp_la-dhcp6-network.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-alloc-util.lo: systemd/src/basic/alloc-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-alloc-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-alloc-util.Tpo -c -o libsystemd_nm_la-alloc-util.lo `test -f 'systemd/src/basic/alloc-util.c' || echo '$(srcdir)/'`systemd/src/basic/alloc-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-alloc-util.Tpo $(DEPDIR)/libsystemd_nm_la-alloc-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/alloc-util.c' object='libsystemd_nm_la-alloc-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-dhcp6-network.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-network.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-network.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-alloc-util.lo `test -f 'systemd/src/basic/alloc-util.c' || echo '$(srcdir)/'`systemd/src/basic/alloc-util.c
 
-libsystemd_dhcp_la-dhcp6-option.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-option.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-dhcp6-option.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-dhcp6-option.Tpo -c -o libsystemd_dhcp_la-dhcp6-option.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-option.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-option.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-dhcp6-option.Tpo $(DEPDIR)/libsystemd_dhcp_la-dhcp6-option.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-option.c' object='libsystemd_dhcp_la-dhcp6-option.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-escape.lo: systemd/src/basic/escape.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-escape.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-escape.Tpo -c -o libsystemd_nm_la-escape.lo `test -f 'systemd/src/basic/escape.c' || echo '$(srcdir)/'`systemd/src/basic/escape.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-escape.Tpo $(DEPDIR)/libsystemd_nm_la-escape.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/escape.c' object='libsystemd_nm_la-escape.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-dhcp6-option.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-option.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp6-option.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-escape.lo `test -f 'systemd/src/basic/escape.c' || echo '$(srcdir)/'`systemd/src/basic/escape.c
 
-libsystemd_dhcp_la-network-internal.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/network-internal.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-network-internal.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-network-internal.Tpo -c -o libsystemd_dhcp_la-network-internal.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/network-internal.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/network-internal.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-network-internal.Tpo $(DEPDIR)/libsystemd_dhcp_la-network-internal.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/network-internal.c' object='libsystemd_dhcp_la-network-internal.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-ether-addr-util.lo: systemd/src/basic/ether-addr-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-ether-addr-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-ether-addr-util.Tpo -c -o libsystemd_nm_la-ether-addr-util.lo `test -f 'systemd/src/basic/ether-addr-util.c' || echo '$(srcdir)/'`systemd/src/basic/ether-addr-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-ether-addr-util.Tpo $(DEPDIR)/libsystemd_nm_la-ether-addr-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/ether-addr-util.c' object='libsystemd_nm_la-ether-addr-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-network-internal.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/network-internal.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/network-internal.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-ether-addr-util.lo `test -f 'systemd/src/basic/ether-addr-util.c' || echo '$(srcdir)/'`systemd/src/basic/ether-addr-util.c
 
-libsystemd_dhcp_la-sd-dhcp-lease.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-lease.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-sd-dhcp-lease.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp-lease.Tpo -c -o libsystemd_dhcp_la-sd-dhcp-lease.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-lease.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-lease.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp-lease.Tpo $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp-lease.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-lease.c' object='libsystemd_dhcp_la-sd-dhcp-lease.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-fd-util.lo: systemd/src/basic/fd-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-fd-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-fd-util.Tpo -c -o libsystemd_nm_la-fd-util.lo `test -f 'systemd/src/basic/fd-util.c' || echo '$(srcdir)/'`systemd/src/basic/fd-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-fd-util.Tpo $(DEPDIR)/libsystemd_nm_la-fd-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/fd-util.c' object='libsystemd_nm_la-fd-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-sd-dhcp-lease.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-lease.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-lease.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-fd-util.lo `test -f 'systemd/src/basic/fd-util.c' || echo '$(srcdir)/'`systemd/src/basic/fd-util.c
 
-libsystemd_dhcp_la-sd-dhcp-client.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-client.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-sd-dhcp-client.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp-client.Tpo -c -o libsystemd_dhcp_la-sd-dhcp-client.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-client.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-client.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp-client.Tpo $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp-client.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-client.c' object='libsystemd_dhcp_la-sd-dhcp-client.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-fileio.lo: systemd/src/basic/fileio.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-fileio.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-fileio.Tpo -c -o libsystemd_nm_la-fileio.lo `test -f 'systemd/src/basic/fileio.c' || echo '$(srcdir)/'`systemd/src/basic/fileio.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-fileio.Tpo $(DEPDIR)/libsystemd_nm_la-fileio.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/fileio.c' object='libsystemd_nm_la-fileio.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-sd-dhcp-client.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-client.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp-client.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-fileio.lo `test -f 'systemd/src/basic/fileio.c' || echo '$(srcdir)/'`systemd/src/basic/fileio.c
 
-libsystemd_dhcp_la-dhcp-option.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-option.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-dhcp-option.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-dhcp-option.Tpo -c -o libsystemd_dhcp_la-dhcp-option.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-option.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-option.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-dhcp-option.Tpo $(DEPDIR)/libsystemd_dhcp_la-dhcp-option.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-option.c' object='libsystemd_dhcp_la-dhcp-option.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-fs-util.lo: systemd/src/basic/fs-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-fs-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-fs-util.Tpo -c -o libsystemd_nm_la-fs-util.lo `test -f 'systemd/src/basic/fs-util.c' || echo '$(srcdir)/'`systemd/src/basic/fs-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-fs-util.Tpo $(DEPDIR)/libsystemd_nm_la-fs-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/fs-util.c' object='libsystemd_nm_la-fs-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-dhcp-option.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-option.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/dhcp-option.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-fs-util.lo `test -f 'systemd/src/basic/fs-util.c' || echo '$(srcdir)/'`systemd/src/basic/fs-util.c
 
-libsystemd_dhcp_la-sd-dhcp6-lease.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-lease.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-sd-dhcp6-lease.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp6-lease.Tpo -c -o libsystemd_dhcp_la-sd-dhcp6-lease.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-lease.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-lease.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp6-lease.Tpo $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp6-lease.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-lease.c' object='libsystemd_dhcp_la-sd-dhcp6-lease.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-hash-funcs.lo: systemd/src/basic/hash-funcs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-hash-funcs.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-hash-funcs.Tpo -c -o libsystemd_nm_la-hash-funcs.lo `test -f 'systemd/src/basic/hash-funcs.c' || echo '$(srcdir)/'`systemd/src/basic/hash-funcs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-hash-funcs.Tpo $(DEPDIR)/libsystemd_nm_la-hash-funcs.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/hash-funcs.c' object='libsystemd_nm_la-hash-funcs.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-sd-dhcp6-lease.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-lease.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-lease.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-hash-funcs.lo `test -f 'systemd/src/basic/hash-funcs.c' || echo '$(srcdir)/'`systemd/src/basic/hash-funcs.c
 
-libsystemd_dhcp_la-sd-dhcp6-client.lo: dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-client.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-sd-dhcp6-client.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp6-client.Tpo -c -o libsystemd_dhcp_la-sd-dhcp6-client.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-client.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-client.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp6-client.Tpo $(DEPDIR)/libsystemd_dhcp_la-sd-dhcp6-client.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-client.c' object='libsystemd_dhcp_la-sd-dhcp6-client.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-hashmap.lo: systemd/src/basic/hashmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-hashmap.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-hashmap.Tpo -c -o libsystemd_nm_la-hashmap.lo `test -f 'systemd/src/basic/hashmap.c' || echo '$(srcdir)/'`systemd/src/basic/hashmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-hashmap.Tpo $(DEPDIR)/libsystemd_nm_la-hashmap.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/hashmap.c' object='libsystemd_nm_la-hashmap.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-sd-dhcp6-client.lo `test -f 'dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-client.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/libsystemd-network/sd-dhcp6-client.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-hashmap.lo `test -f 'systemd/src/basic/hashmap.c' || echo '$(srcdir)/'`systemd/src/basic/hashmap.c
 
-libsystemd_dhcp_la-time-util.lo: dhcp-manager/systemd-dhcp/src/shared/time-util.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-time-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-time-util.Tpo -c -o libsystemd_dhcp_la-time-util.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/time-util.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/time-util.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-time-util.Tpo $(DEPDIR)/libsystemd_dhcp_la-time-util.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/shared/time-util.c' object='libsystemd_dhcp_la-time-util.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-hexdecoct.lo: systemd/src/basic/hexdecoct.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-hexdecoct.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-hexdecoct.Tpo -c -o libsystemd_nm_la-hexdecoct.lo `test -f 'systemd/src/basic/hexdecoct.c' || echo '$(srcdir)/'`systemd/src/basic/hexdecoct.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-hexdecoct.Tpo $(DEPDIR)/libsystemd_nm_la-hexdecoct.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/hexdecoct.c' object='libsystemd_nm_la-hexdecoct.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-time-util.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/time-util.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/time-util.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-hexdecoct.lo `test -f 'systemd/src/basic/hexdecoct.c' || echo '$(srcdir)/'`systemd/src/basic/hexdecoct.c
 
-libsystemd_dhcp_la-util.lo: dhcp-manager/systemd-dhcp/src/shared/util.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-util.Tpo -c -o libsystemd_dhcp_la-util.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/util.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/util.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-util.Tpo $(DEPDIR)/libsystemd_dhcp_la-util.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/shared/util.c' object='libsystemd_dhcp_la-util.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-hostname-util.lo: systemd/src/basic/hostname-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-hostname-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-hostname-util.Tpo -c -o libsystemd_nm_la-hostname-util.lo `test -f 'systemd/src/basic/hostname-util.c' || echo '$(srcdir)/'`systemd/src/basic/hostname-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-hostname-util.Tpo $(DEPDIR)/libsystemd_nm_la-hostname-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/hostname-util.c' object='libsystemd_nm_la-hostname-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-util.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/util.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/util.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-hostname-util.lo `test -f 'systemd/src/basic/hostname-util.c' || echo '$(srcdir)/'`systemd/src/basic/hostname-util.c
 
-libsystemd_dhcp_la-in-addr-util.lo: dhcp-manager/systemd-dhcp/src/shared/in-addr-util.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-in-addr-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-in-addr-util.Tpo -c -o libsystemd_dhcp_la-in-addr-util.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/in-addr-util.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/in-addr-util.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-in-addr-util.Tpo $(DEPDIR)/libsystemd_dhcp_la-in-addr-util.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/shared/in-addr-util.c' object='libsystemd_dhcp_la-in-addr-util.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-in-addr-util.lo: systemd/src/basic/in-addr-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-in-addr-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-in-addr-util.Tpo -c -o libsystemd_nm_la-in-addr-util.lo `test -f 'systemd/src/basic/in-addr-util.c' || echo '$(srcdir)/'`systemd/src/basic/in-addr-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-in-addr-util.Tpo $(DEPDIR)/libsystemd_nm_la-in-addr-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/in-addr-util.c' object='libsystemd_nm_la-in-addr-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-in-addr-util.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/in-addr-util.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/in-addr-util.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-in-addr-util.lo `test -f 'systemd/src/basic/in-addr-util.c' || echo '$(srcdir)/'`systemd/src/basic/in-addr-util.c
 
-libsystemd_dhcp_la-siphash24.lo: dhcp-manager/systemd-dhcp/src/shared/siphash24.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-siphash24.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-siphash24.Tpo -c -o libsystemd_dhcp_la-siphash24.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/siphash24.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/siphash24.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-siphash24.Tpo $(DEPDIR)/libsystemd_dhcp_la-siphash24.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/shared/siphash24.c' object='libsystemd_dhcp_la-siphash24.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-io-util.lo: systemd/src/basic/io-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-io-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-io-util.Tpo -c -o libsystemd_nm_la-io-util.lo `test -f 'systemd/src/basic/io-util.c' || echo '$(srcdir)/'`systemd/src/basic/io-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-io-util.Tpo $(DEPDIR)/libsystemd_nm_la-io-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/io-util.c' object='libsystemd_nm_la-io-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-siphash24.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/siphash24.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/siphash24.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-io-util.lo `test -f 'systemd/src/basic/io-util.c' || echo '$(srcdir)/'`systemd/src/basic/io-util.c
 
-libsystemd_dhcp_la-fileio.lo: dhcp-manager/systemd-dhcp/src/shared/fileio.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-fileio.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-fileio.Tpo -c -o libsystemd_dhcp_la-fileio.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/fileio.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/fileio.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-fileio.Tpo $(DEPDIR)/libsystemd_dhcp_la-fileio.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/shared/fileio.c' object='libsystemd_dhcp_la-fileio.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-mempool.lo: systemd/src/basic/mempool.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-mempool.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-mempool.Tpo -c -o libsystemd_nm_la-mempool.lo `test -f 'systemd/src/basic/mempool.c' || echo '$(srcdir)/'`systemd/src/basic/mempool.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-mempool.Tpo $(DEPDIR)/libsystemd_nm_la-mempool.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/mempool.c' object='libsystemd_nm_la-mempool.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-fileio.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/fileio.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/fileio.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-mempool.lo `test -f 'systemd/src/basic/mempool.c' || echo '$(srcdir)/'`systemd/src/basic/mempool.c
 
-libsystemd_dhcp_la-strv.lo: dhcp-manager/systemd-dhcp/src/shared/strv.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-strv.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-strv.Tpo -c -o libsystemd_dhcp_la-strv.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/strv.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/strv.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-strv.Tpo $(DEPDIR)/libsystemd_dhcp_la-strv.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/shared/strv.c' object='libsystemd_dhcp_la-strv.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-parse-util.lo: systemd/src/basic/parse-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-parse-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-parse-util.Tpo -c -o libsystemd_nm_la-parse-util.lo `test -f 'systemd/src/basic/parse-util.c' || echo '$(srcdir)/'`systemd/src/basic/parse-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-parse-util.Tpo $(DEPDIR)/libsystemd_nm_la-parse-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/parse-util.c' object='libsystemd_nm_la-parse-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-strv.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/strv.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/strv.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-parse-util.lo `test -f 'systemd/src/basic/parse-util.c' || echo '$(srcdir)/'`systemd/src/basic/parse-util.c
 
-libsystemd_dhcp_la-utf8.lo: dhcp-manager/systemd-dhcp/src/shared/utf8.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-utf8.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-utf8.Tpo -c -o libsystemd_dhcp_la-utf8.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/utf8.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/utf8.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-utf8.Tpo $(DEPDIR)/libsystemd_dhcp_la-utf8.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/src/shared/utf8.c' object='libsystemd_dhcp_la-utf8.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-path-util.lo: systemd/src/basic/path-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-path-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-path-util.Tpo -c -o libsystemd_nm_la-path-util.lo `test -f 'systemd/src/basic/path-util.c' || echo '$(srcdir)/'`systemd/src/basic/path-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-path-util.Tpo $(DEPDIR)/libsystemd_nm_la-path-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/path-util.c' object='libsystemd_nm_la-path-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-utf8.lo `test -f 'dhcp-manager/systemd-dhcp/src/shared/utf8.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/src/shared/utf8.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-path-util.lo `test -f 'systemd/src/basic/path-util.c' || echo '$(srcdir)/'`systemd/src/basic/path-util.c
 
-libsystemd_dhcp_la-nm-sd-adapt.lo: dhcp-manager/systemd-dhcp/nm-sd-adapt.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_dhcp_la-nm-sd-adapt.lo -MD -MP -MF $(DEPDIR)/libsystemd_dhcp_la-nm-sd-adapt.Tpo -c -o libsystemd_dhcp_la-nm-sd-adapt.lo `test -f 'dhcp-manager/systemd-dhcp/nm-sd-adapt.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/nm-sd-adapt.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_dhcp_la-nm-sd-adapt.Tpo $(DEPDIR)/libsystemd_dhcp_la-nm-sd-adapt.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dhcp-manager/systemd-dhcp/nm-sd-adapt.c' object='libsystemd_dhcp_la-nm-sd-adapt.lo' libtool=yes @AMDEPBACKSLASH@
+libsystemd_nm_la-prioq.lo: systemd/src/basic/prioq.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-prioq.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-prioq.Tpo -c -o libsystemd_nm_la-prioq.lo `test -f 'systemd/src/basic/prioq.c' || echo '$(srcdir)/'`systemd/src/basic/prioq.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-prioq.Tpo $(DEPDIR)/libsystemd_nm_la-prioq.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/prioq.c' object='libsystemd_nm_la-prioq.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_dhcp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_dhcp_la-nm-sd-adapt.lo `test -f 'dhcp-manager/systemd-dhcp/nm-sd-adapt.c' || echo '$(srcdir)/'`dhcp-manager/systemd-dhcp/nm-sd-adapt.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-prioq.lo `test -f 'systemd/src/basic/prioq.c' || echo '$(srcdir)/'`systemd/src/basic/prioq.c
+
+libsystemd_nm_la-random-util.lo: systemd/src/basic/random-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-random-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-random-util.Tpo -c -o libsystemd_nm_la-random-util.lo `test -f 'systemd/src/basic/random-util.c' || echo '$(srcdir)/'`systemd/src/basic/random-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-random-util.Tpo $(DEPDIR)/libsystemd_nm_la-random-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/random-util.c' object='libsystemd_nm_la-random-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-random-util.lo `test -f 'systemd/src/basic/random-util.c' || echo '$(srcdir)/'`systemd/src/basic/random-util.c
+
+libsystemd_nm_la-siphash24.lo: systemd/src/basic/siphash24.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-siphash24.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-siphash24.Tpo -c -o libsystemd_nm_la-siphash24.lo `test -f 'systemd/src/basic/siphash24.c' || echo '$(srcdir)/'`systemd/src/basic/siphash24.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-siphash24.Tpo $(DEPDIR)/libsystemd_nm_la-siphash24.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/siphash24.c' object='libsystemd_nm_la-siphash24.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-siphash24.lo `test -f 'systemd/src/basic/siphash24.c' || echo '$(srcdir)/'`systemd/src/basic/siphash24.c
+
+libsystemd_nm_la-socket-util.lo: systemd/src/basic/socket-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-socket-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-socket-util.Tpo -c -o libsystemd_nm_la-socket-util.lo `test -f 'systemd/src/basic/socket-util.c' || echo '$(srcdir)/'`systemd/src/basic/socket-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-socket-util.Tpo $(DEPDIR)/libsystemd_nm_la-socket-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/socket-util.c' object='libsystemd_nm_la-socket-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-socket-util.lo `test -f 'systemd/src/basic/socket-util.c' || echo '$(srcdir)/'`systemd/src/basic/socket-util.c
+
+libsystemd_nm_la-string-table.lo: systemd/src/basic/string-table.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-string-table.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-string-table.Tpo -c -o libsystemd_nm_la-string-table.lo `test -f 'systemd/src/basic/string-table.c' || echo '$(srcdir)/'`systemd/src/basic/string-table.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-string-table.Tpo $(DEPDIR)/libsystemd_nm_la-string-table.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/string-table.c' object='libsystemd_nm_la-string-table.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-string-table.lo `test -f 'systemd/src/basic/string-table.c' || echo '$(srcdir)/'`systemd/src/basic/string-table.c
+
+libsystemd_nm_la-string-util.lo: systemd/src/basic/string-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-string-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-string-util.Tpo -c -o libsystemd_nm_la-string-util.lo `test -f 'systemd/src/basic/string-util.c' || echo '$(srcdir)/'`systemd/src/basic/string-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-string-util.Tpo $(DEPDIR)/libsystemd_nm_la-string-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/string-util.c' object='libsystemd_nm_la-string-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-string-util.lo `test -f 'systemd/src/basic/string-util.c' || echo '$(srcdir)/'`systemd/src/basic/string-util.c
+
+libsystemd_nm_la-strv.lo: systemd/src/basic/strv.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-strv.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-strv.Tpo -c -o libsystemd_nm_la-strv.lo `test -f 'systemd/src/basic/strv.c' || echo '$(srcdir)/'`systemd/src/basic/strv.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-strv.Tpo $(DEPDIR)/libsystemd_nm_la-strv.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/strv.c' object='libsystemd_nm_la-strv.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-strv.lo `test -f 'systemd/src/basic/strv.c' || echo '$(srcdir)/'`systemd/src/basic/strv.c
+
+libsystemd_nm_la-time-util.lo: systemd/src/basic/time-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-time-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-time-util.Tpo -c -o libsystemd_nm_la-time-util.lo `test -f 'systemd/src/basic/time-util.c' || echo '$(srcdir)/'`systemd/src/basic/time-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-time-util.Tpo $(DEPDIR)/libsystemd_nm_la-time-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/time-util.c' object='libsystemd_nm_la-time-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-time-util.lo `test -f 'systemd/src/basic/time-util.c' || echo '$(srcdir)/'`systemd/src/basic/time-util.c
+
+libsystemd_nm_la-utf8.lo: systemd/src/basic/utf8.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-utf8.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-utf8.Tpo -c -o libsystemd_nm_la-utf8.lo `test -f 'systemd/src/basic/utf8.c' || echo '$(srcdir)/'`systemd/src/basic/utf8.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-utf8.Tpo $(DEPDIR)/libsystemd_nm_la-utf8.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/utf8.c' object='libsystemd_nm_la-utf8.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-utf8.lo `test -f 'systemd/src/basic/utf8.c' || echo '$(srcdir)/'`systemd/src/basic/utf8.c
+
+libsystemd_nm_la-util.lo: systemd/src/basic/util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-util.Tpo -c -o libsystemd_nm_la-util.lo `test -f 'systemd/src/basic/util.c' || echo '$(srcdir)/'`systemd/src/basic/util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-util.Tpo $(DEPDIR)/libsystemd_nm_la-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/basic/util.c' object='libsystemd_nm_la-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-util.lo `test -f 'systemd/src/basic/util.c' || echo '$(srcdir)/'`systemd/src/basic/util.c
+
+libsystemd_nm_la-arp-util.lo: systemd/src/libsystemd-network/arp-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-arp-util.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-arp-util.Tpo -c -o libsystemd_nm_la-arp-util.lo `test -f 'systemd/src/libsystemd-network/arp-util.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/arp-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-arp-util.Tpo $(DEPDIR)/libsystemd_nm_la-arp-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/arp-util.c' object='libsystemd_nm_la-arp-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-arp-util.lo `test -f 'systemd/src/libsystemd-network/arp-util.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/arp-util.c
+
+libsystemd_nm_la-dhcp-identifier.lo: systemd/src/libsystemd-network/dhcp-identifier.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-dhcp-identifier.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-dhcp-identifier.Tpo -c -o libsystemd_nm_la-dhcp-identifier.lo `test -f 'systemd/src/libsystemd-network/dhcp-identifier.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp-identifier.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-dhcp-identifier.Tpo $(DEPDIR)/libsystemd_nm_la-dhcp-identifier.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/dhcp-identifier.c' object='libsystemd_nm_la-dhcp-identifier.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-dhcp-identifier.lo `test -f 'systemd/src/libsystemd-network/dhcp-identifier.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp-identifier.c
+
+libsystemd_nm_la-dhcp-network.lo: systemd/src/libsystemd-network/dhcp-network.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-dhcp-network.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-dhcp-network.Tpo -c -o libsystemd_nm_la-dhcp-network.lo `test -f 'systemd/src/libsystemd-network/dhcp-network.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp-network.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-dhcp-network.Tpo $(DEPDIR)/libsystemd_nm_la-dhcp-network.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/dhcp-network.c' object='libsystemd_nm_la-dhcp-network.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-dhcp-network.lo `test -f 'systemd/src/libsystemd-network/dhcp-network.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp-network.c
+
+libsystemd_nm_la-dhcp-option.lo: systemd/src/libsystemd-network/dhcp-option.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-dhcp-option.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-dhcp-option.Tpo -c -o libsystemd_nm_la-dhcp-option.lo `test -f 'systemd/src/libsystemd-network/dhcp-option.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp-option.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-dhcp-option.Tpo $(DEPDIR)/libsystemd_nm_la-dhcp-option.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/dhcp-option.c' object='libsystemd_nm_la-dhcp-option.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-dhcp-option.lo `test -f 'systemd/src/libsystemd-network/dhcp-option.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp-option.c
+
+libsystemd_nm_la-dhcp-packet.lo: systemd/src/libsystemd-network/dhcp-packet.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-dhcp-packet.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-dhcp-packet.Tpo -c -o libsystemd_nm_la-dhcp-packet.lo `test -f 'systemd/src/libsystemd-network/dhcp-packet.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp-packet.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-dhcp-packet.Tpo $(DEPDIR)/libsystemd_nm_la-dhcp-packet.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/dhcp-packet.c' object='libsystemd_nm_la-dhcp-packet.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-dhcp-packet.lo `test -f 'systemd/src/libsystemd-network/dhcp-packet.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp-packet.c
+
+libsystemd_nm_la-dhcp6-network.lo: systemd/src/libsystemd-network/dhcp6-network.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-dhcp6-network.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-dhcp6-network.Tpo -c -o libsystemd_nm_la-dhcp6-network.lo `test -f 'systemd/src/libsystemd-network/dhcp6-network.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp6-network.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-dhcp6-network.Tpo $(DEPDIR)/libsystemd_nm_la-dhcp6-network.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/dhcp6-network.c' object='libsystemd_nm_la-dhcp6-network.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-dhcp6-network.lo `test -f 'systemd/src/libsystemd-network/dhcp6-network.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp6-network.c
+
+libsystemd_nm_la-dhcp6-option.lo: systemd/src/libsystemd-network/dhcp6-option.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-dhcp6-option.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-dhcp6-option.Tpo -c -o libsystemd_nm_la-dhcp6-option.lo `test -f 'systemd/src/libsystemd-network/dhcp6-option.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp6-option.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-dhcp6-option.Tpo $(DEPDIR)/libsystemd_nm_la-dhcp6-option.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/dhcp6-option.c' object='libsystemd_nm_la-dhcp6-option.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-dhcp6-option.lo `test -f 'systemd/src/libsystemd-network/dhcp6-option.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/dhcp6-option.c
+
+libsystemd_nm_la-lldp-neighbor.lo: systemd/src/libsystemd-network/lldp-neighbor.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-lldp-neighbor.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-lldp-neighbor.Tpo -c -o libsystemd_nm_la-lldp-neighbor.lo `test -f 'systemd/src/libsystemd-network/lldp-neighbor.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/lldp-neighbor.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-lldp-neighbor.Tpo $(DEPDIR)/libsystemd_nm_la-lldp-neighbor.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/lldp-neighbor.c' object='libsystemd_nm_la-lldp-neighbor.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-lldp-neighbor.lo `test -f 'systemd/src/libsystemd-network/lldp-neighbor.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/lldp-neighbor.c
+
+libsystemd_nm_la-lldp-network.lo: systemd/src/libsystemd-network/lldp-network.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-lldp-network.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-lldp-network.Tpo -c -o libsystemd_nm_la-lldp-network.lo `test -f 'systemd/src/libsystemd-network/lldp-network.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/lldp-network.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-lldp-network.Tpo $(DEPDIR)/libsystemd_nm_la-lldp-network.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/lldp-network.c' object='libsystemd_nm_la-lldp-network.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-lldp-network.lo `test -f 'systemd/src/libsystemd-network/lldp-network.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/lldp-network.c
+
+libsystemd_nm_la-network-internal.lo: systemd/src/libsystemd-network/network-internal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-network-internal.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-network-internal.Tpo -c -o libsystemd_nm_la-network-internal.lo `test -f 'systemd/src/libsystemd-network/network-internal.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/network-internal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-network-internal.Tpo $(DEPDIR)/libsystemd_nm_la-network-internal.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/network-internal.c' object='libsystemd_nm_la-network-internal.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-network-internal.lo `test -f 'systemd/src/libsystemd-network/network-internal.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/network-internal.c
+
+libsystemd_nm_la-sd-dhcp-client.lo: systemd/src/libsystemd-network/sd-dhcp-client.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-dhcp-client.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-dhcp-client.Tpo -c -o libsystemd_nm_la-sd-dhcp-client.lo `test -f 'systemd/src/libsystemd-network/sd-dhcp-client.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-dhcp-client.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-dhcp-client.Tpo $(DEPDIR)/libsystemd_nm_la-sd-dhcp-client.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/sd-dhcp-client.c' object='libsystemd_nm_la-sd-dhcp-client.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-dhcp-client.lo `test -f 'systemd/src/libsystemd-network/sd-dhcp-client.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-dhcp-client.c
+
+libsystemd_nm_la-sd-dhcp-lease.lo: systemd/src/libsystemd-network/sd-dhcp-lease.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-dhcp-lease.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-dhcp-lease.Tpo -c -o libsystemd_nm_la-sd-dhcp-lease.lo `test -f 'systemd/src/libsystemd-network/sd-dhcp-lease.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-dhcp-lease.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-dhcp-lease.Tpo $(DEPDIR)/libsystemd_nm_la-sd-dhcp-lease.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/sd-dhcp-lease.c' object='libsystemd_nm_la-sd-dhcp-lease.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-dhcp-lease.lo `test -f 'systemd/src/libsystemd-network/sd-dhcp-lease.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-dhcp-lease.c
+
+libsystemd_nm_la-sd-dhcp6-client.lo: systemd/src/libsystemd-network/sd-dhcp6-client.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-dhcp6-client.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-dhcp6-client.Tpo -c -o libsystemd_nm_la-sd-dhcp6-client.lo `test -f 'systemd/src/libsystemd-network/sd-dhcp6-client.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-dhcp6-client.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-dhcp6-client.Tpo $(DEPDIR)/libsystemd_nm_la-sd-dhcp6-client.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/sd-dhcp6-client.c' object='libsystemd_nm_la-sd-dhcp6-client.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-dhcp6-client.lo `test -f 'systemd/src/libsystemd-network/sd-dhcp6-client.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-dhcp6-client.c
+
+libsystemd_nm_la-sd-dhcp6-lease.lo: systemd/src/libsystemd-network/sd-dhcp6-lease.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-dhcp6-lease.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-dhcp6-lease.Tpo -c -o libsystemd_nm_la-sd-dhcp6-lease.lo `test -f 'systemd/src/libsystemd-network/sd-dhcp6-lease.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-dhcp6-lease.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-dhcp6-lease.Tpo $(DEPDIR)/libsystemd_nm_la-sd-dhcp6-lease.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/sd-dhcp6-lease.c' object='libsystemd_nm_la-sd-dhcp6-lease.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-dhcp6-lease.lo `test -f 'systemd/src/libsystemd-network/sd-dhcp6-lease.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-dhcp6-lease.c
+
+libsystemd_nm_la-sd-ipv4acd.lo: systemd/src/libsystemd-network/sd-ipv4acd.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-ipv4acd.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-ipv4acd.Tpo -c -o libsystemd_nm_la-sd-ipv4acd.lo `test -f 'systemd/src/libsystemd-network/sd-ipv4acd.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-ipv4acd.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-ipv4acd.Tpo $(DEPDIR)/libsystemd_nm_la-sd-ipv4acd.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/sd-ipv4acd.c' object='libsystemd_nm_la-sd-ipv4acd.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-ipv4acd.lo `test -f 'systemd/src/libsystemd-network/sd-ipv4acd.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-ipv4acd.c
+
+libsystemd_nm_la-sd-ipv4ll.lo: systemd/src/libsystemd-network/sd-ipv4ll.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-ipv4ll.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-ipv4ll.Tpo -c -o libsystemd_nm_la-sd-ipv4ll.lo `test -f 'systemd/src/libsystemd-network/sd-ipv4ll.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-ipv4ll.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-ipv4ll.Tpo $(DEPDIR)/libsystemd_nm_la-sd-ipv4ll.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/sd-ipv4ll.c' object='libsystemd_nm_la-sd-ipv4ll.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-ipv4ll.lo `test -f 'systemd/src/libsystemd-network/sd-ipv4ll.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-ipv4ll.c
+
+libsystemd_nm_la-sd-lldp.lo: systemd/src/libsystemd-network/sd-lldp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-lldp.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-lldp.Tpo -c -o libsystemd_nm_la-sd-lldp.lo `test -f 'systemd/src/libsystemd-network/sd-lldp.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-lldp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-lldp.Tpo $(DEPDIR)/libsystemd_nm_la-sd-lldp.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd-network/sd-lldp.c' object='libsystemd_nm_la-sd-lldp.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-lldp.lo `test -f 'systemd/src/libsystemd-network/sd-lldp.c' || echo '$(srcdir)/'`systemd/src/libsystemd-network/sd-lldp.c
+
+libsystemd_nm_la-sd-event.lo: systemd/src/libsystemd/sd-event/sd-event.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-event.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-event.Tpo -c -o libsystemd_nm_la-sd-event.lo `test -f 'systemd/src/libsystemd/sd-event/sd-event.c' || echo '$(srcdir)/'`systemd/src/libsystemd/sd-event/sd-event.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-event.Tpo $(DEPDIR)/libsystemd_nm_la-sd-event.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd/sd-event/sd-event.c' object='libsystemd_nm_la-sd-event.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-event.lo `test -f 'systemd/src/libsystemd/sd-event/sd-event.c' || echo '$(srcdir)/'`systemd/src/libsystemd/sd-event/sd-event.c
+
+libsystemd_nm_la-sd-id128.lo: systemd/src/libsystemd/sd-id128/sd-id128.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-sd-id128.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-sd-id128.Tpo -c -o libsystemd_nm_la-sd-id128.lo `test -f 'systemd/src/libsystemd/sd-id128/sd-id128.c' || echo '$(srcdir)/'`systemd/src/libsystemd/sd-id128/sd-id128.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-sd-id128.Tpo $(DEPDIR)/libsystemd_nm_la-sd-id128.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/libsystemd/sd-id128/sd-id128.c' object='libsystemd_nm_la-sd-id128.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-sd-id128.lo `test -f 'systemd/src/libsystemd/sd-id128/sd-id128.c' || echo '$(srcdir)/'`systemd/src/libsystemd/sd-id128/sd-id128.c
+
+libsystemd_nm_la-dns-domain.lo: systemd/src/shared/dns-domain.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsystemd_nm_la-dns-domain.lo -MD -MP -MF $(DEPDIR)/libsystemd_nm_la-dns-domain.Tpo -c -o libsystemd_nm_la-dns-domain.lo `test -f 'systemd/src/shared/dns-domain.c' || echo '$(srcdir)/'`systemd/src/shared/dns-domain.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsystemd_nm_la-dns-domain.Tpo $(DEPDIR)/libsystemd_nm_la-dns-domain.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='systemd/src/shared/dns-domain.c' object='libsystemd_nm_la-dns-domain.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsystemd_nm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsystemd_nm_la-dns-domain.lo `test -f 'systemd/src/shared/dns-domain.c' || echo '$(srcdir)/'`systemd/src/shared/dns-domain.c
 
 nm-device-bond.o: devices/nm-device-bond.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device-bond.o -MD -MP -MF $(DEPDIR)/nm-device-bond.Tpo -c -o nm-device-bond.o `test -f 'devices/nm-device-bond.c' || echo '$(srcdir)/'`devices/nm-device-bond.c
@@ -1916,20 +2274,6 @@ nm-device-ethernet.obj: devices/nm-device-ethernet.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-device-ethernet.obj `if test -f 'devices/nm-device-ethernet.c'; then $(CYGPATH_W) 'devices/nm-device-ethernet.c'; else $(CYGPATH_W) '$(srcdir)/devices/nm-device-ethernet.c'; fi`
 
-nm-device-gre.o: devices/nm-device-gre.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device-gre.o -MD -MP -MF $(DEPDIR)/nm-device-gre.Tpo -c -o nm-device-gre.o `test -f 'devices/nm-device-gre.c' || echo '$(srcdir)/'`devices/nm-device-gre.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-device-gre.Tpo $(DEPDIR)/nm-device-gre.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='devices/nm-device-gre.c' object='nm-device-gre.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-device-gre.o `test -f 'devices/nm-device-gre.c' || echo '$(srcdir)/'`devices/nm-device-gre.c
-
-nm-device-gre.obj: devices/nm-device-gre.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device-gre.obj -MD -MP -MF $(DEPDIR)/nm-device-gre.Tpo -c -o nm-device-gre.obj `if test -f 'devices/nm-device-gre.c'; then $(CYGPATH_W) 'devices/nm-device-gre.c'; else $(CYGPATH_W) '$(srcdir)/devices/nm-device-gre.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-device-gre.Tpo $(DEPDIR)/nm-device-gre.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='devices/nm-device-gre.c' object='nm-device-gre.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-device-gre.obj `if test -f 'devices/nm-device-gre.c'; then $(CYGPATH_W) 'devices/nm-device-gre.c'; else $(CYGPATH_W) '$(srcdir)/devices/nm-device-gre.c'; fi`
-
 nm-device-infiniband.o: devices/nm-device-infiniband.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device-infiniband.o -MD -MP -MF $(DEPDIR)/nm-device-infiniband.Tpo -c -o nm-device-infiniband.o `test -f 'devices/nm-device-infiniband.c' || echo '$(srcdir)/'`devices/nm-device-infiniband.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-device-infiniband.Tpo $(DEPDIR)/nm-device-infiniband.Po
@@ -1943,6 +2287,20 @@ nm-device-infiniband.obj: devices/nm-device-infiniband.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='devices/nm-device-infiniband.c' object='nm-device-infiniband.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-device-infiniband.obj `if test -f 'devices/nm-device-infiniband.c'; then $(CYGPATH_W) 'devices/nm-device-infiniband.c'; else $(CYGPATH_W) '$(srcdir)/devices/nm-device-infiniband.c'; fi`
+
+nm-device-ip-tunnel.o: devices/nm-device-ip-tunnel.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device-ip-tunnel.o -MD -MP -MF $(DEPDIR)/nm-device-ip-tunnel.Tpo -c -o nm-device-ip-tunnel.o `test -f 'devices/nm-device-ip-tunnel.c' || echo '$(srcdir)/'`devices/nm-device-ip-tunnel.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-device-ip-tunnel.Tpo $(DEPDIR)/nm-device-ip-tunnel.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='devices/nm-device-ip-tunnel.c' object='nm-device-ip-tunnel.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-device-ip-tunnel.o `test -f 'devices/nm-device-ip-tunnel.c' || echo '$(srcdir)/'`devices/nm-device-ip-tunnel.c
+
+nm-device-ip-tunnel.obj: devices/nm-device-ip-tunnel.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device-ip-tunnel.obj -MD -MP -MF $(DEPDIR)/nm-device-ip-tunnel.Tpo -c -o nm-device-ip-tunnel.obj `if test -f 'devices/nm-device-ip-tunnel.c'; then $(CYGPATH_W) 'devices/nm-device-ip-tunnel.c'; else $(CYGPATH_W) '$(srcdir)/devices/nm-device-ip-tunnel.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-device-ip-tunnel.Tpo $(DEPDIR)/nm-device-ip-tunnel.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='devices/nm-device-ip-tunnel.c' object='nm-device-ip-tunnel.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-device-ip-tunnel.obj `if test -f 'devices/nm-device-ip-tunnel.c'; then $(CYGPATH_W) 'devices/nm-device-ip-tunnel.c'; else $(CYGPATH_W) '$(srcdir)/devices/nm-device-ip-tunnel.c'; fi`
 
 nm-device-macvlan.o: devices/nm-device-macvlan.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-device-macvlan.o -MD -MP -MF $(DEPDIR)/nm-device-macvlan.Tpo -c -o nm-device-macvlan.o `test -f 'devices/nm-device-macvlan.c' || echo '$(srcdir)/'`devices/nm-device-macvlan.c
@@ -2392,11 +2750,8 @@ uninstall-am: uninstall-dbusserviceDATA uninstall-libexecPROGRAMS \
 include $(GLIB_MAKEFILE)
 
 @GNOME_CODE_COVERAGE_RULES@
-
-%-glue.h: $(top_srcdir)/introspection/%.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=$(subst -,_,$(subst -glue.h,,$@)) --mode=glib-server --output=$@ $<
 install-data-hook:
-	$(mkinstalldirs) -m 0700 $(DESTDIR)$(rundir)
+	$(mkinstalldirs) -m 0755 $(DESTDIR)$(rundir)
 	$(mkinstalldirs) -m 0700 $(DESTDIR)$(statedir)
 	$(mkinstalldirs) -m 0755 $(DESTDIR)$(pkglibdir)
 

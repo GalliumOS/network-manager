@@ -1,0 +1,77 @@
+From: Michael Biebl <biebl@debian.org>
+Date: Sat, 12 Apr 2014 12:38:09 +0200
+Subject: Don't setup Sleep Monitor if not booted with systemd
+
+NetworkManager uses systemd for suspend/resume support. It listens for
+the PrepareForSleep and Resume D-Bus signal sent by logind/systemd and
+deactivates the interfaces on sleep and reactivates them on resume.
+With a standalone logind we don't get a Resume signal and
+NetworkManager remains in sleep mode where the devices are unmanaged.
+As a workaround, skip the Sleep Monitor setup if not booted with
+systemd.
+
+Closes: #742933
+---
+ configure.ac                   | 3 ++-
+ src/Makefile.am                | 2 ++
+ src/nm-sleep-monitor-systemd.c | 5 +++++
+ 3 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 0f270ce..46da9b8 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -467,8 +467,9 @@ fi
+ case $with_suspend_resume in
+     upower) ;;
+     systemd)
++        # Link against libsystemd-daemon for sd_booted()
+         PKG_CHECK_MODULES(SYSTEMD_INHIBIT, [libsystemd >= 209],,
+-                          [PKG_CHECK_MODULES(SYSTEMD_INHIBIT, [libsystemd-login >= 183])])
++                          [PKG_CHECK_MODULES(SYSTEMD_INHIBIT, [libsystemd-login >= 183 libsystemd-daemon])])
+         AC_DEFINE([SUSPEND_RESUME_SYSTEMD], 1, [Define to 1 to use systemd suspend api])
+         ;;
+     consolekit)
+diff --git a/src/Makefile.am b/src/Makefile.am
+index eea646a..603811b 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -475,6 +475,7 @@ AM_CPPFLAGS += \
+ 	$(SELINUX_CFLAGS) \
+ 	$(LIBAUDIT_CFLAGS) \
+ 	$(SYSTEMD_LOGIN_CFLAGS) \
++	$(SYSTEMD_INHIBIT_CFLAGS) \
+ 	$(SYSTEMD_JOURNAL_CFLAGS) \
+ 	$(SYSTEMD_NM_CFLAGS_PATHS) \
+ 	\
+@@ -508,6 +509,7 @@ libNetworkManager_la_LIBADD = \
+ 	$(GUDEV_LIBS) \
+ 	$(LIBNL_LIBS) \
+ 	$(SYSTEMD_LOGIN_LIBS) \
++	$(SYSTEMD_INHIBIT_LIBS) \
+ 	$(SYSTEMD_JOURNAL_LIBS) \
+ 	$(LIBNDP_LIBS) \
+ 	$(LIBDL) \
+diff --git a/src/nm-sleep-monitor-systemd.c b/src/nm-sleep-monitor-systemd.c
+index 064a703..d42c0fe 100644
+--- a/src/nm-sleep-monitor-systemd.c
++++ b/src/nm-sleep-monitor-systemd.c
+@@ -23,6 +23,7 @@
+ #include <string.h>
+ #include <sys/stat.h>
+ #include <gio/gunixfdlist.h>
++#include <systemd/sd-daemon.h>
+ 
+ #include "nm-core-internal.h"
+ #include "NetworkManagerUtils.h"
+@@ -203,6 +204,10 @@ on_proxy_acquired (GObject *object,
+ static void
+ nm_sleep_monitor_init (NMSleepMonitor *self)
+ {
++	if (!sd_booted()) {
++		nm_log_warn (LOGD_SUSPEND, "Skipping Sleep Monitor setup, system not booted with systemd");
++		return;
++	}
+ 	self->inhibit_fd = -1;
+ 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+ 	                          G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START |

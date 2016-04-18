@@ -33,9 +33,10 @@
  * and some test programs.
  **/
 
+
+#include "nm-default.h"
 #include "nm-connection.h"
 #include "nm-core-enum-types.h"
-#include "nm-dbus-interface.h"
 #include "nm-setting-8021x.h"
 #include "nm-setting-adsl.h"
 #include "nm-setting-bluetooth.h"
@@ -48,16 +49,20 @@
 #include "nm-setting-generic.h"
 #include "nm-setting-gsm.h"
 #include "nm-setting-infiniband.h"
+#include "nm-setting-ip-tunnel.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-ip6-config.h"
+#include "nm-setting-macvlan.h"
 #include "nm-setting-olpc-mesh.h"
 #include "nm-setting-ppp.h"
 #include "nm-setting-pppoe.h"
 #include "nm-setting-serial.h"
 #include "nm-setting-team-port.h"
 #include "nm-setting-team.h"
+#include "nm-setting-tun.h"
 #include "nm-setting-vlan.h"
 #include "nm-setting-vpn.h"
+#include "nm-setting-vxlan.h"
 #include "nm-setting-wimax.h"
 #include "nm-setting-wired.h"
 #include "nm-setting-wireless-security.h"
@@ -65,22 +70,28 @@
 #include "nm-setting.h"
 #include "nm-simple-connection.h"
 #include "nm-utils.h"
-#include "nm-version.h"
 #include "nm-vpn-dbus-interface.h"
-
-#define NM_UTILS_CLEAR_CANCELLABLE(c) \
-	if (c) { \
-		g_cancellable_cancel (c); \
-		g_clear_object (&c); \
-	}
+#include "nm-core-types-internal.h"
 
 /* NM_SETTING_COMPARE_FLAG_INFERRABLE: check whether a device-generated
  * connection can be replaced by a already-defined connection. This flag only
  * takes into account properties marked with the %NM_SETTING_PARAM_INFERRABLE
  * flag.
  */
-#define NM_SETTING_COMPARE_FLAG_INFERRABLE 0x80000000
+#define NM_SETTING_COMPARE_FLAG_INFERRABLE ((NMSettingCompareFlags) 0x80000000)
 
+/* NM_SETTING_COMPARE_FLAG_IGNORE_REAPPLY_IMMEDIATELY: this flag is used for properties
+ * that automatically get re-applied on an active connection when the settings
+ * connection is modified. For most properties, the applied-connection is distinct
+ * from the setting-connection and changes don't propagate. Exceptions are the
+ * firewall-zone and the metered property.
+ */
+#define NM_SETTING_COMPARE_FLAG_IGNORE_REAPPLY_IMMEDIATELY ((NMSettingCompareFlags) 0x40000000)
+
+/* NM_SETTING_COMPARE_FLAG_NONE: for convenience, define a special flag NONE -- which
+ * equals to numeric zero (NM_SETTING_COMPARE_FLAG_EXACT).
+ */
+#define NM_SETTING_COMPARE_FLAG_NONE ((NMSettingCompareFlags) 0)
 
 
 #define NM_SETTING_SECRET_FLAGS_ALL \
@@ -88,6 +99,25 @@
 	 NM_SETTING_SECRET_FLAG_AGENT_OWNED | \
 	 NM_SETTING_SECRET_FLAG_NOT_SAVED | \
 	 NM_SETTING_SECRET_FLAG_NOT_REQUIRED)
+
+typedef enum { /*< skip >*/
+	NM_SETTING_PARSE_FLAGS_NONE                     = 0,
+	NM_SETTING_PARSE_FLAGS_STRICT                   = 1LL << 0,
+	NM_SETTING_PARSE_FLAGS_BEST_EFFORT              = 1LL << 1,
+	NM_SETTING_PARSE_FLAGS_NORMALIZE                = 1LL << 2,
+
+	_NM_SETTING_PARSE_FLAGS_LAST,
+	NM_SETTING_PARSE_FLAGS_ALL                      = ((_NM_SETTING_PARSE_FLAGS_LAST - 1) << 1) - 1,
+} NMSettingParseFlags;
+
+gboolean _nm_connection_replace_settings (NMConnection *connection,
+                                          GVariant *new_settings,
+                                          NMSettingParseFlags parse_flags,
+                                          GError **error);
+
+NMConnection *_nm_simple_connection_new_from_dbus (GVariant      *dict,
+                                                   NMSettingParseFlags parse_flags,
+                                                   GError       **error);
 
 guint32 _nm_setting_get_setting_priority (NMSetting *setting);
 
@@ -133,12 +163,27 @@ char **     _nm_utils_slist_to_strv (GSList *slist, gboolean deep_copy);
 
 GPtrArray * _nm_utils_strv_to_ptrarray (char **strv);
 char **     _nm_utils_ptrarray_to_strv (GPtrArray *ptrarray);
+gboolean    _nm_utils_strv_equal (char **strv1, char **strv2);
+
+gboolean _nm_utils_check_file (const char *filename,
+                               gint64 check_owner,
+                               NMUtilsCheckFilePredicate check_file,
+                               gpointer user_data,
+                               struct stat *out_st,
+                               GError **error);
+
+gboolean _nm_utils_check_module_file (const char *name,
+                                      int check_owner,
+                                      NMUtilsCheckFilePredicate check_file,
+                                      gpointer user_data,
+                                      GError **error);
 
 #define NM_UTILS_UUID_TYPE_LEGACY            0
 #define NM_UTILS_UUID_TYPE_VARIANT3          1
 
 char *nm_utils_uuid_generate_from_string (const char *s, gssize slen, int uuid_type, gpointer type_args);
 
+/* arbitrarily choosen namespace UUID for _nm_utils_uuid_generate_from_strings() */
 #define NM_UTILS_UUID_NS "b425e9fb-7598-44b4-9e3b-5a2e3aaa4905"
 
 char *_nm_utils_uuid_generate_from_strings (const char *string1, ...) G_GNUC_NULL_TERMINATED;
@@ -153,10 +198,101 @@ GByteArray *nm_utils_rsa_key_encrypt (const guint8 *data,
                                       char **out_password,
                                       GError **error);
 
-/* These are public API in NM 1.2, but private on nm-1-0. */
-int nm_utils_bond_mode_string_to_int (const char *mode);
-const char *nm_utils_bond_mode_int_to_string (int mode);
+gulong _nm_dbus_signal_connect_data (GDBusProxy *proxy,
+                                     const char *signal_name,
+                                     const GVariantType *signature,
+                                     GCallback c_handler,
+                                     gpointer data,
+                                     GClosureNotify destroy_data,
+                                     GConnectFlags connect_flags);
+#define _nm_dbus_signal_connect(proxy, name, signature, handler, data) \
+	_nm_dbus_signal_connect_data (proxy, name, signature, handler, data, NULL, (GConnectFlags) 0)
 
-gint64 _nm_utils_ascii_str_to_int64 (const char *str, guint base, gint64 min, gint64 max, gint64 fallback);
+GVariant *_nm_dbus_proxy_call_finish (GDBusProxy           *proxy,
+                                      GAsyncResult         *res,
+                                      const GVariantType   *reply_type,
+                                      GError              **error);
+
+GVariant *_nm_dbus_proxy_call_sync   (GDBusProxy           *proxy,
+                                      const gchar          *method_name,
+                                      GVariant             *parameters,
+                                      const GVariantType   *reply_type,
+                                      GDBusCallFlags        flags,
+                                      gint                  timeout_msec,
+                                      GCancellable         *cancellable,
+                                      GError              **error);
+
+gboolean _nm_dbus_error_has_name (GError     *error,
+                                  const char *dbus_error_name);
+
+/***********************************************************/
+
+gboolean _nm_vpn_plugin_info_check_file (const char *filename,
+                                         gboolean check_absolute,
+                                         gboolean do_validate_filename,
+                                         gint64 check_owner,
+                                         NMUtilsCheckFilePredicate check_file,
+                                         gpointer user_data,
+                                         GError **error);
+
+const char *_nm_vpn_plugin_info_get_default_dir_etc (void);
+const char *_nm_vpn_plugin_info_get_default_dir_lib (void);
+const char *_nm_vpn_plugin_info_get_default_dir_user (void);
+
+GSList *_nm_vpn_plugin_info_list_load_dir (const char *dirname,
+                                           gboolean do_validate_filename,
+                                           gint64 check_owner,
+                                           NMUtilsCheckFilePredicate check_file,
+                                           gpointer user_data);
+
+/***********************************************************/
+
+typedef struct {
+	const char *name;
+	gboolean numeric;
+	gboolean ipv6_only;
+} NMUtilsDNSOptionDesc;
+
+extern const NMUtilsDNSOptionDesc _nm_utils_dns_option_descs[];
+
+gboolean    _nm_utils_dns_option_validate (const char *option, char **out_name,
+                                           long *out_value, gboolean ipv6,
+                                           const NMUtilsDNSOptionDesc *option_descs);
+int         _nm_utils_dns_option_find_idx (GPtrArray *array, const char *option);
+
+/***********************************************************/
+
+typedef struct _NMUtilsStrStrDictKey NMUtilsStrStrDictKey;
+guint                 _nm_utils_strstrdictkey_hash   (gconstpointer a);
+gboolean              _nm_utils_strstrdictkey_equal  (gconstpointer a, gconstpointer b);
+NMUtilsStrStrDictKey *_nm_utils_strstrdictkey_create (const char *v1, const char *v2);
+
+#define _nm_utils_strstrdictkey_static(v1, v2) \
+    ( (NMUtilsStrStrDictKey *) ("\03" v1 "\0" v2 "") )
+
+/***********************************************************/
+
+gboolean _nm_setting_vlan_set_priorities (NMSettingVlan *setting,
+                                          NMVlanPriorityMap map,
+                                          const NMVlanQosMapping *qos_map,
+                                          guint n_qos_map);
+void     _nm_setting_vlan_get_priorities (NMSettingVlan *setting,
+                                          NMVlanPriorityMap map,
+                                          NMVlanQosMapping **out_qos_map,
+                                          guint *out_n_qos_map);
+
+/***********************************************************/
+
+typedef enum {
+	NM_BOND_OPTION_TYPE_INT,
+	NM_BOND_OPTION_TYPE_STRING,
+	NM_BOND_OPTION_TYPE_BOTH,
+	NM_BOND_OPTION_TYPE_IP,
+	NM_BOND_OPTION_TYPE_MAC,
+	NM_BOND_OPTION_TYPE_IFNAME,
+} NMBondOptionType;
+
+NMBondOptionType
+_nm_setting_bond_get_option_type (NMSettingBond *setting, const char *name);
 
 #endif

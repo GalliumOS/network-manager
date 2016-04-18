@@ -12,6 +12,7 @@
 <property name="ca-path" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
 <property name="subject-match" variable="IEEE_8021X_SUBJECT_MATCH(+)" format="" values="" default="" example="IEEE_8021X_SUBJECT_MATCH=&quot;Red Hat&quot;" description="Substring to match subject of server certificate against."/>
 <property name="altsubject-matches" variable="IEEE_8021X_ALTSUBJECT_MATCHES(+)" format="" values="" default="" example="IEEE_8021X_ALTSUBJECT_MATCHES=&quot;s1.domain.cc&quot;" description="List of strings to be matched against the altSubjectName."/>
+<property name="domain-suffix-match" variable="IEEE_8021X_DOMAIN_SUFFIX_MATCH(+)" format="" values="" default="" example="" description="Suffix to match domain of server certificate against."/>
 <property name="client-cert" variable="IEEE_8021X_CLIENT_CERT(+)" format="" values="" default="" example="IEEE_8021X_CLIENT_CERT=/home/joe/mycert.crt" description="Client certificate for EAP."/>
 <property name="phase1-peapver" variable="IEEE_8021X_PEAP_VERSION(+)" format="" values="0, 1" default="" example="" description="Use to force a specific PEAP version."/>
 <property name="phase1-peaplabel" variable="IEEE_8021X_PEAP_FORCE_NEW_LABEL(+)" format="" values="yes, no" default="no" example="" description="Use to force the new PEAP label during key derivation."/>
@@ -22,6 +23,7 @@ can contain values both for &apos;phase2-auth&apos; and &apos;phase2-autheap&apo
 IEEE_8021X_INNER_AUTH_METHODS is also used for &apos;phase2-auth&apos; values."/>
 <property name="phase2-subject-match" variable="IEEE_8021X_PHASE2_SUBJECT_MATCH(+)" format="" values="" default="" example="IEEE_8021X_PHASE2_SUBJECT_MATCH=&quot;Red Hat&quot;" description="Substring to match subject of server certificate against."/>
 <property name="phase2-altsubject-matches" variable="IEEE_8021X_PHASE2_ALTSUBJECT_MATCHES(+)" format="" values="" default="" example="" description=""/>
+<property name="phase2-domain-suffix-match" variable="IEEE_8021X_PHASE2_DOMAIN_SUFFIX_MATCH(+)" format="" values="" default="" example="" description="Suffix to match domain of server certificate for phase 2 against."/>
 <property name="phase2-client-cert" variable="IEEE_8021X_INNER_CLIENT_CERT(+)" format="" values="" default="" example="IEEE_8021X_INNER_CLIENT_CERT=/home/joe/mycert.crt" description="Client certificate for inner EAP method."/>
 <property name="password" variable="IEEE_8021X_PASSWORD(+)" format="" values="" default="" example="" description="UTF-8 encoded password used for EAP. It can also go to &quot;key-&quot;
 lookaside file, or it can be owned by a secret agent."/>
@@ -62,6 +64,7 @@ MACADDR for bridges is an NM extension."/>
 <property name="hello-time" variable="BRIDGING_OPTS: hello_time=" format="" values="1 - 10" default="2" example="" description="STP hello time."/>
 <property name="max-age" variable="BRIDGING_OPTS: max_age=" format="" values="6 - 40" default="20" example="" description="STP maximum message age."/>
 <property name="ageing-time" variable="BRIDGING_OPTS: ageing_time=" format="" values="0 - 1000000" default="300" example="" description="Ethernet MAC ageing time."/>
+<property name="multicast-snooping" variable="BRIDGING_OPTS: multicast_snooping=" format="" values="0 or 1" default="1" example="" description="IGMP snooping support."/>
 </setting>
 <setting name="cdma">
 </setting>
@@ -92,6 +95,8 @@ when this connection is activated."/>
 together with this connection."/>
 <property name="gateway-ping-timeout" variable="GATEWAY_PING_TIMEOUT(+)" format="" values="" default="0" example="GATEWAY_PING_TIMEOUT=5" description="If greater than zero, the IP connectivity will be checked by
 pinging the gateway and waiting for the specified timeout (in seconds)."/>
+<property name="metered" variable="CONNECTION_METERED" format="" values="yes,no,unknown" default="" example="CONNECTION_METERED=yes" description="Whether the device is metered"/>
+<property name="lldp" variable="LLDP" format="" values="boolean value or &apos;rx&apos;" default="missing variable means global default" example="LLDP=no" description="whether LLDP is enabled for the connection"/>
 </setting>
 <setting name="dcb">
 <property name="app-fcoe-flags" variable="DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING" format="" values="" default="no" example="DCB_APP_FCOE_ENABLE=yes DCB_APP_FCOE_ADVERTISE=yes" description="FCOE flags."/>
@@ -131,6 +136,8 @@ When PKEY_ID is specified, PHYSDEV and DEVICE also must be specified."/>
 </setting>
 <setting name="">
 </setting>
+<setting name="ip-tunnel">
+</setting>
 <setting name="ipv4">
 <property name="method" variable="BOOTPROTO" format="string" values="none, dhcp (bootp), static, ibft, autoip, shared" default="none" example="" description="Method used for IPv4 protocol configuration."/>
 <property name="dns" variable="DNS1, DNS2, ..." format="string" values="" default="" example="DNS1=1.2.3.4 DNS2=10.0.0.254 DNS3=8.8.8.8" description="List of DNS servers. Even if NetworkManager supports many DNS
@@ -143,7 +150,8 @@ but in route-* file instead."/>
 <property name="ignore-auto-routes" variable="PEERROUTES(+)" format="" values="" default="yes" example="" description="PEERROUTES has the opposite meaning as &apos;ignore-auto-routes&apos; property."/>
 <property name="ignore-auto-dns" variable="PEERDNS" format="" values="" default="yes" example="" description="PEERDNS has the opposite meaning as &apos;ignore-auto-dns&apos; property."/>
 <property name="dhcp-send-hostname" variable="DHCP_SEND_HOSTNAME(+)" format="" values="" default="yes" example="" description="Whether DHCP_HOSTNAME should be sent to the DHCP server."/>
-<property name="dhcp-hostname" variable="DHCP_HOSTNAME" format="" values="" default="" example="" description="Hostname to send to the DHCP server."/>
+<property name="dhcp-hostname" variable="DHCP_HOSTNAME" format="" values="" default="" example="" description="Hostname to send to the DHCP server. When both DHCP_HOSTNAME and
+DHCP_FQDN are specified only the latter is used."/>
 <property name="never-default" variable="DEFROUTE (GATEWAYDEV in /etc/sysconfig/network)" format="" values="" default="yes" example="" description="DEFROUTE=no tells NetworkManager that this connection
 should not be assigned the default route. DEFROUTE has the opposite
 meaning as &apos;never-default&apos; property."/>
@@ -151,6 +159,11 @@ meaning as &apos;never-default&apos; property."/>
 <property name="route-metric" variable="IPV4_ROUTE_METRIC(+)" format="" values="" default="-1" example="" description="IPV4_ROUTE_METRIC is the default IPv4 metric for routes on this connection.
 If set to -1, a default metric based on the device type is used."/>
 <property name="dhcp-client-id" variable="DHCP_CLIENT_ID(+)" format="" values="" default="" example="DHCP_CLIENT_ID=ax-srv-1" description="A string sent to the DHCP server to identify the local machine."/>
+<property name="dad-timeout" variable="ARPING_WAIT" format="" values="" default="missing variable means global default (config override or 3)" example="ARPING_WAIT=2" description="Timeout (in seconds) for performing DAD before configuring
+IPv4 addresses. 0 turns off the DAD completely, -1 means default value."/>
+<property name="dhcp-timeout" variable="IPV4_DHCP_TIMEOUT(+)" format="" values="" default="" example="IPV4_DHCP_TIMEOUT=10" description="A timeout after which the DHCP transaction fails in case of no response."/>
+<property name="dhcp-fqdn" variable="DHCP_FQDN" format="" values="" default="" example="DHCP_FQDN=foo.bar.com" description="FQDN to send to the DHCP server. When both DHCP_HOSTNAME and
+DHCP_FQDN are specified only the latter is used."/>
 </setting>
 <setting name="ipv6">
 <property name="method" variable="IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C" format="" values="" default="IPV6INIT=yes; IPV6FORWARDING=no; IPV6_AUTOCONF=!IPV6FORWARDING, DHCPV6=no" example="" description="Method used for IPv6 protocol configuration.
@@ -174,6 +187,9 @@ meaning as &apos;never-default&apos; property."/>
 If set to -1, a default metric based on the device type is used."/>
 <property name="ip6-privacy" variable="IPV6_PRIVACY, IPV6_PRIVACY_PREFER_PUBLIC_IP(+)" format="" values="IPV6_PRIVACY: no, yes (rfc3041 or rfc4941);
 IPV6_PRIVACY_PREFER_PUBLIC_IP: yes, no" default="no" example="IPV6_PRIVACY=rfc3041 IPV6_PRIVACY_PREFER_PUBLIC_IP=yes" description="Configure IPv6 Privacy Extensions for SLAAC (RFC4941)."/>
+<property name="addr-gen-mode" variable="IPV6_ADDR_GEN_MODE" format="" values="IPV6_ADDR_GEN_MODE: eui64, stable-privacy" default="eui64" example="IPV6_ADDR_GEN_MODE=stable-privacy" description="Configure IPv6 Stable Privacy addressing for SLAAC (RFC7217)."/>
+</setting>
+<setting name="macvlan">
 </setting>
 <setting name="802-11-olpc-mesh">
 </setting>
@@ -189,17 +205,21 @@ IPV6_PRIVACY_PREFER_PUBLIC_IP: yes, no" default="no" example="IPV6_PRIVACY=rfc30
 <setting name="team">
 <property name="config" variable="TEAM_CONFIG" format="" values="" default="" example="" description="Team configuration in JSON. See man teamd.conf for details."/>
 </setting>
+<setting name="tun">
+</setting>
 <setting name="vlan">
 <property name="parent" variable="DEVICE or PHYSDEV" format="" values="" default="" example="" description="Parent interface of the VLAN."/>
 <property name="id" variable="VLAN_ID or DEVICE" format="" values="" default="" example="" description="VLAN identifier."/>
-<property name="flags" variable="VLAN_FLAGS, REORDER_HDR" format="" values="&quot;GVRP&quot;, &quot;LOOSE_BINDING&quot; for VLAN_FLAGS; 0 or 1 for REORDER_HDR" default="" example="" description="Parent interface of the VLAN."/>
-<property name="ingress-property-map" variable="VLAN_INGRESS_PRIORITY_MAP" format="" values="" default="" example="VLAN_INGRESS_PRIORITY_MAP=4:2,3:5" description="Ingress priority mapping."/>
-<property name="egress-property-map" variable="VLAN_EGRESS_PRIORITY_MAP" format="" values="" default="" example="VLAN_EGRESS_PRIORITY_MAP=5:4,4:1,3:7" description="Egress priority mapping."/>
+<property name="flags" variable="GVRP, MVRP, VLAN_FLAGS" format="" values="&quot;yes or &quot;no&quot; for GVRP and MVRP; &quot;LOOSE_BINDING&quot; and &quot;NO_REORDER_HDR&quot; for VLAN_FLAGS" default="" example="" description="VLAN flags."/>
+<property name="ingress-priority-map" variable="VLAN_INGRESS_PRIORITY_MAP" format="" values="" default="" example="VLAN_INGRESS_PRIORITY_MAP=4:2,3:5" description="Ingress priority mapping."/>
+<property name="egress-priority-map" variable="VLAN_EGRESS_PRIORITY_MAP" format="" values="" default="" example="VLAN_EGRESS_PRIORITY_MAP=5:4,4:1,3:7" description="Egress priority mapping."/>
 <property name="interface-name" variable="PHYSDEV and VLAN_ID, or DEVICE" format="" values="" default="" example="PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12" description="VLAN interface name.
 If all variables are set, parent device from PHYSDEV takes precedence over DEVICE,
 but VLAN id from DEVICE takes precedence over VLAN_ID."/>
 </setting>
 <setting name="vpn">
+</setting>
+<setting name="vxlan">
 </setting>
 <setting name="wimax">
 </setting>
@@ -264,6 +284,8 @@ is listed."/>
 <property name="seen-bssids" variable="(none)" format="" values="" default="" example="" description="This property is not handled by ifcfg-rh plugin."/>
 <property name="mtu" variable="MTU" format="" values="" default="" example="" description="MTU of the wireless interface."/>
 <property name="hidden" variable="SSID_HIDDEN(+)" format="" values="" default="" example="" description="Whether the network hides the SSID."/>
+<property name="powersave" variable="POWERSAVE(+)" format="" values="default, ignore, enable, disable" default="" example="POWERSAVE=enable" description="Enables or disables Wi-Fi power saving."/>
+<property name="mac-address-randomization" variable="MAC_ADDRESS_RANDOMIZATION(+)" format="" values="default, never, always" default="" example="MAC_ADDRESS_RANDOMIZATION=always" description="Enables or disables Wi-Fi MAC address randomization."/>
 <property name="security" variable="(none)" format="" values="" default="" example="" description="This property is deprecated and not handled by ifcfg-rh-plugin."/>
 </setting>
 </nm-ifcfg-rh-docs>

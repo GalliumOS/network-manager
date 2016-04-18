@@ -23,9 +23,7 @@
  * nmtui-hostname implements the "set hostname" functionality
  */
 
-#include "config.h"
-
-#include <glib/gi18n-lib.h>
+#include "nm-default.h"
 
 #include "nmt-newt.h"
 

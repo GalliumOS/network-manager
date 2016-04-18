@@ -23,13 +23,11 @@
  * #NmtEditor is the top-level form for editing a connection.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include "nmt-editor.h"
 
-#include <glib.h>
-#include <glib/gi18n-lib.h>
-#include <nm-utils.h>
+#include "nm-utils.h"
 
 #include "nmtui.h"
 

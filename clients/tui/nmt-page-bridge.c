@@ -21,10 +21,7 @@
  * @short_description: The editor page for Bridge connections
  */
 
-#include "config.h"
-
-#include <glib.h>
-#include <glib/gi18n-lib.h>
+#include "nm-default.h"
 
 #include "nmt-page-bridge.h"
 
@@ -90,6 +87,12 @@ nmt_page_bridge_constructed (GObject *object)
 	                        G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
 	label = nmt_newt_label_new (_("seconds"));
 	nmt_editor_grid_append (grid, _("Aging time"), widget, label);
+
+	widget = nmt_newt_checkbox_new (_("Enable IGMP snooping"));
+	g_object_bind_property (s_bridge, NM_SETTING_BRIDGE_MULTICAST_SNOOPING,
+	                        widget, "active",
+	                        G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+	nmt_editor_grid_append (grid, NULL, widget, NULL);
 
 	widget = stp = nmt_newt_checkbox_new (_("Enable STP (Spanning Tree Protocol)"));
 	g_object_bind_property (s_bridge, NM_SETTING_BRIDGE_STP,

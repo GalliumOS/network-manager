@@ -22,7 +22,7 @@
 #ifndef __NETWORKMANAGER_POLICY_H__
 #define __NETWORKMANAGER_POLICY_H__
 
-#include "nm-types.h"
+#include "nm-default.h"
 
 #define NM_TYPE_POLICY            (nm_policy_get_type ())
 #define NM_POLICY(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_POLICY, NMPolicy))
@@ -31,13 +31,18 @@
 #define NM_IS_POLICY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_POLICY))
 #define NM_POLICY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_POLICY, NMPolicyClass))
 
-#define NM_POLICY_DEFAULT_IP4_DEVICE "default-ip4-device"
-#define NM_POLICY_DEFAULT_IP6_DEVICE "default-ip6-device"
+#define NM_POLICY_MANAGER               "manager"
+#define NM_POLICY_SETTINGS              "settings"
+#define NM_POLICY_DEFAULT_IP4_DEVICE    "default-ip4-device"
+#define NM_POLICY_DEFAULT_IP6_DEVICE    "default-ip6-device"
 #define NM_POLICY_ACTIVATING_IP4_DEVICE "activating-ip4-device"
 #define NM_POLICY_ACTIVATING_IP6_DEVICE "activating-ip6-device"
 
+struct _NMPolicyPrivate;
+
 struct _NMPolicy {
 	GObject parent;
+	struct _NMPolicyPrivate *priv;
 };
 
 typedef struct {

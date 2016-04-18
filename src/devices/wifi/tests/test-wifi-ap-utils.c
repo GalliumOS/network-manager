@@ -18,15 +18,15 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
 #include <string.h>
 
 #include "nm-wifi-ap-utils.h"
-#include "nm-dbus-glib-types.h"
 
 #include "nm-core-internal.h"
+
+#include "nm-test-utils.h"
 
 #define DEBUG 1
 
@@ -37,7 +37,7 @@
 	if (expected) { \
 		if (!success) { \
 			g_assert (error != NULL); \
-			g_warning ("Failed to complete connection: (%d) %s", error->code, error->message); \
+			g_warning ("Failed to complete connection: %s", error->message); \
 		} \
 		g_assert (success == TRUE); \
 		g_assert (error == NULL); \
@@ -593,7 +593,7 @@ wpa_flags_for_idx (guint32 idx)
 		return NM_802_11_AP_SEC_PAIR_TKIP | NM_802_11_AP_SEC_GROUP_TKIP | NM_802_11_AP_SEC_KEY_MGMT_PSK;
 	else if (idx == IDX_WPA_RSN_PSK_PTKIP_PCCMP_GTKIP)
 		return NM_802_11_AP_SEC_PAIR_TKIP | NM_802_11_AP_SEC_PAIR_CCMP | NM_802_11_AP_SEC_GROUP_TKIP | NM_802_11_AP_SEC_KEY_MGMT_PSK;
-	else if (IDX_WPA_RSN_PSK_PCCMP_GCCMP)
+	else if (NM_IN_SET (idx, IDX_WPA_PSK_PTKIP_PCCMP_GTKIP, IDX_WPA_RSN_PSK_PCCMP_GCCMP))
 		return NM_802_11_AP_SEC_PAIR_CCMP | NM_802_11_AP_SEC_GROUP_CCMP | NM_802_11_AP_SEC_KEY_MGMT_PSK;
 	else if (idx == IDX_WPA_8021X)
 		return NM_802_11_AP_SEC_PAIR_TKIP | NM_802_11_AP_SEC_GROUP_TKIP | NM_802_11_AP_SEC_KEY_MGMT_802_1X;
@@ -1336,16 +1336,14 @@ test_strength_wext (void)
 
 /*******************************************/
 
+NMTST_DEFINE ();
+
 int
 main (int argc, char **argv)
 {
 	gsize i;
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
-
-	g_test_init (&argc, &argv, NULL);
+	nmtst_init_assert_logging (&argc, &argv, "INFO", "DEFAULT");
 
 	g_test_add_func ("/wifi/lock_bssid",
 	                 test_lock_bssid);
@@ -1364,10 +1362,10 @@ main (int argc, char **argv)
 	                      test_open_ap_leap_connection_1);
 	g_test_add_func ("/wifi/open_ap/leap_connection/2",
 	                 test_open_ap_leap_connection_2);
-	g_test_add_data_func ("/wifi/open_ap/wep_connection",
+	g_test_add_data_func ("/wifi/open_ap/wep_connection_true",
 	                      (gconstpointer) TRUE,
 	                      test_open_ap_wep_connection);
-	g_test_add_data_func ("/wifi/open_ap/wep_connection",
+	g_test_add_data_func ("/wifi/open_ap/wep_connection_false",
 	                      (gconstpointer) FALSE,
 	                      test_open_ap_wep_connection);
 
@@ -1441,103 +1439,56 @@ main (int argc, char **argv)
 	                      (gconstpointer) IDX_PRIV,
 	                      test_ap_wpa_eap_connection_5);
 
+#define ADD_FUNC(func) do { \
+		gchar *name_idx = g_strdup_printf ("/wifi/wpa_psk/" G_STRINGIFY (func) "/%zd", i); \
+		g_test_add_data_func (name_idx, (gconstpointer) i, func); \
+		g_free (name_idx); \
+	} while (0)
+
 	/* WPA-PSK tests */
 	for (i = IDX_WPA_PSK_PTKIP_GTKIP; i <= IDX_WPA_RSN_PSK_PCCMP_GCCMP; i++) {
-		g_test_add_data_func ("/wifi/wpa_psk/empty_connection",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_empty_connection);
-		g_test_add_data_func ("/wifi/wpa_psk/leap_connection/1",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_leap_connection_1);
-		g_test_add_data_func ("/wifi/wpa_psk/leap_connection/2",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_leap_connection_2);
-
-		g_test_add_data_func ("/wifi/wpa_psk/dynamic_wep_connection",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_dynamic_wep_connection);
-
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_psk_connection/1",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_1);
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_psk_connection/2",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_2);
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_psk_connection/3",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_3);
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_psk_connection/4",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_4);
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_psk_connection/5",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_5);
-
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_eap_connection/1",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_1);
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_eap_connection/2",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_2);
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_eap_connection/3",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_3);
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_eap_connection/4",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_4);
-		g_test_add_data_func ("/wifi/wpa_psk/wpa_eap_connection/5",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_5);
+		ADD_FUNC(test_wpa_ap_empty_connection);
+		ADD_FUNC(test_wpa_ap_leap_connection_1);
+		ADD_FUNC(test_wpa_ap_leap_connection_2);
+		ADD_FUNC(test_wpa_ap_dynamic_wep_connection);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_1);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_2);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_3);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_4);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_5);
+		ADD_FUNC(test_ap_wpa_eap_connection_1);
+		ADD_FUNC(test_ap_wpa_eap_connection_2);
+		ADD_FUNC(test_ap_wpa_eap_connection_3);
+		ADD_FUNC(test_ap_wpa_eap_connection_4);
+		ADD_FUNC(test_ap_wpa_eap_connection_5);
 	}
+
+#undef ADD_FUNC
+#define ADD_FUNC(func) do { \
+		gchar *name_idx = g_strdup_printf ("/wifi/rsn_psk/" G_STRINGIFY (func) "/%zd", i); \
+		g_test_add_data_func (name_idx, (gconstpointer) i, func); \
+		g_free (name_idx); \
+	} while (0)
 
 	/* RSN-PSK tests */
 	for (i = IDX_WPA_RSN_PSK_PTKIP_PCCMP_GTKIP; i <= IDX_RSN_PSK_PTKIP_PCCMP_GTKIP; i++) {
-		g_test_add_data_func ("/wifi/rsn_psk/empty_connection",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_empty_connection);
-		g_test_add_data_func ("/wifi/rsn_psk/leap_connection/1",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_leap_connection_1);
-		g_test_add_data_func ("/wifi/rsn_psk/leap_connection/2",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_leap_connection_2);
-
-		g_test_add_data_func ("/wifi/rsn_psk/dynamic_wep_connection",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_dynamic_wep_connection);
-
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_psk_connection/1",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_1);
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_psk_connection/2",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_2);
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_psk_connection/3",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_3);
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_psk_connection/4",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_4);
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_psk_connection/5",
-		                      (gconstpointer) i,
-		                      test_wpa_ap_wpa_psk_connection_5);
-
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_eap_connection/1",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_1);
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_eap_connection/2",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_2);
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_eap_connection/3",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_3);
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_eap_connection/4",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_4);
-		g_test_add_data_func ("/wifi/rsn_psk/wpa_eap_connection/5",
-		                      (gconstpointer) i,
-		                      test_ap_wpa_eap_connection_5);
+		ADD_FUNC(test_wpa_ap_empty_connection);
+		ADD_FUNC(test_wpa_ap_leap_connection_1);
+		ADD_FUNC(test_wpa_ap_leap_connection_2);
+		ADD_FUNC(test_wpa_ap_dynamic_wep_connection);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_1);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_2);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_3);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_4);
+		ADD_FUNC(test_wpa_ap_wpa_psk_connection_5);
+		ADD_FUNC(test_ap_wpa_eap_connection_1);
+		ADD_FUNC(test_ap_wpa_eap_connection_2);
+		ADD_FUNC(test_ap_wpa_eap_connection_3);
+		ADD_FUNC(test_ap_wpa_eap_connection_4);
+		ADD_FUNC(test_ap_wpa_eap_connection_5);
 	}
+
+#undef ADD_FUNC
 
 	/* Scanned signal strength conversion tests */
 	g_test_add_func ("/wifi/strength/dbm",

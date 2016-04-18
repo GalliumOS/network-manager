@@ -16,32 +16,31 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
 ===================================================================
 --- a/src/dns-manager/nm-dns-dnsmasq.c
 +++ b/src/dns-manager/nm-dns-dnsmasq.c
-@@ -275,9 +275,9 @@ start_dnsmasq (NMDnsDnsmasq *self)
+@@ -392,8 +392,8 @@ start_dnsmasq (NMDnsDnsmasq *self)
  	argv[idx++] = "--no-hosts"; /* don't use /etc/hosts to resolve */
  	argv[idx++] = "--bind-interfaces";
  	argv[idx++] = "--pid-file=" PIDFILE;
 -	argv[idx++] = "--listen-address=127.0.0.1"; /* Should work for both 4 and 6 */
-+	argv[idx++] = "--listen-address=127.0.1.1"; /* Should work for both 4 and 6 */
- 	argv[idx++] = "--conf-file=" CONFFILE;
 -	argv[idx++] = "--cache-size=400";
++	argv[idx++] = "--listen-address=127.0.1.1"; /* Should work for both 4 and 6 */
 +	argv[idx++] = "--cache-size=0";
  	argv[idx++] = "--proxy-dnssec"; /* Allow DNSSEC to pass through */
  	argv[idx++] = "--enable-dbus=" DNSMASQ_DBUS_SERVICE;
  
-@@ -369,7 +369,7 @@ update (NMDnsPlugin *plugin,
+@@ -488,7 +488,7 @@ update (NMDnsPlugin *plugin,
  
  	/* If all the configs lists are empty, there is just nothing to be caching --
  	 * we cleared up the dnsmasq cache; but we should also fail the update, so
 -	 * that we don't write 127.0.0.1 to resolv.conf.
 +	 * that we don't write 127.0.1.1 to resolv.conf.
  	 */
- 	if (((vpn_configs && g_slist_length (vpn_configs) < 1) || !vpn_configs) &&
- 	    ((dev_configs && g_slist_length (dev_configs) < 1) || !dev_configs) &&
+ 	if (((vpn_configs && g_slist_length ((GSList *) vpn_configs) < 1) || !vpn_configs) &&
+ 	    ((dev_configs && g_slist_length ((GSList *) dev_configs) < 1) || !dev_configs) &&
 Index: b/src/dns-manager/nm-dns-manager.c
 ===================================================================
 --- a/src/dns-manager/nm-dns-manager.c
 +++ b/src/dns-manager/nm-dns-manager.c
-@@ -757,7 +757,7 @@ update_dns (NMDnsManager *self,
+@@ -1006,7 +1006,7 @@ update_dns (NMDnsManager *self,
  		;
  	}
  
@@ -50,7 +49,7 @@ Index: b/src/dns-manager/nm-dns-manager.c
  	 * to ensure that the glibc resolver doesn't try to round-robin nameservers,
  	 * but only uses the local caching nameserver.
  	 */
-@@ -765,7 +765,7 @@ update_dns (NMDnsManager *self,
+@@ -1014,7 +1014,7 @@ update_dns (NMDnsManager *self,
  		if (nameservers)
  			g_strfreev (nameservers);
  		nameservers = g_new0 (char*, 2);
@@ -58,9 +57,9 @@ Index: b/src/dns-manager/nm-dns-manager.c
 +		nameservers[0] = g_strdup ("127.0.1.1");
  	}
  
- #ifdef RESOLVCONF_PATH
-@@ -1206,7 +1206,7 @@ dispose (GObject *object)
- 	}
+ 	if (update) {
+@@ -1574,7 +1574,7 @@ dispose (GObject *object)
+ 	g_clear_pointer (&priv->last_mode, g_free);
  
  	/* If we're quitting, leave a valid resolv.conf in place, not one
 -	 * pointing to 127.0.0.1 if any plugins were active.  Thus update

@@ -2,12 +2,10 @@ include $(GLIB_MAKEFILE)
 
 SUBDIRS = \
 	. \
-	include \
+	shared \
 	introspection \
 	libnm-core \
 	libnm \
-	libnm-util \
-	libnm-glib \
 	src \
 	callouts \
 	clients \
@@ -15,9 +13,17 @@ SUBDIRS = \
 	policy \
 	data \
 	po \
-	docs \
 	man \
-	examples \
+	examples
+
+if WITH_LEGACY_LIBRARIES
+SUBDIRS += \
+	libnm-util \
+	libnm-glib
+endif
+
+SUBDIRS += \
+	docs \
 	vapi
 
 @GNOME_CODE_COVERAGE_RULES@
@@ -40,7 +46,6 @@ DISTCHECK_CONFIGURE_FLAGS = \
 	--with-udev-dir=$$dc_install_base/lib/udev \
 	--with-wext=no \
 	--enable-ifcfg-rh \
-	--enable-ifcfg-suse \
 	--enable-ifupdown \
 	--enable-ifnet
 
@@ -62,6 +67,6 @@ pkgconfig_DATA = NetworkManager.pc
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
 cscope:
-	cscope -b -q -R -Iinclude -ssrc -slibnm-core -slibnm -slibnm-glib -slibnm-util -sclients;
+	cscope -b -q -R -sshared -ssrc -slibnm-core -slibnm -slibnm-glib -slibnm-util -sclients;
 
 .PHONY: cscope

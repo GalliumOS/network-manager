@@ -21,8 +21,6 @@
 #ifndef __NETWORKMANAGER_DEVICE_GENERIC_H__
 #define __NETWORKMANAGER_DEVICE_GENERIC_H__
 
-#include <glib-object.h>
-
 #include "nm-device.h"
 
 G_BEGIN_DECLS
@@ -47,7 +45,7 @@ typedef struct {
 
 GType nm_device_generic_get_type (void);
 
-NMDevice *nm_device_generic_new (NMPlatformLink *platform_device);
+NMDevice *nm_device_generic_new (const NMPlatformLink *plink);
 
 G_END_DECLS
 

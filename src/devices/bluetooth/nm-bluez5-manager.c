@@ -20,25 +20,20 @@
  * Copyright (C) 2013 Intel Corporation.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
-#include <gio/gio.h>
 
-#include "nm-logging.h"
 #include "nm-bluez-manager.h"
 #include "nm-bluez5-manager.h"
 #include "nm-bluez-device.h"
 #include "nm-bluez-common.h"
 
-#include "nm-dbus-manager.h"
+#include "nm-core-internal.h"
 
 typedef struct {
-	NMDBusManager *dbus_mgr;
-	gulong name_owner_changed_id;
-
 	NMConnectionProvider *provider;
 
 	GDBusProxy *proxy;
@@ -170,39 +165,23 @@ device_removed (GDBusProxy *proxy, const gchar *path, NMBluez5Manager *self)
 }
 
 static void
-object_manager_g_signal (GDBusProxy     *proxy,
-                         gchar          *sender_name,
-                         gchar          *signal_name,
-                         GVariant       *parameters,
-                         NMBluez5Manager *self)
+object_manager_interfaces_added (GDBusProxy      *proxy,
+                                 const char      *path,
+                                 GVariant        *dict,
+                                 NMBluez5Manager *self)
 {
-	GVariant *variant;
-	const gchar *path;
+	if (g_variant_lookup (dict, BLUEZ5_DEVICE_INTERFACE, "a{sv}", NULL))
+		device_added (proxy, path, self);
+}
 
-	if (!strcmp (signal_name, "InterfacesRemoved")) {
-		const gchar **ifaces;
-		gsize i, length;
-
-		g_variant_get (parameters, "(&o*)", &path, &variant);
-
-		ifaces = g_variant_get_strv (variant, &length);
-
-		for (i = 0; i < length; i++) {
-			if (!strcmp (ifaces[i], BLUEZ5_DEVICE_INTERFACE)) {
-				device_removed (proxy, path, self);
-				break;
-			}
-		}
-
-		g_free (ifaces);
-
-	} else if (!strcmp (signal_name, "InterfacesAdded")) {
-		g_variant_get (parameters, "(&o*)", &path, &variant);
-
-		if (g_variant_lookup_value (variant, BLUEZ5_DEVICE_INTERFACE,
-		                            G_VARIANT_TYPE_DICTIONARY))
-			device_added (proxy, path, self);
-	}
+static void
+object_manager_interfaces_removed (GDBusProxy       *proxy,
+                                   const char       *path,
+                                   const char      **ifaces,
+                                   NMBluez5Manager  *self)
+{
+	if (_nm_utils_string_in_list (BLUEZ5_DEVICE_INTERFACE, ifaces))
+		device_removed (proxy, path, self);
 }
 
 static void
@@ -215,14 +194,15 @@ get_managed_objects_cb (GDBusProxy *proxy,
 	GError *error = NULL;
 	const char *path;
 
-	variant = g_dbus_proxy_call_finish (proxy, res, &error);
-
+	variant = _nm_dbus_proxy_call_finish (proxy, res,
+	                                      G_VARIANT_TYPE ("(a{oa{sa{sv}}})"),
+	                                      &error);
 	if (!variant) {
 		if (g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD))
 			nm_log_warn (LOGD_BT, "Couldn't get managed objects: not running Bluez5?");
 		else {
-			nm_log_warn (LOGD_BT, "Couldn't get managed objects: %s",
-				         error && error->message ? error->message : "(unknown)");
+			g_dbus_error_strip_remote_error (error);
+			nm_log_warn (LOGD_BT, "Couldn't get managed objects: %s", error->message);
 		}
 		g_clear_error (&error);
 		return;
@@ -233,10 +213,13 @@ get_managed_objects_cb (GDBusProxy *proxy,
 		                            G_VARIANT_TYPE_DICTIONARY)) {
 			device_added (proxy, path, self);
 		}
+		g_variant_unref (ifaces);
 	}
 
 	g_variant_unref (variant);
 }
+
+static void name_owner_changed_cb (GObject *object, GParamSpec *pspec, gpointer user_data);
 
 static void
 on_proxy_acquired (GObject *object,
@@ -249,11 +232,13 @@ on_proxy_acquired (GObject *object,
 	priv->proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
 
 	if (!priv->proxy) {
-		nm_log_warn (LOGD_BT, "Couldn't acquire object manager proxy: %s",
-		             error && error->message ? error->message : "(unknown)");
+		nm_log_warn (LOGD_BT, "Couldn't acquire object manager proxy: %s", error->message);
 		g_clear_error (&error);
 		return;
 	}
+
+	g_signal_connect (priv->proxy, "notify::g-name-owner",
+	                  G_CALLBACK (name_owner_changed_cb), self);
 
 	/* Get already managed devices. */
 	g_dbus_proxy_call (priv->proxy, "GetManagedObjects",
@@ -264,8 +249,10 @@ on_proxy_acquired (GObject *object,
 	                   (GAsyncReadyCallback) get_managed_objects_cb,
 	                   self);
 
-	g_signal_connect (priv->proxy, "g-signal",
-	                  G_CALLBACK (object_manager_g_signal), self);
+	_nm_dbus_signal_connect (priv->proxy, "InterfacesAdded", G_VARIANT_TYPE ("(oa{sa{sv}})"),
+	                         G_CALLBACK (object_manager_interfaces_added), self);
+	_nm_dbus_signal_connect (priv->proxy, "InterfacesRemoved", G_VARIANT_TYPE ("(oas)"),
+	                         G_CALLBACK (object_manager_interfaces_removed), self);
 }
 
 static void
@@ -287,24 +274,19 @@ bluez_connect (NMBluez5Manager *self)
 }
 
 static void
-name_owner_changed_cb (NMDBusManager *dbus_mgr,
-                       const char *name,
-                       const char *old_owner,
-                       const char *new_owner,
+name_owner_changed_cb (GObject *object,
+                       GParamSpec *pspec,
                        gpointer user_data)
 {
 	NMBluez5Manager *self = NM_BLUEZ5_MANAGER (user_data);
 	NMBluez5ManagerPrivate *priv = NM_BLUEZ5_MANAGER_GET_PRIVATE (self);
-	gboolean old_owner_good = (old_owner && strlen (old_owner));
-	gboolean new_owner_good = (new_owner && strlen (new_owner));
+	char *owner;
 
-	/* Can't handle the signal if its not from the Bluez */
-	if (strcmp (BLUEZ_SERVICE, name))
-		return;
-
-	if (old_owner_good && !new_owner_good) {
-		if (priv->devices)
+	if (priv->devices) {
+		owner = g_dbus_proxy_get_name_owner (priv->proxy);
+		if (!owner)
 			remove_all_devices (self);
+		g_free (owner);
 	}
 }
 
@@ -314,27 +296,14 @@ bluez_cleanup (NMBluez5Manager *self, gboolean do_signal)
 	NMBluez5ManagerPrivate *priv = NM_BLUEZ5_MANAGER_GET_PRIVATE (self);
 
 	if (priv->proxy) {
-		g_object_unref (priv->proxy);
-		priv->proxy = NULL;
+		g_signal_handlers_disconnect_by_func (priv->proxy, G_CALLBACK (name_owner_changed_cb), self);
+		g_clear_object (&priv->proxy);
 	}
 
 	if (do_signal)
 		remove_all_devices (self);
 	else
 		g_hash_table_remove_all (priv->devices);
-}
-
-static void
-dbus_connection_changed_cb (NMDBusManager *dbus_mgr,
-                            DBusGConnection *connection,
-                            gpointer user_data)
-{
-	NMBluez5Manager *self = NM_BLUEZ5_MANAGER (user_data);
-
-	if (!connection)
-		bluez_cleanup (self, TRUE);
-	else
-		bluez_connect (self);
 }
 
 /****************************************************************/
@@ -354,19 +323,6 @@ nm_bluez5_manager_init (NMBluez5Manager *self)
 {
 	NMBluez5ManagerPrivate *priv = NM_BLUEZ5_MANAGER_GET_PRIVATE (self);
 
-	priv->dbus_mgr = nm_dbus_manager_get ();
-	g_assert (priv->dbus_mgr);
-
-	g_signal_connect (priv->dbus_mgr,
-	                  NM_DBUS_MANAGER_NAME_OWNER_CHANGED,
-	                  G_CALLBACK (name_owner_changed_cb),
-	                  self);
-
-	g_signal_connect (priv->dbus_mgr,
-	                  NM_DBUS_MANAGER_DBUS_CONNECTION_CHANGED,
-	                  G_CALLBACK (dbus_connection_changed_cb),
-	                  self);
-
 	bluez_connect (self);
 
 	priv->devices = g_hash_table_new_full (g_str_hash, g_str_equal,
@@ -377,15 +333,8 @@ static void
 dispose (GObject *object)
 {
 	NMBluez5Manager *self = NM_BLUEZ5_MANAGER (object);
-	NMBluez5ManagerPrivate *priv = NM_BLUEZ5_MANAGER_GET_PRIVATE (self);
 
 	bluez_cleanup (self, FALSE);
-
-	if (priv->dbus_mgr) {
-		g_signal_handlers_disconnect_by_func (priv->dbus_mgr, name_owner_changed_cb, self);
-		g_signal_handlers_disconnect_by_func (priv->dbus_mgr, dbus_connection_changed_cb, self);
-		priv->dbus_mgr = NULL;
-	}
 
 	G_OBJECT_CLASS (nm_bluez5_manager_parent_class)->dispose (object);
 }

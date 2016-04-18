@@ -18,20 +18,15 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <signal.h>
 
-#include <NetworkManager.h>
+#include "nm-test-libnm-utils.h"
 
-#include "common.h"
-
-#include "nm-test-utils.h"
-
-static NMTestServiceInfo *sinfo;
+static NMTstcServiceInfo *sinfo;
 static NMClient *client = NULL;
 GDBusConnection *bus = NULL;
 NMRemoteConnection *remote = NULL;
@@ -502,6 +497,8 @@ test_save_hostname (void)
 
 /*******************************************************************/
 
+NMTST_DEFINE ();
+
 int
 main (int argc, char **argv)
 {
@@ -510,16 +507,12 @@ main (int argc, char **argv)
 
 	g_setenv ("LIBNM_USE_SESSION_BUS", "1", TRUE);
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
-	
-	g_test_init (&argc, &argv, NULL);
+	nmtst_init (&argc, &argv, TRUE);
 
 	bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
 	g_assert_no_error (error);
 
-	sinfo = nm_test_service_init ();
+	sinfo = nmtstc_service_init ();
 
 	client = nm_client_new (NULL, &error);
 	g_assert_no_error (error);
@@ -538,7 +531,7 @@ main (int argc, char **argv)
 
 	ret = g_test_run ();
 
-	nm_test_service_cleanup (sinfo);
+	nmtstc_service_cleanup (sinfo);
 	g_object_unref (client);
 	g_object_unref (bus);
 

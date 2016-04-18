@@ -18,17 +18,17 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glib.h>
-#include <glib-object.h>
 
 #include "nm-core-internal.h"
 #include "nm-dispatcher-utils.h"
 #include "nm-dispatcher-api.h"
+
+#include "nm-test-utils.h"
 
 /*******************************************/
 
@@ -81,13 +81,21 @@ parse_main (GKeyFile *kf,
 
 	g_variant_builder_init (&props, G_VARIANT_TYPE ("a{sv}"));
 	g_variant_builder_add (&props, "{sv}",
-	                       "connection-path",
+	                       NMD_CONNECTION_PROPS_PATH,
 	                       g_variant_new_object_path ("/org/freedesktop/NetworkManager/Connections/5"));
+
 	/* Strip out the non-fixed portion of the filename */
 	filename = strstr (filename, "/callouts");
 	g_variant_builder_add (&props, "{sv}",
 	                       "filename",
 	                       g_variant_new_string (filename));
+
+	if (g_key_file_get_boolean (kf, "main", "external", NULL)) {
+		g_variant_builder_add (&props, "{sv}",
+		                       "external",
+		                       g_variant_new_boolean (TRUE));
+	}
+
 	*out_con_props = g_variant_builder_end (&props);
 
 	return TRUE;
@@ -449,6 +457,7 @@ test_generic (const char *file, const char *override_vpn_ip_iface)
 	char *expected_iface = NULL;
 	char *action = NULL;
 	char *out_iface = NULL;
+	const char *error_message = NULL;
 	GHashTable *expected_env = NULL;
 	GError *error = NULL;
 	gboolean success;
@@ -488,7 +497,13 @@ test_generic (const char *file, const char *override_vpn_ip_iface)
 	                                           override_vpn_ip_iface ? override_vpn_ip_iface : vpn_ip_iface,
 	                                           vpn_ip4_props,
 	                                           vpn_ip6_props,
-	                                           &out_iface);
+	                                           &out_iface,
+	                                           &error_message);
+
+	g_assert ((!denv && error_message) || (denv && !error_message));
+
+	if (error_message)
+		g_warning ("%s", error_message);
 
 	/* Print out environment for now */
 #ifdef DEBUG
@@ -581,6 +596,12 @@ test_vpn_down (void)
 }
 
 static void
+test_external (void)
+{
+	test_generic ("dispatcher-external", NULL);
+}
+
+static void
 test_up_empty_vpn_iface (void)
 {
 	/* Test that an empty VPN iface variable, like is passed through D-Bus
@@ -591,19 +612,18 @@ test_up_empty_vpn_iface (void)
 
 /*******************************************/
 
+NMTST_DEFINE ();
+
 int
 main (int argc, char **argv)
 {
-	g_test_init (&argc, &argv, NULL);
-
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
+	nmtst_init (&argc, &argv, TRUE);
 
 	g_test_add_func ("/dispatcher/up", test_up);
 	g_test_add_func ("/dispatcher/down", test_down);
 	g_test_add_func ("/dispatcher/vpn_up", test_vpn_up);
 	g_test_add_func ("/dispatcher/vpn_down", test_vpn_down);
+	g_test_add_func ("/dispatcher/external", test_external);
 
 	g_test_add_func ("/dispatcher/up_empty_vpn_iface", test_up_empty_vpn_iface);
 

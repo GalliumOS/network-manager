@@ -92,6 +92,7 @@ host_triplet = @host@
 @ENABLE_TESTS_TRUE@	test-crypto$(EXEEXT) test-general$(EXEEXT) \
 @ENABLE_TESTS_TRUE@	test-keyfile$(EXEEXT) test-secrets$(EXEEXT) \
 @ENABLE_TESTS_TRUE@	test-setting-8021x$(EXEEXT) \
+@ENABLE_TESTS_TRUE@	test-setting-bond$(EXEEXT) \
 @ENABLE_TESTS_TRUE@	test-setting-dcb$(EXEEXT) \
 @ENABLE_TESTS_TRUE@	test-settings-defaults$(EXEEXT)
 subdir = libnm-core/tests
@@ -134,8 +135,11 @@ test_crypto_LDADD = $(LDADD)
 @ENABLE_TESTS_TRUE@test_crypto_DEPENDENCIES =  \
 @ENABLE_TESTS_TRUE@	$(top_builddir)/libnm-core/libnm-core.la \
 @ENABLE_TESTS_TRUE@	$(am__DEPENDENCIES_1)
-test_general_SOURCES = test-general.c
-test_general_OBJECTS = test-general.$(OBJEXT)
+am__test_general_SOURCES_DIST = test-general.c test-general-enums.h \
+	nm-core-tests-enum-types.c nm-core-tests-enum-types.h
+@ENABLE_TESTS_TRUE@am_test_general_OBJECTS = test-general.$(OBJEXT) \
+@ENABLE_TESTS_TRUE@	nm-core-tests-enum-types.$(OBJEXT)
+test_general_OBJECTS = $(am_test_general_OBJECTS)
 test_general_LDADD = $(LDADD)
 @ENABLE_TESTS_TRUE@test_general_DEPENDENCIES =  \
 @ENABLE_TESTS_TRUE@	$(top_builddir)/libnm-core/libnm-core.la \
@@ -156,6 +160,12 @@ test_setting_8021x_SOURCES = test-setting-8021x.c
 test_setting_8021x_OBJECTS = test-setting-8021x.$(OBJEXT)
 test_setting_8021x_LDADD = $(LDADD)
 @ENABLE_TESTS_TRUE@test_setting_8021x_DEPENDENCIES =  \
+@ENABLE_TESTS_TRUE@	$(top_builddir)/libnm-core/libnm-core.la \
+@ENABLE_TESTS_TRUE@	$(am__DEPENDENCIES_1)
+test_setting_bond_SOURCES = test-setting-bond.c
+test_setting_bond_OBJECTS = test-setting-bond.$(OBJEXT)
+test_setting_bond_LDADD = $(LDADD)
+@ENABLE_TESTS_TRUE@test_setting_bond_DEPENDENCIES =  \
 @ENABLE_TESTS_TRUE@	$(top_builddir)/libnm-core/libnm-core.la \
 @ENABLE_TESTS_TRUE@	$(am__DEPENDENCIES_1)
 test_setting_dcb_SOURCES = test-setting-dcb.c
@@ -204,12 +214,14 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = test-compare.c test-crypto.c test-general.c test-keyfile.c \
-	test-secrets.c test-setting-8021x.c test-setting-dcb.c \
-	test-settings-defaults.c
-DIST_SOURCES = test-compare.c test-crypto.c test-general.c \
+SOURCES = test-compare.c test-crypto.c $(test_general_SOURCES) \
 	test-keyfile.c test-secrets.c test-setting-8021x.c \
-	test-setting-dcb.c test-settings-defaults.c
+	test-setting-bond.c test-setting-dcb.c \
+	test-settings-defaults.c
+DIST_SOURCES = test-compare.c test-crypto.c \
+	$(am__test_general_SOURCES_DIST) test-keyfile.c test-secrets.c \
+	test-setting-8021x.c test-setting-bond.c test-setting-dcb.c \
+	test-settings-defaults.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -456,7 +468,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -468,8 +479,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -479,6 +488,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -533,16 +543,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -563,6 +570,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -578,6 +586,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -606,7 +616,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -621,6 +630,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -681,6 +692,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -688,6 +700,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -703,13 +716,18 @@ with_dhcpcd = @with_dhcpcd@
 with_netconfig = @with_netconfig@
 with_resolvconf = @with_resolvconf@
 with_valgrind = @with_valgrind@
+GLIB_GENERATED = nm-core-tests-enum-types.h nm-core-tests-enum-types.c
+nm_core_tests_enum_types_sources = test-general-enums.h
+GLIB_MKENUMS_H_FLAGS = --identifier-prefix NM
+GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM
+BUILT_SOURCES = $(GLIB_GENERATED)
 @ENABLE_TESTS_TRUE@certsdir = $(srcdir)/certs
 @ENABLE_TESTS_TRUE@AM_CPPFLAGS = \
-@ENABLE_TESTS_TRUE@	-I${top_srcdir}/include \
+@ENABLE_TESTS_TRUE@	-I${top_srcdir}/shared \
+@ENABLE_TESTS_TRUE@	-I${top_builddir}/shared \
 @ENABLE_TESTS_TRUE@	-I$(top_srcdir)/libnm-core \
 @ENABLE_TESTS_TRUE@	-I$(top_builddir)/libnm-core \
 @ENABLE_TESTS_TRUE@	-DNETWORKMANAGER_COMPILATION \
-@ENABLE_TESTS_TRUE@	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 @ENABLE_TESTS_TRUE@	$(GLIB_CFLAGS) \
 @ENABLE_TESTS_TRUE@	-DTEST_CERT_DIR=\"$(certsdir)\"
 
@@ -718,6 +736,12 @@ with_valgrind = @with_valgrind@
 @ENABLE_TESTS_TRUE@	$(GLIB_LIBS)
 
 @ENABLE_TESTS_TRUE@TESTS = $(noinst_PROGRAMS)
+@ENABLE_TESTS_TRUE@test_general_SOURCES = \
+@ENABLE_TESTS_TRUE@	test-general.c \
+@ENABLE_TESTS_TRUE@	test-general-enums.h \
+@ENABLE_TESTS_TRUE@	nm-core-tests-enum-types.c \
+@ENABLE_TESTS_TRUE@	nm-core-tests-enum-types.h
+
 
 # test-cert.p12 created with:
 #
@@ -746,7 +770,8 @@ EXTRA_DIST = \
 	certs/test-key-only-decrypted.pem   \
 	certs/test-key-only.pem
 
-all: all-am
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .log .o .obj .test .test$(EXEEXT) .trs
@@ -813,6 +838,10 @@ test-setting-8021x$(EXEEXT): $(test_setting_8021x_OBJECTS) $(test_setting_8021x_
 	@rm -f test-setting-8021x$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_setting_8021x_OBJECTS) $(test_setting_8021x_LDADD) $(LIBS)
 
+test-setting-bond$(EXEEXT): $(test_setting_bond_OBJECTS) $(test_setting_bond_DEPENDENCIES) $(EXTRA_test_setting_bond_DEPENDENCIES) 
+	@rm -f test-setting-bond$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(test_setting_bond_OBJECTS) $(test_setting_bond_LDADD) $(LIBS)
+
 test-setting-dcb$(EXEEXT): $(test_setting_dcb_OBJECTS) $(test_setting_dcb_DEPENDENCIES) $(EXTRA_test_setting_dcb_DEPENDENCIES) 
 	@rm -f test-setting-dcb$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(test_setting_dcb_OBJECTS) $(test_setting_dcb_LDADD) $(LIBS)
@@ -827,12 +856,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-core-tests-enum-types.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-compare.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-crypto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-general.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-keyfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-secrets.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-setting-8021x.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-setting-bond.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-setting-dcb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test-settings-defaults.Po@am__quote@
 
@@ -1098,6 +1129,13 @@ test-setting-8021x.log: test-setting-8021x$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+test-setting-bond.log: test-setting-bond$(EXEEXT)
+	@p='test-setting-bond$(EXEEXT)'; \
+	b='test-setting-bond'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 test-setting-dcb.log: test-setting-dcb$(EXEEXT)
 	@p='test-setting-dcb$(EXEEXT)'; \
 	b='test-setting-dcb'; \
@@ -1159,10 +1197,12 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(PROGRAMS)
 installdirs:
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -1195,6 +1235,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-noinstPROGRAMS \
@@ -1266,7 +1307,7 @@ ps-am:
 
 uninstall-am:
 
-.MAKE: check-am install-am install-strip
+.MAKE: all check check-am install install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-TESTS check-am clean \
 	clean-generic clean-libtool clean-noinstPROGRAMS cscopelist-am \
@@ -1284,6 +1325,7 @@ uninstall-am:
 
 .PRECIOUS: Makefile
 
+include $(GLIB_MAKEFILE)
 
 @ENABLE_TESTS_TRUE@@VALGRIND_RULES@
 

@@ -15,29 +15,22 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2011 - 2012 Red Hat, Inc.
+ * Copyright 2011 - 2015 Red Hat, Inc.
  */
 
-#include "config.h"
-
-#include <glib.h>
-#include <glib/gi18n.h>
+#include "nm-default.h"
 
 #include <stdlib.h>
 
-#include "gsystem-local-alloc.h"
 #include "nm-device-bridge.h"
-#include "nm-logging.h"
 #include "NetworkManagerUtils.h"
 #include "nm-device-private.h"
-#include "nm-dbus-glib-types.h"
-#include "nm-dbus-manager.h"
 #include "nm-enum-types.h"
 #include "nm-platform.h"
 #include "nm-device-factory.h"
 #include "nm-core-internal.h"
 
-#include "nm-device-bridge-glue.h"
+#include "nmdbus-device-bridge.h"
 
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceBridge);
@@ -49,13 +42,6 @@ G_DEFINE_TYPE (NMDeviceBridge, nm_device_bridge, NM_TYPE_DEVICE)
 typedef struct {
 	int dummy;
 } NMDeviceBridgePrivate;
-
-enum {
-	PROP_0,
-	PROP_SLAVES,
-
-	LAST_PROP
-};
 
 /******************************************************************/
 
@@ -86,7 +72,6 @@ check_connection_available (NMDevice *device,
 static gboolean
 check_connection_compatible (NMDevice *device, NMConnection *connection)
 {
-	const char *iface;
 	NMSettingBridge *s_bridge;
 	const char *mac_address;
 
@@ -97,13 +82,8 @@ check_connection_compatible (NMDevice *device, NMConnection *connection)
 	if (!s_bridge || !nm_connection_is_type (connection, NM_SETTING_BRIDGE_SETTING_NAME))
 		return FALSE;
 
-	/* Bridge connections must specify the virtual interface name */
-	iface = nm_connection_get_interface_name (connection);
-	if (!iface || strcmp (nm_device_get_iface (device), iface))
-		return FALSE;
-
 	mac_address = nm_setting_bridge_get_mac_address (s_bridge);
-	if (mac_address) {
+	if (mac_address && nm_device_is_real (device)) {
 		const char *hw_addr;
 
 		hw_addr = nm_device_get_hw_address (device);
@@ -123,7 +103,8 @@ complete_connection (NMDevice *device,
 {
 	NMSettingBridge *s_bridge;
 
-	nm_utils_complete_generic (connection,
+	nm_utils_complete_generic (NM_PLATFORM_GET,
+	                           connection,
 	                           NM_SETTING_BRIDGE_SETTING_NAME,
 	                           existing_connections,
 	                           NULL,
@@ -156,6 +137,7 @@ static const Option master_options[] = {
 	{ NM_SETTING_BRIDGE_HELLO_TIME, "hello_time", TRUE, TRUE },
 	{ NM_SETTING_BRIDGE_MAX_AGE, "max_age", TRUE, TRUE },
 	{ NM_SETTING_BRIDGE_AGEING_TIME, "ageing_time", TRUE, TRUE },
+	{ NM_SETTING_BRIDGE_MULTICAST_SNOOPING, "multicast_snooping", FALSE, FALSE },
 	{ NULL, NULL }
 };
 
@@ -211,9 +193,9 @@ commit_option (NMDevice *device, NMSetting *setting, const Option *option, gbool
 
 	value = g_strdup_printf ("%u", uval);
 	if (slave)
-		nm_platform_slave_set_option (NM_PLATFORM_GET, ifindex, option->sysname, value);
+		nm_platform_sysctl_slave_set_option (NM_PLATFORM_GET, ifindex, option->sysname, value);
 	else
-		nm_platform_master_set_option (NM_PLATFORM_GET, ifindex, option->sysname, value);
+		nm_platform_sysctl_master_set_option (NM_PLATFORM_GET, ifindex, option->sysname, value);
 }
 
 static void
@@ -257,7 +239,7 @@ update_connection (NMDevice *device, NMConnection *connection)
 	}
 
 	for (option = master_options; option->name; option++) {
-		gs_free char *str = nm_platform_master_get_option (NM_PLATFORM_GET, ifindex, option->sysname);
+		gs_free char *str = nm_platform_sysctl_master_get_option (NM_PLATFORM_GET, ifindex, option->sysname);
 		int value;
 
 		if (str) {
@@ -296,7 +278,7 @@ master_update_slave_connection (NMDevice *device,
 	}
 
 	for (option = slave_options; option->name; option++) {
-		gs_free char *str = nm_platform_slave_get_option (NM_PLATFORM_GET, ifindex_slave, option->sysname);
+		gs_free char *str = nm_platform_sysctl_slave_get_option (NM_PLATFORM_GET, ifindex_slave, option->sysname);
 		int value;
 
 		if (str) {
@@ -322,7 +304,7 @@ static NMActStageReturn
 act_stage1_prepare (NMDevice *device, NMDeviceStateReason *reason)
 {
 	NMActStageReturn ret;
-	NMConnection *connection = nm_device_get_connection (device);
+	NMConnection *connection = nm_device_get_applied_connection (device);
 
 	g_assert (connection);
 
@@ -356,18 +338,16 @@ enslave_slave (NMDevice *device,
 		       nm_device_get_ip_iface (slave));
 	}
 
-	g_object_notify (G_OBJECT (device), NM_DEVICE_BRIDGE_SLAVES);
-
 	return TRUE;
 }
 
-static gboolean
+static void
 release_slave (NMDevice *device,
                NMDevice *slave,
                gboolean configure)
 {
 	NMDeviceBridge *self = NM_DEVICE_BRIDGE (device);
-	gboolean success = TRUE;
+	gboolean success;
 
 	if (configure) {
 		success = nm_platform_link_release (NM_PLATFORM_GET,
@@ -385,9 +365,50 @@ release_slave (NMDevice *device,
 		_LOGI (LOGD_BRIDGE, "bridge port %s was detached",
 		       nm_device_get_ip_iface (slave));
 	}
+}
 
-	g_object_notify (G_OBJECT (device), NM_DEVICE_BRIDGE_SLAVES);
-	return success;
+static gboolean
+create_and_realize (NMDevice *device,
+                    NMConnection *connection,
+                    NMDevice *parent,
+                    const NMPlatformLink **out_plink,
+                    GError **error)
+{
+	NMSettingBridge *s_bridge;
+	const char *iface = nm_device_get_iface (device);
+	const char *hwaddr;
+	guint8 mac_address[NM_UTILS_HWADDR_LEN_MAX];
+	NMPlatformError plerr;
+
+	g_assert (iface);
+
+	s_bridge = nm_connection_get_setting_bridge (connection);
+	g_assert (s_bridge);
+	hwaddr = nm_setting_bridge_get_mac_address (s_bridge);
+	if (hwaddr) {
+		if (!nm_utils_hwaddr_aton (hwaddr, mac_address, ETH_ALEN)) {
+			g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
+			             "Invalid hardware address '%s'",
+			             hwaddr);
+			return FALSE;
+		}
+	}
+
+	plerr = nm_platform_link_bridge_add (NM_PLATFORM_GET,
+	                                     iface,
+	                                     hwaddr ? mac_address : NULL,
+	                                     hwaddr ? ETH_ALEN : 0,
+	                                     out_plink);
+	if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+		             "Failed to create bridge interface '%s' for '%s': %s",
+		             iface,
+		             nm_connection_get_id (connection),
+		             nm_platform_error_to_string (plerr));
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 /******************************************************************/
@@ -398,39 +419,6 @@ nm_device_bridge_init (NMDeviceBridge * self)
 }
 
 static void
-get_property (GObject *object, guint prop_id,
-              GValue *value, GParamSpec *pspec)
-{
-	GPtrArray *slaves;
-	GSList *list, *iter;
-
-	switch (prop_id) {
-	case PROP_SLAVES:
-		slaves = g_ptr_array_new ();
-		list = nm_device_master_get_slaves (NM_DEVICE (object));
-		for (iter = list; iter; iter = iter->next)
-			g_ptr_array_add (slaves, g_strdup (nm_device_get_path (NM_DEVICE (iter->data))));
-		g_slist_free (list);
-		g_value_take_boxed (value, slaves);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
-
-static void
-set_property (GObject *object, guint prop_id,
-			  const GValue *value, GParamSpec *pspec)
-{
-	switch (prop_id) {
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
-
-static void
 nm_device_bridge_class_init (NMDeviceBridgeClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -438,11 +426,7 @@ nm_device_bridge_class_init (NMDeviceBridgeClass *klass)
 
 	g_type_class_add_private (object_class, sizeof (NMDeviceBridgePrivate));
 
-	parent_class->connection_type = NM_SETTING_BRIDGE_SETTING_NAME;
-
-	/* virtual methods */
-	object_class->get_property = get_property;
-	object_class->set_property = set_property;
+	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NM_SETTING_BRIDGE_SETTING_NAME, NM_LINK_TYPE_BRIDGE)
 
 	parent_class->get_generic_capabilities = get_generic_capabilities;
 	parent_class->is_available = is_available;
@@ -453,21 +437,14 @@ nm_device_bridge_class_init (NMDeviceBridgeClass *klass)
 	parent_class->update_connection = update_connection;
 	parent_class->master_update_slave_connection = master_update_slave_connection;
 
+	parent_class->create_and_realize = create_and_realize;
 	parent_class->act_stage1_prepare = act_stage1_prepare;
 	parent_class->enslave_slave = enslave_slave;
 	parent_class->release_slave = release_slave;
 
-	/* properties */
-	g_object_class_install_property
-		(object_class, PROP_SLAVES,
-		 g_param_spec_boxed (NM_DEVICE_BRIDGE_SLAVES, "", "",
-		                     DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
-
-	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
-	                                        G_TYPE_FROM_CLASS (klass),
-	                                        &dbus_glib_nm_device_bridge_object_info);
+	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
+	                                        NMDBUS_TYPE_DEVICE_BRIDGE_SKELETON,
+	                                        NULL);
 }
 
 /*************************************************************/
@@ -476,59 +453,18 @@ nm_device_bridge_class_init (NMDeviceBridgeClass *klass)
 #define NM_BRIDGE_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_BRIDGE_FACTORY, NMBridgeFactory))
 
 static NMDevice *
-new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
+create_device (NMDeviceFactory *factory,
+               const char *iface,
+               const NMPlatformLink *plink,
+               NMConnection *connection,
+               gboolean *out_ignore)
 {
-	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_BRIDGE,
-	                                  NM_DEVICE_PLATFORM_DEVICE, plink,
-	                                  NM_DEVICE_DRIVER, "bridge",
-	                                  NM_DEVICE_TYPE_DESC, "Bridge",
-	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_BRIDGE,
-	                                  NM_DEVICE_IS_MASTER, TRUE,
-	                                  NULL);
-}
-
-static NMDevice *
-create_virtual_device_for_connection (NMDeviceFactory *factory,
-                                      NMConnection *connection,
-                                      NMDevice *parent,
-                                      GError **error)
-{
-	const char *iface = nm_connection_get_interface_name (connection);
-	NMSettingBridge *s_bridge;
-	const char *mac_address_str;
-	guint8 mac_address[NM_UTILS_HWADDR_LEN_MAX];
-	NMPlatformError plerr;
-
-	g_assert (iface);
-
-	s_bridge = nm_connection_get_setting_bridge (connection);
-	g_assert (s_bridge);
-
-	mac_address_str = nm_setting_bridge_get_mac_address (s_bridge);
-	if (mac_address_str) {
-		if (!nm_utils_hwaddr_aton (mac_address_str, mac_address, ETH_ALEN))
-			mac_address_str = NULL;
-	}
-
-	plerr = nm_platform_bridge_add (NM_PLATFORM_GET,
-	                                iface,
-	                                mac_address_str ? mac_address : NULL,
-	                                mac_address_str ? ETH_ALEN : 0,
-	                                NULL);
-	if (plerr != NM_PLATFORM_ERROR_SUCCESS && plerr != NM_PLATFORM_ERROR_EXISTS) {
-		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
-		             "Failed to create bridge interface '%s' for '%s': %s",
-		             iface,
-		             nm_connection_get_id (connection),
-		             nm_platform_error_to_string (plerr));
-		return NULL;
-	}
-
 	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_BRIDGE,
 	                                  NM_DEVICE_IFACE, iface,
 	                                  NM_DEVICE_DRIVER, "bridge",
 	                                  NM_DEVICE_TYPE_DESC, "Bridge",
 	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_BRIDGE,
+	                                  NM_DEVICE_LINK_TYPE, NM_LINK_TYPE_BRIDGE,
 	                                  NM_DEVICE_IS_MASTER, TRUE,
 	                                  NULL);
 }
@@ -536,7 +472,6 @@ create_virtual_device_for_connection (NMDeviceFactory *factory,
 NM_DEVICE_FACTORY_DEFINE_INTERNAL (BRIDGE, Bridge, bridge,
 	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES    (NM_LINK_TYPE_BRIDGE)
 	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_BRIDGE_SETTING_NAME),
-	factory_iface->new_link = new_link;
-	factory_iface->create_virtual_device_for_connection = create_virtual_device_for_connection;
+	factory_iface->create_device = create_device;
 	)
 

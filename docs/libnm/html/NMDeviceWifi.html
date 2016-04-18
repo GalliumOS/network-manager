@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
-<link rel="prev" href="NMDeviceVlan.html" title="NMDeviceVlan">
+<link rel="prev" href="NMDeviceVxlan.html" title="NMDeviceVxlan">
 <link rel="next" href="NMDeviceWimax.html" title="NMDeviceWimax">
 <meta name="generator" content="GTK-Doc V1.24 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -22,7 +22,7 @@
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="NMDeviceVlan.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NMDeviceVxlan.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="NMDeviceWimax.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -113,10 +113,26 @@
 </tr>
 <tr>
 <td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceWifi.html#nm-device-wifi-request-scan-options" title="nm_device_wifi_request_scan_options ()">nm_device_wifi_request_scan_options</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
 <span class="returnvalue">void</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceWifi.html#nm-device-wifi-request-scan-async" title="nm_device_wifi_request_scan_async ()">nm_device_wifi_request_scan_async</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceWifi.html#nm-device-wifi-request-scan-options-async" title="nm_device_wifi_request_scan_options_async ()">nm_device_wifi_request_scan_options_async</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -261,7 +277,7 @@
 nm_device_wifi_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the actual hardware (MAC) address of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.14.9.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -276,7 +292,7 @@ nm_device_wifi_get_hw_address (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.2.6"></a><h4>Returns</h4>
 <p> the actual hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -289,7 +305,7 @@ nm_device_wifi_get_permanent_hw_address
                                (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the permanent hardware (MAC) address of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.14.9.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -304,7 +320,7 @@ nm_device_wifi_get_permanent_hw_address
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.3.6"></a><h4>Returns</h4>
 <p> the permanent hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -316,7 +332,7 @@ device, and must not be modified.</p>
 nm_device_wifi_get_mode (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> mode.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -331,7 +347,7 @@ nm_device_wifi_get_mode (<em class="parameter"><code><a class="link" href="NMDev
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.4.6"></a><h4>Returns</h4>
 <p> the mode</p>
 </div>
 </div>
@@ -342,7 +358,7 @@ nm_device_wifi_get_mode (<em class="parameter"><code><a class="link" href="NMDev
 nm_device_wifi_get_bitrate (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the bit rate of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> in kbit/s.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.5.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -357,7 +373,7 @@ nm_device_wifi_get_bitrate (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.5.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.5.6"></a><h4>Returns</h4>
 <p> the bit rate (kbit/s)</p>
 </div>
 </div>
@@ -368,7 +384,7 @@ nm_device_wifi_get_bitrate (<em class="parameter"><code><a class="link" href="NM
 nm_device_wifi_get_capabilities (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the Wi-Fi capabilities of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.6.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.6.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -383,7 +399,7 @@ nm_device_wifi_get_capabilities (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.6.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.6.6"></a><h4>Returns</h4>
 <p> the capabilities</p>
 </div>
 </div>
@@ -395,7 +411,7 @@ nm_device_wifi_get_active_access_point
                                (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the active <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.7.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.7.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -410,7 +426,7 @@ nm_device_wifi_get_active_access_point
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.7.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.7.6"></a><h4>Returns</h4>
 <p> the access point or <code class="literal">NULL</code> if none is active. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -424,7 +440,7 @@ nm_device_wifi_get_access_point_by_path
                                 <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
 <p>Gets a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> by path.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.8.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.8.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -446,7 +462,7 @@ nm_device_wifi_get_access_point_by_path
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.8.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.8.6"></a><h4>Returns</h4>
 <p> the access point or <code class="literal">NULL</code> if none is found. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -458,7 +474,7 @@ nm_device_wifi_get_access_point_by_path
 nm_device_wifi_get_access_points (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets all the scanned access points of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.9.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.9.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -473,7 +489,7 @@ nm_device_wifi_get_access_points (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.9.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.9.6"></a><h4>Returns</h4>
 <p> a <span class="type">GPtrArray</span> containing all the
 scanned <a href="NMAccessPoint.html"><span class="type">NMAccessPoints</span></a>.
 The returned array is owned by the client and should not be modified. </p>
@@ -492,7 +508,7 @@ nm_device_wifi_request_scan (<em class="parameter"><code><a class="link" href="N
 returns immediately after requesting the scan, and it may take some time
 after that for the scan to complete.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.10.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.10.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -519,11 +535,69 @@ after that for the scan to complete.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.10.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.10.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be
 set.</p>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-wifi-request-scan-options"></a><h3>nm_device_wifi_request_scan_options ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+nm_device_wifi_request_scan_options (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>,
+                                     <em class="parameter"><code><span class="type">GVariant</span> *options</code></em>,
+                                     <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                                     <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Request NM to scan for access points on <em class="parameter"><code>device</code></em>
+. Note that the function
+returns immediately after requesting the scan, and it may take some time
+after that for the scan to complete.
+This is the same as <em class="parameter"><code>nm_device_wifi_request_scan</code></em>
+ except it accepts <em class="parameter"><code>options</code></em>
+
+for the scanning. The argument is the dictionary passed to <code class="function">RequestScan()</code>
+D-Bus call. Valid otions inside the dictionary are:
+'ssids' =&gt; array of SSIDs (saay)</p>
+<div class="refsect3">
+<a name="id-1.5.18.9.11.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>options</p></td>
+<td class="parameter_description"><p>dictionary with options for <code class="function">RequestScan()</code>, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cancellable</p></td>
+<td class="parameter_description"><p>a <span class="type">GCancellable</span>, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>location for a <span class="type">GError</span>, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.5.18.9.11.6"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
+will be
+set.</p>
+</div>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -539,7 +613,7 @@ nm_device_wifi_request_scan_async (<em class="parameter"><code><a class="link" h
 called immediately after requesting the scan, and it may take some time after
 that for the scan to complete.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.11.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.12.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -574,6 +648,67 @@ that for the scan to complete.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-device-wifi-request-scan-options-async"></a><h3>nm_device_wifi_request_scan_options_async ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+nm_device_wifi_request_scan_options_async
+                               (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>,
+                                <em class="parameter"><code><span class="type">GVariant</span> *options</code></em>,
+                                <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                                <em class="parameter"><code><span class="type">GAsyncReadyCallback</span> callback</code></em>,
+                                <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+<p>Request NM to scan for access points on <em class="parameter"><code>device</code></em>
+. Note that <em class="parameter"><code>callback</code></em>
+ will be
+called immediately after requesting the scan, and it may take some time after
+that for the scan to complete.
+This is the same as <em class="parameter"><code>nm_device_wifi_request_scan_async</code></em>
+ except it accepts <em class="parameter"><code>options</code></em>
+
+for the scanning. The argument is the dictionary passed to <code class="function">RequestScan()</code>
+D-Bus call. Valid otions inside the dictionary are:
+'ssids' =&gt; array of SSIDs (saay)</p>
+<div class="refsect3">
+<a name="id-1.5.18.9.13.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>options</p></td>
+<td class="parameter_description"><p>dictionary with options for <code class="function">RequestScan()</code>, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cancellable</p></td>
+<td class="parameter_description"><p>a <span class="type">GCancellable</span>, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback</p></td>
+<td class="parameter_description"><p>callback to be called when the scan has been requested</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>caller-specific data passed to <em class="parameter"><code>callback</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-device-wifi-request-scan-finish"></a><h3>nm_device_wifi_request_scan_finish ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_device_wifi_request_scan_finish (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>,
@@ -581,7 +716,7 @@ nm_device_wifi_request_scan_finish (<em class="parameter"><code><a class="link" 
                                     <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMDeviceWifi.html#nm-device-wifi-request-scan-async" title="nm_device_wifi_request_scan_async ()"><code class="function">nm_device_wifi_request_scan_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.12.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.9.14.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -608,7 +743,7 @@ nm_device_wifi_request_scan_finish (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.12.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.9.14.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be
 set.</p>
@@ -725,7 +860,7 @@ user_function (<a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><sp
                <span class="type">gpointer</span>      user_data)</pre>
 <p>Notifies that a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> is added to the Wi-Fi device.</p>
 <div class="refsect3">
-<a name="id-1.5.14.12.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.12.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -762,7 +897,7 @@ user_function (<a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><sp
                <span class="type">gpointer</span>      user_data)</pre>
 <p>Notifies that a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> is removed from the Wi-Fi device.</p>
 <div class="refsect3">
-<a name="id-1.5.14.12.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.12.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">

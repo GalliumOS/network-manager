@@ -11,14 +11,14 @@ Bug: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1461593
 ---
 
 ---
- src/nm-policy.c |   38 ++++++++++++++++++++++++++++++--------
- 1 file changed, 30 insertions(+), 8 deletions(-)
+ src/nm-policy.c |   36 +++++++++++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 7 deletions(-)
 
 Index: b/src/nm-policy.c
 ===================================================================
 --- a/src/nm-policy.c
 +++ b/src/nm-policy.c
-@@ -895,7 +895,7 @@ sleeping_changed (NMManager *manager, GP
+@@ -901,7 +901,7 @@ sleeping_changed (NMManager *manager, GP
  }
  
  static void
@@ -27,7 +27,7 @@ Index: b/src/nm-policy.c
  {
  	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (policy);
  	ActivateData *data;
-@@ -924,7 +924,12 @@ schedule_activate_check (NMPolicy *polic
+@@ -930,7 +930,12 @@ schedule_activate_check (NMPolicy *polic
  	data = g_malloc0 (sizeof (ActivateData));
  	data->policy = policy;
  	data->device = g_object_ref (device);
@@ -41,7 +41,7 @@ Index: b/src/nm-policy.c
  	priv->pending_activation_checks = g_slist_append (priv->pending_activation_checks, data);
  }
  
-@@ -1104,6 +1109,7 @@ device_state_changed (NMDevice *device,
+@@ -1125,6 +1130,7 @@ device_state_changed (NMDevice *device,
  	NMIP4Config *ip4_config;
  	NMIP6Config *ip6_config;
  	NMSettingConnection *s_con = NULL;
@@ -49,16 +49,7 @@ Index: b/src/nm-policy.c
  
  	switch (new_state) {
  	case NM_DEVICE_STATE_FAILED:
-@@ -1121,7 +1127,7 @@ device_state_changed (NMDevice *device,
- 
- 				nm_settings_connection_set_autoconnect_blocked_reason (connection, NM_DEVICE_STATE_REASON_NO_SECRETS);
- 			} else if (tries > 0) {
--				nm_log_dbg (LOGD_DEVICE, "Connection '%s' failed to autoconnect; %d tries left",
-+				nm_log_info (LOGD_DEVICE, "Connection '%s' failed to autoconnect; %d tries left",
- 				            nm_connection_get_id (NM_CONNECTION (connection)), tries);
- 				nm_settings_connection_set_autoconnect_retries (connection, tries - 1);
- 			}
-@@ -1132,9 +1138,14 @@ device_state_changed (NMDevice *device,
+@@ -1153,9 +1159,14 @@ device_state_changed (NMDevice *device,
  				/* Schedule a handler to reset retries count */
  				if (!priv->reset_retries_id) {
  					gint32 retry_time = nm_settings_connection_get_autoconnect_retry_time (connection);
@@ -74,7 +65,7 @@ Index: b/src/nm-policy.c
  				}
  			}
  			nm_connection_clear_secrets (NM_CONNECTION (connection));
-@@ -1198,7 +1209,18 @@ device_state_changed (NMDevice *device,
+@@ -1220,7 +1231,18 @@ device_state_changed (NMDevice *device,
  			update_routing_and_dns (policy, FALSE);
  
  		/* Device is now available for auto-activation */
@@ -94,7 +85,7 @@ Index: b/src/nm-policy.c
  		break;
  
  	case NM_DEVICE_STATE_PREPARE:
-@@ -1308,13 +1330,13 @@ device_autoconnect_changed (NMDevice *de
+@@ -1330,13 +1352,13 @@ device_autoconnect_changed (NMDevice *de
                              gpointer user_data)
  {
  	if (nm_device_autoconnect_allowed (device))
@@ -110,7 +101,7 @@ Index: b/src/nm-policy.c
  }
  
  typedef struct {
-@@ -1539,7 +1561,7 @@ schedule_activate_all (NMPolicy *policy)
+@@ -1561,7 +1583,7 @@ schedule_activate_all (NMPolicy *policy)
  	const GSList *iter;
  
  	for (iter = nm_manager_get_devices (priv->manager); iter; iter = g_slist_next (iter))

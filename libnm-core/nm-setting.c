@@ -20,13 +20,12 @@
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
-#include "config.h"
-
-#include <string.h>
-#include <glib/gi18n-lib.h>
-#include <gio/gio.h>
+#include "nm-default.h"
 
 #include "nm-setting.h"
+
+#include <string.h>
+
 #include "nm-setting-private.h"
 #include "nm-utils.h"
 #include "nm-core-internal.h"
@@ -95,9 +94,7 @@ static void
 _ensure_registered (void)
 {
 	if (G_UNLIKELY (registered_settings == NULL)) {
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-		g_type_init ();
-#endif
+		nm_g_type_init ();
 		registered_settings = g_hash_table_new (g_str_hash, g_str_equal);
 		registered_settings_by_type = g_hash_table_new (_nm_gtype_hash, _nm_gtype_equal);
 	}
@@ -777,6 +774,7 @@ _nm_setting_to_dbus (NMSetting *setting, NMConnection *connection, NMConnectionS
  *   mapping property names to values
  * @connection_dict: the #GVariant containing an %NM_VARIANT_TYPE_CONNECTION
  *   dictionary mapping setting names to dictionaries.
+ * @parse_flags: flags to determine behavior during parsing.
  * @error: location to store error, or %NULL
  *
  * Creates a new #NMSetting object and populates that object with the properties
@@ -793,15 +791,19 @@ NMSetting *
 _nm_setting_new_from_dbus (GType setting_type,
                            GVariant *setting_dict,
                            GVariant *connection_dict,
+                           NMSettingParseFlags parse_flags,
                            GError **error)
 {
-	NMSetting *setting;
+	gs_unref_object NMSetting *setting = NULL;
+	gs_unref_hashtable GHashTable *keys = NULL;
 	const NMSettingProperty *properties;
-	guint n_properties;
-	guint i;
+	guint i, n_properties;
 
 	g_return_val_if_fail (G_TYPE_IS_INSTANTIATABLE (setting_type), NULL);
 	g_return_val_if_fail (g_variant_is_of_type (setting_dict, NM_VARIANT_TYPE_SETTING), NULL);
+
+	nm_assert (!NM_FLAGS_ANY (parse_flags, ~NM_SETTING_PARSE_FLAGS_ALL));
+	nm_assert (!NM_FLAGS_ALL (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT | NM_SETTING_PARSE_FLAGS_BEST_EFFORT));
 
 	/* connection_dict is not technically optional, but some tests in test-general
 	 * don't bother with it in cases where they know it's not needed.
@@ -816,19 +818,49 @@ _nm_setting_new_from_dbus (GType setting_type,
 	 */
 	setting = (NMSetting *) g_object_new (setting_type, NULL);
 
+	if (NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT)) {
+		GVariantIter iter;
+		GVariant *entry, *entry_key;
+		char *key;
+
+		keys = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+
+		g_variant_iter_init (&iter, setting_dict);
+		while ((entry = g_variant_iter_next_value (&iter))) {
+			entry_key = g_variant_get_child_value (entry, 0);
+			key = g_strdup (g_variant_get_string (entry_key, NULL));
+			g_variant_unref (entry_key);
+			g_variant_unref (entry);
+
+			if (!nm_g_hash_table_add (keys, key)) {
+				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_SETTING,
+				             _("duplicate property"));
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), key);
+				return NULL;
+			}
+		}
+	}
+
 	properties = nm_setting_class_get_properties (NM_SETTING_GET_CLASS (setting), &n_properties);
 	for (i = 0; i < n_properties; i++) {
 		const NMSettingProperty *property = &properties[i];
-		GVariant *value;
+		gs_unref_variant GVariant *value = NULL;
+		gs_free_error GError *local = NULL;
 
 		if (property->param_spec && !(property->param_spec->flags & G_PARAM_WRITABLE))
 			continue;
 
 		value = g_variant_lookup_value (setting_dict, property->name, NULL);
 
+		if (value && keys)
+			g_hash_table_remove (keys, property->name);
+
 		if (value && property->set_func) {
+
 			if (!g_variant_type_equal (g_variant_get_type (value), property->dbus_type)) {
-			property_type_error:
+				/* for backward behavior, fail unless best-effort is chosen. */
+				if (NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_BEST_EFFORT))
+					continue;
 				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
 				             _("can't set property of type '%s' from value of type '%s'"),
 				             property->dbus_type ?
@@ -837,36 +869,83 @@ _nm_setting_new_from_dbus (GType setting_type,
 				                     g_type_name (property->param_spec->value_type) : "(unknown)",
 				             g_variant_get_type_string (value));
 				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
-
-				g_variant_unref (value);
-				g_object_unref (setting);
 				return NULL;
 			}
 
-			property->set_func (setting,
-			                    connection_dict,
-			                    property->name,
-			                    value);
+			if (!property->set_func (setting,
+			                         connection_dict,
+			                         property->name,
+			                         value,
+			                         parse_flags,
+			                         &local)) {
+				if (!NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT))
+					continue;
+				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("failed to set property: %s"),
+				             local->message);
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
+				return NULL;
+			}
 		} else if (!value && property->not_set_func) {
-			property->not_set_func (setting,
-			                        connection_dict,
-			                        property->name);
+			if (!property->not_set_func (setting,
+			                             connection_dict,
+			                             property->name,
+			                             parse_flags,
+			                             &local)) {
+				if (!NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT))
+					continue;
+				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("failed to set property: %s"),
+				             local->message);
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
+				return NULL;
+			}
 		} else if (value && property->param_spec) {
-			GValue object_value = { 0, };
+			nm_auto_unset_gvalue GValue object_value = G_VALUE_INIT;
 
 			g_value_init (&object_value, property->param_spec->value_type);
-			if (!set_property_from_dbus (property, value, &object_value))
-				goto property_type_error;
+			if (!set_property_from_dbus (property, value, &object_value)) {
+				/* for backward behavior, fail unless best-effort is chosen. */
+				if (NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_BEST_EFFORT))
+					continue;
+				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("can't set property of type '%s' from value of type '%s'"),
+				             property->dbus_type ?
+				                 g_variant_type_peek_string (property->dbus_type) :
+				                 property->param_spec ?
+				                     g_type_name (property->param_spec->value_type) : "(unknown)",
+				             g_variant_get_type_string (value));
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
+				return NULL;
+			}
 
-			g_object_set_property (G_OBJECT (setting), property->param_spec->name, &object_value);
-			g_value_unset (&object_value);
+			if (!nm_g_object_set_property (G_OBJECT (setting), property->param_spec->name, &object_value, &local)) {
+				if (!NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT))
+					continue;
+				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("can not set property: %s"),
+				             local->message);
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
+				return NULL;
+			}
 		}
-
-		if (value)
-			g_variant_unref (value);
 	}
 
-	return setting;
+	if (   NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT)
+	    && g_hash_table_size (keys) > 0) {
+		GHashTableIter iter;
+		const char *key;
+
+		g_hash_table_iter_init (&iter, keys);
+		if (g_hash_table_iter_next (&iter, (gpointer *) &key, NULL)) {
+			g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+			             _("unknown property"));
+			g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), key);
+			return NULL;
+		}
+	}
+
+	return nm_unauto (&setting);
 }
 
 /**
@@ -1012,6 +1091,53 @@ _nm_setting_verify (NMSetting *setting, NMConnection *connection, GError **error
 	return NM_SETTING_VERIFY_SUCCESS;
 }
 
+/**
+ * nm_setting_verify_secrets:
+ * @setting: the #NMSetting to verify secrets in
+ * @connection: (allow-none): the #NMConnection that @setting came from, or
+ *   %NULL if @setting is being verified in isolation.
+ * @error: location to store error, or %NULL
+ *
+ * Verifies the secrets in the setting.
+ * The returned #GError contains information about which secret of the setting
+ * failed validation, and in what way that secret failed validation.
+ * The secret validation is done separately from main setting validation, because
+ * in some cases connection failure is not desired just for the secrets.
+ *
+ * Returns: %TRUE if the setting secrets are valid, %FALSE if they are not
+ *
+ * Since: 1.2
+ **/
+gboolean
+nm_setting_verify_secrets (NMSetting *setting, NMConnection *connection, GError **error)
+{
+	g_return_val_if_fail (NM_IS_SETTING (setting), NM_SETTING_VERIFY_ERROR);
+	g_return_val_if_fail (!connection || NM_IS_CONNECTION (connection), NM_SETTING_VERIFY_ERROR);
+	g_return_val_if_fail (!error || *error == NULL, NM_SETTING_VERIFY_ERROR);
+
+	if (NM_SETTING_GET_CLASS (setting)->verify_secrets)
+		return NM_SETTING_GET_CLASS (setting)->verify_secrets (setting, connection, error);
+
+	return NM_SETTING_VERIFY_SUCCESS;
+}
+
+gboolean
+_nm_setting_verify_secret_string (const char *str,
+                                  const char *setting_name,
+                                  const char *property,
+                                  GError **error)
+{
+	if (str && !*str) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property is empty"));
+		g_prefix_error (error, "%s.%s: ", setting_name, property);
+		return FALSE;
+	}
+	return TRUE;
+}
+
 static gboolean
 compare_property (NMSetting *setting,
                   NMSetting *other,
@@ -1101,15 +1227,20 @@ nm_setting_compare (NMSetting *a,
 		GParamSpec *prop_spec = property_specs[i];
 
 		/* Fuzzy compare ignores secrets and properties defined with the FUZZY_IGNORE flag */
-		if (   (flags & NM_SETTING_COMPARE_FLAG_FUZZY)
-		    && (prop_spec->flags & (NM_SETTING_PARAM_FUZZY_IGNORE | NM_SETTING_PARAM_SECRET)))
+		if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_FUZZY)
+		    && !NM_FLAGS_ANY (prop_spec->flags, NM_SETTING_PARAM_FUZZY_IGNORE | NM_SETTING_PARAM_SECRET))
 			continue;
 
-		if ((flags & NM_SETTING_COMPARE_FLAG_INFERRABLE) && !(prop_spec->flags & NM_SETTING_PARAM_INFERRABLE))
+		if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_INFERRABLE)
+		    && !NM_FLAGS_HAS (prop_spec->flags, NM_SETTING_PARAM_INFERRABLE))
 			continue;
 
-		if (   (flags & NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS)
-		    && (prop_spec->flags & NM_SETTING_PARAM_SECRET))
+		if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_REAPPLY_IMMEDIATELY)
+		    && NM_FLAGS_HAS (prop_spec->flags, NM_SETTING_PARAM_REAPPLY_IMMEDIATELY))
+			continue;
+
+		if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS)
+		    && NM_FLAGS_HAS (prop_spec->flags, NM_SETTING_PARAM_SECRET))
 			continue;
 
 		same = NM_SETTING_GET_CLASS (a)->compare_property (a, b, prop_spec, flags);
@@ -1131,6 +1262,9 @@ should_compare_prop (NMSetting *setting,
 		return FALSE;
 
 	if ((comp_flags & NM_SETTING_COMPARE_FLAG_INFERRABLE) && !(prop_flags & NM_SETTING_PARAM_INFERRABLE))
+		return FALSE;
+
+	if ((comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_REAPPLY_IMMEDIATELY) && !(prop_flags & NM_SETTING_PARAM_REAPPLY_IMMEDIATELY))
 		return FALSE;
 
 	if (prop_flags & NM_SETTING_PARAM_SECRET) {

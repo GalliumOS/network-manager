@@ -19,20 +19,20 @@
  * Copyright (C) 2008 - 2012 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <glib/gstdio.h>
-#include <nm-dbus-interface.h>
-#include <nm-setting-connection.h>
-#include <nm-utils.h>
 
-#include "nm-system-config-interface.h"
-#include "nm-dbus-glib-types.h"
+#include "nm-dbus-interface.h"
+#include "nm-setting-connection.h"
+#include "nm-utils.h"
+
+#include "nm-settings-plugin.h"
 #include "nm-keyfile-connection.h"
 #include "reader.h"
 #include "writer.h"
-#include "common.h"
+#include "utils.h"
 
 G_DEFINE_TYPE (NMKeyfileConnection, nm_keyfile_connection, NM_TYPE_SETTINGS_CONNECTION)
 
@@ -88,6 +88,7 @@ nm_keyfile_connection_new (NMConnection *source,
 
 static void
 commit_changes (NMSettingsConnection *connection,
+                NMSettingsConnectionCommitReason commit_reason,
                 NMSettingsConnectionCommitFunc callback,
                 gpointer user_data)
 {
@@ -96,6 +97,8 @@ commit_changes (NMSettingsConnection *connection,
 
 	if (!nm_keyfile_plugin_write_connection (NM_CONNECTION (connection),
 	                                         nm_settings_connection_get_filename (connection),
+	                                         NM_FLAGS_ALL (commit_reason,   NM_SETTINGS_CONNECTION_COMMIT_REASON_USER_ACTION
+	                                                                      | NM_SETTINGS_CONNECTION_COMMIT_REASON_ID_CHANGED),
 	                                         &path,
 	                                         &error)) {
 		callback (connection, error, user_data);
@@ -104,10 +107,28 @@ commit_changes (NMSettingsConnection *connection,
 	}
 
 	/* Update the filename if it changed */
-	if (path)
+	if (   path
+	    && g_strcmp0 (path, nm_settings_connection_get_filename (connection)) != 0) {
+		gs_free char *old_path = g_strdup (nm_settings_connection_get_filename (connection));
+
 		nm_settings_connection_set_filename (connection, path);
+		if (old_path) {
+			nm_log_info (LOGD_SETTINGS, "keyfile: update "NM_KEYFILE_CONNECTION_LOG_FMT" and rename from \"%s\"",
+			             NM_KEYFILE_CONNECTION_LOG_ARG (connection),
+			             old_path);
+		} else {
+			nm_log_info (LOGD_SETTINGS, "keyfile: update "NM_KEYFILE_CONNECTION_LOG_FMT" and persist connection",
+			             NM_KEYFILE_CONNECTION_LOG_ARG (connection));
+		}
+	} else {
+		nm_log_info (LOGD_SETTINGS, "keyfile: update "NM_KEYFILE_CONNECTION_LOG_FMT,
+		             NM_KEYFILE_CONNECTION_LOG_ARG (connection));
+	}
+
+	g_free (path);
 
 	NM_SETTINGS_CONNECTION_CLASS (nm_keyfile_connection_parent_class)->commit_changes (connection,
+	                                                                                   commit_reason,
 	                                                                                   callback,
 	                                                                                   user_data);
 }

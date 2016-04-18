@@ -21,11 +21,6 @@
 #ifndef __NETWORKMANAGER_BLUEZ_DEVICE_H__
 #define __NETWORKMANAGER_BLUEZ_DEVICE_H__
 
-#include <glib.h>
-#include <glib-object.h>
-#include <gio/gio.h>
-
-#include <config.h>
 #include "nm-connection.h"
 #include "nm-connection-provider.h"
 

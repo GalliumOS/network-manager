@@ -140,7 +140,9 @@ am__nmtui_SOURCES_DIST = nmtui.c nmtui.h nmtui-connect.c \
 	nmt-route-table.h nmt-slave-list.c nmt-slave-list.h \
 	nmt-utils.c nmt-utils.h nmt-widget-list.c nmt-widget-list.h \
 	$(srcdir)/../common/nm-secret-agent-simple.c \
-	$(srcdir)/../common/nm-secret-agent-simple.h
+	$(srcdir)/../common/nm-secret-agent-simple.h \
+	$(srcdir)/../common/nm-vpn-helpers.c \
+	$(srcdir)/../common/nm-vpn-helpers.h
 @BUILD_NMTUI_TRUE@am_nmtui_OBJECTS = nmtui.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	nmtui-connect.$(OBJEXT) nmtui-edit.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	nmtui-hostname.$(OBJEXT) \
@@ -177,7 +179,8 @@ am__nmtui_SOURCES_DIST = nmtui.c nmtui.h nmtui-connect.c \
 @BUILD_NMTUI_TRUE@	nmt-route-table.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	nmt-slave-list.$(OBJEXT) nmt-utils.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	nmt-widget-list.$(OBJEXT) \
-@BUILD_NMTUI_TRUE@	nm-secret-agent-simple.$(OBJEXT)
+@BUILD_NMTUI_TRUE@	nm-secret-agent-simple.$(OBJEXT) \
+@BUILD_NMTUI_TRUE@	nm-vpn-helpers.$(OBJEXT)
 nmtui_OBJECTS = $(am_nmtui_OBJECTS)
 am__DEPENDENCIES_1 =
 @BUILD_NMTUI_TRUE@nmtui_DEPENDENCIES = $(top_builddir)/libnm/libnm.la \
@@ -308,7 +311,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -320,8 +322,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -331,6 +331,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -385,16 +386,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -415,6 +413,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -430,6 +429,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -458,7 +459,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -473,6 +473,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -533,6 +535,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -540,6 +543,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -558,7 +562,8 @@ with_valgrind = @with_valgrind@
 @BUILD_NMTUI_TRUE@SUBDIRS = newt .
 @BUILD_NMTUI_TRUE@AM_CPPFLAGS = \
 @BUILD_NMTUI_TRUE@	-I$(top_srcdir) \
-@BUILD_NMTUI_TRUE@	-I$(top_srcdir)/include \
+@BUILD_NMTUI_TRUE@	-I$(top_srcdir)/shared \
+@BUILD_NMTUI_TRUE@	-I$(top_builddir)/shared \
 @BUILD_NMTUI_TRUE@	-I$(top_srcdir)/libnm-core \
 @BUILD_NMTUI_TRUE@	-I$(top_builddir)/libnm-core \
 @BUILD_NMTUI_TRUE@	-I$(top_srcdir)/libnm \
@@ -569,7 +574,6 @@ with_valgrind = @with_valgrind@
 @BUILD_NMTUI_TRUE@	$(NEWT_CFLAGS) \
 @BUILD_NMTUI_TRUE@	$(GUDEV_CFLAGS) \
 @BUILD_NMTUI_TRUE@	-DG_LOG_DOMAIN=\""nmtui"\" \
-@BUILD_NMTUI_TRUE@	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 @BUILD_NMTUI_TRUE@	-DLOCALEDIR=\""$(localedir)"\" \
 @BUILD_NMTUI_TRUE@	$(NULL)
 
@@ -657,6 +661,8 @@ with_valgrind = @with_valgrind@
 @BUILD_NMTUI_TRUE@	nmt-widget-list.h \
 @BUILD_NMTUI_TRUE@	$(srcdir)/../common/nm-secret-agent-simple.c \
 @BUILD_NMTUI_TRUE@	$(srcdir)/../common/nm-secret-agent-simple.h \
+@BUILD_NMTUI_TRUE@	$(srcdir)/../common/nm-vpn-helpers.c \
+@BUILD_NMTUI_TRUE@	$(srcdir)/../common/nm-vpn-helpers.h \
 @BUILD_NMTUI_TRUE@	$(NULL)
 
 @BUILD_NMTUI_TRUE@nmtui_LDADD = \
@@ -763,6 +769,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-editor-bindings.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-editor-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-secret-agent-simple.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-helpers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmt-address-list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmt-connect-connection-list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nmt-device-entry.Po@am__quote@
@@ -835,6 +842,20 @@ nm-secret-agent-simple.obj: $(srcdir)/../common/nm-secret-agent-simple.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/../common/nm-secret-agent-simple.c' object='nm-secret-agent-simple.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-secret-agent-simple.obj `if test -f '$(srcdir)/../common/nm-secret-agent-simple.c'; then $(CYGPATH_W) '$(srcdir)/../common/nm-secret-agent-simple.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../common/nm-secret-agent-simple.c'; fi`
+
+nm-vpn-helpers.o: $(srcdir)/../common/nm-vpn-helpers.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-vpn-helpers.o -MD -MP -MF $(DEPDIR)/nm-vpn-helpers.Tpo -c -o nm-vpn-helpers.o `test -f '$(srcdir)/../common/nm-vpn-helpers.c' || echo '$(srcdir)/'`$(srcdir)/../common/nm-vpn-helpers.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-vpn-helpers.Tpo $(DEPDIR)/nm-vpn-helpers.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/../common/nm-vpn-helpers.c' object='nm-vpn-helpers.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-vpn-helpers.o `test -f '$(srcdir)/../common/nm-vpn-helpers.c' || echo '$(srcdir)/'`$(srcdir)/../common/nm-vpn-helpers.c
+
+nm-vpn-helpers.obj: $(srcdir)/../common/nm-vpn-helpers.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-vpn-helpers.obj -MD -MP -MF $(DEPDIR)/nm-vpn-helpers.Tpo -c -o nm-vpn-helpers.obj `if test -f '$(srcdir)/../common/nm-vpn-helpers.c'; then $(CYGPATH_W) '$(srcdir)/../common/nm-vpn-helpers.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../common/nm-vpn-helpers.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-vpn-helpers.Tpo $(DEPDIR)/nm-vpn-helpers.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/../common/nm-vpn-helpers.c' object='nm-vpn-helpers.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-vpn-helpers.obj `if test -f '$(srcdir)/../common/nm-vpn-helpers.c'; then $(CYGPATH_W) '$(srcdir)/../common/nm-vpn-helpers.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../common/nm-vpn-helpers.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1132,12 +1153,12 @@ uninstall-am: uninstall-binPROGRAMS
 
 @BUILD_NMTUI_TRUE@install-exec-hook:
 @BUILD_NMTUI_TRUE@	for link in $(links); do \
-@BUILD_NMTUI_TRUE@		ln -f $(DESTDIR)$(bindir)/nmtui $(DESTDIR)$(bindir)/$$link; \
+@BUILD_NMTUI_TRUE@		$(LN_S) -f nmtui "$(DESTDIR)$(bindir)/$$link"; \
 @BUILD_NMTUI_TRUE@	done
 
 @BUILD_NMTUI_TRUE@uninstall-hook:
 @BUILD_NMTUI_TRUE@	for link in $(links); do \
-@BUILD_NMTUI_TRUE@		rm -f $(DESTDIR)$(bindir)/$$link; \
+@BUILD_NMTUI_TRUE@		rm -f "$(DESTDIR)$(bindir)/$$link"; \
 @BUILD_NMTUI_TRUE@	done
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

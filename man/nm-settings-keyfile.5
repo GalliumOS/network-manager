@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: nm-settings-keyfile
-.\"    Author: [see the "AUTHOR" section]
+.\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 14 July 2015
+.\"      Date: 04/05/2016
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.0.4
+.\"    Source: NetworkManager 1.1.93
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-KEYFIL" "5" "" "NetworkManager 1\&.0\&.4" "Configuration"
+.TH "NM\-SETTINGS\-KEYFIL" "5" "" "NetworkManager 1\&.1\&.93" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -39,14 +39,14 @@ for details)\&. The profiles can be stored in various formats\&. NetworkManager 
 The
 \fIkeyfile\fR
 plugin is the generic plugin that supports all the connection types and capabilities that NetworkManager has\&. It writes files out in a \&.ini\-style format in
-/etc/NetworkManager/system\-connections/\&. This plugin is always enabled and will automatically be used to store any connections that are not supported by any other active plugin\&. For security, it will ignore files that are readable or writeable by any user or group other than \*(Aqroot\*(Aq since private keys and passphrases may be stored in plaintext inside the file\&.
+/etc/NetworkManager/system\-connections/\&. This plugin is always enabled and will automatically be used to store any connections that are not supported by any other active plugin\&. For security, it will ignore files that are readable or writable by any user or group other than \*(Aqroot\*(Aq since private keys and passphrases may be stored in plaintext inside the file\&.
 .SH "FILE FORMAT"
 .PP
 The
 \fIkeyfile\fR
 config format is a simple \&.ini\-style format\&. It consists of sections (groups) of key\-value pairs\&. Each section corresponds to a setting name as described in the settings specification (\fBnm-settings\fR(5))\&. Each configuration key/value pair in the section is one of the properties listed in the settings specification\&. The majority of properties of the specification is written in the same format into the
 \fIkeyfile\fR
-too\&. However some values are inconvenient for people to use\&. These are stored in the files in more readable ways\&. These properties are described bellow\&. An example could be IP addresses that are not written as integer arrays, but more reasonably as "1\&.2\&.3\&.4/12 1\&.2\&.3\&.254"\&. More information of the generic key file format can be found at
+too\&. However some values are inconvenient for people to use\&. These are stored in the files in more readable ways\&. These properties are described below\&. An example could be IP addresses that are not written as integer arrays, but more reasonably as "1\&.2\&.3\&.4/12 1\&.2\&.3\&.254"\&. More information of the generic key file format can be found at
 \m[blue]\fBGLib key file format\fR\m[]\&\s-2\u[1]\d\s+2
 (Lines beginning with a \*(Aq#\*(Aq are comments, lists are separated by character
 ;
@@ -207,7 +207,7 @@ id=4
 \fIkeyfile\fR
 plugin variables for the majority of NetworkManager properties have one\-to\-one mapping\&. It means a NetworkManager property is stored in the keyfile as a variable of the same name and in the same format\&. There are several exceptions to this rule, mainly for making keyfile syntax easier for humans\&. The exceptions handled specially by
 \fIkeyfile\fR
-plugin are listed bellow\&. Refer to
+plugin are listed below\&. Refer to
 \fBnm-settings\fR(5)
 for all available settings and properties and their description\&.
 .PP
@@ -251,7 +251,7 @@ mac\-address
 T}:T{
 mac\-address
 T}:T{
-ususal hex\-digits\-and\-colons notation
+usual hex\-digits\-and\-colons notation
 T}:T{
 MAC address in traditional hex\-digits\-and\-colons notation, or semicolon separated list of 6 decimal bytes (obsolete)\fB
 
@@ -284,7 +284,7 @@ mac\-address
 T}:T{
 mac\-address
 T}:T{
-ususal hex\-digits\-and\-colons notation
+usual hex\-digits\-and\-colons notation
 T}:T{
 MAC address in traditional hex\-digits\-and\-colons notation, or or semicolon separated list of 20 decimal bytes (obsolete)\fB
 
@@ -535,7 +535,7 @@ mac\-address
 T}:T{
 mac\-address
 T}:T{
-ususal hex\-digits\-and\-colons notation
+usual hex\-digits\-and\-colons notation
 T}:T{
 MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;162)
 T}
@@ -544,7 +544,7 @@ cloned\-mac\-address
 T}:T{
 cloned\-mac\-address
 T}:T{
-ususal hex\-digits\-and\-colons notation
+usual hex\-digits\-and\-colons notation
 T}:T{
 Cloned MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:B2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;178)\&.
 T}
@@ -600,7 +600,7 @@ mac\-address
 T}:T{
 mac\-address
 T}:T{
-ususal hex\-digits\-and\-colons notation
+usual hex\-digits\-and\-colons notation
 T}:T{
 MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;162)\&.
 T}
@@ -609,7 +609,7 @@ cloned\-mac\-address
 T}:T{
 cloned\-mac\-address
 T}:T{
-ususal hex\-digits\-and\-colons notation
+usual hex\-digits\-and\-colons notation
 T}:T{
 Cloned MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:B2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;178)\&.
 T}
@@ -679,17 +679,17 @@ variable is a decimal number (0 \- 7) defined as a sum of the following values:
 .\}
 4 \- (not\-required) \- in some situations it cannot be automatically determined that a secret is required or not\&. This flag hints that the secret is not required and should not be requested from the user\&.
 .RE
-.SH "AUTHOR"
-.PP
-NetworkManager developers
 .SH "FILES"
 .PP
 /etc/NetworkManager/system\-connections/*
 .SH "SEE ALSO"
 .PP
-https://developer\&.gnome\&.org/NetworkManager/unstable/ref\-settings\&.html
-.PP
-nm\-settings(5), nm\-settings\-ifcfg\-rh(5), NetworkManager(8), NetworkManager\&.conf(5), nmcli(1), nmcli\-examples(5)
+\fBnm-settings\fR(5),
+\fBnm-settings-ifcfg-rh\fR(5),
+\fBNetworkManager\fR(8),
+\fBNetworkManager.conf\fR(5),
+\fBnmcli\fR(1),
+\fBnmcli-examples\fR(7)
 .SH "NOTES"
 .IP " 1." 4
 GLib key file format

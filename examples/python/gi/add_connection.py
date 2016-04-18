@@ -29,6 +29,8 @@
 # https://developer.gnome.org/NetworkManager/1.0/ref-settings.html
 #
 
+import gi
+gi.require_version('NM', '1.0')
 from gi.repository import GLib, NM
 import sys, uuid
 
@@ -69,7 +71,7 @@ def added_cb(client, result, data):
         client.add_connection_finish(result)
         print("The connection profile has been succesfully added to NetworkManager.")
     except Exception, e:
-        print("Error: %s" % e)
+        sys.stderr.write("Error: %s\n" % e)
     main_loop.quit()
 
 if __name__ == "__main__":

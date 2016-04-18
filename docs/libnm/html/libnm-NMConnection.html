@@ -133,6 +133,14 @@
 <span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
+<a class="link" href="libnm-NMConnection.html#nm-connection-verify-secrets" title="nm_connection_verify_secrets ()">nm_connection_verify_secrets</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
 <a class="link" href="libnm-NMConnection.html#nm-connection-normalize" title="nm_connection_normalize ()">nm_connection_normalize</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -356,6 +364,14 @@
 </tr>
 <tr>
 <td class="function_type">
+<a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="returnvalue">NMSettingIPTunnel</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libnm-NMConnection.html#nm-connection-get-setting-ip-tunnel" title="nm_connection_get_setting_ip_tunnel ()">nm_connection_get_setting_ip_tunnel</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
 <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="returnvalue">NMSettingIPConfig</span></a> *
 </td>
 <td class="function_name">
@@ -368,6 +384,14 @@
 </td>
 <td class="function_name">
 <a class="link" href="libnm-NMConnection.html#nm-connection-get-setting-ip6-config" title="nm_connection_get_setting_ip6_config ()">nm_connection_get_setting_ip6_config</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan"><span class="returnvalue">NMSettingMacvlan</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libnm-NMConnection.html#nm-connection-get-setting-macvlan" title="nm_connection_get_setting_macvlan ()">nm_connection_get_setting_macvlan</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -400,6 +424,14 @@
 </td>
 <td class="function_name">
 <a class="link" href="libnm-NMConnection.html#nm-connection-get-setting-serial" title="nm_connection_get_setting_serial ()">nm_connection_get_setting_serial</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSettingTun.html" title="NMSettingTun"><span class="returnvalue">NMSettingTun</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libnm-NMConnection.html#nm-connection-get-setting-tun" title="nm_connection_get_setting_tun ()">nm_connection_get_setting_tun</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -456,6 +488,14 @@
 </td>
 <td class="function_name">
 <a class="link" href="libnm-NMConnection.html#nm-connection-get-setting-vlan" title="nm_connection_get_setting_vlan ()">nm_connection_get_setting_vlan</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan"><span class="returnvalue">NMSettingVxlan</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libnm-NMConnection.html#nm-connection-get-setting-vxlan" title="nm_connection_get_setting_vxlan ()">nm_connection_get_setting_vxlan</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 </tbody>
@@ -943,6 +983,41 @@ setting and which property failed validation, and how it failed validation.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-connection-verify-secrets"></a><h3>nm_connection_verify_secrets ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+nm_connection_verify_secrets (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                              <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Verifies the secrets in the connection.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.13.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> to verify in</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>location to store error, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.13.6"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the secrets are valid, <code class="literal">FALSE</code> if they are not</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-connection-normalize"></a><h3>nm_connection_normalize ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_connection_normalize (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
@@ -958,7 +1033,7 @@ is valid. As this function only performs some specific normalization steps
 it cannot repair all connections. If the connection has errors that
 cannot be normalized, the connection will not be modified.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.13.6"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.14.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -995,7 +1070,7 @@ why the connection is invalid, if the function returns an error.</p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.13.7"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.14.7"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the connection is valid, <code class="literal">FALSE</code> if it is not</p>
 </div>
 </div>
@@ -1011,7 +1086,7 @@ intended as a guide to what secrets may be required, because in some
 circumstances, there is no way to conclusively determine exactly which
 secrets are needed.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.14.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.15.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1037,7 +1112,7 @@ elements. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.14.6"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.15.6"></a><h4>Returns</h4>
 <p> the setting name of the <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object which has invalid or
 missing secrets</p>
 </div>
@@ -1050,7 +1125,7 @@ nm_connection_clear_secrets (<em class="parameter"><code><a href="https://develo
 <p>Clears and frees any secrets that may be stored in the connection, to avoid
 keeping secret data in memory when not needed.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.15.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.16.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1076,7 +1151,7 @@ nm_connection_clear_secrets_with_flags
 <p>Clears and frees secrets determined by <em class="parameter"><code>func</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.16.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.17.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1122,7 +1197,7 @@ returned by <a class="link" href="libnm-NMConnection.html#nm-connection-to-dbus"
 settings contained in <em class="parameter"><code>secrets</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.17.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.18.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1155,7 +1230,7 @@ or <a class="link" href="libnm-NMConnection.html#NM-VARIANT-TYPE-SETTING:CAPS" t
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.17.6"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.18.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the secrets were successfully updated, <code class="literal">FALSE</code> if the update
 failed (tried to update secrets for a setting that doesn't exist, etc)</p>
 </div>
@@ -1170,7 +1245,7 @@ nm_connection_set_path (<em class="parameter"><code><a href="https://developer.g
 is only for the reference of the caller.  Sets the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html#NMConnection--path"><span class="type">“path”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.18.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.19.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1200,7 +1275,7 @@ which provides the connection</p></td>
 nm_connection_get_path (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <p>Returns the connection's D-Bus path.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.19.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.20.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1215,7 +1290,7 @@ nm_connection_get_path (<em class="parameter"><code><a href="https://developer.g
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.19.6"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.20.6"></a><h4>Returns</h4>
 <p> the D-Bus path of the connection, previously set by a call to
 <a class="link" href="libnm-NMConnection.html#nm-connection-set-path" title="nm_connection_set_path ()"><code class="function">nm_connection_set_path()</code></a>.</p>
 </div>
@@ -1231,7 +1306,7 @@ If the connection contains no NMSettingConnection, it will return <code class="l
 this name is used to match the device. for software devices created by
 NetworkManager, this is the name of the created interface.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.20.6"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.21.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1246,7 +1321,7 @@ NetworkManager, this is the name of the created interface.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.20.7"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.21.7"></a><h4>Returns</h4>
 <p> Name of the kernel interface or <code class="literal">NULL</code></p>
 </div>
 </div>
@@ -1262,7 +1337,7 @@ type (ie wired, Wi-Fi, ppp, etc). Checks the <a class="link" href="NMSettingConn
 property of the connection and matches that against <em class="parameter"><code>type</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.21.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.22.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1285,7 +1360,7 @@ property of the connection and matches that against <em class="parameter"><code>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.21.6"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.22.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the connection is of the given <em class="parameter"><code>type</code></em>
 , <code class="literal">FALSE</code> if not</p>
 </div>
@@ -1300,7 +1375,7 @@ nm_connection_for_each_setting_value (<em class="parameter"><code><a href="https
 <p>Iterates over the properties of each <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object in the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a>,
 calling the supplied user function for each property.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.22.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.23.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1337,7 +1412,7 @@ nm_connection_dump (<em class="parameter"><code><a href="https://developer.gnome
 be used for serialization of the connection or machine-parsed in any way. The
 output format is not guaranteed to be stable and may change at any time.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.23.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.24.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1359,32 +1434,6 @@ output format is not guaranteed to be stable and may change at any time.</p>
 nm_connection_get_uuid (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <p>A shortcut to return the UUID from the connection's <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.24.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody><tr>
-<td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
-<td class="parameter_annotations"> </td>
-</tr></tbody>
-</table></div>
-</div>
-<div class="refsect3">
-<a name="id-1.4.2.7.24.6"></a><h4>Returns</h4>
-<p> the UUID from the connection's 'connection' setting</p>
-</div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="nm-connection-get-id"></a><h3>nm_connection_get_id ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> *
-nm_connection_get_id (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return the ID from the connection's <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>.</p>
-<div class="refsect3">
 <a name="id-1.4.2.7.25.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
@@ -1401,15 +1450,15 @@ nm_connection_get_id (<em class="parameter"><code><a href="https://developer.gno
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.25.6"></a><h4>Returns</h4>
-<p> the ID from the connection's 'connection' setting</p>
+<p> the UUID from the connection's 'connection' setting</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-connection-type"></a><h3>nm_connection_get_connection_type ()</h3>
+<a name="nm-connection-get-id"></a><h3>nm_connection_get_id ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
-nm_connection_get_connection_type (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return the type from the connection's <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>.</p>
+nm_connection_get_id (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return the ID from the connection's <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.26.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1427,6 +1476,32 @@ nm_connection_get_connection_type (<em class="parameter"><code><a href="https://
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.26.6"></a><h4>Returns</h4>
+<p> the ID from the connection's 'connection' setting</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-connection-get-connection-type"></a><h3>nm_connection_get_connection_type ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_connection_get_connection_type (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return the type from the connection's <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.27.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.27.6"></a><h4>Returns</h4>
 <p> the type from the connection's 'connection' setting</p>
 </div>
 </div>
@@ -1439,7 +1514,7 @@ nm_connection_is_virtual (<em class="parameter"><code><a href="https://developer
  refers to a virtual device (and thus can potentially be
 activated even if the device it refers to doesn't exist).</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.27.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.28.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1454,7 +1529,7 @@ activated even if the device it refers to doesn't exist).</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.27.6"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.28.6"></a><h4>Returns</h4>
 <p> whether <em class="parameter"><code>connection</code></em>
 refers to a virtual device</p>
 </div>
@@ -1470,7 +1545,7 @@ return for the virtual device that would be created for <em class="parameter"><c
 .
 Eg, "VLAN (eth1.1)".</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.28.5"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.29.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1485,7 +1560,7 @@ Eg, "VLAN (eth1.1)".</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.28.6"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.29.6"></a><h4>Returns</h4>
 <p> the name of <em class="parameter"><code>connection</code></em>
 's device,
 or <code class="literal">NULL</code> if <em class="parameter"><code>connection</code></em>
@@ -1499,33 +1574,6 @@ is not a virtual connection type. </p>
 <pre class="programlisting"><a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="returnvalue">NMSetting8021x</span></a> *
 nm_connection_get_setting_802_1x (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <p>A shortcut to return any <a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a> the connection might contain.</p>
-<div class="refsect3">
-<a name="id-1.4.2.7.29.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody><tr>
-<td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
-<td class="parameter_annotations"> </td>
-</tr></tbody>
-</table></div>
-</div>
-<div class="refsect3">
-<a name="id-1.4.2.7.29.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
-</div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="nm-connection-get-setting-bluetooth"></a><h3>nm_connection_get_setting_bluetooth ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="returnvalue">NMSettingBluetooth</span></a> *
-nm_connection_get_setting_bluetooth (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.30.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1543,16 +1591,16 @@ nm_connection_get_setting_bluetooth (<em class="parameter"><code><a href="https:
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.30.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-bond"></a><h3>nm_connection_get_setting_bond ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="returnvalue">NMSettingBond</span></a> *
-nm_connection_get_setting_bond (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-bluetooth"></a><h3>nm_connection_get_setting_bluetooth ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="returnvalue">NMSettingBluetooth</span></a> *
+nm_connection_get_setting_bluetooth (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.31.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1570,16 +1618,16 @@ nm_connection_get_setting_bond (<em class="parameter"><code><a href="https://dev
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.31.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-team"></a><h3>nm_connection_get_setting_team ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="returnvalue">NMSettingTeam</span></a> *
-nm_connection_get_setting_team (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-bond"></a><h3>nm_connection_get_setting_bond ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="returnvalue">NMSettingBond</span></a> *
+nm_connection_get_setting_bond (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.32.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1597,16 +1645,16 @@ nm_connection_get_setting_team (<em class="parameter"><code><a href="https://dev
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.32.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-team-port"></a><h3>nm_connection_get_setting_team_port ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="returnvalue">NMSettingTeamPort</span></a> *
-nm_connection_get_setting_team_port (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-team"></a><h3>nm_connection_get_setting_team ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="returnvalue">NMSettingTeam</span></a> *
+nm_connection_get_setting_team (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.33.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1624,16 +1672,16 @@ nm_connection_get_setting_team_port (<em class="parameter"><code><a href="https:
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.33.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-bridge"></a><h3>nm_connection_get_setting_bridge ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingBridge.html" title="NMSettingBridge"><span class="returnvalue">NMSettingBridge</span></a> *
-nm_connection_get_setting_bridge (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingBridge.html" title="NMSettingBridge"><span class="type">NMSettingBridge</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-team-port"></a><h3>nm_connection_get_setting_team_port ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="returnvalue">NMSettingTeamPort</span></a> *
+nm_connection_get_setting_team_port (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.34.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1651,16 +1699,16 @@ nm_connection_get_setting_bridge (<em class="parameter"><code><a href="https://d
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.34.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingBridge.html" title="NMSettingBridge"><span class="type">NMSettingBridge</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-bridge-port"></a><h3>nm_connection_get_setting_bridge_port ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingBridgePort.html" title="NMSettingBridgePort"><span class="returnvalue">NMSettingBridgePort</span></a> *
-nm_connection_get_setting_bridge_port (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingBridgePort.html" title="NMSettingBridgePort"><span class="type">NMSettingBridgePort</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-bridge"></a><h3>nm_connection_get_setting_bridge ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingBridge.html" title="NMSettingBridge"><span class="returnvalue">NMSettingBridge</span></a> *
+nm_connection_get_setting_bridge (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingBridge.html" title="NMSettingBridge"><span class="type">NMSettingBridge</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.35.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1678,16 +1726,16 @@ nm_connection_get_setting_bridge_port (<em class="parameter"><code><a href="http
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.35.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingBridgePort.html" title="NMSettingBridgePort"><span class="type">NMSettingBridgePort</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingBridge.html" title="NMSettingBridge"><span class="type">NMSettingBridge</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-cdma"></a><h3>nm_connection_get_setting_cdma ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingCdma.html" title="NMSettingCdma"><span class="returnvalue">NMSettingCdma</span></a> *
-nm_connection_get_setting_cdma (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingCdma.html" title="NMSettingCdma"><span class="type">NMSettingCdma</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-bridge-port"></a><h3>nm_connection_get_setting_bridge_port ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingBridgePort.html" title="NMSettingBridgePort"><span class="returnvalue">NMSettingBridgePort</span></a> *
+nm_connection_get_setting_bridge_port (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingBridgePort.html" title="NMSettingBridgePort"><span class="type">NMSettingBridgePort</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.36.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1705,16 +1753,16 @@ nm_connection_get_setting_cdma (<em class="parameter"><code><a href="https://dev
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.36.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingCdma.html" title="NMSettingCdma"><span class="type">NMSettingCdma</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingBridgePort.html" title="NMSettingBridgePort"><span class="type">NMSettingBridgePort</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-connection"></a><h3>nm_connection_get_setting_connection ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="returnvalue">NMSettingConnection</span></a> *
-nm_connection_get_setting_connection (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-cdma"></a><h3>nm_connection_get_setting_cdma ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingCdma.html" title="NMSettingCdma"><span class="returnvalue">NMSettingCdma</span></a> *
+nm_connection_get_setting_cdma (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingCdma.html" title="NMSettingCdma"><span class="type">NMSettingCdma</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.37.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1732,16 +1780,16 @@ nm_connection_get_setting_connection (<em class="parameter"><code><a href="https
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.37.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingCdma.html" title="NMSettingCdma"><span class="type">NMSettingCdma</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-dcb"></a><h3>nm_connection_get_setting_dcb ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="returnvalue">NMSettingDcb</span></a> *
-nm_connection_get_setting_dcb (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-connection"></a><h3>nm_connection_get_setting_connection ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="returnvalue">NMSettingConnection</span></a> *
+nm_connection_get_setting_connection (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.38.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1759,16 +1807,16 @@ nm_connection_get_setting_dcb (<em class="parameter"><code><a href="https://deve
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.38.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> if the connection contains one, otherwise NULL. </p>
+<p> an <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-generic"></a><h3>nm_connection_get_setting_generic ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="returnvalue">NMSettingGeneric</span></a> *
-nm_connection_get_setting_generic (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-dcb"></a><h3>nm_connection_get_setting_dcb ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="returnvalue">NMSettingDcb</span></a> *
+nm_connection_get_setting_dcb (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.39.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1786,16 +1834,16 @@ nm_connection_get_setting_generic (<em class="parameter"><code><a href="https://
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.39.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> if the connection contains one, otherwise NULL. </p>
+<p> an <a class="link" href="NMSettingDcb.html" title="NMSettingDcb"><span class="type">NMSettingDcb</span></a> if the connection contains one, otherwise NULL. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-gsm"></a><h3>nm_connection_get_setting_gsm ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingGsm.html" title="NMSettingGsm"><span class="returnvalue">NMSettingGsm</span></a> *
-nm_connection_get_setting_gsm (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingGsm.html" title="NMSettingGsm"><span class="type">NMSettingGsm</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-generic"></a><h3>nm_connection_get_setting_generic ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="returnvalue">NMSettingGeneric</span></a> *
+nm_connection_get_setting_generic (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.40.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1813,16 +1861,16 @@ nm_connection_get_setting_gsm (<em class="parameter"><code><a href="https://deve
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.40.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingGsm.html" title="NMSettingGsm"><span class="type">NMSettingGsm</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> if the connection contains one, otherwise NULL. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-infiniband"></a><h3>nm_connection_get_setting_infiniband ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="returnvalue">NMSettingInfiniband</span></a> *
-nm_connection_get_setting_infiniband (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-gsm"></a><h3>nm_connection_get_setting_gsm ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingGsm.html" title="NMSettingGsm"><span class="returnvalue">NMSettingGsm</span></a> *
+nm_connection_get_setting_gsm (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingGsm.html" title="NMSettingGsm"><span class="type">NMSettingGsm</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.41.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1840,21 +1888,18 @@ nm_connection_get_setting_infiniband (<em class="parameter"><code><a href="https
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.41.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingGsm.html" title="NMSettingGsm"><span class="type">NMSettingGsm</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-ip4-config"></a><h3>nm_connection_get_setting_ip4_config ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="returnvalue">NMSettingIPConfig</span></a> *
-nm_connection_get_setting_ip4_config (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> the connection might contain.</p>
-<p>Note that it returns the value as type <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a>, since the vast
-majority of IPv4-setting-related methods are on that type, not
-<a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a>.</p>
+<a name="nm-connection-get-setting-infiniband"></a><h3>nm_connection_get_setting_infiniband ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="returnvalue">NMSettingInfiniband</span></a> *
+nm_connection_get_setting_infiniband (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> the connection might contain.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.42.6"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.42.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1869,7 +1914,65 @@ majority of IPv4-setting-related methods are on that type, not
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.42.7"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.42.6"></a><h4>Returns</h4>
+<p> an <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-connection-get-setting-ip-tunnel"></a><h3>nm_connection_get_setting_ip_tunnel ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="returnvalue">NMSettingIPTunnel</span></a> *
+nm_connection_get_setting_ip_tunnel (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> the connection might contain.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.43.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.43.6"></a><h4>Returns</h4>
+<p> an <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-connection-get-setting-ip4-config"></a><h3>nm_connection_get_setting_ip4_config ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="returnvalue">NMSettingIPConfig</span></a> *
+nm_connection_get_setting_ip4_config (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> the connection might contain.</p>
+<p>Note that it returns the value as type <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a>, since the vast
+majority of IPv4-setting-related methods are on that type, not
+<a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.44.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.44.7"></a><h4>Returns</h4>
 <p> an <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> if the
 connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMSettingIP4Config][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1885,7 +1988,7 @@ nm_connection_get_setting_ip6_config (<em class="parameter"><code><a href="https
 majority of IPv6-setting-related methods are on that type, not
 <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.2.7.43.6"></a><h4>Parameters</h4>
+<a name="id-1.4.2.7.45.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1900,7 +2003,7 @@ majority of IPv6-setting-related methods are on that type, not
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.2.7.43.7"></a><h4>Returns</h4>
+<a name="id-1.4.2.7.45.7"></a><h4>Returns</h4>
 <p> an <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> if the
 connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMSettingIP6Config][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1908,64 +2011,10 @@ connection contains one, otherwise <code class="literal">NULL</code>. </p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-olpc-mesh"></a><h3>nm_connection_get_setting_olpc_mesh ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="returnvalue">NMSettingOlpcMesh</span></a> *
-nm_connection_get_setting_olpc_mesh (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> the connection might contain.</p>
-<div class="refsect3">
-<a name="id-1.4.2.7.44.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody><tr>
-<td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
-<td class="parameter_annotations"> </td>
-</tr></tbody>
-</table></div>
-</div>
-<div class="refsect3">
-<a name="id-1.4.2.7.44.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
-</div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="nm-connection-get-setting-ppp"></a><h3>nm_connection_get_setting_ppp ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingPpp.html" title="NMSettingPpp"><span class="returnvalue">NMSettingPpp</span></a> *
-nm_connection_get_setting_ppp (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingPpp.html" title="NMSettingPpp"><span class="type">NMSettingPpp</span></a> the connection might contain.</p>
-<div class="refsect3">
-<a name="id-1.4.2.7.45.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody><tr>
-<td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
-<td class="parameter_annotations"> </td>
-</tr></tbody>
-</table></div>
-</div>
-<div class="refsect3">
-<a name="id-1.4.2.7.45.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingPpp.html" title="NMSettingPpp"><span class="type">NMSettingPpp</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
-</div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="nm-connection-get-setting-pppoe"></a><h3>nm_connection_get_setting_pppoe ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe"><span class="returnvalue">NMSettingPppoe</span></a> *
-nm_connection_get_setting_pppoe (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe"><span class="type">NMSettingPppoe</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-macvlan"></a><h3>nm_connection_get_setting_macvlan ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan"><span class="returnvalue">NMSettingMacvlan</span></a> *
+nm_connection_get_setting_macvlan (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan"><span class="type">NMSettingMacvlan</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.46.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -1983,16 +2032,17 @@ nm_connection_get_setting_pppoe (<em class="parameter"><code><a href="https://de
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.46.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe"><span class="type">NMSettingPppoe</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan"><span class="type">NMSettingMacvlan</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-serial"></a><h3>nm_connection_get_setting_serial ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingSerial.html" title="NMSettingSerial"><span class="returnvalue">NMSettingSerial</span></a> *
-nm_connection_get_setting_serial (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingSerial.html" title="NMSettingSerial"><span class="type">NMSettingSerial</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-olpc-mesh"></a><h3>nm_connection_get_setting_olpc_mesh ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="returnvalue">NMSettingOlpcMesh</span></a> *
+nm_connection_get_setting_olpc_mesh (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.47.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2010,16 +2060,16 @@ nm_connection_get_setting_serial (<em class="parameter"><code><a href="https://d
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.47.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingSerial.html" title="NMSettingSerial"><span class="type">NMSettingSerial</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh"><span class="type">NMSettingOlpcMesh</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-vpn"></a><h3>nm_connection_get_setting_vpn ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="returnvalue">NMSettingVpn</span></a> *
-nm_connection_get_setting_vpn (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-ppp"></a><h3>nm_connection_get_setting_ppp ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingPpp.html" title="NMSettingPpp"><span class="returnvalue">NMSettingPpp</span></a> *
+nm_connection_get_setting_ppp (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingPpp.html" title="NMSettingPpp"><span class="type">NMSettingPpp</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.48.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2037,16 +2087,16 @@ nm_connection_get_setting_vpn (<em class="parameter"><code><a href="https://deve
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.48.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingPpp.html" title="NMSettingPpp"><span class="type">NMSettingPpp</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-wimax"></a><h3>nm_connection_get_setting_wimax ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="returnvalue">NMSettingWimax</span></a> *
-nm_connection_get_setting_wimax (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-pppoe"></a><h3>nm_connection_get_setting_pppoe ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe"><span class="returnvalue">NMSettingPppoe</span></a> *
+nm_connection_get_setting_pppoe (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe"><span class="type">NMSettingPppoe</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.49.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2064,16 +2114,16 @@ nm_connection_get_setting_wimax (<em class="parameter"><code><a href="https://de
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.49.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe"><span class="type">NMSettingPppoe</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-adsl"></a><h3>nm_connection_get_setting_adsl ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingAdsl.html" title="NMSettingAdsl"><span class="returnvalue">NMSettingAdsl</span></a> *
-nm_connection_get_setting_adsl (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingAdsl.html" title="NMSettingAdsl"><span class="type">NMSettingAdsl</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-serial"></a><h3>nm_connection_get_setting_serial ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingSerial.html" title="NMSettingSerial"><span class="returnvalue">NMSettingSerial</span></a> *
+nm_connection_get_setting_serial (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingSerial.html" title="NMSettingSerial"><span class="type">NMSettingSerial</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.50.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2091,16 +2141,16 @@ nm_connection_get_setting_adsl (<em class="parameter"><code><a href="https://dev
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.50.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingAdsl.html" title="NMSettingAdsl"><span class="type">NMSettingAdsl</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingSerial.html" title="NMSettingSerial"><span class="type">NMSettingSerial</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-wired"></a><h3>nm_connection_get_setting_wired ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="returnvalue">NMSettingWired</span></a> *
-nm_connection_get_setting_wired (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-tun"></a><h3>nm_connection_get_setting_tun ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingTun.html" title="NMSettingTun"><span class="returnvalue">NMSettingTun</span></a> *
+nm_connection_get_setting_tun (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingTun.html" title="NMSettingTun"><span class="type">NMSettingTun</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.51.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2118,16 +2168,17 @@ nm_connection_get_setting_wired (<em class="parameter"><code><a href="https://de
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.51.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingTun.html" title="NMSettingTun"><span class="type">NMSettingTun</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-wireless"></a><h3>nm_connection_get_setting_wireless ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="returnvalue">NMSettingWireless</span></a> *
-nm_connection_get_setting_wireless (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-vpn"></a><h3>nm_connection_get_setting_vpn ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="returnvalue">NMSettingVpn</span></a> *
+nm_connection_get_setting_vpn (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.52.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2145,17 +2196,16 @@ nm_connection_get_setting_wireless (<em class="parameter"><code><a href="https:/
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.52.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-wireless-security"></a><h3>nm_connection_get_setting_wireless_security ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity"><span class="returnvalue">NMSettingWirelessSecurity</span></a> *
-nm_connection_get_setting_wireless_security
-                               (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity"><span class="type">NMSettingWirelessSecurity</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-wimax"></a><h3>nm_connection_get_setting_wimax ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="returnvalue">NMSettingWimax</span></a> *
+nm_connection_get_setting_wimax (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.53.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2173,16 +2223,16 @@ nm_connection_get_setting_wireless_security
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.53.6"></a><h4>Returns</h4>
-<p> an <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity"><span class="type">NMSettingWirelessSecurity</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p> an <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-connection-get-setting-vlan"></a><h3>nm_connection_get_setting_vlan ()</h3>
-<pre class="programlisting"><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="returnvalue">NMSettingVlan</span></a> *
-nm_connection_get_setting_vlan (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>A shortcut to return any <a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> the connection might contain.</p>
+<a name="nm-connection-get-setting-adsl"></a><h3>nm_connection_get_setting_adsl ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingAdsl.html" title="NMSettingAdsl"><span class="returnvalue">NMSettingAdsl</span></a> *
+nm_connection_get_setting_adsl (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingAdsl.html" title="NMSettingAdsl"><span class="type">NMSettingAdsl</span></a> the connection might contain.</p>
 <div class="refsect3">
 <a name="id-1.4.2.7.54.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2200,9 +2250,146 @@ nm_connection_get_setting_vlan (<em class="parameter"><code><a href="https://dev
 </div>
 <div class="refsect3">
 <a name="id-1.4.2.7.54.6"></a><h4>Returns</h4>
+<p> an <a class="link" href="NMSettingAdsl.html" title="NMSettingAdsl"><span class="type">NMSettingAdsl</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-connection-get-setting-wired"></a><h3>nm_connection_get_setting_wired ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="returnvalue">NMSettingWired</span></a> *
+nm_connection_get_setting_wired (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> the connection might contain.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.55.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.55.6"></a><h4>Returns</h4>
+<p> an <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-connection-get-setting-wireless"></a><h3>nm_connection_get_setting_wireless ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="returnvalue">NMSettingWireless</span></a> *
+nm_connection_get_setting_wireless (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> the connection might contain.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.56.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.56.6"></a><h4>Returns</h4>
+<p> an <a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-connection-get-setting-wireless-security"></a><h3>nm_connection_get_setting_wireless_security ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity"><span class="returnvalue">NMSettingWirelessSecurity</span></a> *
+nm_connection_get_setting_wireless_security
+                               (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity"><span class="type">NMSettingWirelessSecurity</span></a> the connection might contain.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.57.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.57.6"></a><h4>Returns</h4>
+<p> an <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity"><span class="type">NMSettingWirelessSecurity</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-connection-get-setting-vlan"></a><h3>nm_connection_get_setting_vlan ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="returnvalue">NMSettingVlan</span></a> *
+nm_connection_get_setting_vlan (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> the connection might contain.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.58.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.58.6"></a><h4>Returns</h4>
 <p> an <a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-connection-get-setting-vxlan"></a><h3>nm_connection_get_setting_vxlan ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan"><span class="returnvalue">NMSettingVxlan</span></a> *
+nm_connection_get_setting_vxlan (<em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>A shortcut to return any <a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan"><span class="type">NMSettingVxlan</span></a> the connection might contain.</p>
+<div class="refsect3">
+<a name="id-1.4.2.7.59.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>connection</p></td>
+<td class="parameter_description"><p>the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.2.7.59.6"></a><h4>Returns</h4>
+<p> an <a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan"><span class="type">NMSettingVxlan</span></a> if the connection contains one, otherwise <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.2</p>
 </div>
 </div>
 <div class="refsect1">

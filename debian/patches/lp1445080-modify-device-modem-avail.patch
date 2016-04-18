@@ -18,7 +18,7 @@ Index: b/src/devices/wwan/nm-device-modem.c
 ===================================================================
 --- a/src/devices/wwan/nm-device-modem.c
 +++ b/src/devices/wwan/nm-device-modem.c
-@@ -425,8 +425,6 @@ check_connection_available (NMDevice *de
+@@ -429,14 +429,15 @@ check_connection_available (NMDevice *de
  		return FALSE;
  
  	state = nm_modem_get_state (priv->modem);
@@ -26,8 +26,7 @@ Index: b/src/devices/wwan/nm-device-modem.c
 -		return FALSE;
  
  	if (state == NM_MODEM_STATE_LOCKED) {
- 		NMSettingGsm *s_gsm = nm_connection_get_setting_gsm (connection);
-@@ -436,6 +434,9 @@ check_connection_available (NMDevice *de
+ 		if (!nm_connection_get_setting_gsm (connection))
  			return FALSE;
  	}
  
@@ -37,7 +36,7 @@ Index: b/src/devices/wwan/nm-device-modem.c
  	return TRUE;
  }
  
-@@ -615,7 +616,7 @@ is_available (NMDevice *device, NMDevice
+@@ -617,7 +618,7 @@ is_available (NMDevice *device, NMDevice
  
  	g_assert (priv->modem);
  	modem_state = nm_modem_get_state (priv->modem);

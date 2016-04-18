@@ -18,7 +18,7 @@
  * Copyright (C) 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <arpa/inet.h>
@@ -30,12 +30,10 @@
 #include "nm-rdisc-private.h"
 
 #include "NetworkManagerUtils.h"
-#include "nm-logging.h"
 #include "nm-platform.h"
+#include "nmp-netns.h"
 
-#define debug(...) nm_log_dbg (LOGD_IP6, __VA_ARGS__)
-#define warning(...) nm_log_warn (LOGD_IP6, __VA_ARGS__)
-#define error(...) nm_log_err (LOGD_IP6, __VA_ARGS__)
+#define _NMLOG_PREFIX_NAME                "rdisc-lndp"
 
 typedef struct {
 	struct ndp *ndp;
@@ -52,40 +50,40 @@ G_DEFINE_TYPE (NMLNDPRDisc, nm_lndp_rdisc, NM_TYPE_RDISC)
 /******************************************************************/
 
 static gboolean
-send_rs (NMRDisc *rdisc)
+send_rs (NMRDisc *rdisc, GError **error)
 {
 	NMLNDPRDiscPrivate *priv = NM_LNDP_RDISC_GET_PRIVATE (rdisc);
 	struct ndp_msg *msg;
-	int error;
+	int errsv;
 
-	error = ndp_msg_new (&msg, NDP_MSG_RS);
-	g_assert (!error);
+	errsv = ndp_msg_new (&msg, NDP_MSG_RS);
+	if (errsv) {
+		errsv = errsv > 0 ? errsv : -errsv;
+		g_set_error_literal (error, NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN,
+		                     "cannot create router solicitation");
+		return FALSE;
+	}
 	ndp_msg_ifindex_set (msg, rdisc->ifindex);
 
-	error = ndp_msg_send (priv->ndp, msg);
+	errsv = ndp_msg_send (priv->ndp, msg);
 	ndp_msg_destroy (msg);
-	if (error) {
-		error ("(%s): cannot send router solicitation: %d.", rdisc->ifname, error);
+	if (errsv) {
+		errsv = errsv > 0 ? errsv : -errsv;
+		g_set_error (error, NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN,
+		             "%s (%d)",
+		             g_strerror (errsv), errsv);
 		return FALSE;
 	}
 
 	return TRUE;
 }
 
-static NMRDiscPreference
-translate_preference (enum ndp_route_preference preference)
-{
-	switch (preference) {
-	case NDP_ROUTE_PREF_LOW:
-		return NM_RDISC_PREFERENCE_LOW;
-	case NDP_ROUTE_PREF_MEDIUM:
-		return NM_RDISC_PREFERENCE_MEDIUM;
-	case NDP_ROUTE_PREF_HIGH:
-		return NM_RDISC_PREFERENCE_HIGH;
-	default:
-		return NM_RDISC_PREFERENCE_INVALID;
-	}
-}
+_NM_UTILS_LOOKUP_DEFINE (static, translate_preference, enum ndp_route_preference, NMRDiscPreference,
+	NM_UTILS_LOOKUP_DEFAULT (NM_RDISC_PREFERENCE_INVALID),
+	NM_UTILS_LOOKUP_ITEM (NDP_ROUTE_PREF_LOW,    NM_RDISC_PREFERENCE_LOW),
+	NM_UTILS_LOOKUP_ITEM (NDP_ROUTE_PREF_MEDIUM, NM_RDISC_PREFERENCE_MEDIUM),
+	NM_UTILS_LOOKUP_ITEM (NDP_ROUTE_PREF_HIGH,   NM_RDISC_PREFERENCE_HIGH),
+);
 
 static int
 receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
@@ -93,7 +91,7 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 	NMRDisc *rdisc = (NMRDisc *) user_data;
 	NMRDiscConfigMap changed = 0;
 	struct ndp_msgra *msgra = ndp_msgra (msg);
-	NMRDiscGateway gateway;
+	struct in6_addr gateway_addr;
 	guint32 now = nm_utils_get_monotonic_timestamp_s ();
 	int offset;
 	int hop_limit;
@@ -109,7 +107,7 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 	 * single time when the configuration is finished and updates can
 	 * come at any time.
 	 */
-	debug ("(%s): received router advertisement at %u", rdisc->ifname, now);
+	_LOGD ("received router advertisement at %u", now);
 
 	/* DHCP level:
 	 *
@@ -139,60 +137,73 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 	 * on the network. We should present all of them in router preference
 	 * order.
 	 */
-	memset (&gateway, 0, sizeof (gateway));
-	gateway.address = *ndp_msg_addrto (msg);
-	gateway.timestamp = now;
-	gateway.lifetime = ndp_msgra_router_lifetime (msgra);
-	gateway.preference = translate_preference (ndp_msgra_route_preference (msgra));
-	if (nm_rdisc_add_gateway (rdisc, &gateway))
-		changed |= NM_RDISC_CONFIG_GATEWAYS;
+	gateway_addr = *ndp_msg_addrto (msg);
+	{
+		NMRDiscGateway gateway = {
+		    .address = gateway_addr,
+		    .timestamp = now,
+		    .lifetime = ndp_msgra_router_lifetime (msgra),
+		    .preference = translate_preference (ndp_msgra_route_preference (msgra)),
+		};
+
+		if (nm_rdisc_add_gateway (rdisc, &gateway))
+			changed |= NM_RDISC_CONFIG_GATEWAYS;
+	}
 
 	/* Addresses & Routes */
 	ndp_msg_opt_for_each_offset (offset, msg, NDP_MSG_OPT_PREFIX) {
-		NMRDiscRoute route;
-		NMRDiscAddress address;
+		guint8 r_plen;
+		struct in6_addr r_network;
 
 		/* Device route */
-		memset (&route, 0, sizeof (route));
-		route.plen = ndp_msg_opt_prefix_len (msg, offset);
-		nm_utils_ip6_address_clear_host_address (&route.network, ndp_msg_opt_prefix (msg, offset), route.plen);
-		route.timestamp = now;
+
+		r_plen = ndp_msg_opt_prefix_len (msg, offset);
+		if (r_plen == 0 || r_plen > 128)
+			continue;
+		nm_utils_ip6_address_clear_host_address (&r_network, ndp_msg_opt_prefix (msg, offset), r_plen);
+
 		if (ndp_msg_opt_prefix_flag_on_link (msg, offset)) {
-			route.lifetime = ndp_msg_opt_prefix_valid_time (msg, offset);
+			NMRDiscRoute route = {
+			    .network = r_network,
+			    .plen = r_plen,
+			    .timestamp = now,
+			    .lifetime = ndp_msg_opt_prefix_valid_time (msg, offset),
+			};
+
 			if (nm_rdisc_add_route (rdisc, &route))
 				changed |= NM_RDISC_CONFIG_ROUTES;
 		}
 
 		/* Address */
-		if (ndp_msg_opt_prefix_flag_auto_addr_conf (msg, offset)) {
-			if (route.plen == 64 && rdisc->iid.id) {
-				memset (&address, 0, sizeof (address));
-				address.address = route.network;
-				address.timestamp = now;
-				address.lifetime = ndp_msg_opt_prefix_valid_time (msg, offset);
-				address.preferred = ndp_msg_opt_prefix_preferred_time (msg, offset);
-				if (address.preferred > address.lifetime)
-					address.preferred = address.lifetime;
+		if (   r_plen == 64
+		    && ndp_msg_opt_prefix_flag_auto_addr_conf (msg, offset)) {
+			NMRDiscAddress address = {
+			    .address = r_network,
+			    .timestamp = now,
+			    .lifetime = ndp_msg_opt_prefix_valid_time (msg, offset),
+			    .preferred = ndp_msg_opt_prefix_preferred_time (msg, offset),
+			};
 
-				/* Add the Interface Identifier to the lower 64 bits */
-				nm_utils_ipv6_addr_set_interface_identfier (&address.address, rdisc->iid);
-
-				if (nm_rdisc_add_address (rdisc, &address))
-					changed |= NM_RDISC_CONFIG_ADDRESSES;
-			}
+			if (address.preferred > address.lifetime)
+				address.preferred = address.lifetime;
+			if (nm_rdisc_complete_and_add_address (rdisc, &address))
+				changed |= NM_RDISC_CONFIG_ADDRESSES;
 		}
 	}
 	ndp_msg_opt_for_each_offset(offset, msg, NDP_MSG_OPT_ROUTE) {
-		NMRDiscRoute route;
+		NMRDiscRoute route = {
+		    .gateway = gateway_addr,
+		    .plen = ndp_msg_opt_route_prefix_len (msg, offset),
+		    .timestamp = now,
+		    .lifetime = ndp_msg_opt_route_lifetime (msg, offset),
+		    .preference = translate_preference (ndp_msg_opt_route_preference (msg, offset)),
+		};
+
+		if (route.plen == 0 || route.plen > 128)
+			continue;
 
 		/* Routers through this particular gateway */
-		memset (&route, 0, sizeof (route));
-		route.gateway = gateway.address;
-		route.plen = ndp_msg_opt_route_prefix_len (msg, offset);
 		nm_utils_ip6_address_clear_host_address (&route.network, ndp_msg_opt_route_prefix (msg, offset), route.plen);
-		route.timestamp = now;
-		route.lifetime = ndp_msg_opt_route_lifetime (msg, offset);
-		route.preference = translate_preference (ndp_msg_opt_route_preference (msg, offset));
 		if (nm_rdisc_add_route (rdisc, &route))
 			changed |= NM_RDISC_CONFIG_ROUTES;
 	}
@@ -203,12 +214,12 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 		int addr_index;
 
 		ndp_msg_opt_rdnss_for_each_addr (addr, addr_index, msg, offset) {
-			NMRDiscDNSServer dns_server;
+			NMRDiscDNSServer dns_server = {
+			    .address = *addr,
+			    .timestamp = now,
+			    .lifetime = ndp_msg_opt_rdnss_lifetime (msg, offset),
+			};
 
-			memset (&dns_server, 0, sizeof (dns_server));
-			dns_server.address = *addr;
-			dns_server.timestamp = now;
-			dns_server.lifetime = ndp_msg_opt_rdnss_lifetime (msg, offset);
 			/* Pad the lifetime somewhat to give a bit of slack in cases
 			 * where one RA gets lost or something (which can happen on unreliable
 			 * links like WiFi where certain types of frames are not retransmitted).
@@ -225,12 +236,12 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 		int domain_index;
 
 		ndp_msg_opt_dnssl_for_each_domain (domain, domain_index, msg, offset) {
-			NMRDiscDNSDomain dns_domain;
+			NMRDiscDNSDomain dns_domain = {
+			    .domain = domain,
+			    .timestamp = now,
+			    .lifetime = ndp_msg_opt_rdnss_lifetime (msg, offset),
+			};
 
-			memset (&dns_domain, 0, sizeof (dns_domain));
-			dns_domain.domain = domain;
-			dns_domain.timestamp = now;
-			dns_domain.lifetime = ndp_msg_opt_rdnss_lifetime (msg, offset);
 			/* Pad the lifetime somewhat to give a bit of slack in cases
 			 * where one RA gets lost or something (which can happen on unreliable
 			 * links like WiFi where certain types of frames are not retransmitted).
@@ -260,7 +271,7 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 			 * Kernel would set it, but would flush out all IPv6 addresses away
 			 * from the link, even the link-local, and we wouldn't be able to
 			 * listen for further RAs that could fix the MTU. */
-			warning ("(%s): MTU too small for IPv6 ignored: %d", rdisc->ifname, mtu);
+			_LOGW ("MTU too small for IPv6 ignored: %d", mtu);
 		}
 	}
 
@@ -271,9 +282,14 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 static gboolean
 event_ready (GIOChannel *source, GIOCondition condition, NMRDisc *rdisc)
 {
+	nm_auto_pop_netns NMPNetns *netns = NULL;
 	NMLNDPRDiscPrivate *priv = NM_LNDP_RDISC_GET_PRIVATE (rdisc);
 
-	debug ("(%s): processing libndp events.", rdisc->ifname);
+	_LOGD ("processing libndp events");
+
+	if (!nm_rdisc_netns_push (rdisc, &netns))
+		return G_SOURCE_CONTINUE;
+
 	ndp_callall_eventfd_handler (priv->ndp);
 	return G_SOURCE_CONTINUE;
 }
@@ -296,35 +312,56 @@ start (NMRDisc *rdisc)
 /******************************************************************/
 
 static inline gint32
-ipv6_sysctl_get (const char *ifname, const char *property, gint32 defval)
+ipv6_sysctl_get (NMPlatform *platform, const char *ifname, const char *property, gint32 defval)
 {
-	return nm_platform_sysctl_get_int32 (NM_PLATFORM_GET, nm_utils_ip6_property_path (ifname, property), defval);
+	return nm_platform_sysctl_get_int32 (platform, nm_utils_ip6_property_path (ifname, property), defval);
 }
 
 NMRDisc *
-nm_lndp_rdisc_new (int ifindex, const char *ifname)
+nm_lndp_rdisc_new (NMPlatform *platform,
+                   int ifindex,
+                   const char *ifname,
+                   const char *uuid,
+                   NMSettingIP6ConfigAddrGenMode addr_gen_mode,
+                   GError **error)
 {
+	nm_auto_pop_netns NMPNetns *netns = NULL;
 	NMRDisc *rdisc;
 	NMLNDPRDiscPrivate *priv;
-	int error;
+	int errsv;
 
-	rdisc = g_object_new (NM_TYPE_LNDP_RDISC, NULL);
+	g_return_val_if_fail (NM_IS_PLATFORM (platform), NULL);
+	g_return_val_if_fail (!error || !*error, NULL);
+
+	if (!nm_platform_netns_push (platform, &netns))
+		return NULL;
+
+	rdisc = g_object_new (NM_TYPE_LNDP_RDISC,
+	                      NM_RDISC_PLATFORM, platform,
+	                      NULL);
 
 	rdisc->ifindex = ifindex;
 	rdisc->ifname = g_strdup (ifname);
+	rdisc->uuid = g_strdup (uuid);
+	rdisc->addr_gen_mode = addr_gen_mode;
 
-	rdisc->max_addresses = ipv6_sysctl_get (ifname, "max_addresses",
+	rdisc->max_addresses = ipv6_sysctl_get (platform, ifname, "max_addresses",
 	                                        NM_RDISC_MAX_ADDRESSES_DEFAULT);
-	rdisc->rtr_solicitations = ipv6_sysctl_get (ifname, "router_solicitations",
+	rdisc->rtr_solicitations = ipv6_sysctl_get (platform, ifname, "router_solicitations",
 	                                            NM_RDISC_RTR_SOLICITATIONS_DEFAULT);
-	rdisc->rtr_solicitation_interval = ipv6_sysctl_get (ifname, "router_solicitation_interval",
+	rdisc->rtr_solicitation_interval = ipv6_sysctl_get (platform, ifname, "router_solicitation_interval",
 	                                                    NM_RDISC_RTR_SOLICITATION_INTERVAL_DEFAULT);
 
 	priv = NM_LNDP_RDISC_GET_PRIVATE (rdisc);
-	error = ndp_open (&priv->ndp);
-	if (error != 0) {
+
+	errsv = ndp_open (&priv->ndp);
+
+	if (errsv != 0) {
+		errsv = errsv > 0 ? errsv : -errsv;
+		g_set_error (error, NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN,
+		             "failure creating libndp socket: %s (%d)",
+		             g_strerror (errsv), errsv);
 		g_object_unref (rdisc);
-		debug ("(%s): error creating socket for NDP; errno=%d", ifname, -error);
 		return NULL;
 	}
 	return rdisc;
@@ -341,10 +378,7 @@ dispose (GObject *object)
 	NMLNDPRDisc *rdisc = NM_LNDP_RDISC (object);
 	NMLNDPRDiscPrivate *priv = NM_LNDP_RDISC_GET_PRIVATE (rdisc);
 
-	if (priv->event_id) {
-		g_source_remove (priv->event_id);
-		priv->event_id = 0;
-	}
+	nm_clear_g_source (&priv->event_id);
 	g_clear_pointer (&priv->event_channel, g_io_channel_unref);
 
 	if (priv->ndp) {

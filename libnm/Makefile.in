@@ -161,15 +161,17 @@ am__objects_1 = nm-access-point.lo nm-active-connection.lo \
 	nm-client.lo nm-dbus-helpers.lo nm-device-adsl.lo \
 	nm-device-bond.lo nm-device-bridge.lo nm-device-bt.lo \
 	nm-device-ethernet.lo nm-device-generic.lo \
-	nm-device-infiniband.lo nm-device-modem.lo \
-	nm-device-olpc-mesh.lo nm-device-team.lo nm-device-vlan.lo \
-	nm-device-wifi.lo nm-device-wimax.lo nm-device.lo \
-	nm-dhcp-config.lo nm-dhcp4-config.lo nm-dhcp6-config.lo \
-	nm-enum-types.lo nm-ip-config.lo nm-ip4-config.lo \
-	nm-ip6-config.lo nm-manager.lo nm-object-cache.lo nm-object.lo \
-	nm-remote-connection.lo nm-remote-settings.lo \
-	nm-secret-agent-old.lo nm-vpn-connection.lo \
-	nm-vpn-plugin-old.lo nm-vpn-editor-plugin.lo nm-wimax-nsp.lo
+	nm-device-infiniband.lo nm-device-ip-tunnel.lo \
+	nm-device-macvlan.lo nm-device-modem.lo nm-device-olpc-mesh.lo \
+	nm-device-team.lo nm-device-tun.lo nm-device-vlan.lo \
+	nm-device-vxlan.lo nm-device-wifi.lo nm-device-wimax.lo \
+	nm-device.lo nm-dhcp-config.lo nm-dhcp4-config.lo \
+	nm-dhcp6-config.lo nm-enum-types.lo nm-ip-config.lo \
+	nm-ip4-config.lo nm-ip6-config.lo nm-manager.lo \
+	nm-object-cache.lo nm-object.lo nm-remote-connection.lo \
+	nm-remote-settings.lo nm-secret-agent-old.lo \
+	nm-vpn-connection.lo nm-vpn-plugin-old.lo nm-vpn-editor.lo \
+	nm-vpn-service-plugin.lo nm-wimax-nsp.lo
 am__objects_2 =
 am_libnm_la_OBJECTS = $(am__objects_1) $(am__objects_2)
 libnm_la_OBJECTS = $(am_libnm_la_OBJECTS)
@@ -303,7 +305,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -315,8 +316,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -326,6 +325,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -380,16 +380,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -410,6 +407,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -425,6 +423,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -453,7 +453,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -468,6 +467,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -528,6 +529,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -535,6 +537,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -552,24 +555,25 @@ with_resolvconf = @with_resolvconf@
 with_valgrind = @with_valgrind@
 SUBDIRS = . tests
 AM_CPPFLAGS = \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
 	-I$(top_builddir)/introspection \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
 	-I$(top_srcdir)/libnm \
 	-I$(top_builddir)/libnm \
 	-DG_LOG_DOMAIN=\""libnm"\" \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIB \
 	$(GLIB_CFLAGS) \
 	$(GUDEV_CFLAGS) \
-	-DNMRUNDIR=\"$(nmrundir)\"
+	-DNMRUNDIR=\"$(nmrundir)\" \
+	$(CODE_COVERAGE_CFLAGS)
 
 core = $(top_srcdir)/libnm-core
 core_build = $(top_builddir)/libnm-core
 libnm_core_headers = \
+	$(top_builddir)/shared/nm-version-macros.h \
 	$(core_build)/nm-core-enum-types.h	\
-	$(core_build)/nm-version.h		\
 	$(core)/nm-connection.h			\
 	$(core)/nm-core-types.h			\
 	$(core)/nm-dbus-interface.h		\
@@ -587,16 +591,20 @@ libnm_core_headers = \
 	$(core)/nm-setting-gsm.h		\
 	$(core)/nm-setting-infiniband.h		\
 	$(core)/nm-setting-ip-config.h		\
+	$(core)/nm-setting-ip-tunnel.h		\
 	$(core)/nm-setting-ip4-config.h		\
 	$(core)/nm-setting-ip6-config.h		\
+	$(core)/nm-setting-macvlan.h		\
 	$(core)/nm-setting-olpc-mesh.h		\
 	$(core)/nm-setting-ppp.h		\
 	$(core)/nm-setting-pppoe.h		\
 	$(core)/nm-setting-serial.h		\
 	$(core)/nm-setting-team-port.h		\
 	$(core)/nm-setting-team.h		\
+	$(core)/nm-setting-tun.h		\
 	$(core)/nm-setting-vlan.h		\
 	$(core)/nm-setting-vpn.h		\
+	$(core)/nm-setting-vxlan.h		\
 	$(core)/nm-setting-wimax.h		\
 	$(core)/nm-setting-wired.h		\
 	$(core)/nm-setting-wireless-security.h	\
@@ -604,12 +612,17 @@ libnm_core_headers = \
 	$(core)/nm-setting.h			\
 	$(core)/nm-simple-connection.h		\
 	$(core)/nm-utils.h			\
-	$(core)/nm-vpn-dbus-interface.h
+	$(core)/nm-version.h \
+	$(core)/nm-vpn-dbus-interface.h     \
+	$(core)/nm-vpn-editor-plugin.h \
+	$(core)/nm-vpn-plugin-info.h
 
 libnm_core_private_headers = \
+	$(top_builddir)/shared/nm-shared-utils.h \
 	$(core)/crypto.h			\
 	$(core)/nm-connection-private.h		\
 	$(core)/nm-core-internal.h		\
+	$(core)/nm-core-types-internal.h    \
 	$(core)/nm-keyfile-internal.h       \
 	$(core)/nm-keyfile-utils.h          \
 	$(core)/nm-property-compare.h		\
@@ -617,9 +630,11 @@ libnm_core_private_headers = \
 	$(core)/nm-utils-private.h
 
 libnm_core_sources = \
+	$(top_builddir)/shared/nm-shared-utils.c \
 	$(core_build)/nm-core-enum-types.c	\
 	$(core)/crypto.c			\
 	$(core)/nm-connection.c			\
+	$(core)/nm-dbus-utils.c			\
 	$(core)/nm-errors.c			\
 	$(core)/nm-keyfile-reader.c         \
 	$(core)/nm-keyfile-utils.c          \
@@ -638,29 +653,36 @@ libnm_core_sources = \
 	$(core)/nm-setting-gsm.c		\
 	$(core)/nm-setting-infiniband.c		\
 	$(core)/nm-setting-ip-config.c		\
+	$(core)/nm-setting-ip-tunnel.c		\
 	$(core)/nm-setting-ip4-config.c		\
 	$(core)/nm-setting-ip6-config.c		\
+	$(core)/nm-setting-macvlan.c		\
 	$(core)/nm-setting-olpc-mesh.c		\
 	$(core)/nm-setting-ppp.c		\
 	$(core)/nm-setting-pppoe.c		\
 	$(core)/nm-setting-serial.c		\
 	$(core)/nm-setting-team-port.c		\
 	$(core)/nm-setting-team.c		\
+	$(core)/nm-setting-tun.c		\
 	$(core)/nm-setting-vlan.c		\
 	$(core)/nm-setting-vpn.c		\
+	$(core)/nm-setting-vxlan.c		\
 	$(core)/nm-setting-wimax.c		\
 	$(core)/nm-setting-wired.c		\
 	$(core)/nm-setting-wireless-security.c	\
 	$(core)/nm-setting-wireless.c		\
 	$(core)/nm-setting.c			\
 	$(core)/nm-simple-connection.c		\
-	$(core)/nm-utils.c
+	$(core)/nm-utils.c                  \
+	$(core)/nm-vpn-editor-plugin.c \
+	$(core)/nm-vpn-plugin-info.c
 
 
 # libnm
 lib_LTLIBRARIES = libnm.la
 libnmincludedir = $(includedir)/libnm
 libnminclude_hfiles = \
+	$(top_builddir)/shared/nm-version-macros.h \
 	NetworkManager.h		\
 	nm-access-point.h		\
 	nm-active-connection.h		\
@@ -672,10 +694,14 @@ libnminclude_hfiles = \
 	nm-device-ethernet.h		\
 	nm-device-generic.h		\
 	nm-device-infiniband.h		\
+	nm-device-ip-tunnel.h		\
+	nm-device-macvlan.h		\
 	nm-device-modem.h		\
 	nm-device-olpc-mesh.h		\
 	nm-device-team.h		\
+	nm-device-tun.h			\
 	nm-device-vlan.h		\
+	nm-device-vxlan.h		\
 	nm-device-wifi.h		\
 	nm-device-wimax.h		\
 	nm-device.h			\
@@ -686,12 +712,13 @@ libnminclude_hfiles = \
 	nm-remote-connection.h		\
 	nm-types.h			\
 	nm-vpn-connection.h		\
-	nm-vpn-editor-plugin.h		\
+	nm-vpn-editor.h		\
 	nm-wimax-nsp.h
 
 libnminclude_nointrospect_hfiles = \
 	nm-secret-agent-old.h		\
-	nm-vpn-plugin-old.h
+	nm-vpn-plugin-old.h         \
+	nm-vpn-service-plugin.h
 
 libnminclude_HEADERS = \
 	$(libnminclude_hfiles)		\
@@ -722,10 +749,14 @@ libnm_la_csources = \
 	nm-device-ethernet.c		\
 	nm-device-generic.c		\
 	nm-device-infiniband.c		\
+	nm-device-ip-tunnel.c		\
+	nm-device-macvlan.c		\
 	nm-device-modem.c		\
 	nm-device-olpc-mesh.c		\
 	nm-device-team.c		\
+	nm-device-tun.c			\
 	nm-device-vlan.c		\
+	nm-device-vxlan.c		\
 	nm-device-wifi.c		\
 	nm-device-wimax.c		\
 	nm-device.c			\
@@ -744,7 +775,8 @@ libnm_la_csources = \
 	nm-secret-agent-old.c		\
 	nm-vpn-connection.c		\
 	nm-vpn-plugin-old.c		\
-	nm-vpn-editor-plugin.c		\
+	nm-vpn-editor.c		\
+	nm-vpn-service-plugin.c     \
 	nm-wimax-nsp.c
 
 libnm_la_SOURCES = \
@@ -754,7 +786,7 @@ libnm_la_SOURCES = \
 GLIB_GENERATED = nm-enum-types.h nm-enum-types.c
 nm_enum_types_sources = $(libnminclude_HEADERS)
 GLIB_MKENUMS_H_FLAGS = --identifier-prefix NM --fhead '\#include <nm-core-enum-types.h>\n'
-GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM
+GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM --fhead '\#include "nm-default.h"\n'
 libnm_la_LIBADD = \
 	$(top_builddir)/libnm-core/libnm-core.la \
 	$(top_builddir)/introspection/libnmdbus.la \
@@ -762,10 +794,10 @@ libnm_la_LIBADD = \
 	$(UUID_LIBS) \
 	$(GUDEV_LIBS)
 
-SYMBOL_VIS_FILE = $(srcdir)/libnm.ver
 libnm_la_LDFLAGS = -Wl,--version-script=$(SYMBOL_VIS_FILE) \
-	-version-info "0:0:0"
+	-version-info "1:0:1"
 
+SYMBOL_VIS_FILE = $(srcdir)/libnm.ver
 
 ###
 BUILT_SOURCES = $(GLIB_GENERATED)
@@ -900,10 +932,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-ethernet.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-generic.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-infiniband.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-ip-tunnel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-macvlan.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-modem.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-olpc-mesh.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-team.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-tun.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-vlan.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-vxlan.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-wifi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device-wimax.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-device.Plo@am__quote@
@@ -921,8 +957,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-remote-settings.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-secret-agent-old.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-connection.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-editor-plugin.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-editor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-plugin-old.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-vpn-service-plugin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-wimax-nsp.Plo@am__quote@
 
 .c.o:
@@ -1332,6 +1369,8 @@ uninstall-am: uninstall-girDATA uninstall-libLTLIBRARIES \
 .PRECIOUS: Makefile
 
 include $(GLIB_MAKEFILE)
+
+@GNOME_CODE_COVERAGE_RULES@
 
 -include $(INTROSPECTION_MAKEFILE)
 

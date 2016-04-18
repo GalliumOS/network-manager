@@ -19,29 +19,27 @@
  * Copyright (C) 2007 - 2013 Red Hat, Inc.
  */
 
-#include <glib-object.h>
 
-#include "nm-types.h"
+#include "nm-default.h"
 
 #ifndef __NETWORKMANAGER_RFKILL_MANAGER_H__
 #define __NETWORKMANAGER_RFKILL_MANAGER_H__
 
-typedef enum {
+typedef enum { /*< skip >*/
 	RFKILL_UNBLOCKED = 0,
 	RFKILL_SOFT_BLOCKED = 1,
 	RFKILL_HARD_BLOCKED = 2
 } RfKillState;
 
-typedef enum {
+typedef enum { /*< skip >*/
 	RFKILL_TYPE_WLAN = 0,
 	RFKILL_TYPE_WWAN = 1,
-	RFKILL_TYPE_WIMAX = 2,
 
 	/* UNKNOWN and MAX should always be 1 more than
 	 * the last rfkill type since RFKILL_TYPE_MAX is
 	 * used as an array size.
 	 */
-	RFKILL_TYPE_UNKNOWN = 3, /* KEEP LAST */
+	RFKILL_TYPE_UNKNOWN, /* KEEP LAST */
 	RFKILL_TYPE_MAX = RFKILL_TYPE_UNKNOWN
 } RfKillType;
 

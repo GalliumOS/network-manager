@@ -5,14 +5,13 @@ SUBDIRS = . tests
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/settings \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
 	-DG_LOG_DOMAIN=\""NetworkManager-keyfile"\" \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
 	$(GLIB_CFLAGS) \
-	$(DBUS_CFLAGS) \
 	-DNMCONFDIR=\"$(nmconfdir)\"
 
 noinst_LTLIBRARIES = \
@@ -27,8 +26,7 @@ libkeyfile_io_la_SOURCES = \
 	writer.c \
 	writer.h \
 	utils.c \
-	utils.h \
-	common.h
+	utils.h
 
 libkeyfile_io_la_LIBADD = $(GLIB_LIBS)
 

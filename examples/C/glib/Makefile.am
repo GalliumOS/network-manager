@@ -1,10 +1,12 @@
 AM_CPPFLAGS = \
-	-I${top_srcdir}/include \
+	-I${top_srcdir}/shared \
+	-I$(top_builddir)/shared \
 	-I${top_srcdir}/libnm-core \
 	-I${top_builddir}/libnm-core \
 	-I${top_srcdir}/libnm \
 	-I${top_builddir}/libnm \
-	$(GLIB_CFLAGS)
+	$(GLIB_CFLAGS) \
+	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE
 
 noinst_PROGRAMS = \
 	add-connection-gdbus \

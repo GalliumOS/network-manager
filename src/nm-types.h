@@ -21,16 +21,23 @@
 #ifndef __NETWORKMANAGER_TYPES_H__
 #define __NETWORKMANAGER_TYPES_H__
 
+#ifdef __NM_UTILS_PRIVATE_H__
+#error "nm-utils-private.h" must not be used outside of libnm-core/. Do you want "nm-core-internal.h"?
+#endif
+
 /* core */
+typedef struct _NMExportedObject     NMExportedObject;
 typedef struct _NMActiveConnection   NMActiveConnection;
+typedef struct _NMAuditManager       NMAuditManager;
 typedef struct _NMVpnConnection      NMVpnConnection;
 typedef struct _NMActRequest         NMActRequest;
 typedef struct _NMAuthSubject        NMAuthSubject;
+typedef struct _NMBusManager         NMBusManager;
 typedef struct _NMConfig             NMConfig;
 typedef struct _NMConfigData         NMConfigData;
+typedef struct _NMArpingManager      NMArpingManager;
 typedef struct _NMConnectionProvider NMConnectionProvider;
 typedef struct _NMConnectivity       NMConnectivity;
-typedef struct _NMDBusManager        NMDBusManager;
 typedef struct _NMDefaultRouteManager NMDefaultRouteManager;
 typedef struct _NMDevice             NMDevice;
 typedef struct _NMDhcp4Config        NMDhcp4Config;
@@ -43,6 +50,7 @@ typedef struct _NMRfkillManager      NMRfkillManager;
 typedef struct _NMRouteManager       NMRouteManager;
 typedef struct _NMSessionMonitor     NMSessionMonitor;
 typedef struct _NMSleepMonitor       NMSleepMonitor;
+typedef struct _NMLldpListener       NMLldpListener;
 
 typedef enum {
 	/* In priority order; higher number == higher priority */
@@ -66,11 +74,14 @@ typedef enum {
 } NMIPConfigSource;
 
 /* platform */
+typedef struct _NMPlatform           NMPlatform;
 typedef struct _NMPlatformIP4Address NMPlatformIP4Address;
 typedef struct _NMPlatformIP4Route   NMPlatformIP4Route;
 typedef struct _NMPlatformIP6Address NMPlatformIP6Address;
 typedef struct _NMPlatformIP6Route   NMPlatformIP6Route;
 typedef struct _NMPlatformLink       NMPlatformLink;
+typedef struct _NMPNetns             NMPNetns;
+typedef struct _NMPObject            NMPObject;
 
 typedef enum {
 	/* Please don't interpret type numbers outside nm-platform and use functions
@@ -99,10 +110,13 @@ typedef enum {
 	NM_LINK_TYPE_GRE,
 	NM_LINK_TYPE_GRETAP,
 	NM_LINK_TYPE_IFB,
+	NM_LINK_TYPE_IP6TNL,
+	NM_LINK_TYPE_IPIP,
 	NM_LINK_TYPE_LOOPBACK,
 	NM_LINK_TYPE_MACVLAN,
 	NM_LINK_TYPE_MACVTAP,
 	NM_LINK_TYPE_OPENVSWITCH,
+	NM_LINK_TYPE_SIT,
 	NM_LINK_TYPE_TAP,
 	NM_LINK_TYPE_TUN,
 	NM_LINK_TYPE_VETH,
@@ -114,6 +128,8 @@ typedef enum {
 	NM_LINK_TYPE_BRIDGE = 0x10000 | 0x20000,
 	NM_LINK_TYPE_BOND,
 	NM_LINK_TYPE_TEAM,
+
+	NM_LINK_TYPE_ANY = G_MAXUINT32,
 } NMLinkType;
 
 typedef enum {
@@ -123,9 +139,26 @@ typedef enum {
 	NMP_OBJECT_TYPE_IP6_ADDRESS,
 	NMP_OBJECT_TYPE_IP4_ROUTE,
 	NMP_OBJECT_TYPE_IP6_ROUTE,
+
+	NMP_OBJECT_TYPE_LNK_GRE,
+	NMP_OBJECT_TYPE_LNK_INFINIBAND,
+	NMP_OBJECT_TYPE_LNK_IP6TNL,
+	NMP_OBJECT_TYPE_LNK_IPIP,
+	NMP_OBJECT_TYPE_LNK_MACVLAN,
+	NMP_OBJECT_TYPE_LNK_MACVTAP,
+	NMP_OBJECT_TYPE_LNK_SIT,
+	NMP_OBJECT_TYPE_LNK_VLAN,
+	NMP_OBJECT_TYPE_LNK_VXLAN,
+
 	__NMP_OBJECT_TYPE_LAST,
 	NMP_OBJECT_TYPE_MAX = __NMP_OBJECT_TYPE_LAST - 1,
 } NMPObjectType;
+
+typedef enum {
+	NM_IP_CONFIG_MERGE_DEFAULT                  = 0,
+	NM_IP_CONFIG_MERGE_NO_ROUTES                = (1LL << 0),
+	NM_IP_CONFIG_MERGE_NO_DNS                   = (1LL << 1),
+} NMIPConfigMergeFlags;
 
 /* settings */
 typedef struct _NMAgentManager       NMAgentManager;

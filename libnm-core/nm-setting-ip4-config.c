@@ -19,10 +19,9 @@
  * Copyright 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-private.h"
@@ -59,11 +58,13 @@ NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_IP4_CONFIG)
 
 typedef struct {
 	char *dhcp_client_id;
+	char *dhcp_fqdn;
 } NMSettingIP4ConfigPrivate;
 
 enum {
 	PROP_0,
 	PROP_DHCP_CLIENT_ID,
+	PROP_DHCP_FQDN,
 
 	LAST_PROP
 };
@@ -97,6 +98,25 @@ nm_setting_ip4_config_get_dhcp_client_id (NMSettingIP4Config *setting)
 	g_return_val_if_fail (NM_IS_SETTING_IP4_CONFIG (setting), NULL);
 
 	return NM_SETTING_IP4_CONFIG_GET_PRIVATE (setting)->dhcp_client_id;
+}
+
+/**
+ * nm_setting_ip4_config_get_dhcp_fqdn:
+ * @setting: the #NMSettingIP4Config
+ *
+ * Returns the value contained in the #NMSettingIP4Config:dhcp-fqdn
+ * property.
+ *
+ * Returns: the configured FQDN to send to the DHCP server
+ *
+ * Since: 1.2
+ **/
+const char *
+nm_setting_ip4_config_get_dhcp_fqdn (NMSettingIP4Config *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_IP4_CONFIG (setting), NULL);
+
+	return NM_SETTING_IP4_CONFIG_GET_PRIVATE (setting)->dhcp_fqdn;
 }
 
 static gboolean
@@ -180,6 +200,31 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
+	if (priv->dhcp_fqdn && !*priv->dhcp_fqdn) {
+		g_set_error_literal (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property is empty"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME, NM_SETTING_IP4_CONFIG_DHCP_FQDN);
+		return FALSE;
+	}
+
+	if (priv->dhcp_fqdn && !strchr (priv->dhcp_fqdn, '.')) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("'%s' is not a valid FQDN"), priv->dhcp_fqdn);
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME, NM_SETTING_IP4_CONFIG_DHCP_FQDN);
+		return FALSE;
+	}
+
+	if (priv->dhcp_fqdn && nm_setting_ip_config_get_dhcp_hostname (s_ip)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property cannot be set when dhcp-hostname is also set"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME, NM_SETTING_IP4_CONFIG_DHCP_FQDN);
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -194,6 +239,7 @@ finalize (GObject *object)
 	NMSettingIP4ConfigPrivate *priv = NM_SETTING_IP4_CONFIG_GET_PRIVATE (object);
 
 	g_free (priv->dhcp_client_id);
+	g_free (priv->dhcp_fqdn);
 
 	G_OBJECT_CLASS (nm_setting_ip4_config_parent_class)->finalize (object);
 }
@@ -208,6 +254,10 @@ set_property (GObject *object, guint prop_id,
 	case PROP_DHCP_CLIENT_ID:
 		g_free (priv->dhcp_client_id);
 		priv->dhcp_client_id = g_value_dup_string (value);
+		break;
+	case PROP_DHCP_FQDN:
+		g_free (priv->dhcp_fqdn);
+		priv->dhcp_fqdn = g_value_dup_string (value);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -224,6 +274,9 @@ get_property (GObject *object, guint prop_id,
 	switch (prop_id) {
 	case PROP_DHCP_CLIENT_ID:
 		g_value_set_string (value, nm_setting_ip4_config_get_dhcp_client_id (s_ip4));
+		break;
+	case PROP_DHCP_FQDN:
+		g_value_set_string (value, nm_setting_ip4_config_get_dhcp_fqdn (s_ip4));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -260,19 +313,23 @@ ip4_addresses_get (NMSetting  *setting,
 	return ret;
 }
 
-static void
+static gboolean
 ip4_addresses_set (NMSetting  *setting,
                    GVariant   *connection_dict,
                    const char *property,
-                   GVariant   *value)
+                   GVariant   *value,
+                   NMSettingParseFlags parse_flags,
+                   GError    **error)
 {
 	GPtrArray *addrs;
 	GVariant *s_ip4;
 	char **labels, *gateway = NULL;
 	int i;
 
+	/* FIXME: properly handle errors */
+
 	if (!_nm_setting_use_legacy_property (setting, connection_dict, "addresses", "address-data"))
-		return;
+		return TRUE;
 
 	addrs = nm_utils_ip4_addresses_from_variant (value, &gateway);
 
@@ -291,6 +348,7 @@ ip4_addresses_set (NMSetting  *setting,
 	              NULL);
 	g_ptr_array_unref (addrs);
 	g_free (gateway);
+	return TRUE;
 }
 
 static GVariant *
@@ -346,21 +404,26 @@ ip4_address_data_get (NMSetting    *setting,
 	return ret;
 }
 
-static void
+static gboolean
 ip4_address_data_set (NMSetting  *setting,
                       GVariant   *connection_dict,
                       const char *property,
-                      GVariant   *value)
+                      GVariant   *value,
+                      NMSettingParseFlags parse_flags,
+                      GError    **error)
 {
 	GPtrArray *addrs;
 
+	/* FIXME: properly handle errors */
+
 	/* Ignore 'address-data' if we're going to process 'addresses' */
 	if (_nm_setting_use_legacy_property (setting, connection_dict, "addresses", "address-data"))
-		return;
+		return TRUE;
 
 	addrs = nm_utils_ip_addresses_from_variant (value, AF_INET);
 	g_object_set (setting, NM_SETTING_IP_CONFIG_ADDRESSES, addrs, NULL);
 	g_ptr_array_unref (addrs);
+	return TRUE;
 }
 
 static GVariant *
@@ -377,20 +440,25 @@ ip4_routes_get (NMSetting  *setting,
 	return ret;
 }
 
-static void
+static gboolean
 ip4_routes_set (NMSetting  *setting,
                 GVariant   *connection_dict,
                 const char *property,
-                GVariant   *value)
+                GVariant   *value,
+                NMSettingParseFlags parse_flags,
+                GError    **error)
 {
 	GPtrArray *routes;
 
+	/* FIXME: properly handle errors */
+
 	if (!_nm_setting_use_legacy_property (setting, connection_dict, "routes", "route-data"))
-		return;
+		return TRUE;
 
 	routes = nm_utils_ip4_routes_from_variant (value);
 	g_object_set (setting, property, routes, NULL);
 	g_ptr_array_unref (routes);
+	return TRUE;
 }
 
 static GVariant *
@@ -408,21 +476,26 @@ ip4_route_data_get (NMSetting    *setting,
 	return ret;
 }
 
-static void
+static gboolean
 ip4_route_data_set (NMSetting  *setting,
                     GVariant   *connection_dict,
                     const char *property,
-                    GVariant   *value)
+                    GVariant   *value,
+                    NMSettingParseFlags parse_flags,
+                    GError    **error)
 {
 	GPtrArray *routes;
 
+	/* FIXME: properly handle errors */
+
 	/* Ignore 'route-data' if we're going to process 'routes' */
 	if (_nm_setting_use_legacy_property (setting, connection_dict, "routes", "route-data"))
-		return;
+		return TRUE;
 
 	routes = nm_utils_ip_routes_from_variant (value, AF_INET);
 	g_object_set (setting, NM_SETTING_IP_CONFIG_ROUTES, routes, NULL);
 	g_ptr_array_unref (routes);
+	return TRUE;
 }
 
 
@@ -549,7 +622,8 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *ip4_class)
 	/* ---ifcfg-rh---
 	 * property: dhcp-hostname
 	 * variable: DHCP_HOSTNAME
-	 * description: Hostname to send to the DHCP server.
+	 * description: Hostname to send to the DHCP server. When both DHCP_HOSTNAME and
+	 *    DHCP_FQDN are specified only the latter is used.
 	 * ---end---
 	 */
 
@@ -596,6 +670,49 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *ip4_class)
 	g_object_class_install_property
 		(object_class, PROP_DHCP_CLIENT_ID,
 		 g_param_spec_string (NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE |
+		                      G_PARAM_STATIC_STRINGS));
+
+	/* ---ifcfg-rh---
+	 * property: dad-timeout
+	 * variable: ARPING_WAIT
+	 * default: missing variable means global default (config override or 3)
+	 * description: Timeout (in seconds) for performing DAD before configuring
+	 * IPv4 addresses. 0 turns off the DAD completely, -1 means default value.
+	 * example: ARPING_WAIT=2
+	 * ---end---
+	 */
+
+	/* ---ifcfg-rh---
+	 * property: dhcp-timeout
+	 * variable: IPV4_DHCP_TIMEOUT(+)
+	 * description: A timeout after which the DHCP transaction fails in case of no response.
+	 * example: IPV4_DHCP_TIMEOUT=10
+	 * ---end---
+	 */
+
+	/**
+	 * NMSettingIP4Config:dhcp-fqdn:
+	 *
+	 * If the #NMSettingIPConfig:dhcp-send-hostname property is %TRUE, then the
+	 * specified FQDN will be sent to the DHCP server when acquiring a lease. This
+	 * property and #NMSettingIPConfig:dhcp-hostname are mutually exclusive and
+	 * cannot be set at the same time.
+	 *
+	 * Since: 1.2
+	 */
+	/* ---ifcfg-rh---
+	 * property: dhcp-fqdn
+	 * variable: DHCP_FQDN
+	 * description: FQDN to send to the DHCP server. When both DHCP_HOSTNAME and
+	 *    DHCP_FQDN are specified only the latter is used.
+	 * example: DHCP_FQDN=foo.bar.com
+	 * ---end---
+	 */
+	g_object_class_install_property
+		(object_class, PROP_DHCP_FQDN,
+		 g_param_spec_string (NM_SETTING_IP4_CONFIG_DHCP_FQDN, "", "",
 		                      NULL,
 		                      G_PARAM_READWRITE |
 		                      G_PARAM_STATIC_STRINGS));

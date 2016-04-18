@@ -1,4 +1,4 @@
-/* -*- Mode: C; tab-width: 5; indent-tabs-mode: t; c-basic-offset: 5 -*- */
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,11 +22,8 @@
 #ifndef __NETWORKMANAGER_BLUEZ5_MANAGER_H__
 #define __NETWORKMANAGER_BLUEZ5_MANAGER_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include  <config.h>
-#include  "nm-connection-provider.h"
+#include "nm-default.h"
+#include "nm-connection-provider.h"
 
 G_BEGIN_DECLS
 

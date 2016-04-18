@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="index.html" title="libnm Reference Manual">
-<link rel="prev" href="NMVpnEditor.html" title="NMVpnEditor">
+<link rel="prev" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">
 <link rel="next" href="api-index-full.html" title="API Index">
 <meta name="generator" content="GTK-Doc V1.24 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -16,7 +16,7 @@
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><img src="up-insensitive.png" width="16" height="16" border="0"></td>
-<td><a accesskey="p" href="NMVpnEditor.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NMVpnEditorPlugin.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="api-index-full.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="chapter">
@@ -37,17 +37,21 @@
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric">NMSettingGeneric</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband">NMSettingInfiniband</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel">NMSettingIPTunnel</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config">NMSettingIP4Config</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">╰──</span> <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan">NMSettingMacvlan</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh">NMSettingOlpcMesh</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingPpp.html" title="NMSettingPpp">NMSettingPpp</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe">NMSettingPppoe</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingSerial.html" title="NMSettingSerial">NMSettingSerial</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingTun.html" title="NMSettingTun">NMSettingTun</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingVlan.html" title="NMSettingVlan">NMSettingVlan</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingVpn.html" title="NMSettingVpn">NMSettingVpn</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan">NMSettingVxlan</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingWimax.html" title="NMSettingWimax">NMSettingWimax</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
@@ -64,10 +68,14 @@
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceEthernet.html" title="NMDeviceEthernet">NMDeviceEthernet</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceGeneric.html" title="NMDeviceGeneric">NMDeviceGeneric</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceInfiniband.html" title="NMDeviceInfiniband">NMDeviceInfiniband</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel">NMDeviceIPTunnel</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan">NMDeviceMacvlan</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh">NMDeviceOlpcMesh</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam">NMDeviceTeam</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceTun.html" title="NMDeviceTun">NMDeviceTun</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceVlan.html" title="NMDeviceVlan">NMDeviceVlan</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan">NMDeviceVxlan</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi">NMDeviceWifi</a>
     <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">╰──</span> <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax">NMDeviceWimax</a>
     <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig">NMDhcpConfig</a>
@@ -78,8 +86,8 @@
     <span class="lineart">├──</span> <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection">NMSimpleConnection</a>
     <a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GInterface</a>
-    <span class="lineart">├──</span> <a class="link" href="NMVpnEditor.html" title="NMVpnEditor">NMVpnEditor</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMVpnEditor.html#NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+    <span class="lineart">├──</span> <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditor">NMVpnEditor</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
     <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NM80211ApFlags" title="enum NM80211ApFlags">NM80211ApFlags</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NM80211ApSecurityFlags" title="enum NM80211ApSecurityFlags">NM80211ApSecurityFlags</a>
@@ -92,8 +100,9 @@
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NMSecretAgentGetSecretsFlags" title="enum NMSecretAgentGetSecretsFlags">NMSecretAgentGetSecretsFlags</a>
     <span class="lineart">├──</span> <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags" title="enum NMSettingDcbFlags">NMSettingDcbFlags</a>
     <span class="lineart">├──</span> <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags">NMSettingSecretFlags</a>
+    <span class="lineart">├──</span> <a class="link" href="NMSettingWired.html#NMSettingWiredWakeOnLan" title="enum NMSettingWiredWakeOnLan">NMSettingWiredWakeOnLan</a>
     <span class="lineart">├──</span> <a class="link" href="NMSettingVlan.html#NMVlanFlags" title="enum NMVlanFlags">NMVlanFlags</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMVpnEditor.html#NMVpnEditorPluginCapability" title="enum NMVpnEditorPluginCapability">NMVpnEditorPluginCapability</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditorPluginCapability" title="enum NMVpnEditorPluginCapability">NMVpnEditorPluginCapability</a>
     <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-errors.html#NMAgentManagerError" title="enum NMAgentManagerError">NMAgentManagerError</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-errors.html#NMConnectionError" title="enum NMConnectionError">NMConnectionError</a>
@@ -112,13 +121,21 @@
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NMDeviceState" title="enum NMDeviceState">NMDeviceState</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NMDeviceStateReason" title="enum NMDeviceStateReason">NMDeviceStateReason</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NMDeviceType" title="enum NMDeviceType">NMDeviceType</a>
+    <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NMIPTunnelMode" title="enum NMIPTunnelMode">NMIPTunnelMode</a>
+    <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NMMetered" title="enum NMMetered">NMMetered</a>
     <span class="lineart">├──</span> <a class="link" href="NMSetting8021x.html#NMSetting8021xCKFormat" title="enum NMSetting8021xCKFormat">NMSetting8021xCKFormat</a>
     <span class="lineart">├──</span> <a class="link" href="NMSetting8021x.html#NMSetting8021xCKScheme" title="enum NMSetting8021xCKScheme">NMSetting8021xCKScheme</a>
     <span class="lineart">├──</span> <a class="link" href="NMSetting.html#NMSettingCompareFlags" title="enum NMSettingCompareFlags">NMSettingCompareFlags</a>
     <span class="lineart">├──</span> <a class="link" href="NMSettingConnection.html#NMSettingConnectionAutoconnectSlaves" title="enum NMSettingConnectionAutoconnectSlaves">NMSettingConnectionAutoconnectSlaves</a>
+    <span class="lineart">├──</span> <a class="link" href="NMSettingConnection.html#NMSettingConnectionLldp" title="enum NMSettingConnectionLldp">NMSettingConnectionLldp</a>
     <span class="lineart">├──</span> <a class="link" href="NMSetting.html#NMSettingDiffResult" title="enum NMSettingDiffResult">NMSettingDiffResult</a>
+    <span class="lineart">├──</span> <a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigAddrGenMode" title="enum NMSettingIP6ConfigAddrGenMode">NMSettingIP6ConfigAddrGenMode</a>
     <span class="lineart">├──</span> <a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy" title="enum NMSettingIP6ConfigPrivacy">NMSettingIP6ConfigPrivacy</a>
+    <span class="lineart">├──</span> <a class="link" href="NMSetting.html#NMSettingMacRandomization" title="enum NMSettingMacRandomization">NMSettingMacRandomization</a>
+    <span class="lineart">├──</span> <a class="link" href="NMSettingMacvlan.html#NMSettingMacvlanMode" title="enum NMSettingMacvlanMode">NMSettingMacvlanMode</a>
     <span class="lineart">├──</span> <a class="link" href="NMSettingSerial.html#NMSettingSerialParity" title="enum NMSettingSerialParity">NMSettingSerialParity</a>
+    <span class="lineart">├──</span> <a class="link" href="NMSettingTun.html#NMSettingTunMode" title="enum NMSettingTunMode">NMSettingTunMode</a>
+    <span class="lineart">├──</span> <a class="link" href="NMSettingWireless.html#NMSettingWirelessPowersave" title="enum NMSettingWirelessPowersave">NMSettingWirelessPowersave</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-dbus-interface.html#NMState" title="enum NMState">NMState</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-utils.html#NMUtilsSecurityType" title="enum NMUtilsSecurityType">NMUtilsSecurityType</a>
     <span class="lineart">├──</span> <a class="link" href="NMSettingVlan.html#NMVlanPriorityMap" title="enum NMVlanPriorityMap">NMVlanPriorityMap</a>
@@ -127,10 +144,11 @@
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-vpn-dbus-interface.html#NMVpnPluginFailure" title="enum NMVpnPluginFailure">NMVpnPluginFailure</a>
     <span class="lineart">├──</span> <a class="link" href="libnm-nm-vpn-dbus-interface.html#NMVpnServiceState" title="enum NMVpnServiceState">NMVpnServiceState</a>
     <span class="lineart">├──</span> <a class="link" href="NMSettingWirelessSecurity.html#NMWepKeyType" title="enum NMWepKeyType">NMWepKeyType</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMWimaxNsp.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType">NMWimaxNspNetworkType</a>
+    <span class="lineart">╰──</span> <a class="link" href="libnm-nm-dbus-interface.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType">NMWimaxNspNetworkType</a>
     <a href="/usr/share/gtk-doc/html/gobject/gobject-Boxed-Types.html">GBoxed</a>
     <span class="lineart">├──</span> <a class="link" href="NMSettingIPConfig.html#NMIPAddress">NMIPAddress</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSettingIPConfig.html#NMIPRoute">NMIPRoute</a>
+    <span class="lineart">├──</span> <a class="link" href="NMSettingIPConfig.html#NMIPRoute">NMIPRoute</a>
+    <span class="lineart">╰──</span> <a class="link" href="NMDevice.html#NMLldpNeighbor">NMLldpNeighbor</a>
 </pre>
 </div>
 <div class="footer">

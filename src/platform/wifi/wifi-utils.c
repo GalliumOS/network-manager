@@ -19,12 +19,11 @@
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
-#include <glib.h>
 
 #include "wifi-utils.h"
 #include "wifi-utils-private.h"
@@ -98,6 +97,14 @@ wifi_utils_set_mode (WifiData *data, const NM80211Mode mode)
 	return data->set_mode ? data->set_mode (data, mode) : TRUE;
 }
 
+gboolean
+wifi_utils_set_powersave (WifiData *data, guint32 powersave)
+{
+	g_return_val_if_fail (data != NULL, FALSE);
+
+	return data->set_powersave ? data->set_powersave (data, powersave) : TRUE;
+}
+
 guint32
 wifi_utils_get_freq (WifiData *data)
 {
@@ -111,13 +118,6 @@ wifi_utils_find_freq (WifiData *data, const guint32 *freqs)
 	g_return_val_if_fail (data != NULL, 0);
 	g_return_val_if_fail (freqs != NULL, 0);
 	return data->find_freq (data, freqs);
-}
-
-GByteArray *
-wifi_utils_get_ssid (WifiData *data)
-{
-	g_return_val_if_fail (data != NULL, NULL);
-	return data->get_ssid (data);
 }
 
 gboolean

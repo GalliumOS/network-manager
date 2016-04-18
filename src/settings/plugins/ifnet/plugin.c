@@ -20,22 +20,21 @@
  * Copyright (C) 1999-2010 Gentoo Foundation, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 
 #include <gmodule.h>
-#include <glib.h>
-#include <gio/gio.h>
 
-#include <nm-utils.h>
-#include <nm-setting-connection.h>
+#include "nm-utils.h"
+#include "nm-setting-connection.h"
 
+#include "nm-default.h"
 #include "nm-dbus-interface.h"
-#include "nm-system-config-interface.h"
-#include "nm-logging.h"
+#include "nm-settings-plugin.h"
 #include "nm-ifnet-connection.h"
 #include "nm-config.h"
+#include "NetworkManagerUtils.h"
 
 #include "plugin.h"
 #include "net_utils.h"
@@ -45,19 +44,16 @@
 
 #define IFNET_PLUGIN_NAME_PRINT "ifnet"
 #define IFNET_PLUGIN_INFO "(C) 1999-2010 Gentoo Foundation, Inc. To report bugs please use bugs.gentoo.org with [networkmanager] or [qiaomuf] prefix."
-#define IFNET_SYSTEM_HOSTNAME_FILE "/etc/conf.d/hostname"
 #define IFNET_MANAGE_WELL_KNOWN_DEFAULT TRUE
 
 typedef struct {
 	GHashTable *connections;  /* uuid::connection */
-	gchar *hostname;
 	gboolean unmanaged_well_known;
 
-	GFileMonitor *hostname_monitor;
 	GFileMonitor *net_monitor;
 	GFileMonitor *wpa_monitor;
 
-} SCPluginIfnetPrivate;
+} SettingsPluginIfnetPrivate;
 
 typedef void (*FileChangedFn) (gpointer user_data);
 
@@ -66,56 +62,17 @@ typedef struct {
 	gpointer user_data;
 } FileMonitorInfo;
 
-static void system_config_interface_init (NMSystemConfigInterface *class);
+static void settings_plugin_interface_init (NMSettingsPluginInterface *plugin_iface);
 
-static void reload_connections (NMSystemConfigInterface *config);
+static void reload_connections (NMSettingsPlugin *config);
 
-G_DEFINE_TYPE_EXTENDED (SCPluginIfnet, sc_plugin_ifnet, G_TYPE_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_SYSTEM_CONFIG_INTERFACE, system_config_interface_init))
-#define SC_PLUGIN_IFNET_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SC_TYPE_PLUGIN_IFNET, SCPluginIfnetPrivate))
-/*
-static void
-ignore_cb(NMSettingsConnectionInterface * connection,
-	  GError * error, gpointer user_data)
-{
-}
-*/
-static const char *
-get_hostname (NMSystemConfigInterface * config)
-{
-	return SC_PLUGIN_IFNET_GET_PRIVATE (config)->hostname;
-}
+G_DEFINE_TYPE_EXTENDED (SettingsPluginIfnet, settings_plugin_ifnet, G_TYPE_OBJECT, 0,
+                        G_IMPLEMENT_INTERFACE (NM_TYPE_SETTINGS_PLUGIN,
+                                               settings_plugin_interface_init))
+#define SETTINGS_PLUGIN_IFNET_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SETTINGS_TYPE_PLUGIN_IFNET, SettingsPluginIfnetPrivate))
 
-static void
-update_system_hostname (gpointer config)
-{
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (config);
-
-	if (priv->hostname)
-		g_free (priv->hostname);
-	priv->hostname = read_hostname (IFNET_SYSTEM_HOSTNAME_FILE);
-
-	g_object_notify (G_OBJECT (config),
-			 NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME);
-	nm_log_info (LOGD_SETTINGS, "Hostname updated to: %s", priv->hostname);
-}
-
-static void
-write_system_hostname (NMSystemConfigInterface * config,
-		       const gchar * newhostname)
-{
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (config);
-
-	g_return_if_fail (newhostname);
-	nm_log_info (LOGD_SETTINGS, "Write system hostname: %s", newhostname);
-	if (write_hostname (IFNET_SYSTEM_HOSTNAME_FILE, newhostname)) {
-		g_free (priv->hostname);
-		priv->hostname = g_strdup (newhostname);
-		g_object_notify (G_OBJECT (config),
-				 NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME);
-	} else
-		nm_log_warn (LOGD_SETTINGS, "Write system hostname: %s failed", newhostname);
-}
+static SettingsPluginIfnet *settings_plugin_ifnet_get (void);
+NM_DEFINE_SINGLETON_GETTER (SettingsPluginIfnet, settings_plugin_ifnet_get, SETTINGS_TYPE_PLUGIN_IFNET);
 
 static gboolean
 is_managed_plugin (void)
@@ -177,12 +134,9 @@ monitor_file_changes (const char *filename,
 static void
 setup_monitors (NMIfnetConnection * connection, gpointer user_data)
 {
-	SCPluginIfnet *self = SC_PLUGIN_IFNET (user_data);
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (self);
+	SettingsPluginIfnet *self = SETTINGS_PLUGIN_IFNET (user_data);
+	SettingsPluginIfnetPrivate *priv = SETTINGS_PLUGIN_IFNET_GET_PRIVATE (self);
 
-	priv->hostname_monitor =
-	    monitor_file_changes (IFNET_SYSTEM_HOSTNAME_FILE,
-	                          update_system_hostname, user_data);
 	if (nm_config_get_monitor_connection_files (nm_config_get ())) {
 		priv->net_monitor =
 			monitor_file_changes (CONF_NET_FILE, (FileChangedFn) reload_connections,
@@ -196,13 +150,9 @@ setup_monitors (NMIfnetConnection * connection, gpointer user_data)
 static void
 cancel_monitors (NMIfnetConnection * connection, gpointer user_data)
 {
-	SCPluginIfnet *self = SC_PLUGIN_IFNET (user_data);
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (self);
+	SettingsPluginIfnet *self = SETTINGS_PLUGIN_IFNET (user_data);
+	SettingsPluginIfnetPrivate *priv = SETTINGS_PLUGIN_IFNET_GET_PRIVATE (self);
 
-	if (priv->hostname_monitor) {
-		g_file_monitor_cancel (priv->hostname_monitor);
-		g_object_unref (priv->hostname_monitor);
-	}
 	if (priv->net_monitor) {
 		g_file_monitor_cancel (priv->net_monitor);
 		g_object_unref (priv->net_monitor);
@@ -216,14 +166,14 @@ cancel_monitors (NMIfnetConnection * connection, gpointer user_data)
 static void
 connection_removed_cb (NMSettingsConnection *obj, gpointer user_data)
 {
-	g_hash_table_remove (SC_PLUGIN_IFNET_GET_PRIVATE (user_data)->connections,
+	g_hash_table_remove (SETTINGS_PLUGIN_IFNET_GET_PRIVATE (user_data)->connections,
 	                     nm_connection_get_uuid (NM_CONNECTION (obj)));
 }
 
 static void
-track_new_connection (SCPluginIfnet *self, NMIfnetConnection *connection)
+track_new_connection (SettingsPluginIfnet *self, NMIfnetConnection *connection)
 {
-	g_hash_table_insert (SC_PLUGIN_IFNET_GET_PRIVATE (self)->connections,
+	g_hash_table_insert (SETTINGS_PLUGIN_IFNET_GET_PRIVATE (self)->connections,
 	                     g_strdup (nm_connection_get_uuid (NM_CONNECTION (connection))),
 	                     g_object_ref (connection));
 	g_signal_connect (connection, NM_SETTINGS_CONNECTION_REMOVED,
@@ -232,10 +182,10 @@ track_new_connection (SCPluginIfnet *self, NMIfnetConnection *connection)
 }
 
 static void
-reload_connections (NMSystemConfigInterface *config)
+reload_connections (NMSettingsPlugin *config)
 {
-	SCPluginIfnet *self = SC_PLUGIN_IFNET (config);
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (self);
+	SettingsPluginIfnet *self = SETTINGS_PLUGIN_IFNET (config);
+	SettingsPluginIfnetPrivate *priv = SETTINGS_PLUGIN_IFNET_GET_PRIVATE (self);
 	GList *conn_names = NULL, *n_iter = NULL;
 	gboolean auto_refresh;
 	GError *error = NULL;
@@ -293,7 +243,7 @@ reload_connections (NMSystemConfigInterface *config)
 					nm_settings_connection_signal_remove (NM_SETTINGS_CONNECTION (old));
 					track_new_connection (self, new);
 					if (is_managed_plugin () && is_managed (conn_name))
-						g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED, new);
+						g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_CONNECTION_ADDED, new);
 				}
 			} else {
 				/* Update existing connection with new settings */
@@ -310,11 +260,11 @@ reload_connections (NMSystemConfigInterface *config)
 				nm_log_info (LOGD_SETTINGS, "Connection %s updated",
 				             nm_connection_get_id (NM_CONNECTION (new)));
 			}
-			g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED);
+			g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_UNMANAGED_SPECS_CHANGED);
 		} else if (new) {
 			track_new_connection (self, new);
 			if (is_managed_plugin () && is_managed (conn_name))
-				g_signal_emit_by_name (self, NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED, new);
+				g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_CONNECTION_ADDED, new);
 		}
 
 		/* Track all valid connections so we can remove deleted ones later */
@@ -341,12 +291,12 @@ reload_connections (NMSystemConfigInterface *config)
 }
 
 static NMSettingsConnection *
-add_connection (NMSystemConfigInterface *config,
+add_connection (NMSettingsPlugin *config,
                 NMConnection *source,
                 gboolean save_to_disk,
                 GError **error)
 {
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (config);
+	SettingsPluginIfnetPrivate *priv = SETTINGS_PLUGIN_IFNET_GET_PRIVATE (config);
 	NMIfnetConnection *new = NULL;
 
 	/* Ensure we reject attempts to add the connection long before we're
@@ -363,7 +313,7 @@ add_connection (NMSystemConfigInterface *config,
 	} else {
 		new = nm_ifnet_connection_new (source, NULL);
 		if (new) {
-			track_new_connection (SC_PLUGIN_IFNET (config), new);
+			track_new_connection (SETTINGS_PLUGIN_IFNET (config), new);
 			/* track_new_connection refs 'new' */
 			g_object_unref (new);
 		}
@@ -406,9 +356,9 @@ check_unmanaged (gpointer key, gpointer data, gpointer user_data)
 }
 
 static GSList *
-get_unmanaged_specs (NMSystemConfigInterface * config)
+get_unmanaged_specs (NMSettingsPlugin * config)
 {
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (config);
+	SettingsPluginIfnetPrivate *priv = SETTINGS_PLUGIN_IFNET_GET_PRIVATE (config);
 	GSList *list = NULL;
 
 	nm_log_info (LOGD_SETTINGS, "getting unmanaged specs...");
@@ -417,10 +367,10 @@ get_unmanaged_specs (NMSystemConfigInterface * config)
 }
 
 static void
-init (NMSystemConfigInterface *config)
+init (NMSettingsPlugin *config)
 {
-	SCPluginIfnet *self = SC_PLUGIN_IFNET (config);
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (self);
+	SettingsPluginIfnet *self = SETTINGS_PLUGIN_IFNET (config);
+	SettingsPluginIfnetPrivate *priv = SETTINGS_PLUGIN_IFNET_GET_PRIVATE (self);
 
 	nm_log_info (LOGD_SETTINGS, "Initializing!");
 
@@ -431,15 +381,14 @@ init (NMSystemConfigInterface *config)
 
 	setup_monitors (NULL, config);
 	reload_connections (config);
-	update_system_hostname (self);
 
 	nm_log_info (LOGD_SETTINGS, "Initialzation complete!");
 }
 
 static GSList *
-get_connections (NMSystemConfigInterface *config)
+get_connections (NMSettingsPlugin *config)
 {
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (config);
+	SettingsPluginIfnetPrivate *priv = SETTINGS_PLUGIN_IFNET_GET_PRIVATE (config);
 	GSList *connections = NULL;
 	GHashTableIter iter;
 	NMIfnetConnection *connection;
@@ -459,17 +408,17 @@ get_connections (NMSystemConfigInterface *config)
 }
 
 static void
-system_config_interface_init (NMSystemConfigInterface *class)
+settings_plugin_interface_init (NMSettingsPluginInterface *plugin_iface)
 {
-	class->init = init;
-	class->get_connections = get_connections;
-	class->get_unmanaged_specs = get_unmanaged_specs;
-	class->add_connection = add_connection;
-	class->reload_connections = reload_connections;
+	plugin_iface->init = init;
+	plugin_iface->get_connections = get_connections;
+	plugin_iface->get_unmanaged_specs = get_unmanaged_specs;
+	plugin_iface->add_connection = add_connection;
+	plugin_iface->reload_connections = reload_connections;
 }
 
 static void
-sc_plugin_ifnet_init (SCPluginIfnet * plugin)
+settings_plugin_ifnet_init (SettingsPluginIfnet * plugin)
 {
 }
 
@@ -477,23 +426,16 @@ static void
 get_property (GObject * object, guint prop_id, GValue * value,
 	      GParamSpec * pspec)
 {
-	NMSystemConfigInterface *self = NM_SYSTEM_CONFIG_INTERFACE (object);
-
 	switch (prop_id) {
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_NAME:
+	case NM_SETTINGS_PLUGIN_PROP_NAME:
 		g_value_set_string (value, IFNET_PLUGIN_NAME_PRINT);
 		break;
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_INFO:
+	case NM_SETTINGS_PLUGIN_PROP_INFO:
 		g_value_set_string (value, IFNET_PLUGIN_INFO);
 		break;
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_CAPABILITIES:
+	case NM_SETTINGS_PLUGIN_PROP_CAPABILITIES:
 		g_value_set_uint (value,
-				  NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS
-				  |
-				  NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME);
-		break;
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME:
-		g_value_set_string (value, get_hostname (self));
+		                  NM_SETTINGS_PLUGIN_CAP_MODIFY_CONNECTIONS);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -506,15 +448,6 @@ set_property (GObject * object, guint prop_id, const GValue * value,
 	      GParamSpec * pspec)
 {
 	switch (prop_id) {
-	case NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME:{
-			const gchar *hostname = g_value_get_string (value);
-
-			if (hostname && strlen (hostname) < 1)
-				hostname = NULL;
-			write_system_hostname (NM_SYSTEM_CONFIG_INTERFACE
-					       (object), hostname);
-			break;
-		}
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -524,8 +457,8 @@ set_property (GObject * object, guint prop_id, const GValue * value,
 static void
 dispose (GObject * object)
 {
-	SCPluginIfnet *plugin = SC_PLUGIN_IFNET (object);
-	SCPluginIfnetPrivate *priv = SC_PLUGIN_IFNET_GET_PRIVATE (plugin);
+	SettingsPluginIfnet *plugin = SETTINGS_PLUGIN_IFNET (object);
+	SettingsPluginIfnetPrivate *priv = SETTINGS_PLUGIN_IFNET_GET_PRIVATE (plugin);
 
 	cancel_monitors (NULL, object);
 	if (priv->connections) {
@@ -533,53 +466,37 @@ dispose (GObject * object)
 		priv->connections = NULL;
 	}
 
-	g_free (priv->hostname);
-	priv->hostname = NULL;
-
 	ifnet_destroy ();
 	wpa_parser_destroy ();
-	G_OBJECT_CLASS (sc_plugin_ifnet_parent_class)->dispose (object);
+	G_OBJECT_CLASS (settings_plugin_ifnet_parent_class)->dispose (object);
 }
 
 static void
-sc_plugin_ifnet_class_init (SCPluginIfnetClass * req_class)
+settings_plugin_ifnet_class_init (SettingsPluginIfnetClass * req_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (req_class);
 
-	g_type_class_add_private (req_class, sizeof (SCPluginIfnetPrivate));
+	g_type_class_add_private (req_class, sizeof (SettingsPluginIfnetPrivate));
 
 	object_class->dispose = dispose;
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 
 	g_object_class_override_property (object_class,
-					  NM_SYSTEM_CONFIG_INTERFACE_PROP_NAME,
-					  NM_SYSTEM_CONFIG_INTERFACE_NAME);
+					  NM_SETTINGS_PLUGIN_PROP_NAME,
+					  NM_SETTINGS_PLUGIN_NAME);
 
 	g_object_class_override_property (object_class,
-					  NM_SYSTEM_CONFIG_INTERFACE_PROP_INFO,
-					  NM_SYSTEM_CONFIG_INTERFACE_INFO);
+					  NM_SETTINGS_PLUGIN_PROP_INFO,
+					  NM_SETTINGS_PLUGIN_INFO);
 
 	g_object_class_override_property (object_class,
-					  NM_SYSTEM_CONFIG_INTERFACE_PROP_CAPABILITIES,
-					  NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES);
-
-	g_object_class_override_property (object_class,
-					  NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME,
-					  NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME);
+					  NM_SETTINGS_PLUGIN_PROP_CAPABILITIES,
+					  NM_SETTINGS_PLUGIN_CAPABILITIES);
 }
 
 G_MODULE_EXPORT GObject *
-nm_system_config_factory (void)
+nm_settings_plugin_factory (void)
 {
-	static SCPluginIfnet *singleton = NULL;
-	SCPluginIfnetPrivate *priv;
-
-	if (!singleton) {
-		singleton = SC_PLUGIN_IFNET (g_object_new (SC_TYPE_PLUGIN_IFNET, NULL));
-		priv = SC_PLUGIN_IFNET_GET_PRIVATE (singleton);
-	} else
-		g_object_ref (singleton);
-
-	return G_OBJECT (singleton);
+	return g_object_ref (settings_plugin_ifnet_get ());
 }

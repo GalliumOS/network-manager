@@ -195,6 +195,14 @@
 </tr>
 <tr>
 <td class="function_type">
+<span class="returnvalue">guint32</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingWireless.html#nm-setting-wireless-get-powersave" title="nm_setting_wireless_get_powersave ()">nm_setting_wireless_get_powersave</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
 <span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
@@ -293,6 +301,11 @@
 <td class="property_type"><span class="type">guint</span></td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--mtu" title="The “mtu” property">mtu</a></td>
 <td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--powersave" title="The “powersave” property">powersave</a></td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><span class="type">guint</span></td>
@@ -396,6 +409,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-HIDDEN:CAPS" title="NM_SETTING_WIRELESS_HIDDEN">NM_SETTING_WIRELESS_HIDDEN</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERSAVE:CAPS" title="NM_SETTING_WIRELESS_POWERSAVE">NM_SETTING_WIRELESS_POWERSAVE</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -961,6 +978,32 @@ nm_setting_wireless_get_hidden (<em class="parameter"><code><a class="link" href
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-setting-wireless-get-powersave"></a><h3>nm_setting_wireless_get_powersave ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
+nm_setting_wireless_get_powersave (<em class="parameter"><code><a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.2.6.9.22.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.2.6.9.22.5"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSettingWireless.html#NMSettingWireless--powersave" title="The “powersave” property"><span class="type">“powersave”</span></a> property of the setting</p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-wireless-add-seen-bssid"></a><h3>nm_setting_wireless_add_seen_bssid ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_setting_wireless_add_seen_bssid (<em class="parameter"><code><a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> *setting</code></em>,
@@ -970,7 +1013,7 @@ NetworkManager now tracks previously seen BSSIDs internally so this function
 no longer has much use. Actually, changes you make using this function will
 not be preserved.</p>
 <div class="refsect3">
-<a name="id-1.2.6.9.22.5"></a><h4>Parameters</h4>
+<a name="id-1.2.6.9.23.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -992,7 +1035,7 @@ not be preserved.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.6.9.22.6"></a><h4>Returns</h4>
+<a name="id-1.2.6.9.23.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if <em class="parameter"><code>bssid</code></em>
 was already known, <code class="literal">FALSE</code> if not</p>
 </div>
@@ -1004,7 +1047,7 @@ was already known, <code class="literal">FALSE</code> if not</p>
 nm_setting_wireless_get_num_seen_bssids
                                (<em class="parameter"><code><a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.2.6.9.23.4"></a><h4>Parameters</h4>
+<a name="id-1.2.6.9.24.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1019,7 +1062,7 @@ nm_setting_wireless_get_num_seen_bssids
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.6.9.23.5"></a><h4>Returns</h4>
+<a name="id-1.2.6.9.24.5"></a><h4>Returns</h4>
 <p> the number of BSSIDs in the previously seen BSSID list</p>
 </div>
 </div>
@@ -1030,7 +1073,7 @@ nm_setting_wireless_get_num_seen_bssids
 nm_setting_wireless_get_seen_bssid (<em class="parameter"><code><a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> *setting</code></em>,
                                     <em class="parameter"><code><span class="type">guint32</span> i</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.2.6.9.24.4"></a><h4>Parameters</h4>
+<a name="id-1.2.6.9.25.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1052,7 +1095,7 @@ nm_setting_wireless_get_seen_bssid (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.6.9.24.5"></a><h4>Returns</h4>
+<a name="id-1.2.6.9.25.5"></a><h4>Returns</h4>
 <p> the BSSID at index <em class="parameter"><code>i</code></em>
 </p>
 </div>
@@ -1075,7 +1118,7 @@ and mode.  Useful for clients that wish to filter a set of connections
 against a set of access points and determine which connections are
 compatible with which access points.</p>
 <div class="refsect3">
-<a name="id-1.2.6.9.25.5"></a><h4>Parameters</h4>
+<a name="id-1.2.6.9.26.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1119,7 +1162,7 @@ capabilities</p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.6.9.25.6"></a><h4>Returns</h4>
+<a name="id-1.2.6.9.26.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the given settings are compatible with the access point's
 security flags and mode, <code class="literal">FALSE</code> if they are not.</p>
 </div>
@@ -1135,7 +1178,7 @@ nm_setting_wireless_get_security (<em class="parameter"><code><a class="link" hr
 the presence of NM_SETTING_WIRELESS_SECURITY_SETTING_NAME in the connection.</p>
 </div>
 <div class="refsect3">
-<a name="id-1.2.6.9.26.5"></a><h4>Parameters</h4>
+<a name="id-1.2.6.9.27.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1150,7 +1193,7 @@ the presence of NM_SETTING_WIRELESS_SECURITY_SETTING_NAME in the connection.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.6.9.26.6"></a><h4>Returns</h4>
+<a name="id-1.2.6.9.27.6"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingWireless.html#NMSettingWireless--security" title="The “security” property"><span class="type">“security”</span></a> property of the setting</p>
 </div>
 </div>
@@ -1302,6 +1345,12 @@ set to a value that requires the <a class="link" href="NMSettingWireless.html#NM
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-SETTING-WIRELESS-POWERSAVE:CAPS"></a><h3>NM_SETTING_WIRELESS_POWERSAVE</h3>
+<pre class="programlisting">#define NM_SETTING_WIRELESS_POWERSAVE   "powersave"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-SETTING-WIRELESS-SEC:CAPS"></a><h3>NM_SETTING_WIRELESS_SEC</h3>
 <pre class="programlisting">#define NM_SETTING_WIRELESS_SEC         "security"
 </pre>
@@ -1421,6 +1470,18 @@ infrastructure is assumed.</p>
 breaking larger packets up into multiple Ethernet frames.</p>
 <p>Flags: Read / Write / Construct</p>
 <p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingWireless--powersave"></a><h3>The <code class="literal">“powersave”</code> property</h3>
+<pre class="programlisting">  “powersave”                <span class="type">guint</span></pre>
+<p>If set to <code class="literal">FALSE</code>, Wi-Fi power saving behavior is disabled.  If set to
+<code class="literal">TRUE</code>, Wi-Fi power saving behavior is enabled.  All other values are
+reserved.  Note that even though only boolean values are allowed, the
+property type is an unsigned integer to allow for future expansion.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">

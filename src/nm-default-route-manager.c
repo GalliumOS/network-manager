@@ -19,13 +19,11 @@
  */
 
 
-#include "config.h"
+#include "nm-default.h"
+
+#include <string.h>
 
 #include "nm-default-route-manager.h"
-
-#include "string.h"
-
-#include "nm-logging.h"
 #include "nm-device.h"
 #include "nm-vpn-connection.h"
 #include "nm-platform.h"
@@ -60,41 +58,74 @@ typedef struct {
 
 G_DEFINE_TYPE (NMDefaultRouteManager, nm_default_route_manager, G_TYPE_OBJECT)
 
+NM_GOBJECT_PROPERTIES_DEFINE_BASE (
+	PROP_PLATFORM,
+);
+
 NM_DEFINE_SINGLETON_GETTER (NMDefaultRouteManager, nm_default_route_manager_get, NM_TYPE_DEFAULT_ROUTE_MANAGER);
 
-#define _LOG(level, addr_family, ...) \
+#define _NMLOG_PREFIX_NAME   "default-route"
+#undef  _NMLOG_ENABLED
+#define _NMLOG_ENABLED(level, addr_family) \
+    ({ \
+        const int __addr_family = (addr_family); \
+        const NMLogLevel __level = (level); \
+        const NMLogDomain __domain = __addr_family == AF_INET ? LOGD_IP4 : (__addr_family == AF_INET6 ? LOGD_IP6 : LOGD_IP); \
+        \
+        nm_logging_enabled (__level, __domain); \
+    })
+#define _NMLOG(level, addr_family, ...) \
     G_STMT_START { \
         const int __addr_family = (addr_family); \
         const NMLogLevel __level = (level); \
         const NMLogDomain __domain = __addr_family == AF_INET ? LOGD_IP4 : (__addr_family == AF_INET6 ? LOGD_IP6 : LOGD_IP); \
         \
         if (nm_logging_enabled (__level, __domain)) { \
-            char __ch = __addr_family == AF_INET ? '4' : (__addr_family == AF_INET6 ? '6' : '-'); \
-            char __prefix[30] = "default-route"; \
+            char __prefix_buf[100]; \
             \
-            if ((self) != singleton_instance) \
-                g_snprintf (__prefix, sizeof (__prefix), "default-route%c[%p]", __ch, (self)); \
-            else \
-                __prefix[STRLEN ("default-route")] = __ch; \
             _nm_log (__level, __domain, 0, \
                      "%s: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
-                     __prefix _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
+                     self != singleton_instance \
+                        ? nm_sprintf_buf (__prefix_buf, "%s%c[%p]", \
+                                          _NMLOG2_PREFIX_NAME, \
+                                          __addr_family == AF_INET ? '4' : (__addr_family == AF_INET6 ? '6' : '-'), \
+                                          self) \
+                        : _NMLOG2_PREFIX_NAME \
+                     _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
         } \
     } G_STMT_END
 
-#define _LOGD(addr_family, ...)      _LOG (LOGL_DEBUG, addr_family, __VA_ARGS__)
-#define _LOGI(addr_family, ...)      _LOG (LOGL_INFO , addr_family, __VA_ARGS__)
-#define _LOGW(addr_family, ...)      _LOG (LOGL_WARN , addr_family, __VA_ARGS__)
-#define _LOGE(addr_family, ...)      _LOG (LOGL_ERR  , addr_family, __VA_ARGS__)
-
-#define LOG_ENTRY_FMT  "entry[%u/%s:%p:%s:%c:%csync]"
-#define LOG_ENTRY_ARGS(entry_idx, entry) \
-		(entry_idx), \
-		NM_IS_DEVICE ((entry)->source.pointer) ? "dev" : "vpn", \
-		(entry)->source.pointer, \
-		NM_IS_DEVICE ((entry)->source.pointer) ? nm_device_get_iface ((entry)->source.device) : nm_vpn_connection_get_connection_id ((entry)->source.vpn), \
-		((entry)->never_default ? '0' : '1'), \
-		((entry)->synced ? '+' : '-')
+#define _NMLOG2_PREFIX_NAME   _NMLOG_PREFIX_NAME
+#undef  _NMLOG2_ENABLED
+#define _NMLOG2_ENABLED       _NMLOG_ENABLED
+#define _NMLOG2(level, vtable, entry_idx, entry, ...) \
+    G_STMT_START { \
+        const int __addr_family = (vtable)->vt->addr_family; \
+        const NMLogLevel __level = (level); \
+        const NMLogDomain __domain = __addr_family == AF_INET ? LOGD_IP4 : (__addr_family == AF_INET6 ? LOGD_IP6 : LOGD_IP); \
+        \
+        if (nm_logging_enabled (__level, __domain)) { \
+            char __prefix_buf[100]; \
+            guint __entry_idx = (entry_idx); \
+            const Entry *const __entry = (entry); \
+            \
+            _nm_log (__level, __domain, 0, \
+                     "%s: entry[%u/%s:%p:%s:%c:%csync]: "_NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
+                     self != singleton_instance \
+                        ? nm_sprintf_buf (__prefix_buf, "%s%c[%p]", \
+                                          _NMLOG2_PREFIX_NAME, \
+                                          __addr_family == AF_INET ? '4' : (__addr_family == AF_INET6 ? '6' : '-'), \
+                                          self) \
+                        : _NMLOG2_PREFIX_NAME, \
+                     __entry_idx, \
+                     NM_IS_DEVICE (__entry->source.pointer) ? "dev" : "vpn", \
+                     __entry->source.pointer, \
+                     NM_IS_DEVICE (__entry->source.pointer) ? nm_device_get_iface (__entry->source.device) : nm_active_connection_get_settings_connection_id (NM_ACTIVE_CONNECTION (__entry->source.vpn)), \
+                     (__entry->never_default ? '0' : '1'), \
+                     (__entry->synced ? '+' : '-') \
+                     _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
+        } \
+    } G_STMT_END
 
 /***********************************************************************************/
 
@@ -256,7 +287,7 @@ _platform_route_sync_add (const VTableIP *vtable, NMDefaultRouteManager *self, g
 		return FALSE;
 
 	if (vtable->vt->is_ip4) {
-		success = nm_platform_ip4_route_add (NM_PLATFORM_GET,
+		success = nm_platform_ip4_route_add (priv->platform,
 		                                     entry->route.rx.ifindex,
 		                                     entry->route.rx.source,
 		                                     0,
@@ -266,7 +297,7 @@ _platform_route_sync_add (const VTableIP *vtable, NMDefaultRouteManager *self, g
 		                                     entry->effective_metric,
 		                                     entry->route.rx.mss);
 	} else {
-		success = nm_platform_ip6_route_add (NM_PLATFORM_GET,
+		success = nm_platform_ip6_route_add (priv->platform,
 		                                     entry->route.rx.ifindex,
 		                                     entry->route.rx.source,
 		                                     in6addr_any,
@@ -277,7 +308,7 @@ _platform_route_sync_add (const VTableIP *vtable, NMDefaultRouteManager *self, g
 	}
 	if (!success) {
 		_LOGW (vtable->vt->addr_family, "failed to add default route %s with effective metric %u",
-		       vtable->vt->route_to_string (&entry->route), (guint) entry->effective_metric);
+		       vtable->vt->route_to_string (&entry->route, NULL, 0), (guint) entry->effective_metric);
 	}
 	return TRUE;
 }
@@ -292,7 +323,7 @@ _platform_route_sync_flush (const VTableIP *vtable, NMDefaultRouteManager *self,
 	gboolean changed = FALSE;
 
 	/* prune all other default routes from this device. */
-	routes = vtable->vt->route_get_all (NM_PLATFORM_GET, 0, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT);
+	routes = vtable->vt->route_get_all (priv->platform, 0, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT);
 
 	for (i = 0; i < routes->len; i++) {
 		const NMPlatformIPRoute *route;
@@ -324,7 +355,7 @@ _platform_route_sync_flush (const VTableIP *vtable, NMDefaultRouteManager *self,
 		 */
 		if (   !entry
 		    && (has_ifindex_synced || ifindex_to_flush == route->ifindex)) {
-			vtable->vt->route_delete_default (NM_PLATFORM_GET, route->ifindex, route->metric);
+			vtable->vt->route_delete_default (priv->platform, route->ifindex, route->metric);
 			changed = TRUE;
 		}
 	}
@@ -478,7 +509,7 @@ _resync_all (const VTableIP *vtable, NMDefaultRouteManager *self, const Entry *c
 
 	entries = vtable->get_entries (priv);
 
-	routes = vtable->vt->route_get_all (NM_PLATFORM_GET, 0, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT);
+	routes = vtable->vt->route_get_all (priv->platform, 0, NM_PLATFORM_GET_ROUTE_FLAGS_WITH_DEFAULT);
 
 	assumed_metrics = _get_assumed_interface_metrics (vtable, self, routes);
 
@@ -548,25 +579,25 @@ _resync_all (const VTableIP *vtable, NMDefaultRouteManager *self, const Entry *c
 			 * or none. Hence, we only have to remember what is going to change. */
 			g_array_append_val (changed_metrics, expected_metric);
 			if (old_entry) {
-				_LOGD (vtable->vt->addr_family, LOG_ENTRY_FMT": sync:update %s (%u -> %u)", LOG_ENTRY_ARGS (i, entry),
-				       vtable->vt->route_to_string (&entry->route), (guint) old_entry->effective_metric,
-				       (guint) expected_metric);
+				_LOG2D (vtable, i, entry, "sync:update %s (%u -> %u)",
+				        vtable->vt->route_to_string (&entry->route, NULL, 0), (guint) old_entry->effective_metric,
+				        (guint) expected_metric);
 			} else {
-				_LOGD (vtable->vt->addr_family, LOG_ENTRY_FMT": sync:add    %s (%u)", LOG_ENTRY_ARGS (i, entry),
-				       vtable->vt->route_to_string (&entry->route), (guint) expected_metric);
+				_LOG2D (vtable, i, entry, "sync:add    %s (%u)",
+				        vtable->vt->route_to_string (&entry->route, NULL, 0), (guint) expected_metric);
 			}
 		} else if (entry->effective_metric != expected_metric) {
 			g_array_append_val (changed_metrics, entry->effective_metric);
 			g_array_append_val (changed_metrics, expected_metric);
-			_LOGD (vtable->vt->addr_family, LOG_ENTRY_FMT": sync:metric %s (%u -> %u)", LOG_ENTRY_ARGS (i, entry),
-			       vtable->vt->route_to_string (&entry->route), (guint) entry->effective_metric,
-			       (guint) expected_metric);
+			_LOG2D (vtable, i, entry, "sync:metric %s (%u -> %u)",
+			        vtable->vt->route_to_string (&entry->route, NULL, 0), (guint) entry->effective_metric,
+			        (guint) expected_metric);
 		} else {
 			if (!_vt_routes_has_entry (vtable, routes, entry)) {
 				g_array_append_val (changed_metrics, entry->effective_metric);
-				_LOGD (vtable->vt->addr_family, LOG_ENTRY_FMT": sync:re-add %s (%u -> %u)", LOG_ENTRY_ARGS (i, entry),
-				       vtable->vt->route_to_string (&entry->route), (guint) entry->effective_metric,
-				       (guint) entry->effective_metric);
+				_LOG2D (vtable, i, entry, "sync:re-add %s (%u -> %u)",
+				        vtable->vt->route_to_string (&entry->route, NULL, 0), (guint) entry->effective_metric,
+				        (guint) entry->effective_metric);
 			}
 		}
 
@@ -629,11 +660,10 @@ _entry_at_idx_update (const VTableIP *vtable, NMDefaultRouteManager *self, guint
 	if (!entry->synced && !entry->never_default)
 		entry->effective_metric = entry->route.rx.metric;
 
-	_LOGD (vtable->vt->addr_family, LOG_ENTRY_FMT": %s %s (%"G_GUINT32_FORMAT")",
-	       LOG_ENTRY_ARGS (entry_idx, entry),
-	       old_entry ? "record:update" : "record:add   ",
-	       vtable->vt->route_to_string (&entry->route),
-	       entry->effective_metric);
+	_LOG2D (vtable, entry_idx, entry, "%s %s (%"G_GUINT32_FORMAT")",
+	        old_entry ? "record:update" : "record:add   ",
+	        vtable->vt->route_to_string (&entry->route, NULL, 0),
+	        entry->effective_metric);
 
 	g_ptr_array_sort_with_data (entries, _sort_entries_cmp, NULL);
 
@@ -653,8 +683,8 @@ _entry_at_idx_remove (const VTableIP *vtable, NMDefaultRouteManager *self, guint
 
 	entry = g_ptr_array_index (entries, entry_idx);
 
-	_LOGD (vtable->vt->addr_family, LOG_ENTRY_FMT": record:remove %s (%u)", LOG_ENTRY_ARGS (entry_idx, entry),
-	       vtable->vt->route_to_string (&entry->route), (guint) entry->effective_metric);
+	_LOG2D (vtable, entry_idx, entry, "record:remove %s (%u)",
+	       vtable->vt->route_to_string (&entry->route, NULL, 0), (guint) entry->effective_metric);
 
 	/* Remove the entry from the list (but don't free it yet) */
 	g_ptr_array_index (entries, entry_idx) = NULL;
@@ -714,9 +744,8 @@ _ipx_update_default_route (const VTableIP *vtable, NMDefaultRouteManager *self, 
 	if (   entry
 	    && entry->route.rx.ifindex != ip_ifindex) {
 		/* Strange... the ifindex changed... Remove the device and start again. */
-		_LOGD (vtable->vt->addr_family, "ifindex of "LOG_ENTRY_FMT" changed: %d -> %d",
-		       LOG_ENTRY_ARGS (entry_idx, entry),
-		       entry->route.rx.ifindex, ip_ifindex);
+		_LOG2D (vtable, entry_idx, entry, "ifindex changed: %d -> %d",
+		        entry->route.rx.ifindex, ip_ifindex);
 
 		g_object_freeze_notify (G_OBJECT (self));
 		_entry_at_idx_remove (vtable, self, entry_idx);
@@ -753,7 +782,7 @@ _ipx_update_default_route (const VTableIP *vtable, NMDefaultRouteManager *self, 
 			} else
 				synced = default_route && !is_assumed;
 		} else {
-			NMConnection *connection = nm_active_connection_get_connection ((NMActiveConnection *) vpn);
+			NMConnection *connection = nm_active_connection_get_applied_connection ((NMActiveConnection *) vpn);
 
 			if (   connection
 			    && nm_vpn_connection_get_vpn_state (vpn) == NM_VPN_CONNECTION_STATE_ACTIVATED) {
@@ -1022,7 +1051,7 @@ _ipx_get_best_activating_device (const VTableIP *vtable, NMDefaultRouteManager *
 			    || state >= NM_DEVICE_STATE_DEACTIVATING)
 				continue;
 
-			if (!_ipx_connection_has_default_route (vtable, self, nm_device_get_connection (device), NULL))
+			if (!_ipx_connection_has_default_route (vtable, self, nm_device_get_applied_connection (device), NULL))
 				continue;
 
 			prio = nm_device_get_ip4_route_metric (device);
@@ -1290,7 +1319,9 @@ _resync_idle_reschedule (NMDefaultRouteManager *self)
 			g_source_remove (priv->resync.idle_handle);
 		else
 			_LOGD (0, "resync: schedule on idle");
-		priv->resync.idle_handle = g_idle_add ((GSourceFunc) _resync_idle_now, self);
+		/* Schedule this at low priority so that on an external change to platform
+		 * a NMDevice has a chance to picks up the changes first. */
+		priv->resync.idle_handle = g_idle_add_full (G_PRIORITY_LOW, (GSourceFunc) _resync_idle_now, self, NULL);
 	} else if (!priv->resync.idle_handle) {
 		priv->resync.idle_handle =  g_timeout_add (priv->resync.backoff_wait_time_ms, (GSourceFunc) _resync_idle_now, self);
 		_LOGD (0, "resync: schedule in %u.%03u seconds (%u)", priv->resync.backoff_wait_time_ms/1000,
@@ -1331,7 +1362,6 @@ _platform_changed_cb (NMPlatform *platform,
                       int ifindex,
                       gpointer platform_object,
                       NMPlatformSignalChangeType change_type,
-                      NMPlatformReason reason,
                       NMDefaultRouteManager *self)
 {
 	switch (obj_type) {
@@ -1355,18 +1385,52 @@ _platform_changed_cb (NMPlatform *platform,
 /***********************************************************************************/
 
 static void
+set_property (GObject *object, guint prop_id,
+              const GValue *value, GParamSpec *pspec)
+{
+	NMDefaultRouteManager *self = NM_DEFAULT_ROUTE_MANAGER (object);
+	NMDefaultRouteManagerPrivate *priv = NM_DEFAULT_ROUTE_MANAGER_GET_PRIVATE (self);
+
+	switch (prop_id) {
+	case PROP_PLATFORM:
+		/* construct-only */
+		priv->platform = g_value_get_object (value) ? : NM_PLATFORM_GET;
+		if (!priv->platform)
+			g_return_if_reached ();
+		g_object_ref (priv->platform);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+		break;
+	}
+}
+
+static void
 nm_default_route_manager_init (NMDefaultRouteManager *self)
 {
+}
+
+static void
+constructed (GObject *object)
+{
+	NMDefaultRouteManager *self = NM_DEFAULT_ROUTE_MANAGER (object);
 	NMDefaultRouteManagerPrivate *priv = NM_DEFAULT_ROUTE_MANAGER_GET_PRIVATE (self);
 
 	priv->entries_ip4 = g_ptr_array_new_full (0, (GDestroyNotify) _entry_free);
 	priv->entries_ip6 = g_ptr_array_new_full (0, (GDestroyNotify) _entry_free);
 
-	priv->platform = g_object_ref (nm_platform_get ());
 	g_signal_connect (priv->platform, NM_PLATFORM_SIGNAL_IP4_ADDRESS_CHANGED, G_CALLBACK (_platform_changed_cb), self);
 	g_signal_connect (priv->platform, NM_PLATFORM_SIGNAL_IP6_ADDRESS_CHANGED, G_CALLBACK (_platform_changed_cb), self);
 	g_signal_connect (priv->platform, NM_PLATFORM_SIGNAL_IP4_ROUTE_CHANGED, G_CALLBACK (_platform_changed_cb), self);
 	g_signal_connect (priv->platform, NM_PLATFORM_SIGNAL_IP6_ROUTE_CHANGED, G_CALLBACK (_platform_changed_cb), self);
+}
+
+NMDefaultRouteManager *
+nm_default_route_manager_new (NMPlatform *platform)
+{
+	return g_object_new (NM_TYPE_DEFAULT_ROUTE_MANAGER,
+	                     NM_DEFAULT_ROUTE_MANAGER_PLATFORM, platform,
+	                     NULL);
 }
 
 static void
@@ -1411,6 +1475,17 @@ nm_default_route_manager_class_init (NMDefaultRouteManagerClass *klass)
 	g_type_class_add_private (klass, sizeof (NMDefaultRouteManagerPrivate));
 
 	/* virtual methods */
+	object_class->constructed = constructed;
 	object_class->dispose = dispose;
+	object_class->set_property = set_property;
+
+	obj_properties[PROP_PLATFORM] =
+	    g_param_spec_object (NM_DEFAULT_ROUTE_MANAGER_PLATFORM, "", "",
+	                         NM_TYPE_PLATFORM,
+	                         G_PARAM_WRITABLE |
+	                         G_PARAM_CONSTRUCT_ONLY |
+	                         G_PARAM_STATIC_STRINGS);
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
+
 }
 

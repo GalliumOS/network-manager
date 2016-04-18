@@ -22,11 +22,13 @@
 #ifndef _KEYFILE_PLUGIN_WRITER_H
 #define _KEYFILE_PLUGIN_WRITER_H
 
-#include <glib.h>
 #include <nm-connection.h>
+
+#include "nm-default.h"
 
 gboolean nm_keyfile_plugin_write_connection (NMConnection *connection,
                                              const char *existing_path,
+                                             gboolean force_rename,
                                              char **out_path,
                                              GError **error);
 

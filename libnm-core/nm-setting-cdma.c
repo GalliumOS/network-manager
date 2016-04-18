@@ -19,10 +19,9 @@
  * Copyright 2007 - 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-setting-cdma.h"
 #include "nm-utils.h"
@@ -146,7 +145,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
 		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
-		                     _("property is empty'"));
+		                     _("property is empty"));
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_CDMA_SETTING_NAME, NM_SETTING_CDMA_NUMBER);
 		return FALSE;
 	}
@@ -161,6 +160,15 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	}
 
 	return TRUE;
+}
+
+static gboolean
+verify_secrets (NMSetting *setting, NMConnection *connection, GError **error)
+{
+	return _nm_setting_verify_secret_string (NM_SETTING_CDMA_GET_PRIVATE (setting)->password,
+	                                         NM_SETTING_CDMA_SETTING_NAME,
+	                                         NM_SETTING_CDMA_PASSWORD,
+	                                         error);
 }
 
 static GPtrArray *
@@ -265,6 +273,7 @@ nm_setting_cdma_class_init (NMSettingCdmaClass *setting_class)
 	object_class->get_property = get_property;
 	object_class->finalize     = finalize;
 	parent_class->verify       = verify;
+	parent_class->verify_secrets = verify_secrets;
 	parent_class->need_secrets = need_secrets;
 
 	/* Properties */

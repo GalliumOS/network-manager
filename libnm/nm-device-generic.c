@@ -18,10 +18,9 @@
  * Copyright 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-device-generic.h"
 #include "nm-device-private.h"

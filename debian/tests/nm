@@ -110,7 +110,7 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
 
             # this should be fast, give it 2 s to initialize
             if wait_iface:
-                self.poll_text(log, '<info>  (%s): new' % wait_iface, timeout=100)
+                self.poll_text(log, 'manager: (%s): new' % wait_iface, timeout=100)
 
         self.nmclient = NMClient.Client.new()
         self.assertTrue(self.nmclient.networking_get_enabled())
@@ -352,7 +352,7 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
                 expected_ip_a.append('inet6 2600::[0-9a-f]+/')
             else:
                 # has address with our prefix and MAC
-                expected_ip_a.append('inet6 2600::[0-9a-f:]*ff:fe[0-9a-f:]+/64 scope global (?:tentative )?(?:mngtmpaddr )?(?:noprefixroute )?dynamic')
+                expected_ip_a.append('inet6 2600::[0-9a-f:]+/64 scope global (?:tentative )?(?:mngtmpaddr )?(?:noprefixroute )?dynamic')
                 # has address with our prefix and random IP (Privacy
                 # Extension), if requested
                 priv_re = 'inet6 2600:[0-9a-f:]+/64 scope global temporary (?:tentative )?(?:mngtmpaddr )?dynamic'
@@ -365,7 +365,7 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
                     #unexpected_ip_a.append(priv_re)
 
             # has a link-local address
-            expected_ip_a.append('inet6 fe80::[0-9a-f:]*ff:fe[0-9a-f:]+/64 scope link')
+            expected_ip_a.append('inet6 fe80::[0-9a-f:]+/64 scope link')
         else:
             expected_ip_a.append('inet 192.168.5.\d+/24')
 

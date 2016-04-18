@@ -24,11 +24,8 @@
  * (C) Copyright 2009 One Laptop per Child
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
-#include <glib/gi18n.h>
-#include <dbus/dbus.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -43,22 +40,18 @@
 #include "nm-device-olpc-mesh.h"
 #include "nm-device-private.h"
 #include "nm-utils.h"
-#include "nm-logging.h"
 #include "NetworkManagerUtils.h"
 #include "nm-activation-request.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-olpc-mesh.h"
 #include "nm-manager.h"
 #include "nm-enum-types.h"
-#include "nm-dbus-manager.h"
 #include "nm-platform.h"
-#include "nm-wifi-enum-types.h"
 
 /* This is a bug; but we can't really change API now... */
 #include "nm-vpn-dbus-interface.h"
 
-
-#include "nm-device-olpc-mesh-glue.h"
+#include "nmdbus-device-olpc-mesh.h"
 
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceOlpcMesh);
@@ -77,6 +70,7 @@ enum {
 
 struct _NMDeviceOlpcMeshPrivate {
 	NMDevice *companion;
+	NMManager *manager;
 	gboolean  stage1_waiting;
 };
 
@@ -144,7 +138,8 @@ complete_connection (NMDevice *device,
 
 	}
 
-	nm_utils_complete_generic (connection,
+	nm_utils_complete_generic (NM_PLATFORM_GET,
+	                           connection,
 	                           NM_SETTING_OLPC_MESH_SETTING_NAME,
 	                           existing_connections,
 	                           NULL,
@@ -213,7 +208,7 @@ act_stage2_config (NMDevice *device, NMDeviceStateReason *reason)
 	GBytes *ssid;
 	const char *anycast_addr;
 
-	connection = nm_device_get_connection (device);
+	connection = nm_device_get_applied_connection (device);
 	g_assert (connection);
 
 	s_mesh = nm_connection_get_setting_olpc_mesh (connection);
@@ -345,7 +340,7 @@ check_companion (NMDeviceOlpcMesh *self, NMDevice *other)
 	_LOGI (LOGD_OLPC, "found companion WiFi device %s",
 	       nm_device_get_iface (other));
 
-	g_signal_connect (G_OBJECT (other), "state-changed",
+	g_signal_connect (G_OBJECT (other), NM_DEVICE_STATE_CHANGED,
 	                  G_CALLBACK (companion_state_changed_cb), self);
 
 	g_signal_connect (G_OBJECT (other), "notify::scanning",
@@ -397,7 +392,7 @@ find_companion (NMDeviceOlpcMesh *self)
 	nm_device_add_pending_action (NM_DEVICE (self), "waiting for companion", TRUE);
 
 	/* Try to find the companion if it's already known to the NMManager */
-	for (list = nm_manager_get_devices (nm_manager_get ()); list ; list = g_slist_next (list)) {
+	for (list = nm_manager_get_devices (priv->manager); list ; list = g_slist_next (list)) {
 		if (check_companion (self, NM_DEVICE (list->data))) {
 			nm_device_queue_recheck_available (NM_DEVICE (self),
 			                                   NM_DEVICE_STATE_REASON_NONE,
@@ -421,14 +416,13 @@ state_changed (NMDevice *device,
 /*******************************************************************/
 
 NMDevice *
-nm_device_olpc_mesh_new (NMPlatformLink *platform_device)
+nm_device_olpc_mesh_new (const char *iface)
 {
-	g_return_val_if_fail (platform_device != NULL, NULL);
-
 	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_OLPC_MESH,
-	                                  NM_DEVICE_PLATFORM_DEVICE, platform_device,
+	                                  NM_DEVICE_IFACE, iface,
 	                                  NM_DEVICE_TYPE_DESC, "802.11 OLPC Mesh",
 	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_OLPC_MESH,
+	                                  NM_DEVICE_LINK_TYPE, NM_LINK_TYPE_OLPC_MESH,
 	                                  NULL);
 }
 
@@ -437,35 +431,21 @@ nm_device_olpc_mesh_init (NMDeviceOlpcMesh * self)
 {
 }
 
-static GObject*
-constructor (GType type,
-             guint n_construct_params,
-             GObjectConstructParam *construct_params)
+static void
+constructed (GObject *object)
 {
-	GObject *object;
-	GObjectClass *klass;
-	NMDeviceOlpcMesh *self;
-	NMDeviceWifiCapabilities caps;
+	NMDeviceOlpcMesh *self = NM_DEVICE_OLPC_MESH (object);
+	NMDeviceOlpcMeshPrivate *priv = NM_DEVICE_OLPC_MESH_GET_PRIVATE (self);
 
-	klass = G_OBJECT_CLASS (nm_device_olpc_mesh_parent_class);
-	object = klass->constructor (type, n_construct_params, construct_params);
-	if (!object)
-		return NULL;
+	G_OBJECT_CLASS (nm_device_olpc_mesh_parent_class)->constructed (object);
 
-	self = NM_DEVICE_OLPC_MESH (object);
+	priv->manager = g_object_ref (nm_manager_get ());
 
-	if (!nm_platform_wifi_get_capabilities (NM_PLATFORM_GET, nm_device_get_ifindex (NM_DEVICE (self)), &caps)) {
-		_LOGW (LOGD_HW | LOGD_OLPC, "failed to initialize WiFi driver");
-		g_object_unref (object);
-		return NULL;
-	}
-
-	g_signal_connect (nm_manager_get (), "device-added", G_CALLBACK (device_added_cb), self);
-	g_signal_connect (nm_manager_get (), "device-removed", G_CALLBACK (device_removed_cb), self);
+	g_signal_connect (priv->manager, "device-added", G_CALLBACK (device_added_cb), self);
+	g_signal_connect (priv->manager, "device-removed", G_CALLBACK (device_removed_cb), self);
 
 	/* shorter timeout for mesh connectivity */
 	nm_device_set_dhcp_timeout (NM_DEVICE (self), 20);
-	return object;
 }
 
 static void
@@ -477,10 +457,7 @@ get_property (GObject *object, guint prop_id,
 
 	switch (prop_id) {
 	case PROP_COMPANION:
-		if (priv->companion)
-			g_value_set_boxed (value, nm_device_get_path (priv->companion));
-		else
-			g_value_set_boxed (value, "/");
+		nm_utils_g_value_set_object_path (value, priv->companion);
 		break;
 	case PROP_ACTIVE_CHANNEL:
 		g_value_set_uint (value, nm_platform_mesh_get_channel (NM_PLATFORM_GET, nm_device_get_ifindex (NM_DEVICE (device))));
@@ -506,10 +483,15 @@ static void
 dispose (GObject *object)
 {
 	NMDeviceOlpcMesh *self = NM_DEVICE_OLPC_MESH (object);
+	NMDeviceOlpcMeshPrivate *priv = NM_DEVICE_OLPC_MESH_GET_PRIVATE (self);
 
 	companion_cleanup (self);
-	g_signal_handlers_disconnect_by_func (nm_manager_get (), G_CALLBACK (device_added_cb), self);
-	g_signal_handlers_disconnect_by_func (nm_manager_get (), G_CALLBACK (device_removed_cb), self);
+
+	if (priv->manager) {
+		g_signal_handlers_disconnect_by_func (priv->manager, G_CALLBACK (device_added_cb), self);
+		g_signal_handlers_disconnect_by_func (priv->manager, G_CALLBACK (device_removed_cb), self);
+		g_clear_object (&priv->manager);
+	}
 
 	G_OBJECT_CLASS (nm_device_olpc_mesh_parent_class)->dispose (object);
 }
@@ -522,7 +504,9 @@ nm_device_olpc_mesh_class_init (NMDeviceOlpcMeshClass *klass)
 
 	g_type_class_add_private (object_class, sizeof (NMDeviceOlpcMeshPrivate));
 
-	object_class->constructor = constructor;
+	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NM_SETTING_OLPC_MESH_SETTING_NAME, NM_LINK_TYPE_OLPC_MESH)
+
+	object_class->constructed = constructed;
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 	object_class->dispose = dispose;
@@ -540,10 +524,10 @@ nm_device_olpc_mesh_class_init (NMDeviceOlpcMeshClass *klass)
 	/* Properties */
 	g_object_class_install_property
 		(object_class, PROP_COMPANION,
-		 g_param_spec_boxed (NM_DEVICE_OLPC_MESH_COMPANION, "", "",
-		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
+		 g_param_spec_string (NM_DEVICE_OLPC_MESH_COMPANION, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 		(object_class, PROP_ACTIVE_CHANNEL,
@@ -552,8 +536,8 @@ nm_device_olpc_mesh_class_init (NMDeviceOlpcMeshClass *klass)
 		                    G_PARAM_READABLE |
 		                    G_PARAM_STATIC_STRINGS));
 
-	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
-	                                        G_TYPE_FROM_CLASS (klass),
-	                                        &dbus_glib_nm_device_olpc_mesh_object_info);
+	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
+	                                        NMDBUS_TYPE_DEVICE_OLPC_MESH_SKELETON,
+	                                        NULL);
 }
 

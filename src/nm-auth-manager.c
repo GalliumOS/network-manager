@@ -18,38 +18,33 @@
  * Copyright (C) 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include "nm-auth-manager.h"
 
-#include "nm-logging.h"
 #include "nm-errors.h"
+#include "nm-core-internal.h"
+#include "NetworkManagerUtils.h"
 
 #define POLKIT_SERVICE                      "org.freedesktop.PolicyKit1"
 #define POLKIT_OBJECT_PATH                  "/org/freedesktop/PolicyKit1/Authority"
 #define POLKIT_INTERFACE                    "org.freedesktop.PolicyKit1.Authority"
 
 
-#define _LOG_DEFAULT_DOMAIN  LOGD_CORE
-
-#define _LOG(level, domain, ...) \
+#define _NMLOG_PREFIX_NAME    "auth"
+#define _NMLOG_DOMAIN         LOGD_CORE
+#define _NMLOG(level, ...) \
     G_STMT_START { \
-        if (nm_logging_enabled ((level), (domain))) { \
-            char __prefix[30] = "auth"; \
+        if (nm_logging_enabled ((level), (_NMLOG_DOMAIN))) { \
+            char __prefix[30] = _NMLOG_PREFIX_NAME; \
             \
             if ((self) != singleton_instance) \
-                g_snprintf (__prefix, sizeof (__prefix), "auth[%p]", (self)); \
-            _nm_log ((level), (domain), 0, \
+                g_snprintf (__prefix, sizeof (__prefix), ""_NMLOG_PREFIX_NAME"[%p]", (self)); \
+            _nm_log ((level), (_NMLOG_DOMAIN), 0, \
                      "%s: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
                      __prefix _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
         } \
     } G_STMT_END
-
-#define _LOGD(...)      _LOG (LOGL_DEBUG, _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-#define _LOGI(...)      _LOG (LOGL_INFO,  _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-#define _LOGW(...)      _LOG (LOGL_WARN,  _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-#define _LOGE(...)      _LOG (LOGL_ERR,   _LOG_DEFAULT_DOMAIN, __VA_ARGS__)
-
 
 enum {
 	PROP_0,
@@ -76,7 +71,7 @@ typedef struct {
 #endif
 } NMAuthManagerPrivate;
 
-static NMAuthManager *singleton_instance = NULL;
+NM_DEFINE_SINGLETON_REGISTER (NMAuthManager);
 
 G_DEFINE_TYPE (NMAuthManager, nm_auth_manager, G_TYPE_OBJECT)
 
@@ -151,6 +146,7 @@ cancel_check_authorization_cb (GDBusProxy *proxy,
 
 	value = g_dbus_proxy_call_finish (proxy, res, &error);
 	if (value == NULL) {
+		g_dbus_error_strip_remote_error (error);
 		_LOGD ("Error cancelling authorization check: %s", error->message);
 		g_error_free (error);
 	} else
@@ -175,12 +171,11 @@ check_authorization_cb (GDBusProxy *proxy,
 	GVariant *value;
 	GError *error = NULL;
 
-	value = g_dbus_proxy_call_finish (proxy, res, &error);
+	value = _nm_dbus_proxy_call_finish (proxy, res, G_VARIANT_TYPE ("((bba{ss}))"), &error);
 	if (value == NULL) {
 		if (data->cancellation_id != NULL &&
-		    (!g_dbus_error_is_remote_error (error) &&
-		     error->domain == G_IO_ERROR &&
-		     error->code == G_IO_ERROR_CANCELLED)) {
+		    (   g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED)
+		     && !g_dbus_error_is_remote_error (error))) {
 			_LOGD ("call[%u]: CheckAuthorization cancelled", data->call_id);
 			g_dbus_proxy_call (priv->proxy,
 			                   "CancelCheckAuthorization",
@@ -192,6 +187,7 @@ check_authorization_cb (GDBusProxy *proxy,
 			                   g_object_ref (self));
 		} else
 			_LOGD ("call[%u]: CheckAuthorization failed: %s", data->call_id, error->message);
+		g_dbus_error_strip_remote_error (error);
 		g_simple_async_result_set_error (data->simple,
 		                                 NM_MANAGER_ERROR,
 		                                 NM_MANAGER_ERROR_FAILED,
@@ -199,18 +195,15 @@ check_authorization_cb (GDBusProxy *proxy,
 		                                 error->message);
 		g_error_free (error);
 	} else {
-		GVariant *result_value;
 		CheckAuthorizationResult *result;
 
 		result = g_new0 (CheckAuthorizationResult, 1);
 
-		result_value = g_variant_get_child_value (value, 0);
-		g_variant_get (result_value,
-		               "(bb@a{ss})",
+		g_variant_get (value,
+		               "((bb@a{ss}))",
 		               &result->is_authorized,
 		               &result->is_challenge,
 		               NULL);
-		g_variant_unref (result_value);
 		g_variant_unref (value);
 
 		_LOGD ("call[%u]: CheckAuthorization succeeded: (is_authorized=%d, is_challenge=%d)", data->call_id, result->is_authorized, result->is_challenge);
@@ -271,7 +264,7 @@ nm_auth_manager_polkit_authority_check_authorization (NMAuthManager *self,
 	    : POLKIT_CHECK_AUTHORIZATION_FLAGS_NONE;
 
 	subject_value = nm_auth_subject_unix_process_to_polkit_gvariant (subject);
-	g_assert (g_variant_is_floating (subject_value));
+	nm_assert (g_variant_is_floating (subject_value));
 
 	/* ((PolkitDetails *)NULL) */
 	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{ss}"));
@@ -393,21 +386,16 @@ _dbus_on_name_owner_notify_cb (GObject    *object,
 }
 
 static void
-_dbus_on_g_signal_cb (GDBusProxy   *proxy,
-                      const gchar  *sender_name,
-                      const gchar  *signal_name,
-                      GVariant     *parameters,
-                      gpointer      user_data)
+_dbus_on_changed_signal_cb (GDBusProxy *proxy,
+                            gpointer    user_data)
 {
 	NMAuthManager *self = user_data;
 	NMAuthManagerPrivate *priv = NM_AUTH_MANAGER_GET_PRIVATE (self);
 
 	g_return_if_fail (priv->proxy == proxy);
 
-	_LOGD ("dbus signal: \"%s\"", signal_name ? signal_name : "(null)");
-
-	if (g_strcmp0 (signal_name, "Changed") == 0)
-		_emit_changed_signal (self);
+	_LOGD ("dbus signal: \"Changed\"");
+	_emit_changed_signal (self);
 }
 
 static void
@@ -462,10 +450,9 @@ _dbus_new_proxy_cb (GObject *source_object,
 	                  "notify::g-name-owner",
 	                  G_CALLBACK (_dbus_on_name_owner_notify_cb),
 	                  self);
-	g_signal_connect (priv->proxy,
-	                  "g-signal",
-	                  G_CALLBACK (_dbus_on_g_signal_cb),
-	                  self);
+	_nm_dbus_signal_connect (priv->proxy, "Changed", NULL,
+	                         G_CALLBACK (_dbus_on_changed_signal_cb),
+	                         self);
 
 	_log_name_owner (self, NULL);
 
@@ -502,7 +489,12 @@ nm_auth_manager_setup (gboolean polkit_enabled)
 	                     NULL);
 	_LOGD ("set instance");
 
-	return (singleton_instance = self);
+	singleton_instance = self;
+	nm_singleton_instance_register ();
+
+	nm_log_dbg (LOGD_CORE, "setup %s singleton (%p)", "NMAuthManager", singleton_instance);
+
+	return self;
 }
 
 /*****************************************************************************/
@@ -600,26 +592,12 @@ dispose (GObject *object)
 	}
 
 	if (priv->proxy) {
-		g_signal_handlers_disconnect_by_func (priv->proxy, _dbus_on_name_owner_notify_cb, self);
-		g_signal_handlers_disconnect_by_func (priv->proxy, _dbus_on_g_signal_cb, self);
+		g_signal_handlers_disconnect_by_data (priv->proxy, self);
 		g_clear_object (&priv->proxy);
 	}
 #endif
 
 	G_OBJECT_CLASS (nm_auth_manager_parent_class)->dispose (object);
-}
-
-static void
-finalize (GObject *object)
-{
-	NMAuthManager* self = NM_AUTH_MANAGER (object);
-
-	G_OBJECT_CLASS (nm_auth_manager_parent_class)->finalize (object);
-
-	if (self == singleton_instance) {
-		singleton_instance = NULL;
-		_LOGD ("unset instance");
-	}
 }
 
 static void
@@ -633,7 +611,6 @@ nm_auth_manager_class_init (NMAuthManagerClass *klass)
 	object_class->set_property = set_property;
 	object_class->constructed = constructed;
 	object_class->dispose = dispose;
-	object_class->finalize = finalize;
 
 	g_object_class_install_property
 	    (object_class, PROP_POLKIT_ENABLED,

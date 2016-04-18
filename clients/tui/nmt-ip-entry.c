@@ -27,13 +27,11 @@
  * contains a valid IP address.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdlib.h>
-
-#include <glib/gi18n-lib.h>
 
 #include "nmt-ip-entry.h"
 

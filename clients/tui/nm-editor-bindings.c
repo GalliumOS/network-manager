@@ -25,7 +25,7 @@
  * shared between nmtui, nm-connection-editor, and gnome-control-center.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -33,7 +33,6 @@
 #include <string.h>
 
 #include "nm-editor-bindings.h"
-#include "nm-gvaluearray-compat.h"
 
 static void
 value_transform_string_int (const GValue *src_value,

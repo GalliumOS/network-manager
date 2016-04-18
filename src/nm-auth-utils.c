@@ -18,16 +18,12 @@
  * Copyright (C) 2010 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <gio/gio.h>
 
-#include "gsystem-local-alloc.h"
 #include "nm-setting-connection.h"
 #include "nm-auth-utils.h"
-#include "nm-logging.h"
-#include "nm-dbus-manager.h"
 #include "nm-auth-subject.h"
 #include "nm-auth-manager.h"
 #include "nm-session-monitor.h"
@@ -37,11 +33,12 @@ struct NMAuthChain {
 	GSList *calls;
 	GHashTable *data;
 
-	DBusGMethodInvocation *context;
+	GDBusMethodInvocation *context;
 	NMAuthSubject *subject;
 	GError *error;
 
 	guint idle_id;
+	gboolean done;
 
 	NMAuthChainResultFunc done_func;
 	gpointer user_data;
@@ -59,15 +56,26 @@ typedef struct {
 	GDestroyNotify destroy;
 } ChainData;
 
+static ChainData *
+chain_data_new (gpointer data, GDestroyNotify destroy)
+{
+	ChainData *tmp;
+
+	tmp = g_slice_new (ChainData);
+	tmp->data = data;
+	tmp->destroy = destroy;
+	return tmp;
+}
+
 static void
-free_data (gpointer data)
+chain_data_free (gpointer data)
 {
 	ChainData *tmp = data;
 
 	if (tmp->destroy)
 		tmp->destroy (tmp->data);
 	memset (tmp, 0, sizeof (ChainData));
-	g_free (tmp);
+	g_slice_free (ChainData, tmp);
 }
 
 static gboolean
@@ -76,8 +84,9 @@ auth_chain_finish (gpointer user_data)
 	NMAuthChain *self = user_data;
 
 	self->idle_id = 0;
+	self->done = TRUE;
 
-	/* Ensure we say alive across the callback */
+	/* Ensure we stay alive across the callback */
 	self->refcount++;
 	self->done_func (self, self->error, self->context, self->user_data);
 	nm_auth_chain_unref (self);
@@ -86,7 +95,7 @@ auth_chain_finish (gpointer user_data)
 
 /* Creates the NMAuthSubject automatically */
 NMAuthChain *
-nm_auth_chain_new_context (DBusGMethodInvocation *context,
+nm_auth_chain_new_context (GDBusMethodInvocation *context,
                            NMAuthChainResultFunc done_func,
                            gpointer user_data)
 {
@@ -110,7 +119,7 @@ nm_auth_chain_new_context (DBusGMethodInvocation *context,
 /* Requires an NMAuthSubject */
 NMAuthChain *
 nm_auth_chain_new_subject (NMAuthSubject *subject,
-                           DBusGMethodInvocation *context,
+                           GDBusMethodInvocation *context,
                            NMAuthChainResultFunc done_func,
                            gpointer user_data)
 {
@@ -119,27 +128,33 @@ nm_auth_chain_new_subject (NMAuthSubject *subject,
 	g_return_val_if_fail (NM_IS_AUTH_SUBJECT (subject), NULL);
 	g_return_val_if_fail (nm_auth_subject_is_unix_process (subject) || nm_auth_subject_is_internal (subject), NULL);
 
-	self = g_malloc0 (sizeof (NMAuthChain));
+	self = g_slice_new0 (NMAuthChain);
 	self->refcount = 1;
-	self->data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, free_data);
+	self->data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, chain_data_free);
 	self->done_func = done_func;
 	self->user_data = user_data;
-	self->context = context;
+	self->context = context ? g_object_ref (context) : NULL;
 	self->subject = g_object_ref (subject);
 
 	return self;
 }
 
-gpointer
-nm_auth_chain_get_data (NMAuthChain *self, const char *tag)
+static gpointer
+_get_data (NMAuthChain *self, const char *tag)
 {
 	ChainData *tmp;
 
+	tmp = g_hash_table_lookup (self->data, tag);
+	return tmp ? tmp->data : NULL;
+}
+
+gpointer
+nm_auth_chain_get_data (NMAuthChain *self, const char *tag)
+{
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (tag != NULL, NULL);
 
-	tmp = g_hash_table_lookup (self->data, tag);
-	return tmp ? tmp->data : NULL;
+	return _get_data (self, tag);
 }
 
 /**
@@ -168,7 +183,7 @@ nm_auth_chain_steal_data (NMAuthChain *self, const char *tag)
 		value = tmp->data;
 		/* Make sure the destroy handler isn't called when freeing */
 		tmp->destroy = NULL;
-		free_data (tmp);
+		chain_data_free (tmp);
 		g_free (orig_key);
 	}
 	return value;
@@ -180,34 +195,29 @@ nm_auth_chain_set_data (NMAuthChain *self,
                         gpointer data,
                         GDestroyNotify data_destroy)
 {
-	ChainData *tmp;
-
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (tag != NULL);
 
 	if (data == NULL)
 		g_hash_table_remove (self->data, tag);
 	else {
-		tmp = g_malloc0 (sizeof (ChainData));
-		tmp->data = data;
-		tmp->destroy = data_destroy;
-
-		g_hash_table_insert (self->data, g_strdup (tag), tmp);
+		g_hash_table_insert (self->data,
+		                     g_strdup (tag),
+		                     chain_data_new (data, data_destroy));
 	}
 }
 
 gulong
 nm_auth_chain_get_data_ulong (NMAuthChain *self, const char *tag)
 {
-	gulong *ptr;
+	gulong *data;
 
 	g_return_val_if_fail (self != NULL, 0);
 	g_return_val_if_fail (tag != NULL, 0);
 
-	ptr = nm_auth_chain_get_data (self, tag);
-	return *ptr;
+	data = _get_data (self, tag);
+	return data ? *data : 0ul;
 }
-
 
 void
 nm_auth_chain_set_data_ulong (NMAuthChain *self,
@@ -224,33 +234,24 @@ nm_auth_chain_set_data_ulong (NMAuthChain *self,
 	nm_auth_chain_set_data (self, tag, ptr, g_free);
 }
 
+NMAuthSubject *
+nm_auth_chain_get_subject (NMAuthChain *self)
+{
+	g_return_val_if_fail (self != NULL, NULL);
+
+	return self->subject;
+}
+
 NMAuthCallResult
 nm_auth_chain_get_result (NMAuthChain *self, const char *permission)
 {
+	gpointer data;
+
 	g_return_val_if_fail (self != NULL, NM_AUTH_CALL_RESULT_UNKNOWN);
 	g_return_val_if_fail (permission != NULL, NM_AUTH_CALL_RESULT_UNKNOWN);
 
-	return GPOINTER_TO_UINT (nm_auth_chain_get_data (self, permission));
-}
-
-static void
-nm_auth_chain_check_done (NMAuthChain *self)
-{
-	g_return_if_fail (self != NULL);
-
-	if (g_slist_length (self->calls) == 0) {
-		g_assert (self->idle_id == 0);
-		self->idle_id = g_idle_add (auth_chain_finish, self);
-	}
-}
-
-static void
-nm_auth_chain_remove_call (NMAuthChain *self, AuthCall *call)
-{
-	g_return_if_fail (self != NULL);
-	g_return_if_fail (call != NULL);
-
-	self->calls = g_slist_remove (self->calls, call);
+	data = _get_data (self, permission);
+	return data ? GPOINTER_TO_UINT (data) : NM_AUTH_CALL_RESULT_UNKNOWN;
 }
 
 static AuthCall *
@@ -258,10 +259,9 @@ auth_call_new (NMAuthChain *chain, const char *permission)
 {
 	AuthCall *call;
 
-	call = g_malloc0 (sizeof (AuthCall));
+	call = g_slice_new0 (AuthCall);
 	call->chain = chain;
 	call->permission = g_strdup (permission);
-	chain->calls = g_slist_append (chain->calls, call);
 	return call;
 }
 
@@ -270,15 +270,27 @@ auth_call_free (AuthCall *call)
 {
 	g_free (call->permission);
 	g_clear_object (&call->cancellable);
-	g_free (call);
+	g_slice_free (AuthCall, call);
 }
 
-/* This can get used from scheduled idles, hence the boolean return */
 static gboolean
 auth_call_complete (AuthCall *call)
 {
-	nm_auth_chain_remove_call (call->chain, call);
-	nm_auth_chain_check_done (call->chain);
+	NMAuthChain *self;
+
+	g_return_val_if_fail (call, G_SOURCE_REMOVE);
+
+	self = call->chain;
+
+	g_return_val_if_fail (self, G_SOURCE_REMOVE);
+	g_return_val_if_fail (g_slist_find (self->calls, call), G_SOURCE_REMOVE);
+
+	self->calls = g_slist_remove (self->calls, call);
+
+	if (!self->calls) {
+		g_assert (!self->idle_id && !self->done);
+		self->idle_id = g_idle_add (auth_chain_finish, self);
+	}
 	auth_call_free (call);
 	return FALSE;
 }
@@ -323,8 +335,8 @@ pk_call_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	}
 
 	if (error) {
-		nm_log_warn (LOGD_CORE, "error requesting auth for %s: (%d) %s",
-		             call->permission, error->code, error->message);
+		nm_log_warn (LOGD_CORE, "error requesting auth for %s: %s",
+		             call->permission, error->message);
 
 		if (!call->chain->error) {
 			call->chain->error = error;
@@ -362,8 +374,10 @@ nm_auth_chain_add_call (NMAuthChain *self,
 	g_return_if_fail (permission && *permission);
 	g_return_if_fail (self->subject);
 	g_return_if_fail (nm_auth_subject_is_unix_process (self->subject) || nm_auth_subject_is_internal (self->subject));
+	g_return_if_fail (!self->idle_id && !self->done);
 
 	call = auth_call_new (self, permission);
+	self->calls = g_slist_append (self->calls, call);
 
 	if (   nm_auth_subject_is_internal (self->subject)
 	    || nm_auth_subject_get_unix_process_uid (self->subject) == 0
@@ -393,10 +407,21 @@ nm_auth_chain_add_call (NMAuthChain *self,
 	}
 }
 
+/**
+ * nm_auth_chain_unref:
+ * @self: the auth-chain
+ *
+ * Unrefs the auth-chain. By unrefing the auth-chain, you also cancel
+ * the receipt of the done-callback. IOW, the callback will not be invoked.
+ *
+ * The only exception is, if you call nm_auth_chain_unref() from inside
+ * the callback. In this case, @self stays alive until the callback returns.
+ */
 void
 nm_auth_chain_unref (NMAuthChain *self)
 {
 	g_return_if_fail (self != NULL);
+	g_return_if_fail (self->refcount > 0);
 
 	self->refcount--;
 	if (self->refcount > 0)
@@ -407,30 +432,30 @@ nm_auth_chain_unref (NMAuthChain *self)
 
 	g_object_unref (self->subject);
 
+	if (self->context)
+		g_object_unref (self->context);
+
 	g_slist_free_full (self->calls, auth_call_cancel);
 
 	g_clear_error (&self->error);
 	g_hash_table_destroy (self->data);
 
 	memset (self, 0, sizeof (NMAuthChain));
-	g_free (self);
+	g_slice_free (NMAuthChain, self);
 }
 
 /************ utils **************/
 
 gboolean
 nm_auth_is_subject_in_acl (NMConnection *connection,
-                           NMSessionMonitor *smon,
                            NMAuthSubject *subject,
                            char **out_error_desc)
 {
 	NMSettingConnection *s_con;
 	const char *user = NULL;
-	GError *local = NULL;
 	gulong uid;
 
 	g_return_val_if_fail (connection != NULL, FALSE);
-	g_return_val_if_fail (smon != NULL, FALSE);
 	g_return_val_if_fail (NM_IS_AUTH_SUBJECT (subject), FALSE);
 	g_return_val_if_fail (nm_auth_subject_is_internal (subject) || nm_auth_subject_is_unix_process (subject), FALSE);
 
@@ -443,18 +468,7 @@ nm_auth_is_subject_in_acl (NMConnection *connection,
 	if (0 == uid)
 		return TRUE;
 
-	/* Reject the request if the request comes from no session at all */
-	if (!nm_session_monitor_uid_has_session (smon, uid, &user, &local)) {
-		if (out_error_desc) {
-			*out_error_desc = g_strdup_printf ("No session found for uid %lu (%s)",
-			                                   uid,
-			                                   local && local->message ? local->message : "unknown");
-		}
-		g_clear_error (&local);
-		return FALSE;
-	}
-
-	if (!user) {
+	if (!nm_session_monitor_uid_to_user (uid, &user)) {
 		if (out_error_desc)
 			*out_error_desc = g_strdup_printf ("Could not determine username for uid %lu", uid);
 		return FALSE;

@@ -21,10 +21,7 @@
  * @short_description: The editor page for Team connections
  */
 
-#include "config.h"
-
-#include <glib.h>
-#include <glib/gi18n-lib.h>
+#include "nm-default.h"
 
 #include "nmt-page-team.h"
 

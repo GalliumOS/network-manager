@@ -20,10 +20,8 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
-#include <glib/gi18n.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -38,10 +36,7 @@
 #include "nm-dhcp-dhclient.h"
 #include "nm-dhcp-dhcpcd.h"
 #include "nm-dhcp-systemd.h"
-#include "nm-logging.h"
 #include "nm-config.h"
-#include "nm-dbus-glib-types.h"
-#include "nm-glib-compat.h"
 #include "NetworkManagerUtils.h"
 
 #define DHCP_TIMEOUT 45 /* default DHCP timeout, in seconds */
@@ -118,7 +113,7 @@ find_client_desc (const char *name, GType gtype)
 }
 
 static GType
-is_client_enabled (const char *name, GError **error)
+is_client_enabled (const char *name)
 {
 	ClientDesc *desc;
 
@@ -126,9 +121,6 @@ is_client_enabled (const char *name, GError **error)
 	if (desc && (!desc->get_path_func || desc->get_path_func()))
 		return desc->gtype;
 
-	g_set_error (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_FAILED,
-	             _("'%s' support not found or not enabled."),
-	             name);
 	return G_TYPE_INVALID;
 }
 
@@ -158,32 +150,11 @@ get_client_for_ifindex (NMDhcpManager *manager, int ifindex, gboolean ip6)
 	return NULL;
 }
 
-static GType
-get_client_type (const char *client, GError **error)
-{
-	GType client_gtype;
-
-	if (client)
-		client_gtype = is_client_enabled (client, error);
-	else {
-		/* Fallbacks */
-		client_gtype = is_client_enabled ("dhclient", NULL);
-		if (client_gtype == G_TYPE_INVALID)
-			client_gtype = is_client_enabled ("dhcpcd", NULL);
-		if (client_gtype == G_TYPE_INVALID)
-			client_gtype = is_client_enabled ("internal", NULL);
-		if (client_gtype == G_TYPE_INVALID) {
-			g_set_error_literal (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_FAILED,
-				                 _("no usable DHCP client could be found."));
-		}
-	}
-	return client_gtype;
-}
-
 static void client_state_changed (NMDhcpClient *client,
                                   NMDhcpState state,
                                   GObject *ip_config,
-                                  GHashTable *options,
+                                  GVariant *options,
+                                  const char *event_id,
                                   NMDhcpManager *self);
 
 static void
@@ -203,7 +174,8 @@ static void
 client_state_changed (NMDhcpClient *client,
                       NMDhcpState state,
                       GObject *ip_config,
-                      GHashTable *options,
+                      GVariant *options,
+                      const char *event_id,
                       NMDhcpManager *self)
 {
 	if (state >= NM_DHCP_STATE_TIMEOUT)
@@ -218,10 +190,12 @@ client_start (NMDhcpManager *self,
               const char *uuid,
               guint32 priority,
               gboolean ipv6,
+              const struct in6_addr *ipv6_ll_addr,
               const char *dhcp_client_id,
               guint32 timeout,
               const char *dhcp_anycast_addr,
               const char *hostname,
+              const char *fqdn,
               gboolean info_only,
               NMSettingIP6ConfigPrivacy privacy,
               const char *last_ip4_address)
@@ -238,7 +212,8 @@ client_start (NMDhcpManager *self,
 	priv = NM_DHCP_MANAGER_GET_PRIVATE (self);
 
 	/* Ensure we have a usable DHCP client */
-	g_return_val_if_fail (priv->client_type != 0, NULL);
+	if (priv->client_type == G_TYPE_INVALID)
+		return NULL;
 
 	/* Kill any old client instance */
 	client = get_client_for_ifindex (self, ifindex, ipv6);
@@ -263,9 +238,9 @@ client_start (NMDhcpManager *self,
 	g_signal_connect (client, NM_DHCP_CLIENT_SIGNAL_STATE_CHANGED, G_CALLBACK (client_state_changed), self);
 
 	if (ipv6)
-		success = nm_dhcp_client_start_ip6 (client, dhcp_anycast_addr, hostname, info_only, privacy);
+		success = nm_dhcp_client_start_ip6 (client, dhcp_anycast_addr, ipv6_ll_addr, hostname, info_only, privacy);
 	else
-		success = nm_dhcp_client_start_ip4 (client, dhcp_client_id, dhcp_anycast_addr, hostname, last_ip4_address);
+		success = nm_dhcp_client_start_ip4 (client, dhcp_client_id, dhcp_anycast_addr, hostname, fqdn, last_ip4_address);
 
 	if (!success) {
 		remove_client (self, client);
@@ -294,20 +269,24 @@ nm_dhcp_manager_start_ip4 (NMDhcpManager *self,
                            guint32 priority,
                            gboolean send_hostname,
                            const char *dhcp_hostname,
+                           const char *dhcp_fqdn,
                            const char *dhcp_client_id,
                            guint32 timeout,
                            const char *dhcp_anycast_addr,
                            const char *last_ip_address)
 {
 	const char *hostname = NULL;
+	const char *fqdn = NULL;
 
 	g_return_val_if_fail (NM_IS_DHCP_MANAGER (self), NULL);
 
-	if (send_hostname)
+	if (send_hostname) {
 		hostname = get_send_hostname (self, dhcp_hostname);
-	return client_start (self, iface, ifindex, hwaddr, uuid, priority, FALSE,
+		fqdn = dhcp_fqdn;
+	}
+	return client_start (self, iface, ifindex, hwaddr, uuid, priority, FALSE, NULL,
 	                     dhcp_client_id, timeout, dhcp_anycast_addr, hostname,
-	                     FALSE, 0, last_ip_address);
+	                     fqdn, FALSE, 0, last_ip_address);
 }
 
 /* Caller owns a reference to the NMDhcpClient on return */
@@ -316,6 +295,7 @@ nm_dhcp_manager_start_ip6 (NMDhcpManager *self,
                            const char *iface,
                            int ifindex,
                            const GByteArray *hwaddr,
+                           const struct in6_addr *ll_addr,
                            const char *uuid,
                            guint32 priority,
                            gboolean send_hostname,
@@ -332,7 +312,7 @@ nm_dhcp_manager_start_ip6 (NMDhcpManager *self,
 	if (send_hostname)
 		hostname = get_send_hostname (self, dhcp_hostname);
 	return client_start (self, iface, ifindex, hwaddr, uuid, priority, TRUE,
-	                     NULL, timeout, dhcp_anycast_addr, hostname, info_only,
+	                     ll_addr, NULL, timeout, dhcp_anycast_addr, hostname, NULL, info_only,
 	                     privacy, NULL);
 }
 
@@ -353,34 +333,32 @@ nm_dhcp_manager_set_default_hostname (NMDhcpManager *manager, const char *hostna
 GSList *
 nm_dhcp_manager_get_lease_ip_configs (NMDhcpManager *self,
                                       const char *iface,
+                                      int ifindex,
                                       const char *uuid,
                                       gboolean ipv6,
                                       guint32 default_route_metric)
 {
+	NMDhcpManagerPrivate *priv;
 	ClientDesc *desc;
 
 	g_return_val_if_fail (NM_IS_DHCP_MANAGER (self), NULL);
 	g_return_val_if_fail (iface != NULL, NULL);
+	g_return_val_if_fail (ifindex >= -1, NULL);
 	g_return_val_if_fail (uuid != NULL, NULL);
 
-	desc = find_client_desc (NULL, NM_DHCP_MANAGER_GET_PRIVATE (self)->client_type);
+	priv = NM_DHCP_MANAGER_GET_PRIVATE (self);
+	if (priv->client_type == G_TYPE_INVALID)
+		return NULL;
+
+	desc = find_client_desc (NULL, priv->client_type);
 	if (desc && desc->get_lease_configs_func)
-		return desc->get_lease_configs_func (iface, uuid, ipv6, default_route_metric);
+		return desc->get_lease_configs_func (iface, ifindex, uuid, ipv6, default_route_metric);
 	return NULL;
 }
 
 /***************************************************/
 
-NMDhcpManager *
-nm_dhcp_manager_get (void)
-{
-	static NMDhcpManager *singleton = NULL;
-
-	if (G_UNLIKELY (singleton == NULL))
-		singleton = g_object_new (NM_TYPE_DHCP_MANAGER, NULL);
-	g_assert (singleton);
-	return singleton;
-}
+NM_DEFINE_SINGLETON_GETTER (NMDhcpManager, nm_dhcp_manager_get, NM_TYPE_DHCP_MANAGER);
 
 static void
 nm_dhcp_manager_init (NMDhcpManager *self)
@@ -388,8 +366,8 @@ nm_dhcp_manager_init (NMDhcpManager *self)
 	NMDhcpManagerPrivate *priv = NM_DHCP_MANAGER_GET_PRIVATE (self);
 	NMConfig *config = nm_config_get ();
 	const char *client;
-	GError *error = NULL;
 	GSList *iter;
+	GType type = G_TYPE_INVALID;
 
 	for (iter = client_descs; iter; iter = iter->next) {
 		ClientDesc *desc = iter->data;
@@ -406,16 +384,26 @@ nm_dhcp_manager_init (NMDhcpManager *self)
 		client = "internal";
 	}
 
-	priv->client_type = get_client_type (client, &error);
-	if (priv->client_type == G_TYPE_INVALID) {
-		nm_log_warn (LOGD_DHCP, "No usable DHCP client found (%s)! DHCP configurations will fail.",
-		             error->message);
-	} else {
-		nm_log_dbg (LOGD_DHCP, "Using DHCP client '%s'", find_client_desc (NULL, priv->client_type)->name);
+	if (client)
+		type = is_client_enabled (client);
 
+	if (type == G_TYPE_INVALID) {
+		if (client)
+			nm_log_warn (LOGD_DHCP, "DHCP client '%s' not available", client);
+
+		type = is_client_enabled ("dhclient");
+		if (type == G_TYPE_INVALID)
+			type = is_client_enabled ("dhcpcd");
+		if (type == G_TYPE_INVALID)
+			type = is_client_enabled ("internal");
 	}
-	g_clear_error (&error);
 
+	if (type == G_TYPE_INVALID)
+		nm_log_warn (LOGD_DHCP, "No usable DHCP client found! DHCP configurations will fail");
+	else
+		nm_log_info (LOGD_DHCP, "Using DHCP client '%s'", find_client_desc (NULL, type)->name);
+
+	priv->client_type = type;
 	priv->clients = g_hash_table_new_full (g_direct_hash, g_direct_equal,
 	                                       NULL,
 	                                       (GDestroyNotify) g_object_unref);

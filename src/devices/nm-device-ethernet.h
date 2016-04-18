@@ -22,8 +22,6 @@
 #ifndef __NETWORKMANAGER_DEVICE_ETHERNET_H__
 #define __NETWORKMANAGER_DEVICE_ETHERNET_H__
 
-#include <glib-object.h>
-
 #include "nm-device.h"
 
 G_BEGIN_DECLS
@@ -37,6 +35,7 @@ G_BEGIN_DECLS
 
 #define NM_DEVICE_ETHERNET_PERMANENT_HW_ADDRESS "perm-hw-address"
 #define NM_DEVICE_ETHERNET_SPEED "speed"
+#define NM_DEVICE_ETHERNET_S390_SUBCHANNELS "s390-subchannels"
 
 typedef NMDevice NMDeviceEthernet;
 typedef NMDeviceClass NMDeviceEthernetClass;

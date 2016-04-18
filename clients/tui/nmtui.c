@@ -24,16 +24,13 @@
  * nmtui_edit(), and nmtui_hostname().
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <glib.h>
-#include <glib/gi18n-lib.h>
-
-#include <NetworkManager.h>
+#include "NetworkManager.h"
 
 #include "nmt-newt.h"
 #include "nm-editor-bindings.h"

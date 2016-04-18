@@ -11,6 +11,7 @@ global:
 	nm_access_point_get_flags;
 	nm_access_point_get_frequency;
 	nm_access_point_get_hw_address;
+	nm_access_point_get_last_seen;
 	nm_access_point_get_max_bitrate;
 	nm_access_point_get_mode;
 	nm_access_point_get_rsn_flags;
@@ -46,6 +47,7 @@ global:
 	nm_client_error_quark;
 	nm_client_get_activating_connection;
 	nm_client_get_active_connections;
+	nm_client_get_all_devices;
 	nm_client_get_connectivity;
 	nm_client_get_device_by_iface;
 	nm_client_get_device_by_path;
@@ -157,6 +159,7 @@ global:
 	nm_device_infiniband_get_hw_address;
 	nm_device_infiniband_get_type;
 	nm_device_infiniband_new;
+	nm_device_is_real;
 	nm_device_is_software;
 	nm_device_modem_error_get_type;
 	nm_device_modem_error_quark;
@@ -172,6 +175,7 @@ global:
 	nm_device_olpc_mesh_get_type;
 	nm_device_olpc_mesh_new;
 	nm_device_set_autoconnect;
+	nm_device_set_managed;
 	nm_device_team_error_get_type;
 	nm_device_team_error_quark;
 	nm_device_team_get_carrier;

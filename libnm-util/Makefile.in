@@ -90,14 +90,14 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@WITH_GNUTLS_TRUE@am__append_1 = $(LIBGCRYPT_CFLAGS) $(GNUTLS_CFLAGS)
+@WITH_GNUTLS_TRUE@am__append_1 = $(GNUTLS_CFLAGS)
 @WITH_NSS_TRUE@am__append_2 = $(NSS_CFLAGS)
 @WITH_GNUTLS_TRUE@am__append_3 = crypto_gnutls.c
-@WITH_GNUTLS_TRUE@am__append_4 = $(LIBGCRYPT_LIBS) $(GNUTLS_LIBS)
+@WITH_GNUTLS_TRUE@am__append_4 = $(GNUTLS_LIBS)
 @WITH_NSS_TRUE@am__append_5 = crypto_nss.c
 @WITH_NSS_TRUE@am__append_6 = $(NSS_LIBS)
 @WITH_GNUTLS_TRUE@am__append_7 = crypto_gnutls.c
-@WITH_GNUTLS_TRUE@am__append_8 = $(LIBGCRYPT_LIBS) $(GNUTLS_LIBS)
+@WITH_GNUTLS_TRUE@am__append_8 = $(GNUTLS_LIBS)
 @WITH_NSS_TRUE@am__append_9 = crypto_nss.c
 @WITH_NSS_TRUE@am__append_10 = $(NSS_LIBS)
 @HAVE_INTROSPECTION_TRUE@am__append_11 = NetworkManager-1.0.gir
@@ -122,7 +122,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(libnm_util_include_HEADERS) \
 	$(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = libnm-util.pc nm-version.h
+CONFIG_CLEAN_FILES = libnm-util.pc
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -157,28 +157,30 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(girdir)" \
 	"$(DESTDIR)$(libnm_util_includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-@WITH_GNUTLS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
-@WITH_GNUTLS_TRUE@	$(am__DEPENDENCIES_1)
+@WITH_GNUTLS_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
 @WITH_NSS_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
 libnm_util_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3)
-am__libnm_util_la_SOURCES_DIST = crypto.c nm-connection.c \
-	nm-param-spec-specialized.c nm-setting.c nm-setting-8021x.c \
-	nm-setting-adsl.c nm-setting-bluetooth.c nm-setting-bond.c \
-	nm-setting-team.c nm-setting-team-port.c nm-setting-bridge.c \
-	nm-setting-bridge-port.c nm-setting-connection.c \
-	nm-setting-dcb.c nm-setting-infiniband.c \
-	nm-setting-ip4-config.c nm-setting-vlan.c \
-	nm-setting-ip6-config.c nm-setting-ppp.c nm-setting-pppoe.c \
-	nm-setting-serial.c nm-setting-generic.c nm-setting-gsm.c \
-	nm-setting-cdma.c nm-setting-olpc-mesh.c nm-setting-wimax.c \
-	nm-setting-wired.c nm-setting-wireless.c \
+am__libnm_util_la_SOURCES_DIST =  \
+	$(top_builddir)/shared/nm-shared-utils.c crypto.c \
+	nm-connection.c nm-param-spec-specialized.c nm-setting.c \
+	nm-setting-8021x.c nm-setting-adsl.c nm-setting-bluetooth.c \
+	nm-setting-bond.c nm-setting-team.c nm-setting-team-port.c \
+	nm-setting-bridge.c nm-setting-bridge-port.c \
+	nm-setting-connection.c nm-setting-dcb.c \
+	nm-setting-infiniband.c nm-setting-ip4-config.c \
+	nm-setting-vlan.c nm-setting-ip6-config.c nm-setting-ppp.c \
+	nm-setting-pppoe.c nm-setting-serial.c nm-setting-generic.c \
+	nm-setting-gsm.c nm-setting-cdma.c nm-setting-olpc-mesh.c \
+	nm-setting-wimax.c nm-setting-wired.c nm-setting-wireless.c \
 	nm-setting-wireless-security.c nm-setting-vpn.c \
 	nm-utils-enum-types.c nm-utils.c nm-value-transforms.c \
-	crypto.h nm-param-spec-specialized.h nm-utils-private.h \
-	nm-setting-private.h crypto_gnutls.c crypto_nss.c
-am__objects_1 = crypto.lo nm-connection.lo \
+	$(top_builddir)/shared/nm-shared-utils.h crypto.h \
+	nm-dbus-glib-types.h nm-gvaluearray-compat.h \
+	nm-param-spec-specialized.h nm-setting-private.h \
+	nm-utils-private.h crypto_gnutls.c crypto_nss.c
+am__objects_1 = nm-shared-utils.lo crypto.lo nm-connection.lo \
 	nm-param-spec-specialized.lo nm-setting.lo nm-setting-8021x.lo \
 	nm-setting-adsl.lo nm-setting-bluetooth.lo nm-setting-bond.lo \
 	nm-setting-team.lo nm-setting-team-port.lo \
@@ -293,8 +295,7 @@ ETAGS = etags
 CTAGS = ctags
 DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/libnm-util.pc.in \
-	$(srcdir)/nm-version.h.in $(top_srcdir)/build-aux/depcomp \
-	COPYING
+	$(top_srcdir)/build-aux/depcomp COPYING
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -336,7 +337,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -348,8 +348,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -359,6 +357,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -413,16 +412,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -443,6 +439,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -458,6 +455,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -486,7 +485,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -501,6 +499,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -561,6 +561,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -568,6 +569,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -584,13 +586,15 @@ with_netconfig = @with_netconfig@
 with_resolvconf = @with_resolvconf@
 with_valgrind = @with_valgrind@
 SUBDIRS = . tests
-AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/include \
-	-DG_LOG_DOMAIN=\""libnm-util"\" \
+AM_CPPFLAGS = -I${top_srcdir} -I${top_srcdir}/shared \
+	-I$(top_builddir)/shared -DG_LOG_DOMAIN=\""libnm-util"\" \
 	-DLOCALEDIR=\"$(datadir)/locale\" \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE $(GLIB_CFLAGS) \
-	$(DBUS_CFLAGS) $(UUID_CFLAGS) $(am__append_1) $(am__append_2)
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY \
+	$(GLIB_CFLAGS) $(DBUS_CFLAGS) $(UUID_CFLAGS) $(am__append_1) \
+	$(am__append_2)
 lib_LTLIBRARIES = libnm-util.la
 libnm_util_include_HEADERS = \
+	$(top_builddir)/shared/nm-version-macros.h \
 	NetworkManager.h		\
 	NetworkManagerVPN.h		\
 	nm-connection.h			\
@@ -621,19 +625,23 @@ libnm_util_include_HEADERS = \
 	nm-setting-wireless.h		\
 	nm-setting-wireless-security.h	\
 	nm-setting-vpn.h		\
-	nm-utils.h
-
-nodist_libnm_util_include_HEADERS = \
-	nm-utils-enum-types.h		\
+	nm-utils.h \
 	nm-version.h
 
+nodist_libnm_util_include_HEADERS = \
+	nm-utils-enum-types.h
+
 libnm_util_la_private_headers = \
+	$(top_builddir)/shared/nm-shared-utils.h \
 	crypto.h			\
+	nm-dbus-glib-types.h		\
+	nm-gvaluearray-compat.h		\
 	nm-param-spec-specialized.h	\
-	nm-utils-private.h		\
-	nm-setting-private.h
+	nm-setting-private.h		\
+	nm-utils-private.h
 
 libnm_util_la_csources = \
+	$(top_builddir)/shared/nm-shared-utils.c \
 	crypto.c			\
 	nm-connection.c			\
 	nm-param-spec-specialized.c	\
@@ -694,7 +702,7 @@ libtest_crypto_la_LIBADD = $(GLIB_LIBS) $(am__append_8) \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libnm-util.pc
 DISTCLEANFILES = libnm-util.pc
-EXTRA_DIST = libnm-util.pc.in libnm-util.ver nm-version.h.in
+EXTRA_DIST = libnm-util.pc.in libnm-util.ver
 INTROSPECTION_GIRS = $(am__append_11)
 INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir)
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
@@ -746,8 +754,6 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 libnm-util.pc: $(top_builddir)/config.status $(srcdir)/libnm-util.pc.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-nm-version.h: $(top_builddir)/config.status $(srcdir)/nm-version.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
@@ -840,6 +846,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-setting-wireless-security.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-setting-wireless.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-setting.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-shared-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-utils-enum-types.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-value-transforms.Plo@am__quote@
@@ -864,6 +871,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+nm-shared-utils.lo: $(top_builddir)/shared/nm-shared-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT nm-shared-utils.lo -MD -MP -MF $(DEPDIR)/nm-shared-utils.Tpo -c -o nm-shared-utils.lo `test -f '$(top_builddir)/shared/nm-shared-utils.c' || echo '$(srcdir)/'`$(top_builddir)/shared/nm-shared-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nm-shared-utils.Tpo $(DEPDIR)/nm-shared-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(top_builddir)/shared/nm-shared-utils.c' object='nm-shared-utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o nm-shared-utils.lo `test -f '$(top_builddir)/shared/nm-shared-utils.c' || echo '$(srcdir)/'`$(top_builddir)/shared/nm-shared-utils.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

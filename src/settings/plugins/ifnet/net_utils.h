@@ -21,11 +21,11 @@
 
 #ifndef _IFNET_UTILS_H
 #define _IFNET_UTILS_H
-#define IFNET_PLUGIN_NAME "SCPlugin-Ifnet"
-#include <glib.h>
+#define IFNET_PLUGIN_NAME "SettingsPlugin-Ifnet"
 #include <arpa/inet.h>
 #include <nm-setting-ip6-config.h>
 #include <nm-setting-ip4-config.h>
+#include "nm-default.h"
 #include "net_parser.h"
 #define has_default_ip4_route(conn_name) has_default_route((conn_name), &is_ip4_address)
 #define has_default_ip6_route(conn_name) has_default_route((conn_name), &is_ip6_address)
@@ -37,8 +37,6 @@ typedef struct _ip_block {
 	struct _ip_block *next;
 } ip_block;
 
-gchar *read_hostname (const char *path);
-gboolean write_hostname (const char *path, const char *hostname);
 gboolean is_static_ip4 (const char *conn_name);
 gboolean is_static_ip6 (const char *conn_name);
 gboolean is_ip4_address (const char *in_address);

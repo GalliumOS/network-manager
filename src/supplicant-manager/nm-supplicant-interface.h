@@ -22,7 +22,7 @@
 #ifndef __NETWORKMANAGER_SUPPLICANT_INTERFACE_H__
 #define __NETWORKMANAGER_SUPPLICANT_INTERFACE_H__
 
-#include <glib-object.h>
+#include "nm-default.h"
 #include "nm-supplicant-types.h"
 
 /*
@@ -54,6 +54,15 @@ enum {
 #define NM_IS_SUPPLICANT_INTERFACE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_SUPPLICANT_INTERFACE))
 #define NM_SUPPLICANT_INTERFACE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_SUPPLICANT_INTERFACE, NMSupplicantInterfaceClass))
 
+/* Properties */
+#define NM_SUPPLICANT_INTERFACE_IFACE            "iface"
+#define NM_SUPPLICANT_INTERFACE_SCANNING         "scanning"
+#define NM_SUPPLICANT_INTERFACE_CURRENT_BSS      "current-bss"
+#define NM_SUPPLICANT_INTERFACE_IS_WIRELESS      "is-wireless"
+#define NM_SUPPLICANT_INTERFACE_FAST_SUPPORTED   "fast-supported"
+#define NM_SUPPLICANT_INTERFACE_AP_SUPPORT       "ap-support"
+
+/* Signals */
 #define NM_SUPPLICANT_INTERFACE_STATE            "state"
 #define NM_SUPPLICANT_INTERFACE_REMOVED          "removed"
 #define NM_SUPPLICANT_INTERFACE_NEW_BSS          "new-bss"
@@ -62,12 +71,6 @@ enum {
 #define NM_SUPPLICANT_INTERFACE_SCAN_DONE        "scan-done"
 #define NM_SUPPLICANT_INTERFACE_CONNECTION_ERROR "connection-error"
 #define NM_SUPPLICANT_INTERFACE_CREDENTIALS_REQUEST "credentials-request"
-
-typedef enum {
-	AP_SUPPORT_UNKNOWN = 0,  /* Can't detect whether supported or not */
-	AP_SUPPORT_NO = 1,       /* AP mode definitely not supported */
-	AP_SUPPORT_YES = 2,      /* AP mode definitely supported */
-} ApSupport;
 
 struct _NMSupplicantInterface {
 	GObject parent;
@@ -90,12 +93,12 @@ typedef struct {
 	/* interface saw a new BSS */
 	void (*new_bss)          (NMSupplicantInterface *iface,
 	                          const char *object_path,
-	                          GHashTable *props);
+	                          GVariant *props);
 
 	/* a BSS property changed */
 	void (*bss_updated)      (NMSupplicantInterface *iface,
 	                          const char *object_path,
-	                          GHashTable *props);
+	                          GVariant *props);
 
 	/* supplicant removed a BSS from its scan list */
 	void (*bss_removed)      (NMSupplicantInterface *iface,
@@ -116,24 +119,21 @@ typedef struct {
 	                             const char *message);
 } NMSupplicantInterfaceClass;
 
-
 GType nm_supplicant_interface_get_type (void);
 
 NMSupplicantInterface * nm_supplicant_interface_new (const char *ifname,
                                                      gboolean is_wireless,
                                                      gboolean fast_supported,
-                                                     ApSupport ap_support,
-                                                     gboolean start_now);
+                                                     NMSupplicantFeature ap_support);
 
 void nm_supplicant_interface_set_supplicant_available (NMSupplicantInterface *self,
                                                        gboolean available);
 
 gboolean nm_supplicant_interface_set_config (NMSupplicantInterface * iface,
-                                             NMSupplicantConfig * cfg);
+                                             NMSupplicantConfig * cfg,
+                                             GError **error);
 
 void nm_supplicant_interface_disconnect (NMSupplicantInterface * iface);
-
-const char * nm_supplicant_interface_get_device (NMSupplicantInterface * iface);
 
 const char *nm_supplicant_interface_get_object_path (NMSupplicantInterface * iface);
 
@@ -144,6 +144,8 @@ guint32 nm_supplicant_interface_get_state (NMSupplicantInterface * self);
 const char *nm_supplicant_interface_state_to_string (guint32 state);
 
 gboolean nm_supplicant_interface_get_scanning (NMSupplicantInterface *self);
+
+const char *nm_supplicant_interface_get_current_bss (NMSupplicantInterface *self);
 
 gint32 nm_supplicant_interface_get_last_scan_time (NMSupplicantInterface *self);
 
@@ -158,9 +160,11 @@ gboolean nm_supplicant_interface_credentials_reply (NMSupplicantInterface *self,
                                                     const char *value,
                                                     GError **error);
 
-ApSupport nm_supplicant_interface_get_ap_support (NMSupplicantInterface *self);
+NMSupplicantFeature nm_supplicant_interface_get_ap_support (NMSupplicantInterface *self);
 
 void nm_supplicant_interface_set_ap_support (NMSupplicantInterface *self,
-                                             ApSupport apmode);
+                                             NMSupplicantFeature apmode);
+
+NMSupplicantFeature nm_supplicant_interface_get_mac_randomization_support (NMSupplicantInterface *self);
 
 #endif	/* NM_SUPPLICANT_INTERFACE_H */

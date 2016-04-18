@@ -20,6 +20,8 @@
 #
 
 import sys
+import gi
+gi.require_version('NM', '1.0')
 from gi.repository import GLib, NM
 
 #
@@ -75,5 +77,5 @@ if __name__ == "__main__":
                 print("'%s' zone set to '%s'") % (c.get_id(), new_zone)
             break
     if not found:
-        print ("Error: connection '%s' not found.") % (con_name)
+        sys.stderr.write("Error: connection '%s' not found.\n") % (con_name)
         main_loop.quit()

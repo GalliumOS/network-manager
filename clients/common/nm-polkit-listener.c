@@ -31,15 +31,12 @@
  * https://github.com/lxde/lxqt-policykit/tree/master/src
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <glib.h>
-#include <glib/gi18n-lib.h>
 
-#include "nm-glib-compat.h"
 #include "nm-polkit-listener.h"
 
 G_DEFINE_TYPE (NMPolkitListener, nm_polkit_listener, POLKIT_AGENT_TYPE_LISTENER)
@@ -323,9 +320,11 @@ nm_polkit_listener_new (gboolean for_session, GError **error)
 	listener = g_object_new (NM_TYPE_POLKIT_LISTENER, NULL);
 	priv = NM_POLKIT_LISTENER_GET_PRIVATE (listener);
 
-	if (for_session)
-		session = polkit_unix_session_new_for_process_sync (getpid (), NULL, NULL);
-	else
+	if (for_session) {
+		session = polkit_unix_session_new_for_process_sync (getpid (), NULL, error);
+		if (!session)
+			return NULL;
+	} else
 		session = polkit_unix_process_new_for_owner (getpid (), 0, getuid ());
 
 	priv->reg_handle = polkit_agent_listener_register (listener, POLKIT_AGENT_REGISTER_FLAGS_NONE,

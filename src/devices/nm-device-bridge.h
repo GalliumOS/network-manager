@@ -21,8 +21,7 @@
 #ifndef __NETWORKMANAGER_DEVICE_BRIDGE_H__
 #define __NETWORKMANAGER_DEVICE_BRIDGE_H__
 
-#include <glib-object.h>
-
+#include "nm-default.h"
 #include "nm-device.h"
 
 G_BEGIN_DECLS
@@ -33,8 +32,6 @@ G_BEGIN_DECLS
 #define NM_IS_DEVICE_BRIDGE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE_BRIDGE))
 #define NM_IS_DEVICE_BRIDGE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_BRIDGE))
 #define NM_DEVICE_BRIDGE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_BRIDGE, NMDeviceBridgeClass))
-
-#define NM_DEVICE_BRIDGE_SLAVES "slaves"
 
 typedef NMDevice NMDeviceBridge;
 typedef NMDeviceClass NMDeviceBridgeClass;

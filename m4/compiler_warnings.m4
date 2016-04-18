@@ -50,13 +50,14 @@ if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
 	for option in -Wshadow -Wmissing-declarations -Wmissing-prototypes \
 		      -Wdeclaration-after-statement -Wformat-security \
 		      -Wfloat-equal -Wno-unused-parameter -Wno-sign-compare \
+		      -Wno-duplicate-decl-specifier \
 		      -Wstrict-prototypes \
 		      -fno-strict-aliasing -Wno-unused-but-set-variable \
 		      -Wundef -Wimplicit-function-declaration \
 		      -Wpointer-arith -Winit-self \
 		      -Wmissing-include-dirs -Wno-pragmas; do
 		dnl GCC 4.4 does not warn when checking for -Wno-* flags (https://gcc.gnu.org/wiki/FAQ#wnowarning)
-		CFLAGS="$CFLAGS_MORE_WARNINGS $(printf '%s' "$option" | sed 's/^-Wno-/-W/')  $CFLAGS_SAVED"
+		CFLAGS="-Werror $CFLAGS_MORE_WARNINGS $(printf '%s' "$option" | sed 's/^-Wno-/-W/')  $CFLAGS_SAVED"
 		AC_MSG_CHECKING([whether compiler understands $option])
 		AC_TRY_COMPILE([], [],
 			has_option=yes,

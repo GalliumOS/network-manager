@@ -19,16 +19,16 @@
  * Copyright (C) 1999-2010 Gentoo Foundation, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <glib/gstdio.h>
-#include <nm-dbus-interface.h>
-#include <nm-utils.h>
-#include <nm-setting-wireless-security.h>
-#include <nm-settings-connection.h>
-#include <nm-system-config-interface.h>
-#include <nm-logging.h>
+
+#include "nm-dbus-interface.h"
+#include "nm-utils.h"
+#include "nm-setting-wireless-security.h"
+#include "nm-settings-connection.h"
+#include "nm-settings-plugin.h"
 #include "nm-ifnet-connection.h"
 #include "connection_parser.h"
 #include "net_parser.h"
@@ -50,7 +50,7 @@ static guint signals[IFNET_LAST_SIGNAL] = { 0 };
 
 typedef struct {
 	gchar *conn_name;
-	NMSystemConfigInterface *config;
+	NMSettingsPlugin *config;
 } NMIfnetConnectionPrivate;
 
 NMIfnetConnection *
@@ -68,6 +68,8 @@ nm_ifnet_connection_new (NMConnection *source, const char *conn_name)
 	else {
 		tmp = ifnet_update_connection_from_config_block (conn_name, NULL, &error);
 		if (!tmp) {
+			nm_log_warn (LOGD_SETTINGS, "Could not read connection '%s': %s",
+			             conn_name, error->message);
 			g_error_free (error);
 			return NULL;
 		}
@@ -79,11 +81,14 @@ nm_ifnet_connection_new (NMConnection *source, const char *conn_name)
 	object = (GObject *) g_object_new (NM_TYPE_IFNET_CONNECTION, NULL);
 	g_assert (object);
 	NM_IFNET_CONNECTION_GET_PRIVATE (object)->conn_name = g_strdup (conn_name);
-	nm_settings_connection_replace_settings (NM_SETTINGS_CONNECTION (object),
-	                                         tmp,
-	                                         update_unsaved,
-	                                         NULL,
-	                                         NULL);
+	if (!nm_settings_connection_replace_settings (NM_SETTINGS_CONNECTION (object),
+	                                              tmp,
+	                                              update_unsaved,
+	                                              NULL,
+	                                              NULL)) {
+		g_object_unref (object);
+		return NULL;
+	}
 	g_object_unref (tmp);
 
 	return NM_IFNET_CONNECTION (object);
@@ -102,8 +107,9 @@ nm_ifnet_connection_get_conn_name (NMIfnetConnection *connection)
 
 static void
 commit_changes (NMSettingsConnection *connection,
+                NMSettingsConnectionCommitReason commit_reason,
                 NMSettingsConnectionCommitFunc callback,
-	            gpointer user_data)
+                gpointer user_data)
 {
 	GError *error = NULL;
 	NMIfnetConnectionPrivate *priv = NM_IFNET_CONNECTION_GET_PRIVATE (connection);
@@ -139,7 +145,7 @@ commit_changes (NMSettingsConnection *connection,
 		g_free (priv->conn_name);
 		priv->conn_name = new_name;
 
-		NM_SETTINGS_CONNECTION_CLASS (nm_ifnet_connection_parent_class)->commit_changes (connection, callback, user_data);
+		NM_SETTINGS_CONNECTION_CLASS (nm_ifnet_connection_parent_class)->commit_changes (connection, commit_reason, callback, user_data);
 		nm_log_info (LOGD_SETTINGS, "Successfully updated %s", priv->conn_name);
 	} else {
 		nm_log_warn (LOGD_SETTINGS, "Failed to update %s",

@@ -24,13 +24,11 @@
  * "form" (aka dialog) to the user.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <glib/gi18n-lib.h>
 
 #include "nmt-newt-form.h"
 #include "nmt-newt-button.h"

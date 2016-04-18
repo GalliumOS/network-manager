@@ -21,7 +21,7 @@
 #ifndef __NM_MULTI_INDEX__
 #define __NM_MULTI_INDEX__
 
-#include <glib.h>
+#include "nm-default.h"
 
 G_BEGIN_DECLS
 
@@ -39,7 +39,10 @@ typedef struct {
 } NMMultiIndexIter;
 
 typedef struct {
-	GHashTableIter _iter;
+	union {
+		GHashTableIter _iter;
+		gpointer _value;
+	};
 	guint _state;
 } NMMultiIndexIdIter;
 

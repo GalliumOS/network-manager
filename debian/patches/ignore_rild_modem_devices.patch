@@ -1,0 +1,23 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Ignore rmnet_usbX devices.
+---
+ src/nm-manager.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+Index: b/src/nm-manager.c
+===================================================================
+--- a/src/nm-manager.c
++++ b/src/nm-manager.c
+@@ -2042,6 +2042,12 @@ platform_link_added (NMManager *self,
+ 		}
+ 	}
+ 
++	/* Ignore rmnet_usb devices, which will be handled by their modem parent
++	 */
++	if (!strncmp (plink->name, "rmnet_usb", NM_STRLEN ("rmnet_usb")) ||
++		!strncmp (plink->name, "ccmni", NM_STRLEN ("ccmni")))
++		return;
++
+ 	if (device == NULL) {
+ 		switch (plink->type) {
+ 		case NM_LINK_TYPE_WWAN_ETHERNET:

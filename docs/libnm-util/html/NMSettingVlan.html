@@ -50,6 +50,10 @@
 </td>
 </tr>
 <tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingVlan.html#NM-VLAN-FLAGS-ALL:CAPS" title="NM_VLAN_FLAGS_ALL">NM_VLAN_FLAGS_ALL</a></td>
+</tr>
+<tr>
 <td class="function_type">
 <a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
 </td>
@@ -290,12 +294,17 @@ nm_setting_vlan_error_quark (<em class="parameter"><code><span class="type">void
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-VLAN-FLAGS-ALL:CAPS"></a><h3>NM_VLAN_FLAGS_ALL</h3>
+<pre class="programlisting">#define             NM_VLAN_FLAGS_ALL</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-vlan-new"></a><h3>nm_setting_vlan_new ()</h3>
 <pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
 nm_setting_vlan_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.3.5"></a><h4>Returns</h4>
+<a name="id-1.2.20.9.4.5"></a><h4>Returns</h4>
 <p> the new empty <a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -305,31 +314,6 @@ nm_setting_vlan_new (<em class="parameter"><code><span class="type">void</span><
 <a name="nm-setting-vlan-get-interface-name"></a><h3>nm_setting_vlan_get_interface_name ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_vlan_get_interface_name (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>);</pre>
-<div class="refsect3">
-<a name="id-1.2.20.9.4.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody><tr>
-<td class="parameter_name"><p>setting</p></td>
-<td class="parameter_description"><p>the <a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a></p></td>
-<td class="parameter_annotations"> </td>
-</tr></tbody>
-</table></div>
-</div>
-<div class="refsect3">
-<a name="id-1.2.20.9.4.5"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingVlan.html#NMSettingVlan--interface-name" title="The “interface-name” property"><span class="type">“interface_name”</span></a> property of the setting</p>
-</div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="nm-setting-vlan-get-parent"></a><h3>nm_setting_vlan_get_parent ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> *
-nm_setting_vlan_get_parent (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
 <a name="id-1.2.20.9.5.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -347,14 +331,14 @@ nm_setting_vlan_get_parent (<em class="parameter"><code><a class="link" href="NM
 </div>
 <div class="refsect3">
 <a name="id-1.2.20.9.5.5"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingVlan.html#NMSettingVlan--parent" title="The “parent” property"><span class="type">“parent”</span></a> property of the setting</p>
+<p> the <a class="link" href="NMSettingVlan.html#NMSettingVlan--interface-name" title="The “interface-name” property"><span class="type">“interface_name”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-setting-vlan-get-id"></a><h3>nm_setting_vlan_get_id ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint32</span>
-nm_setting_vlan_get_id (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>);</pre>
+<a name="nm-setting-vlan-get-parent"></a><h3>nm_setting_vlan_get_parent ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_vlan_get_parent (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
 <a name="id-1.2.20.9.6.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -372,14 +356,14 @@ nm_setting_vlan_get_id (<em class="parameter"><code><a class="link" href="NMSett
 </div>
 <div class="refsect3">
 <a name="id-1.2.20.9.6.5"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingVlan.html#NMSettingVlan--id" title="The “id” property"><span class="type">“id”</span></a> property of the setting</p>
+<p> the <a class="link" href="NMSettingVlan.html#NMSettingVlan--parent" title="The “parent” property"><span class="type">“parent”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-setting-vlan-get-flags"></a><h3>nm_setting_vlan_get_flags ()</h3>
+<a name="nm-setting-vlan-get-id"></a><h3>nm_setting_vlan_get_id ()</h3>
 <pre class="programlisting"><span class="returnvalue">guint32</span>
-nm_setting_vlan_get_flags (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>);</pre>
+nm_setting_vlan_get_id (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
 <a name="id-1.2.20.9.7.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -397,6 +381,31 @@ nm_setting_vlan_get_flags (<em class="parameter"><code><a class="link" href="NMS
 </div>
 <div class="refsect3">
 <a name="id-1.2.20.9.7.5"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSettingVlan.html#NMSettingVlan--id" title="The “id” property"><span class="type">“id”</span></a> property of the setting</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-vlan-get-flags"></a><h3>nm_setting_vlan_get_flags ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
+nm_setting_vlan_get_flags (<em class="parameter"><code><a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.2.20.9.8.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingVlan.html" title="NMSettingVlan"><span class="type">NMSettingVlan</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.2.20.9.8.5"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingVlan.html#NMSettingVlan--flags" title="The “flags” property"><span class="type">“flags”</span></a> property of the setting</p>
 </div>
 </div>
@@ -410,7 +419,7 @@ nm_setting_vlan_get_num_priorities (<em class="parameter"><code><a class="link" 
 <a class="link" href="NMSettingVlan.html#NMSettingVlan--ingress-priority-map" title="The “ingress-priority-map” property"><span class="type">“ingress_priority_map”</span></a> or <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" title="The “egress-priority-map” property"><span class="type">“egress_priority_map”</span></a>
 properties of this setting.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.8.5"></a><h4>Parameters</h4>
+<a name="id-1.2.20.9.9.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -432,7 +441,7 @@ properties of this setting.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.20.9.8.6"></a><h4>Returns</h4>
+<a name="id-1.2.20.9.9.6"></a><h4>Returns</h4>
 <p> return the number of ingress/egress priority entries, -1 if error</p>
 </div>
 </div>
@@ -448,7 +457,7 @@ nm_setting_vlan_get_priority (<em class="parameter"><code><a class="link" href="
 <p>Retrieve one of the entries of the <a class="link" href="NMSettingVlan.html#NMSettingVlan--ingress-priority-map" title="The “ingress-priority-map” property"><span class="type">“ingress_priority_map”</span></a>
 or <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" title="The “egress-priority-map” property"><span class="type">“egress_priority_map”</span></a> properties of this setting.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.9.5"></a><h4>Parameters</h4>
+<a name="id-1.2.20.9.10.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -485,7 +494,7 @@ or <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.20.9.9.6"></a><h4>Returns</h4>
+<a name="id-1.2.20.9.10.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if a priority map was returned, <code class="literal">FALSE</code> if error</p>
 </div>
 </div>
@@ -514,7 +523,7 @@ Priority Code Point (PCP) value, and <em class="parameter"><code>to</code></em>
 <em class="parameter"><code>to</code></em>
  is the outgoing 802.1q VLAN Priority Code Point (PCP) value.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.10.7"></a><h4>Parameters</h4>
+<a name="id-1.2.20.9.11.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -548,7 +557,7 @@ to</p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.20.9.10.8"></a><h4>Returns</h4>
+<a name="id-1.2.20.9.11.8"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the new priority mapping was successfully added to the
 list, <code class="literal">FALSE</code> if error</p>
 </div>
@@ -565,7 +574,7 @@ nm_setting_vlan_remove_priority (<em class="parameter"><code><a class="link" hre
 <a class="link" href="NMSettingVlan.html#NMSettingVlan--ingress-priority-map" title="The “ingress-priority-map” property"><span class="type">“ingress_priority_map”</span></a> or <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" title="The “egress-priority-map” property"><span class="type">“egress_priority_map”</span></a>
 properties.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.11.5"></a><h4>Parameters</h4>
+<a name="id-1.2.20.9.12.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -608,7 +617,7 @@ or <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" 
  argument)
 properties.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.12.5"></a><h4>Parameters</h4>
+<a name="id-1.2.20.9.13.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -642,7 +651,7 @@ to</p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.20.9.12.6"></a><h4>Returns</h4>
+<a name="id-1.2.20.9.13.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the priority mapping was found and removed; <code class="literal">FALSE</code> if it was not.</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -661,7 +670,7 @@ or <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" 
  argument)
 properties.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.13.5"></a><h4>Parameters</h4>
+<a name="id-1.2.20.9.14.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -688,7 +697,7 @@ properties.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.20.9.13.6"></a><h4>Returns</h4>
+<a name="id-1.2.20.9.14.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the priority mapping was found and removed; <code class="literal">FALSE</code> if it was not.</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -702,7 +711,7 @@ nm_setting_vlan_clear_priorities (<em class="parameter"><code><a class="link" hr
 <p>Clear all the entires from <a class="link" href="NMSettingVlan.html#NMSettingVlan--ingress-priority-map" title="The “ingress-priority-map” property"><span class="type">“ingress_priority_map”</span></a> or
 <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" title="The “egress-priority-map” property"><span class="type">“egress_priority_map”</span></a> properties.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.14.5"></a><h4>Parameters</h4>
+<a name="id-1.2.20.9.15.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -735,7 +744,7 @@ nm_setting_vlan_add_priority_str (<em class="parameter"><code><a class="link" hr
 or the <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" title="The “egress-priority-map” property"><span class="type">“egress_priority_map”</span></a> properties.  The priority map maps
 the Linux SKB priorities to 802.1p priorities.</p>
 <div class="refsect3">
-<a name="id-1.2.20.9.15.5"></a><h4>Parameters</h4>
+<a name="id-1.2.20.9.16.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -762,7 +771,7 @@ the Linux SKB priorities to 802.1p priorities.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.20.9.15.6"></a><h4>Returns</h4>
+<a name="id-1.2.20.9.16.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the entry was successfully added to the list, or it
 overwrote the old value, <code class="literal">FALSE</code> if error</p>
 </div>
@@ -933,6 +942,14 @@ to 802.1p priorities used in VLANs.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-VLAN-FLAG-MVRP:CAPS"></a>NM_VLAN_FLAG_MVRP</p></td>
+<td class="enum_member_description">
+<p>indicates that this interface should use MVRP to register
+ itself with it's switch</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -956,7 +973,8 @@ both "from" and "to" are unsigned integers, ie "7:3".</p>
 interface.  Flags include <a class="link" href="NMSettingVlan.html#NM-VLAN-FLAG-REORDER-HEADERS:CAPS"><code class="literal">NM_VLAN_FLAG_REORDER_HEADERS</code></a> (reordering of
 output packet headers), <a class="link" href="NMSettingVlan.html#NM-VLAN-FLAG-GVRP:CAPS"><code class="literal">NM_VLAN_FLAG_GVRP</code></a> (use of the GVRP protocol),
 and <a class="link" href="NMSettingVlan.html#NM-VLAN-FLAG-LOOSE-BINDING:CAPS"><code class="literal">NM_VLAN_FLAG_LOOSE_BINDING</code></a> (loose binding of the interface to its
-master device's operating state).</p>
+master device's operating state), <a class="link" href="NMSettingVlan.html#NM-VLAN-FLAG-MVRP:CAPS"><code class="literal">NM_VLAN_FLAG_MVRP</code></a> (use of the MVRP
+protocol).</p>
 <p>Flags: Read / Write / Construct</p>
 <p>Default value: 0</p>
 </div>

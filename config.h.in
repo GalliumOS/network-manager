@@ -7,6 +7,9 @@
    nm-ifcfg-rh-docs.xml */
 #undef BUILD_SETTING_DOCS
 
+/* Path to ConsoleKit database */
+#undef CKDB_PATH
+
 /* Default configuration option for main.plugins setting */
 #undef CONFIG_PLUGINS_DEFAULT
 
@@ -15,6 +18,9 @@
 
 /* Define to path of dnsmasq binary */
 #undef DNSMASQ_PATH
+
+/* Define to path of unbound dnssec-trigger-script */
+#undef DNSSEC_TRIGGER_SCRIPT
 
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
@@ -30,13 +36,6 @@
 /* Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in
    the CoreFoundation framework. */
 #undef HAVE_CFPREFERENCESCOPYAPPVALUE
-
-/* Define if you have dbus-glib >= 0.100 */
-#undef HAVE_DBUS_GLIB_100
-
-/* Define if you have a dbus-glib with
-   dbus_g_method_invocation_get_g_connection() */
-#undef HAVE_DBUS_GLIB_GMI_GET_CONNECTION
 
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
@@ -60,14 +59,8 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define if the kernel has IN6_ADDR_GEN_MODE_* */
-#undef HAVE_KERNEL_INET6_ADDR_GEN_MODE
-
-/* Define if libnl has rtnl_link_inet6_get_addr_gen_mode() */
-#undef HAVE_LIBNL_INET6_ADDR_GEN_MODE
-
-/* Define if libnl has rtnl_link_inet6_get_token() */
-#undef HAVE_LIBNL_INET6_TOKEN
+/* Define if you have libaudit support */
+#undef HAVE_LIBAUDIT
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -89,6 +82,9 @@
 
 /* Define to 1 if you have the <readline/readline.h> header file. */
 #undef HAVE_READLINE_READLINE_H
+
+/* Define to 1 if you have the `secure_getenv' function. */
+#undef HAVE_SECURE_GETENV
 
 /* Define if you have SELinux support */
 #undef HAVE_SELINUX
@@ -126,21 +122,38 @@
 /* Define if you have Linux Wireless Extensions support */
 #undef HAVE_WEXT
 
+/* Define to 1 if you have the `__secure_getenv' function. */
+#undef HAVE___SECURE_GETENV
+
+/* Enable Gentoo hostname persist method */
+#undef HOSTNAME_PERSIST_GENTOO
+
+/* Enable Slackware hostname persist method */
+#undef HOSTNAME_PERSIST_SLACKWARE
+
+/* Enable SuSE hostname persist method */
+#undef HOSTNAME_PERSIST_SUSE
+
 /* Define to path of iptables binary */
 #undef IPTABLES_PATH
 
 /* Define to path of the kernel firmware directory */
 #undef KERNEL_FIRMWARE_DIR
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
-/* Path to netconfig (if enabled) */
+/* Path to netconfig */
 #undef NETCONFIG_PATH
 
 /* The default value of the auth-polkit configuration option */
 #undef NM_CONFIG_DEFAULT_AUTH_POLKIT
+
+/* The default value of the logging.audit configuration option */
+#undef NM_CONFIG_DEFAULT_LOGGING_AUDIT
+
+/* Default configuration option for logging.backend */
+#undef NM_CONFIG_LOGGING_BACKEND_DEFAULT
 
 /* Define the distribution version string */
 #undef NM_DIST_VERSION
@@ -151,7 +164,7 @@
 /* Define if more asserts are enabled */
 #undef NM_MORE_ASSERTS
 
-/* Define if more asserts are enabled */
+/* Define if more debug logging is enabled */
 #undef NM_MORE_LOGGING
 
 /* Name of package */
@@ -178,14 +191,29 @@
 /* Define to path of pppd binary */
 #undef PPPD_PATH
 
-/* Define to path of pppoe binary */
-#undef PPPOE_PATH
-
-/* Path to resolvconf (if enabled) */
+/* Path to resolvconf */
 #undef RESOLVCONF_PATH
+
+/* Define to 1 if ConsoleKit is available */
+#undef SESSION_TRACKING_CONSOLEKIT
+
+/* Define to 1 if libsystemd-login is available */
+#undef SESSION_TRACKING_SYSTEMD
+
+/* The size of `dev_t', as computed by sizeof. */
+#undef SIZEOF_DEV_T
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Define to 1 to use ConsoleKit2 suspend api */
+#undef SUSPEND_RESUME_CONSOLEKIT
+
+/* Define to 1 to use systemd suspend api */
+#undef SUSPEND_RESUME_SYSTEMD
+
+/* Define to 1 if libsystemd-journald is available */
+#undef SYSTEMD_JOURNAL
 
 /* Define to path to system CA certificates */
 #undef SYSTEM_CA_PATH
@@ -242,14 +270,14 @@
 /* Define if you have PPP support */
 #undef WITH_PPP
 
+/* Whether compilation of ibft setting plugin is enabled */
+#undef WITH_SETTINGS_PLUGIN_IBFT
+
 /* Define if you have Teamd control support */
 #undef WITH_TEAMDCTL
 
 /* Define if you have Wi-Fi support */
 #undef WITH_WIFI
-
-/* Define if you have WiMAX support */
-#undef WITH_WIMAX
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

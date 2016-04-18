@@ -1,13 +1,22 @@
+include $(GLIB_MAKEFILE)
+
+GLIB_GENERATED = nm-core-tests-enum-types.h nm-core-tests-enum-types.c
+nm_core_tests_enum_types_sources = test-general-enums.h
+GLIB_MKENUMS_H_FLAGS = --identifier-prefix NM
+GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM
+
+BUILT_SOURCES = $(GLIB_GENERATED)
+
 if ENABLE_TESTS
 
 certsdir = $(srcdir)/certs
 
 AM_CPPFLAGS = \
-	-I${top_srcdir}/include \
+	-I${top_srcdir}/shared \
+	-I${top_builddir}/shared \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
 	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	$(GLIB_CFLAGS) \
 	-DTEST_CERT_DIR=\"$(certsdir)\"
 
@@ -18,6 +27,7 @@ noinst_PROGRAMS =		\
 	test-keyfile		\
 	test-secrets		\
 	test-setting-8021x	\
+	test-setting-bond	\
 	test-setting-dcb	\
 	test-settings-defaults
 
@@ -27,6 +37,12 @@ LDADD = \
 
 @VALGRIND_RULES@
 TESTS = $(noinst_PROGRAMS)
+
+test_general_SOURCES = \
+	test-general.c \
+	test-general-enums.h \
+	nm-core-tests-enum-types.c \
+	nm-core-tests-enum-types.h
 
 endif
 

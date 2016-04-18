@@ -19,7 +19,9 @@
  * Copyright (C) 2008 - 2015 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
+
+#include "nm-keyfile-internal.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -28,16 +30,9 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <string.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-core-internal.h"
-#include "nm-macros-internal.h"
-#include "gsystem-local-alloc.h"
-#include "nm-glib-compat.h"
-#include "nm-keyfile-internal.h"
 #include "nm-keyfile-utils.h"
-#include "nm-setting-private.h"
-
 
 typedef struct {
 	NMConnection *connection;
@@ -564,6 +559,28 @@ ip6_dns_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
 }
 
 static void
+ip6_addr_gen_mode_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
+{
+	NMSettingIP6ConfigAddrGenMode addr_gen_mode;
+	const char *setting_name = nm_setting_get_name (setting);
+	gs_free char *s = NULL;
+
+	s = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key, NULL);
+	if (s) {
+		if (!nm_utils_enum_from_str (nm_setting_ip6_config_addr_gen_mode_get_type (), s,
+		                             (int *) &addr_gen_mode, NULL)) {
+			handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
+			             _("invalid option '%s', use one of [%s]"),
+			             s, "eui64,stable-privacy");
+			return;
+		}
+	} else
+		addr_gen_mode = NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64;
+
+	g_object_set (G_OBJECT (setting), key, (gint) addr_gen_mode, NULL);
+}
+
+static void
 mac_address_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key, gsize enforce_length)
 {
 	const char *setting_name = nm_setting_get_name (setting);
@@ -856,17 +873,17 @@ handle_as_scheme (KeyfileReaderInfo *info, GBytes *bytes, NMSetting *setting, co
 
 	/* It's the PATH scheme, can just set plain data.
 	 * In this case, @data_len includes */
-	if (   data_len >= STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH)
+	if (   data_len >= NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH)
 	    && g_str_has_prefix (data, NM_KEYFILE_CERT_SCHEME_PREFIX_PATH)) {
 		if (nm_setting_802_1x_check_cert_scheme (data, data_len + 1, NULL) == NM_SETTING_802_1X_CK_SCHEME_PATH) {
-			const char *path = &data[STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH)];
+			const char *path = &data[NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH)];
 			gs_free char *path_free = NULL;
 
 			if (path[0] != '/') {
 				/* we want to read absolute paths because we use keyfile as exchange
 				 * between different processes which might not have the same cwd. */
 				path = path_free = get_cert_path (info->base_dir, (const guint8 *) path,
-				                                  data_len - STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH));
+				                                  data_len - NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH));
 			}
 
 			g_object_set (setting, key, bytes, NULL);
@@ -881,15 +898,15 @@ handle_as_scheme (KeyfileReaderInfo *info, GBytes *bytes, NMSetting *setting, co
 		}
 		return TRUE;
 	}
-	if (   data_len > STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_BLOB)
+	if (   data_len > NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_BLOB)
 	    && g_str_has_prefix (data, NM_KEYFILE_CERT_SCHEME_PREFIX_BLOB)) {
-		const char *cdata = data + STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_BLOB);
+		const char *cdata = data + NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_BLOB);
 		guchar *bin;
 		GBytes *bytes2;
 		gsize i;
 		gboolean valid_base64;
 
-		data_len -= STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_BLOB);
+		data_len -= NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_BLOB);
 
 		/* Let's be strict here. We expect valid base64, no funny stuff!!
 		 * We didn't write such invalid data ourselfes and refuse to read it as blob. */
@@ -1181,6 +1198,10 @@ static KeyParser key_parsers[] = {
 	  NM_SETTING_IP_CONFIG_DNS,
 	  FALSE,
 	  ip6_dns_parser },
+	{ NM_SETTING_IP6_CONFIG_SETTING_NAME,
+	  NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE,
+	  FALSE,
+	  ip6_addr_gen_mode_parser },
 	{ NM_SETTING_WIRED_SETTING_NAME,
 	  NM_SETTING_WIRED_MAC_ADDRESS,
 	  TRUE,
@@ -1253,6 +1274,17 @@ static KeyParser key_parsers[] = {
 };
 
 static void
+set_default_for_missing_key (NMSetting *setting, const char *property)
+{
+	/* Set a value different from the default value of the property's spec */
+
+	if (NM_IS_SETTING_WIRELESS (setting)) {
+		if (!strcmp (property, NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION))
+			g_object_set (setting, property, (NMSettingMacRandomization) NM_SETTING_MAC_RANDOMIZATION_NEVER, NULL);
+	}
+}
+
+static void
 read_one_setting_value (NMSetting *setting,
                         const char *key,
                         const GValue *value,
@@ -1316,6 +1348,9 @@ read_one_setting_value (NMSetting *setting,
 			                  err->message))
 				goto out_error;
 		}
+
+		/* Allow default values different than in property spec */
+		set_default_for_missing_key (setting, key);
 		return;
 	}
 
@@ -1499,11 +1534,11 @@ read_vpn_secrets (KeyfileReaderInfo *info, NMSettingVpn *s_vpn)
 {
 	char **keys, **iter;
 
-	keys = nm_keyfile_plugin_kf_get_keys (info->keyfile, VPN_SECRETS_GROUP, NULL, NULL);
+	keys = nm_keyfile_plugin_kf_get_keys (info->keyfile, NM_KEYFILE_GROUP_VPN_SECRETS, NULL, NULL);
 	for (iter = keys; *iter; iter++) {
 		char *secret;
 
-		secret = nm_keyfile_plugin_kf_get_string (info->keyfile, VPN_SECRETS_GROUP, *iter, NULL);
+		secret = nm_keyfile_plugin_kf_get_string (info->keyfile, NM_KEYFILE_GROUP_VPN_SECRETS, *iter, NULL);
 		if (secret) {
 			nm_setting_vpn_add_secret (s_vpn, *iter, secret);
 			g_free (secret);
@@ -1581,7 +1616,7 @@ nm_keyfile_read (GKeyFile *keyfile,
 		length = 0;
 	for (i = 0; i < length; i++) {
 		/* Only read out secrets when needed */
-		if (!strcmp (groups[i], VPN_SECRETS_GROUP)) {
+		if (!strcmp (groups[i], NM_KEYFILE_GROUP_VPN_SECRETS)) {
 			vpn_secrets = TRUE;
 			continue;
 		}

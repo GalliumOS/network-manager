@@ -19,10 +19,9 @@
  * Copyright 2007 - 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-setting-cdma.h"
 #include "nm-utils.h"
@@ -167,7 +166,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		g_set_error_literal (error,
 		                     NM_SETTING_CDMA_ERROR,
 		                     NM_SETTING_CDMA_ERROR_INVALID_PROPERTY,
-		                     _("property is empty'"));
+		                     _("property is empty"));
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_CDMA_SETTING_NAME, NM_SETTING_CDMA_NUMBER);
 		return FALSE;
 	}

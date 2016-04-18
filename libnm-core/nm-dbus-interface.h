@@ -26,7 +26,11 @@
 #ifndef __NM_DBUS_INTERFACE_H__
 #define __NM_DBUS_INTERFACE_H__
 
-#include "nm-version.h"
+/* This header must not include glib or libnm. */
+
+#ifndef NM_VERSION_H
+#define NM_AVAILABLE_IN_1_2
+#endif
 
 /*
  * dbus services details
@@ -63,7 +67,7 @@
 #define NM_DBUS_INTERFACE_DEVICE_MACVLAN    NM_DBUS_INTERFACE_DEVICE ".Macvlan"
 #define NM_DBUS_INTERFACE_DEVICE_VXLAN      NM_DBUS_INTERFACE_DEVICE ".Vxlan"
 #define NM_DBUS_INTERFACE_DEVICE_GRE        NM_DBUS_INTERFACE_DEVICE ".Gre"
-
+#define NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL  NM_DBUS_INTERFACE_DEVICE ".IPTunnel"
 
 #define NM_DBUS_INTERFACE_SETTINGS        "org.freedesktop.NetworkManager.Settings"
 #define NM_DBUS_PATH_SETTINGS             "/org/freedesktop/NetworkManager/Settings"
@@ -90,8 +94,6 @@
  * @NM_STATE_CONNECTED_GLOBAL: there is global IPv4 and/or IPv6 Internet connectivity
  *
  * #NMState values indicate the current overall networking state.
- *
- * (Corresponds to the NM_STATE type in nm-manager.xml.)
  **/
 typedef enum {
 	NM_STATE_UNKNOWN          = 0,
@@ -114,8 +116,6 @@ typedef enum {
  *   does not appear to be able to reach the full Internet.
  * @NM_CONNECTIVITY_FULL: The host is connected to a network, and
  *   appears to be able to reach the full Internet.
- *
- * (Corresponds to the NM_CONNECTIVITY type in nm-manager.xml.)
  */
 typedef enum {
 	NM_CONNECTIVITY_UNKNOWN,
@@ -144,11 +144,14 @@ typedef enum {
  * @NM_DEVICE_TYPE_ADSL: ADSL modem
  * @NM_DEVICE_TYPE_BRIDGE: a bridge master interface
  * @NM_DEVICE_TYPE_TEAM: a team master interface
+ * @NM_DEVICE_TYPE_TUN: a TUN or TAP interface
+ * @NM_DEVICE_TYPE_IP_TUNNEL: a IP tunnel interface
+ * @NM_DEVICE_TYPE_MACVLAN: a MACVLAN interface
+ * @NM_DEVICE_TYPE_VXLAN: a VXLAN interface
+ * @NM_DEVICE_TYPE_VETH: a VETH interface
  *
  * #NMDeviceType values indicate the type of hardware represented by
  * an #NMDevice.
- *
- * (Corresponds to the NM_DEVICE_TYPE type in nm-device.xml.)
  **/
 typedef enum {
 	NM_DEVICE_TYPE_UNKNOWN    = 0,
@@ -167,6 +170,11 @@ typedef enum {
 	NM_DEVICE_TYPE_BRIDGE     = 13,
 	NM_DEVICE_TYPE_GENERIC    = 14,
 	NM_DEVICE_TYPE_TEAM       = 15,
+	NM_DEVICE_TYPE_TUN        = 16,
+	NM_DEVICE_TYPE_IP_TUNNEL  = 17,
+	NM_DEVICE_TYPE_MACVLAN    = 18,
+	NM_DEVICE_TYPE_VXLAN      = 19,
+	NM_DEVICE_TYPE_VETH       = 20,
 } NMDeviceType;
 
 /**
@@ -177,8 +185,6 @@ typedef enum {
  * @NM_DEVICE_CAP_IS_SOFTWARE: this device is a software device
  *
  * General device capability flags.
- *
- * (Corresponds to the NM_DEVICE_CAP type in nm-device-wifi.xml.)
  **/
 typedef enum { /*< flags >*/
 	NM_DEVICE_CAP_NONE           = 0x00000000,
@@ -204,8 +210,6 @@ typedef enum { /*< flags >*/
  * @NM_WIFI_DEVICE_CAP_FREQ_5GHZ: device supports 5GHz frequencies
  *
  * 802.11 specific device encryption and authentication capabilities.
- *
- * (Corresponds to the NM_802_11_DEVICE_CAP type in nm-device-wifi.xml.)
  **/
 typedef enum { /*< flags >*/
 	NM_WIFI_DEVICE_CAP_NONE          = 0x00000000,
@@ -230,8 +234,6 @@ typedef enum { /*< flags >*/
  * encryption (usually means WEP)
  *
  * 802.11 access point flags.
- *
- * (Corresponds to the NM_802_11_AP_FLAGS type in nm-access-point.xml.)
  **/
 typedef enum { /*< underscore_name=nm_802_11_ap_flags, flags >*/
 	NM_802_11_AP_FLAGS_NONE    = 0x00000000,
@@ -262,8 +264,6 @@ typedef enum { /*< underscore_name=nm_802_11_ap_flags, flags >*/
  * 802.11 access point security and authentication flags.  These flags describe
  * the current security requirements of an access point as determined from the
  * access point's beacon.
- *
- * (Corresponds to the NM_802_11_AP_SEC type in nm-access-point.xml.)
  **/
 typedef enum { /*< underscore_name=nm_802_11_ap_security_flags, flags >*/
 	NM_802_11_AP_SEC_NONE            = 0x00000000,
@@ -293,8 +293,6 @@ typedef enum { /*< underscore_name=nm_802_11_ap_security_flags, flags >*/
  *   access point objects; used only for hotspot mode on the local machine.
  *
  * Indicates the 802.11 mode an access point or device is currently in.
- *
- * (Corresponds to the NM_802_11_MODE type in generic-types.xml.)
  **/
 typedef enum { /*< underscore_name=nm_802_11_mode >*/
 	NM_802_11_MODE_UNKNOWN = 0,
@@ -311,8 +309,6 @@ typedef enum { /*< underscore_name=nm_802_11_mode >*/
  *
  * #NMBluetoothCapabilities values indicate the usable capabilities of a
  * Bluetooth device.
- *
- * (Corresponds to the NM_BT_CAPABILITY type in nm-device-bt.xml.)
  **/
 typedef enum { /*< flags >*/
 	NM_BT_CAPABILITY_NONE = 0x00000000,
@@ -335,8 +331,6 @@ typedef enum { /*< flags >*/
  * technology families a modem device supports.  For more information on the
  * specific access technologies the device supports use the ModemManager D-Bus
  * API.
- *
- * (Corresponds to the NM_DEVICE_MODEM_CAPABILITY type in nm-device-modem.xml.)
  **/
 typedef enum { /*< flags >*/
 	NM_DEVICE_MODEM_CAPABILITY_NONE      = 0x00000000,
@@ -346,6 +340,21 @@ typedef enum { /*< flags >*/
 	NM_DEVICE_MODEM_CAPABILITY_LTE       = 0x00000008,
 } NMDeviceModemCapabilities;
 
+/**
+ * NMWimaxNspNetworkType:
+ * @NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN: unknown network type
+ * @NM_WIMAX_NSP_NETWORK_TYPE_HOME: home network
+ * @NM_WIMAX_NSP_NETWORK_TYPE_PARTNER: partner network
+ * @NM_WIMAX_NSP_NETWORK_TYPE_ROAMING_PARTNER: roaming partner network
+ *
+ * WiMAX network type.
+ */
+typedef enum {
+	NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN         = 0,
+	NM_WIMAX_NSP_NETWORK_TYPE_HOME            = 1,
+	NM_WIMAX_NSP_NETWORK_TYPE_PARTNER         = 2,
+	NM_WIMAX_NSP_NETWORK_TYPE_ROAMING_PARTNER = 3
+} NMWimaxNspNetworkType;
 
 /**
  * NMDeviceState:
@@ -384,8 +393,6 @@ typedef enum { /*< flags >*/
  *   that connection.  The network connection may still be valid.
  * @NM_DEVICE_STATE_FAILED: the device failed to connect to the requested
  *   network and is cleaning up the connection request
- *
- * (Corresponds to the NM_DEVICE_STATE type in nm-device.xml.)
  **/
 typedef enum {
 	NM_DEVICE_STATE_UNKNOWN      = 0,
@@ -402,7 +409,6 @@ typedef enum {
 	NM_DEVICE_STATE_DEACTIVATING = 110,
 	NM_DEVICE_STATE_FAILED       = 120
 } NMDeviceState;
-
 
 /**
  * NMDeviceStateReason:
@@ -471,8 +477,6 @@ typedef enum {
  * @NM_DEVICE_STATE_REASON_PARENT_MANAGED_CHANGED: the device parent's management changed
  *
  * Device state change reason codes
- *
- * (Corresponds to the NM_DEVICE_STATE_REASON type in nm-device.xml.)
  */
 typedef enum {
 	NM_DEVICE_STATE_REASON_NONE = 0,
@@ -540,6 +544,24 @@ typedef enum {
 	NM_DEVICE_STATE_REASON_PARENT_MANAGED_CHANGED = 62,
 } NMDeviceStateReason;
 
+/**
+ * NMMetered:
+ * @NM_METERED_UNKNOWN:     The metered status is unknown
+ * @NM_METERED_YES:         Metered, the value was statically set
+ * @NM_METERED_NO:          Not metered, the value was statically set
+ * @NM_METERED_GUESS_YES:   Metered, the value was guessed
+ * @NM_METERED_GUESS_NO:    Not metered, the value was guessed
+ *
+ * Since: 1.2
+ **/
+NM_AVAILABLE_IN_1_2
+typedef enum {
+	NM_METERED_UNKNOWN    = 0,
+	NM_METERED_YES        = 1,
+	NM_METERED_NO         = 2,
+	NM_METERED_GUESS_YES  = 3,
+	NM_METERED_GUESS_NO   = 4,
+} NMMetered;
 
 /**
  * NMActiveConnectionState:
@@ -554,8 +576,6 @@ typedef enum {
  * #NMActiveConnectionState values indicate the state of a connection to a
  * specific network while it is starting, connected, or disconnecting from that
  * network.
- *
- * (Corresponds to the NM_ACTIVE_CONNECTION_STATE type in nm-active-connection.xml.)
  **/
 typedef enum {
 	NM_ACTIVE_CONNECTION_STATE_UNKNOWN = 0,
@@ -587,8 +607,6 @@ typedef enum {
  *   the D-Bus API.
  *
  * #NMSecretAgentGetSecretsFlags values modify the behavior of a GetSecrets request.
- *
- * (Corresponds to the NM_SECRET_AGENT_GET_SECRETS_FLAGS type in nm-secret-agent.xml.)
  */
 typedef enum { /*< flags >*/
 	NM_SECRET_AGENT_GET_SECRETS_FLAG_NONE = 0x0,
@@ -609,8 +627,6 @@ typedef enum { /*< flags >*/
  * @NM_SECRET_AGENT_CAPABILITY_LAST: bounds checking value; should not be used.
  *
  * #NMSecretAgentCapabilities indicate various capabilities of the agent.
- *
- * (Corresponds to the NM_SECRET_AGENT_CAPABILITIES type in nm-secret-agent.xml.)
  */
 typedef enum /*< flags >*/ {
 	NM_SECRET_AGENT_CAPABILITY_NONE = 0x0,
@@ -619,5 +635,58 @@ typedef enum /*< flags >*/ {
 	/* boundary value */
 	NM_SECRET_AGENT_CAPABILITY_LAST = NM_SECRET_AGENT_CAPABILITY_VPN_HINTS
 } NMSecretAgentCapabilities;
+
+#ifndef NM_VERSION_H
+#undef NM_AVAILABLE_IN_1_2
+#endif
+
+#define NM_LLDP_ATTR_DESTINATION "destination"
+#define NM_LLDP_ATTR_CHASSIS_ID_TYPE "chassis-id-type"
+#define NM_LLDP_ATTR_CHASSIS_ID "chassis-id"
+#define NM_LLDP_ATTR_PORT_ID_TYPE "port-id-type"
+#define NM_LLDP_ATTR_PORT_ID "port-id"
+#define NM_LLDP_ATTR_PORT_DESCRIPTION "port-description"
+#define NM_LLDP_ATTR_SYSTEM_NAME "system-name"
+#define NM_LLDP_ATTR_SYSTEM_DESCRIPTION "system-description"
+#define NM_LLDP_ATTR_SYSTEM_CAPABILITIES "system-capabilities"
+#define NM_LLDP_ATTR_IEEE_802_1_PVID "ieee-802-1-pvid"
+#define NM_LLDP_ATTR_IEEE_802_1_PPVID "ieee-802-1-ppvid"
+#define NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS "ieee-802-1-ppvid-flags"
+#define NM_LLDP_ATTR_IEEE_802_1_VID "ieee-802-1-vid"
+#define NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME "ieee-802-1-vlan-name"
+
+#define NM_LLDP_DEST_NEAREST_BRIDGE "nearest-bridge"
+#define NM_LLDP_DEST_NEAREST_NON_TPMR_BRIDGE "nearest-non-tpmr-bridge"
+#define NM_LLDP_DEST_NEAREST_CUSTOMER_BRIDGE "nearest-customer-bridge"
+
+/**
+ * NMIPTunnelMode:
+ * @NM_IP_TUNNEL_MODE_UNKNOWN: Unknown/unset tunnel mode
+ * @NM_IP_TUNNEL_MODE_IPIP:    IP in IP tunnel
+ * @NM_IP_TUNNEL_MODE_GRE:     GRE tunnel
+ * @NM_IP_TUNNEL_MODE_SIT:     SIT tunnel
+ * @NM_IP_TUNNEL_MODE_ISATAP:  ISATAP tunnel
+ * @NM_IP_TUNNEL_MODE_VTI:     VTI tunnel
+ * @NM_IP_TUNNEL_MODE_IP6IP6:  IPv6 in IPv6 tunnel
+ * @NM_IP_TUNNEL_MODE_IPIP6:   IPv4 in IPv6 tunnel
+ * @NM_IP_TUNNEL_MODE_IP6GRE:  IPv6 GRE tunnel
+ * @NM_IP_TUNNEL_MODE_VTI6:    IPv6 VTI tunnel
+ *
+ * The tunneling mode.
+ *
+ * Since: 1.2
+ */
+typedef enum {
+	NM_IP_TUNNEL_MODE_UNKNOWN     = 0,
+	NM_IP_TUNNEL_MODE_IPIP        = 1,
+	NM_IP_TUNNEL_MODE_GRE         = 2,
+	NM_IP_TUNNEL_MODE_SIT         = 3,
+	NM_IP_TUNNEL_MODE_ISATAP      = 4,
+	NM_IP_TUNNEL_MODE_VTI         = 5,
+	NM_IP_TUNNEL_MODE_IP6IP6      = 6,
+	NM_IP_TUNNEL_MODE_IPIP6       = 7,
+	NM_IP_TUNNEL_MODE_IP6GRE      = 8,
+	NM_IP_TUNNEL_MODE_VTI6        = 9,
+} NMIPTunnelMode;
 
 #endif /* __NM_DBUS_INTERFACE_H__ */

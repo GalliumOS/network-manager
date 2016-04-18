@@ -1,30 +1,19 @@
 # git cherry-picks
-git_config_parse_cmdline_args_8a22a981.patch
-git_fix_duplicate_unittest_names_7b70a840.patch
-git_set_vpn_mtu_9736327b.patch
-lp1446689_git_use_kernel_pppoe_6fdfb031.patch
-git_fix_race_external_down_e29ab543.patch
-lp1499827_device_avoid_undefined_mtu_c44069c1.patch
-lp1499827_dont_change_unset_mtu_a92d8b0c.patch
+#none
 
 #breaks on Ubuntu! LP#1431774
-#0001-Debian-specific-tweaks-for-NetworkManager-systemd-se.patch
-0002-Force-online-state-with-unmanaged-devices.patch
-0003-Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
-0004-Use-symlinks-for-nmtui.patch
-0005-Mark-virtual-ethernet-interfaces-as-unmanaged.patch
-0008-Use-the-correct-path-when-calling-dnssec-trigger-scr.patch
-0019-Don-t-make-NetworkManager-D-Bus-activatable.patch
-demarshal_int64_properties.patch
-fix-NetworkManager-wait-online.service.patch
+#Debian-specific-tweaks-for-NetworkManager-systemd-se.patch
+Force-online-state-with-unmanaged-devices.patch
+Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
+fix-arping-path.patch
+Check-at-runtime-whether-to-start-ModemManager.patch
+Don-t-make-NetworkManager-D-Bus-activatable.patch
+Don-t-block-network.target-on-NetworkManager-wait-on.patch
+Fix-iscsiadm-path.patch
 
 # ubuntu-specific
 whoopsie-daisy-dbus-support.patch
 #dont_mangle_bridges.patch
-
-# upstart support.
-add_sendsigs_omissions.patch
-#quit_dhclient_on_exit.patch
 
 # dnsmasq
 0001-dns-use-DBus-to-make-dnsmasq-nameserver-changes.patch
@@ -33,44 +22,25 @@ dnsmasq-vpn-dns-filtering.patch
 lp936712_dnsmasq_ip6_ns_ordering.patch
 
 # wifi
-#adhoc_use_wpa_rsn_part1.patch
-#adhoc_use_wpa_rsn_part2.patch
-monotonic_timestamp_as_boottime.patch
-0002-wifi-expose-the-last_seen-property-for-a-NMAccessPoi.patch
-0001-wifi-Signal-on-the-wifi-device-when-its-supplicant-i.patch
-0002-wifi-cull-the-scan-list-before-signalling-ScanDone-b.patch
+adhoc_use_wpa_rsn_part1.patch
+adhoc_use_wpa_rsn_part2.patch
+wifi-Signal-on-the-wifi-device-when-its-supplicant-i.patch
 
 # wifi powersave
-0001-libnm-libnm-util-add-Wi-Fi-powersave-property.patch
-0002-fixup-libnm-libnm-util-add-Wi-Fi-powersave-property.patch
-0003-cli-add-support-for-wifi.powersave-setting.patch
-0004-wifi-set-wireless-power-save-for-nl80211-devices-whe.patch
-0005-fixup-wifi-set-wireless-power-save-for-nl80211-devic.patch
+default_powersave_on.patch
 
 # touch-specific
-ignore_rmnet_devices.patch
+ignore_rild_modem_devices.patch
 lp1099983_ignore-p2p-wifi-devices.patch
-prioritize_3g_later.patch
-0001-wwan-add-support-for-using-oFono-as-a-modem-manager.patch
+wwan-add-ofono-modem-support.patch
 lp1461593-add-nm-settings-connection-reset-retries-methods.patch
 add_ofono_settings_support.patch
-lp1461593-add-modem-reconnect-delay-to-policy.patch
+#lp1461593-add-modem-reconnect-delay-to-policy.patch
 lp1445080-modify-device-modem-avail.patch
-lp1445080-nm-modem-check-for-set-mm-enabled-func.patch
 
 # killswitch
 ignore_rfkill_if_urfkill_is_present.patch
 
 # more fixes
-#git_route_fixes_part1_207ab013.patch
-#git_route_fixes_part2_529591d8.patch
-#git_avoid_conflict_reinstall_dev_route_e439478c.patch
-lp1425172-fix-wifi-scanlist-cull.patch
-lp1444162-add-ip6-config-to-nm-ofono-connections.patch
 conditional_libteam_tests.patch
 disable_general_with_expect_test.patch
-lp1496434_warn_on_invalid_new_link.patch
-
-# upstream backport
-git_fix_broken_ssid_01.patch
-git_fix_broken_ssid_02.patch

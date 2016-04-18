@@ -9,11 +9,11 @@ Index: b/src/tests/Makefile.am
 ===================================================================
 --- a/src/tests/Makefile.am
 +++ b/src/tests/Makefile.am
-@@ -125,7 +125,6 @@ TESTS = \
+@@ -157,7 +157,6 @@ TESTS = \
  	test-dcb \
  	test-resolvconf-capture \
  	test-general \
 -	test-general-with-expect \
- 	test-wired-defname
- 
- 
+ 	test-systemd \
+ 	test-wired-defname \
+ 	test-utils

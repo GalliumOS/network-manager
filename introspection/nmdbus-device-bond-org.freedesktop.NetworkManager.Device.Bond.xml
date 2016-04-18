@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<refentry id="gdbus-org.freedesktop.NetworkManager.Device.Bond">
+  <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Bond.top_of_page">org.freedesktop.NetworkManager.Device.Bond</refentrytitle>
+  <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Bond.top_of_page"><primary sortas=".Device.Bond">org.freedesktop.NetworkManager.Device.Bond</primary></indexterm>
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Bond</refname>    <refpurpose></refpurpose>  </refnamediv>  <refsect1 role="signal_proto">
+    <title role="signal_proto.title">Signals</title>
+    <synopsis>
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Device-Bond.PropertiesChanged">PropertiesChanged</link> (a{sv} properties);
+</synopsis>
+  </refsect1>
+  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis>
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.HwAddress">HwAddress</link>  readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.Carrier">Carrier</link>    readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.Slaves">Slaves</link>     readable   ao
+</synopsis>
+  </refsect1>
+<refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Bond">
+  <title role="desc.title">Description</title>
+  <para></para>
+</refsect1>
+<refsect1 role="details" id="gdbus-signals-org.freedesktop.NetworkManager.Device.Bond">
+  <title role="details.title">Signal Details</title>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Device-Bond.PropertiesChanged">
+  <title>The "PropertiesChanged" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Device-Bond.PropertiesChanged"><primary sortas=".Device.Bond::PropertiesChanged">org.freedesktop.NetworkManager.Device.Bond::PropertiesChanged</primary></indexterm>
+<programlisting>
+PropertiesChanged (a{sv} properties);
+</programlisting>
+<para></para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>a{sv} <parameter>properties</parameter></literal>:</term>
+  <listitem><para>A dictionary mapping property names to variant boxed values</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+</refsect1>
+<refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Bond">
+  <title role="details.title">Property Details</title>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.HwAddress">
+  <title>The "HwAddress" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.HwAddress"><primary sortas=".Device.Bond:HwAddress">org.freedesktop.NetworkManager.Device.Bond:HwAddress</primary></indexterm>
+<programlisting>
+HwAddress  readable   s
+</programlisting>
+<para>        Hardware address of the device.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.Carrier">
+  <title>The "Carrier" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.Carrier"><primary sortas=".Device.Bond:Carrier">org.freedesktop.NetworkManager.Device.Bond:Carrier</primary></indexterm>
+<programlisting>
+Carrier  readable   b
+</programlisting>
+<para>        Indicates whether the physical carrier is found (e.g. whether a cable is
+        plugged in or not).
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.Slaves">
+  <title>The "Slaves" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Bond.Slaves"><primary sortas=".Device.Bond:Slaves">org.freedesktop.NetworkManager.Device.Bond:Slaves</primary></indexterm>
+<programlisting>
+Slaves  readable   ao
+</programlisting>
+<para>        Array of object paths representing devices which are currently slaved to
+        this device.
+</para>
+</refsect2>
+</refsect1>
+</refentry>
+

@@ -18,7 +18,7 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -27,12 +27,8 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 
-#include <glib.h>
-#include <glib/gi18n.h>
-
 #include "nm-dns-dnsmasq.h"
 #include "nm-utils.h"
-#include "nm-logging.h"
 #include "nm-ip4-config.h"
 #include "nm-ip6-config.h"
 #include "nm-dns-utils.h"
@@ -50,7 +46,20 @@ typedef struct {
 	guint32 foo;
 } NMDnsDnsmasqPrivate;
 
-/*******************************************/
+/*****************************************************************************/
+
+#define _NMLOG_DOMAIN         LOGD_DNS
+#define _NMLOG_PREFIX_NAME    "dnsmasq"
+#define _NMLOG(level, ...) \
+    G_STMT_START { \
+        nm_log ((level), _NMLOG_DOMAIN, \
+                "%s[%p]: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
+                _NMLOG_PREFIX_NAME, \
+                (self) \
+                _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
+    } G_STMT_END
+
+/*****************************************************************************/
 
 static gboolean
 add_ip4_config (GString *str, NMIP4Config *ip4, gboolean split)
@@ -138,6 +147,30 @@ ip6_addr_to_string (const struct in6_addr *addr, const char *iface)
 	return buf;
 }
 
+static void
+add_global_config (GString *str, const NMGlobalDnsConfig *config)
+{
+	guint i, j;
+
+	g_return_if_fail (config);
+
+	for (i = 0; i < nm_global_dns_config_get_num_domains (config); i++) {
+		NMGlobalDnsDomain *domain = nm_global_dns_config_get_domain (config, i);
+		const char *const *servers = nm_global_dns_domain_get_servers (domain);
+		const char *name = nm_global_dns_domain_get_name (domain);
+
+		g_return_if_fail (name);
+
+		for (j = 0; servers && servers[j]; j++) {
+			if (!strcmp (name, "*"))
+				g_string_append_printf (str, "server=%s\n", servers[j]);
+			else
+				g_string_append_printf (str, "server=/%s/%s\n", name, servers[j]);
+		}
+
+	}
+}
+
 static gboolean
 add_ip6_config (GString *str, NMIP6Config *ip6, gboolean split)
 {
@@ -204,6 +237,7 @@ update (NMDnsPlugin *plugin,
         const GSList *vpn_configs,
         const GSList *dev_configs,
         const GSList *other_configs,
+        const NMGlobalDnsConfig *global_config,
         const char *hostname)
 {
 	NMDnsDnsmasq *self = NM_DNS_DNSMASQ (plugin);
@@ -225,50 +259,53 @@ update (NMDnsPlugin *plugin,
 
 	dm_binary = nm_utils_find_helper ("dnsmasq", DNSMASQ_PATH, NULL);
 	if (!dm_binary) {
-		nm_log_warn (LOGD_DNS, "Could not find dnsmasq binary");
+		_LOGW ("could not find dnsmasq binary");
 		return FALSE;
 	}
 
 	/* Build up the new dnsmasq config file */
 	conf = g_string_sized_new (150);
 
-	/* Use split DNS for VPN configs */
-	for (iter = (GSList *) vpn_configs; iter; iter = g_slist_next (iter)) {
-		if (NM_IS_IP4_CONFIG (iter->data))
-			add_ip4_config (conf, NM_IP4_CONFIG (iter->data), TRUE);
-		else if (NM_IS_IP6_CONFIG (iter->data))
-			add_ip6_config (conf, NM_IP6_CONFIG (iter->data), TRUE);
-	}
+	if (global_config)
+		add_global_config (conf, global_config);
+	else {
+		/* Use split DNS for VPN configs */
+		for (iter = (GSList *) vpn_configs; iter; iter = g_slist_next (iter)) {
+			if (NM_IS_IP4_CONFIG (iter->data))
+				add_ip4_config (conf, NM_IP4_CONFIG (iter->data), TRUE);
+			else if (NM_IS_IP6_CONFIG (iter->data))
+				add_ip6_config (conf, NM_IP6_CONFIG (iter->data), TRUE);
+		}
 
-	/* Now add interface configs without split DNS */
-	for (iter = (GSList *) dev_configs; iter; iter = g_slist_next (iter)) {
-		if (NM_IS_IP4_CONFIG (iter->data))
-			add_ip4_config (conf, NM_IP4_CONFIG (iter->data), FALSE);
-		else if (NM_IS_IP6_CONFIG (iter->data))
-			add_ip6_config (conf, NM_IP6_CONFIG (iter->data), FALSE);
-	}
+		/* Now add interface configs without split DNS */
+		for (iter = (GSList *) dev_configs; iter; iter = g_slist_next (iter)) {
+			if (NM_IS_IP4_CONFIG (iter->data))
+				add_ip4_config (conf, NM_IP4_CONFIG (iter->data), FALSE);
+			else if (NM_IS_IP6_CONFIG (iter->data))
+				add_ip6_config (conf, NM_IP6_CONFIG (iter->data), FALSE);
+		}
 
-	/* And any other random configs */
-	for (iter = (GSList *) other_configs; iter; iter = g_slist_next (iter)) {
-		if (NM_IS_IP4_CONFIG (iter->data))
-			add_ip4_config (conf, NM_IP4_CONFIG (iter->data), FALSE);
-		else if (NM_IS_IP6_CONFIG (iter->data))
-			add_ip6_config (conf, NM_IP6_CONFIG (iter->data), FALSE);
+		/* And any other random configs */
+		for (iter = (GSList *) other_configs; iter; iter = g_slist_next (iter)) {
+			if (NM_IS_IP4_CONFIG (iter->data))
+				add_ip4_config (conf, NM_IP4_CONFIG (iter->data), FALSE);
+			else if (NM_IS_IP6_CONFIG (iter->data))
+				add_ip6_config (conf, NM_IP6_CONFIG (iter->data), FALSE);
+		}
 	}
 
 	/* Write out the config file */
 	if (!g_file_set_contents (CONFFILE, conf->str, -1, &error)) {
-		nm_log_warn (LOGD_DNS, "Failed to write dnsmasq config file %s: (%d) %s",
-		             CONFFILE,
-		             error ? error->code : -1,
-		             error && error->message ? error->message : "(unknown)");
+		_LOGW ("failed to write dnsmasq config file %s: %s",
+		       CONFFILE,
+		       error->message);
 		g_clear_error (&error);
 		goto out;
 	}
 	ignored = chmod (CONFFILE, 0644);
 
-	nm_log_dbg (LOGD_DNS, "dnsmasq local caching DNS configuration:");
-	nm_log_dbg (LOGD_DNS, "%s", conf->str);
+	_LOGD ("dnsmasq local caching DNS configuration:");
+	_LOGD ("%s", conf->str);
 
 	argv[idx++] = dm_binary;
 	argv[idx++] = "--no-resolv";  /* Use only commandline */
@@ -326,18 +363,17 @@ child_quit (NMDnsPlugin *plugin, gint status)
 	if (WIFEXITED (status)) {
 		err = WEXITSTATUS (status);
 		if (err) {
-			nm_log_warn (LOGD_DNS, "dnsmasq exited with error: %s (%d)",
-			             dm_exit_code_to_msg (err),
-			             err);
+			_LOGW ("dnsmasq exited with error: %s (%d)",
+			       dm_exit_code_to_msg (err),
+			       err);
 		} else
 			failed = FALSE;
-	} else if (WIFSTOPPED (status)) {
-		nm_log_warn (LOGD_DNS, "dnsmasq stopped unexpectedly with signal %d", WSTOPSIG (status));
-	} else if (WIFSIGNALED (status)) {
-		nm_log_warn (LOGD_DNS, "dnsmasq died with signal %d", WTERMSIG (status));
-	} else {
-		nm_log_warn (LOGD_DNS, "dnsmasq died from an unknown cause");
-	}
+	} else if (WIFSTOPPED (status))
+		_LOGW ("dnsmasq stopped unexpectedly with signal %d", WSTOPSIG (status));
+	else if (WIFSIGNALED (status))
+		_LOGW ("dnsmasq died with signal %d", WTERMSIG (status));
+	else
+		_LOGW ("dnsmasq died from an unknown cause");
 	unlink (CONFFILE);
 
 	if (failed)

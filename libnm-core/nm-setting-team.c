@@ -18,11 +18,10 @@
  * Copyright 2013 Jiri Pirko <jiri@resnulli.us>
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <stdlib.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-setting-team.h"
 #include "nm-utils.h"

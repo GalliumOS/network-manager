@@ -30,11 +30,9 @@
  * indicating the units used by the entry.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <stdlib.h>
-
-#include <glib/gi18n-lib.h>
 
 #include "nmt-mtu-entry.h"
 

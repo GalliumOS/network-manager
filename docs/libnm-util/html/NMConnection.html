@@ -959,8 +959,10 @@ with</p></td>
 </div>
 <div class="refsect3">
 <a name="id-1.2.2.10.12.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the settings were valid and added to the connection, <code class="literal">FALSE</code>
-if they were not</p>
+<p> <code class="literal">TRUE</code> if the settings were valid after replacing the connection, <code class="literal">FALSE</code>
+if they were not. Regardless of whether <code class="literal">TRUE</code> or <code class="literal">FALSE</code> is returned, the connection
+is successfully replaced. <code class="literal">FALSE</code> only means, that the connection does not verify
+at the end of the operation.</p>
 </div>
 <p class="since">Since: 0.9.10</p>
 </div>

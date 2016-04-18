@@ -22,10 +22,8 @@
 #ifndef __NETWORKMANAGER_CONFIG_H__
 #define __NETWORKMANAGER_CONFIG_H__
 
-#include <glib.h>
-#include <glib-object.h>
 
-#include "nm-types.h"
+#include "nm-default.h"
 #include "nm-config-data.h"
 
 G_BEGIN_DECLS
@@ -39,6 +37,7 @@ G_BEGIN_DECLS
 
 /* Properties */
 #define NM_CONFIG_CMD_LINE_OPTIONS                  "cmd-line-options"
+#define NM_CONFIG_ATOMIC_SECTION_PREFIXES           "atomic-section-prefixes"
 
 /* Signals */
 #define NM_CONFIG_SIGNAL_CONFIG_CHANGED             "config-changed"
@@ -48,20 +47,39 @@ G_BEGIN_DECLS
 
 #define NM_CONFIG_KEYFILE_LIST_SEPARATOR ','
 
+#define NM_CONFIG_KEYFILE_GROUPPREFIX_INTERN                ".intern."
 #define NM_CONFIG_KEYFILE_GROUPPREFIX_CONNECTION            "connection"
+#define NM_CONFIG_KEYFILE_GROUPPREFIX_GLOBAL_DNS_DOMAIN     "global-dns-domain-"
 #define NM_CONFIG_KEYFILE_GROUPPREFIX_TEST_APPEND_STRINGLIST ".test-append-stringlist"
 
 #define NM_CONFIG_KEYFILE_GROUP_MAIN                        "main"
 #define NM_CONFIG_KEYFILE_GROUP_LOGGING                     "logging"
 #define NM_CONFIG_KEYFILE_GROUP_CONNECTIVITY                "connectivity"
+#define NM_CONFIG_KEYFILE_GROUP_GLOBAL_DNS                  "global-dns"
+#define NM_CONFIG_KEYFILE_GROUP_CONFIG                      ".config"
 
 #define NM_CONFIG_KEYFILE_GROUP_KEYFILE                     "keyfile"
 #define NM_CONFIG_KEYFILE_GROUP_IFUPDOWN                    "ifupdown"
 #define NM_CONFIG_KEYFILE_GROUP_IFNET                       "ifnet"
 
+#define NM_CONFIG_KEYFILE_KEY_LOGGING_BACKEND               "backend"
+#define NM_CONFIG_KEYFILE_KEY_CONFIG_ENABLE                 "enable"
+#define NM_CONFIG_KEYFILE_KEY_ATOMIC_SECTION_WAS            ".was"
+#define NM_CONFIG_KEYFILE_KEY_KEYFILE_PATH                  "path"
+#define NM_CONFIG_KEYFILE_KEY_KEYFILE_UNMANAGED_DEVICES     "unmanaged-devices"
+#define NM_CONFIG_KEYFILE_KEY_KEYFILE_HOSTNAME              "hostname"
 #define NM_CONFIG_KEYFILE_KEY_IFNET_AUTO_REFRESH            "auto_refresh"
 #define NM_CONFIG_KEYFILE_KEY_IFNET_MANAGED                 "managed"
 #define NM_CONFIG_KEYFILE_KEY_IFUPDOWN_MANAGED              "managed"
+#define NM_CONFIG_KEYFILE_KEY_AUDIT                         "audit"
+
+#define NM_CONFIG_KEYFILE_KEYPREFIX_WAS                     ".was."
+#define NM_CONFIG_KEYFILE_KEYPREFIX_SET                     ".set."
+
+#define NM_CONFIG_KEYFILE_GROUP_INTERN_GLOBAL_DNS \
+	NM_CONFIG_KEYFILE_GROUPPREFIX_INTERN NM_CONFIG_KEYFILE_GROUP_GLOBAL_DNS
+#define NM_CONFIG_KEYFILE_GROUPPREFIX_INTERN_GLOBAL_DNS_DOMAIN \
+	NM_CONFIG_KEYFILE_GROUPPREFIX_INTERN NM_CONFIG_KEYFILE_GROUPPREFIX_GLOBAL_DNS_DOMAIN
 
 typedef struct NMConfigCmdLineOptions NMConfigCmdLineOptions;
 
@@ -71,16 +89,13 @@ struct _NMConfig {
 
 typedef struct {
 	GObjectClass parent;
-
-	/* Signals */
-	void (*config_changed) (NMConfig *config, GHashTable *changes, NMConfigData *old_data);
 } NMConfigClass;
 
 GType nm_config_get_type (void);
 
 NMConfig *nm_config_get (void);
 
-char *nm_config_change_flags_to_string (NMConfigChangeFlags flags);
+const char *nm_config_change_flags_to_string (NMConfigChangeFlags flags, char *buf, gsize len);
 
 NMConfigData *nm_config_get_data (NMConfig *config);
 NMConfigData *nm_config_get_data_orig (NMConfig *config);
@@ -96,6 +111,12 @@ const char *nm_config_get_log_level (NMConfig *config);
 const char *nm_config_get_log_domains (NMConfig *config);
 const char *nm_config_get_debug (NMConfig *config);
 gboolean nm_config_get_configure_and_quit (NMConfig *config);
+gboolean nm_config_get_is_debug (NMConfig *config);
+
+void nm_config_set_values (NMConfig *self,
+                           GKeyFile *keyfile_intern_new,
+                           gboolean allow_write,
+                           gboolean force_rewrite);
 
 /* for main.c only */
 NMConfigCmdLineOptions *nm_config_cmd_line_options_new (void);
@@ -106,8 +127,8 @@ void                    nm_config_cmd_line_options_add_to_entries (NMConfigCmdLi
 gboolean nm_config_get_no_auto_default_for_device (NMConfig *config, NMDevice *device);
 void nm_config_set_no_auto_default_for_device  (NMConfig *config, NMDevice *device);
 
-NMConfig *nm_config_new (const NMConfigCmdLineOptions *cli, GError **error);
-NMConfig *nm_config_setup (const NMConfigCmdLineOptions *cli, GError **error);
+NMConfig *nm_config_new (const NMConfigCmdLineOptions *cli, char **atomic_section_prefixes, GError **error);
+NMConfig *nm_config_setup (const NMConfigCmdLineOptions *cli, char **atomic_section_prefixes, GError **error);
 void nm_config_reload (NMConfig *config, int signal);
 
 gint nm_config_parse_boolean (const char *str, gint default_value);
@@ -126,7 +147,17 @@ void nm_config_keyfile_set_string_list (GKeyFile *keyfile,
                                         const char *key,
                                         const char *const* strv,
                                         gssize len);
-GSList *nm_config_get_device_match_spec (const GKeyFile *keyfile, const char *group, const char *key, gboolean *out_has_key);
+gboolean nm_config_keyfile_has_global_dns_config (GKeyFile *keyfile, gboolean internal);
+
+GSList *nm_config_get_match_spec (const GKeyFile *keyfile, const char *group, const char *key, gboolean *out_has_key);
+
+void _nm_config_sort_groups (char **groups, gsize ngroups);
+
+gboolean nm_config_set_global_dns (NMConfig *self, NMGlobalDnsConfig *global_dns, GError **error);
+
+/* internal defines ... */
+extern guint _nm_config_match_nm_version;
+extern char *_nm_config_match_env;
 
 G_END_DECLS
 

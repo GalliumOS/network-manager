@@ -1,9 +1,12 @@
 #!/usr/bin/make -f
 
+include /usr/share/dpkg/architecture.mk
+
+PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 %:
-	dh $@ --with gir,systemd,autoreconf
+	dh $@ --with gir,systemd,autoreconf,ppp
 
 autoreconf:
 	gtkdocize --copy
@@ -16,18 +19,21 @@ override_dh_autoreconf:
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		--libexecdir=/usr/lib/NetworkManager \
-		--with-pppd-plugin-dir=/usr/lib/pppd/2.4.6 \
+		--with-pppd-plugin-dir=$(PPPD_PLUGIN_DIR) \
 		--with-pppd=/usr/sbin/pppd \
 		--with-resolvconf=/sbin/resolvconf \
 		--with-dhclient=/sbin/dhclient \
 		--with-iptables=/sbin/iptables \
 		--with-dnsmasq=/usr/sbin/dnsmasq \
+		--with-dnssec-trigger=/usr/lib/dnssec-trigger/dnssec-trigger-script \
 		--with-systemdsystemunitdir=/lib/systemd/system \
+		--with-udev-dir=/lib/udev \
 		--with-crypto=gnutls \
 		--with-session-tracking=systemd \
 		--with-suspend-resume=systemd \
 		--with-modem-manager-1 \
 		--with-nmtui \
+		--with-nmcli \
 		--disable-more-warnings \
 		--disable-modify-system \
 		--enable-polkit \
@@ -61,7 +67,7 @@ override_dh_makeshlibs:
 	dh_makeshlibs -X/usr/lib/$(DEB_HOST_MULTIARCH)/NetworkManager/ -X/usr/lib/pppd/
 
 override_dh_strip:
-	dh_strip --dbg-package=network-manager-dbg
+	dh_strip --dbgsym-migration='network-manager-dbg (<< 1.1.91-2~)'
 
 override_dh_systemd_start:
 	dh_link lib/systemd/system/NetworkManager.service \
@@ -70,5 +76,10 @@ override_dh_systemd_start:
 	dh_systemd_start -pnetwork-manager --no-start NetworkManager-wait-online.service
 	dh_systemd_start -pnetwork-manager --restart-after-upgrade NetworkManager.service
 
+override_dh_ppp:
+	dh_ppp --breaks
+
 override_dh_auto_test:
-	dbus-test-runner -m 300 -t dh_auto_test
+ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
+	make check || ( find . -name test-suite.log -exec cat {} \;; exit 1; )
+endif

@@ -28,7 +28,7 @@
 
 #include <nm-connection.h>
 
-#include "nm-types.h"
+#include "nm-exported-object.h"
 
 #define NM_TYPE_SETTINGS            (nm_settings_get_type ())
 #define NM_SETTINGS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTINGS, NMSettings))
@@ -51,11 +51,11 @@
 #define NM_SETTINGS_SIGNAL_AGENT_REGISTERED              "agent-registered"
 
 struct _NMSettings {
-	GObject parent_instance;
+	NMExportedObject parent_instance;
 };
 
 typedef struct {
-	GObjectClass parent_class;
+	NMExportedObjectClass parent_class;
 
 	/* Signals */
 	void (*properties_changed) (NMSettings *self, GHashTable *properties);
@@ -71,9 +71,12 @@ typedef struct {
 	void (*agent_registered) (NMSettings *self, NMSecretAgent *agent);
 } NMSettingsClass;
 
+typedef void (*NMSettingsSetHostnameCb) (const char *name, gboolean result, gpointer user_data);
+
 GType nm_settings_get_type (void);
 
-NMSettings *nm_settings_new (GError **error);
+NMSettings *nm_settings_new (void);
+gboolean nm_settings_start (NMSettings *self, GError **error);
 
 typedef void (*NMSettingsForEachFunc) (NMSettings *settings,
                                        NMSettingsConnection *connection,
@@ -86,13 +89,14 @@ void nm_settings_for_each_connection (NMSettings *settings,
 typedef void (*NMSettingsAddCallback) (NMSettings *settings,
                                        NMSettingsConnection *connection,
                                        GError *error,
-                                       DBusGMethodInvocation *context,
+                                       GDBusMethodInvocation *context,
+                                       NMAuthSubject *subject,
                                        gpointer user_data);
 
 void nm_settings_add_connection_dbus (NMSettings *self,
                                       NMConnection *connection,
                                       gboolean save_to_disk,
-                                      DBusGMethodInvocation *context,
+                                      GDBusMethodInvocation *context,
                                       NMSettingsAddCallback callback,
                                       gpointer user_data);
 
@@ -111,7 +115,7 @@ NMSettingsConnection *nm_settings_get_connection_by_path (NMSettings *settings,
 NMSettingsConnection *nm_settings_get_connection_by_uuid (NMSettings *settings,
                                                           const char *uuid);
 
-gboolean nm_settings_has_connection (NMSettings *self, NMConnection *connection);
+gboolean nm_settings_has_connection (NMSettings *self, NMSettingsConnection *connection);
 
 const GSList *nm_settings_get_unmanaged_specs (NMSettings *self);
 
@@ -124,5 +128,10 @@ void nm_settings_device_removed (NMSettings *self, NMDevice *device, gboolean qu
 gint nm_settings_sort_connections (gconstpointer a, gconstpointer b);
 
 gboolean nm_settings_get_startup_complete (NMSettings *self);
+
+void nm_settings_set_transient_hostname (NMSettings *self,
+                                         const char *hostname,
+                                         NMSettingsSetHostnameCb cb,
+                                         gpointer user_data);
 
 #endif  /* __NM_SETTINGS_H__ */

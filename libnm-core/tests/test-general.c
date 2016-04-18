@@ -7,7 +7,7 @@
  * any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * but WITHOUT SC WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
@@ -21,17 +21,16 @@
 
 #define NM_GLIB_COMPAT_H_TEST
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
 #include <string.h>
 
-#include <nm-utils.h>
-#include "gsystem-local-alloc.h"
-
+#include "nm-utils.h"
 #include "nm-setting-private.h"
 #include "nm-utils.h"
+#include "nm-utils-private.h"
 #include "nm-core-internal.h"
+#include "nm-core-tests-enum-types.h"
 
 #include "nm-setting-8021x.h"
 #include "nm-setting-adsl.h"
@@ -59,60 +58,67 @@
 #include "nm-setting-wireless.h"
 #include "nm-setting-wireless-security.h"
 #include "nm-simple-connection.h"
-#include "nm-glib-compat.h"
+#include "nm-keyfile-internal.h"
+
+#include "test-general-enums.h"
 
 #include "nm-test-utils.h"
+
+/* When passing a "bool" typed argument to a variadic function that
+ * expects a gboolean, the compiler will promote the integer type
+ * to have at least size (int). That way:
+ *   g_object_set (obj, PROP_BOOL, bool_val, NULL);
+ * will just work correctly. */
+G_STATIC_ASSERT (sizeof (gboolean) == sizeof (int));
+G_STATIC_ASSERT (sizeof (bool) <= sizeof (int));
+
+/*****************************************************************************/
+
+static NMConnection *
+_connection_new_from_dbus (GVariant *dict, GError **error)
+{
+	return _nm_simple_connection_new_from_dbus (dict, NM_SETTING_PARSE_FLAGS_NORMALIZE, error);
+}
 
 static void
 vpn_check_func (const char *key, const char *value, gpointer user_data)
 {
-	const char *test = user_data;
-
 	if (!strcmp (key, "foobar1")) {
-		ASSERT (strcmp (value, "blahblah1") == 0,
-				test, "unexpected vpn item '%s' / '%s'", key, value);
+		g_assert_cmpstr (value, ==, "blahblah1");
 		return;
 	}
 
 	if (!strcmp (key, "foobar2")) {
-		ASSERT (strcmp (value, "blahblah2") == 0,
-				test, "unexpected vpn item '%s' / '%s'", key, value);
+		g_assert_cmpstr (value, ==, "blahblah2");
 		return;
 	}
 
 	if (!strcmp (key, "foobar3")) {
-		ASSERT (strcmp (value, "blahblah3") == 0,
-				test, "unexpected vpn item '%s' / '%s'", key, value);
+		g_assert_cmpstr (value, ==, "blahblah3");
 		return;
 	}
 
 	if (!strcmp (key, "foobar4")) {
-		ASSERT (strcmp (value, "blahblah4") == 0,
-				test, "unexpected vpn item '%s' / '%s'", key, value);
+		g_assert_cmpstr (value, ==, "blahblah4");
 		return;
 	}
 
-	ASSERT (FALSE, test, "unexpected vpn item '%s'", key);
+	g_assert_not_reached ();
 }
 
 static void
 vpn_check_empty_func (const char *key, const char *value, gpointer user_data)
 {
-	const char *test = user_data;
-
-	/* We don't expect any values */
-	ASSERT (FALSE, test, "unexpected vpn item '%s'", key);
+	g_assert_not_reached ();
 }
 
 static void
 test_setting_vpn_items (void)
 {
-	NMSettingVpn *s_vpn;
+	gs_unref_object NMSettingVpn *s_vpn = NULL;
 
 	s_vpn = (NMSettingVpn *) nm_setting_vpn_new ();
-	ASSERT (s_vpn != NULL,
-	        "vpn-items",
-	        "error creating vpn setting");
+	g_assert (s_vpn);
 
 	nm_setting_vpn_add_data_item (s_vpn, "foobar1", "blahblah1");
 	nm_setting_vpn_add_data_item (s_vpn, "foobar2", "blahblah2");
@@ -120,7 +126,7 @@ test_setting_vpn_items (void)
 	nm_setting_vpn_add_data_item (s_vpn, "foobar4", "blahblah4");
 
 	/* Ensure that added values are all present */
-	nm_setting_vpn_foreach_data_item (s_vpn, vpn_check_func, "vpn-data");
+	nm_setting_vpn_foreach_data_item (s_vpn, vpn_check_func, NULL);
 	nm_setting_vpn_remove_data_item (s_vpn, "foobar1");
 	nm_setting_vpn_remove_data_item (s_vpn, "foobar2");
 	nm_setting_vpn_remove_data_item (s_vpn, "foobar3");
@@ -132,7 +138,7 @@ test_setting_vpn_items (void)
 	nm_setting_vpn_add_secret (s_vpn, "foobar4", "blahblah4");
 
 	/* Ensure that added values are all present */
-	nm_setting_vpn_foreach_secret (s_vpn, vpn_check_func, "vpn-secrets");
+	nm_setting_vpn_foreach_secret (s_vpn, vpn_check_func, NULL);
 	nm_setting_vpn_remove_secret (s_vpn, "foobar1");
 	nm_setting_vpn_remove_secret (s_vpn, "foobar2");
 	nm_setting_vpn_remove_secret (s_vpn, "foobar3");
@@ -163,7 +169,7 @@ test_setting_vpn_items (void)
 	nm_setting_vpn_add_data_item (s_vpn, "", "blahblah1");
 	g_test_assert_expected_messages ();
 
-	nm_setting_vpn_foreach_data_item (s_vpn, vpn_check_empty_func, "vpn-data-empty");
+	nm_setting_vpn_foreach_data_item (s_vpn, vpn_check_empty_func, NULL);
 
 	/* Try to add some blank secrets and make sure they are rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*key != NULL*");
@@ -190,9 +196,7 @@ test_setting_vpn_items (void)
 	nm_setting_vpn_add_secret (s_vpn, "", "blahblah1");
 	g_test_assert_expected_messages ();
 
-	nm_setting_vpn_foreach_secret (s_vpn, vpn_check_empty_func, "vpn-secrets-empty");
-
-	g_object_unref (s_vpn);
+	nm_setting_vpn_foreach_secret (s_vpn, vpn_check_empty_func, NULL);
 }
 
 static void
@@ -211,14 +215,7 @@ test_setting_vpn_update_secrets (void)
 	const char *val2 = "value2";
 
 	connection = nm_simple_connection_new ();
-	ASSERT (connection != NULL,
-	        "vpn-update-secrets",
-	        "error creating connection");
-
 	s_vpn = (NMSettingVpn *) nm_setting_vpn_new ();
-	ASSERT (s_vpn != NULL,
-	        "vpn-update-secrets",
-	        "error creating vpn setting");
 	nm_connection_add_setting (connection, NM_SETTING (s_vpn));
 
 	g_variant_builder_init (&settings_builder, NM_VARIANT_TYPE_CONNECTION);
@@ -237,21 +234,17 @@ test_setting_vpn_update_secrets (void)
 	settings = g_variant_builder_end (&settings_builder);
 
 	success = nm_connection_update_secrets (connection, NM_SETTING_VPN_SETTING_NAME, settings, &error);
-	ASSERT (success == TRUE,
-	        "vpn-update-secrets", "failed to update VPN secrets: %s", error->message);
+	g_assert_no_error (error);
+	g_assert (success);
 
 	/* Read the secrets back out */
 	tmp = nm_setting_vpn_get_secret (s_vpn, key1);
-	ASSERT (tmp != NULL,
-	        "vpn-update-secrets", "unexpected failure getting key #1");
-	ASSERT (strcmp (tmp, val1) == 0,
-	        "vpn-update-secrets", "unexpected key #1 value");
+	g_assert (tmp);
+	g_assert_cmpstr (tmp, ==, val1);
 
 	tmp = nm_setting_vpn_get_secret (s_vpn, key2);
-	ASSERT (tmp != NULL,
-	        "vpn-update-secrets", "unexpected failure getting key #2");
-	ASSERT (strcmp (tmp, val2) == 0,
-	        "vpn-update-secrets", "unexpected key #2 value");
+	g_assert (tmp);
+	g_assert_cmpstr (tmp, ==, val2);
 
 	g_variant_unref (settings);
 	g_object_unref (connection);
@@ -463,7 +456,7 @@ test_setting_ip4_config_labels (void)
 	                      NMTST_VARIANT_DROP_PROPERTY (NM_SETTING_IP4_CONFIG_SETTING_NAME,
 	                                                   "address-data");
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert_no_error (error);
 	g_variant_unref (dict);
 
@@ -486,7 +479,7 @@ test_setting_ip4_config_labels (void)
 	                      NMTST_VARIANT_DROP_PROPERTY (NM_SETTING_IP4_CONFIG_SETTING_NAME,
 	                                                   "address-labels");
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict2, &error);
+	conn = _connection_new_from_dbus (dict2, &error);
 	g_assert_no_error (error);
 	g_variant_unref (dict2);
 
@@ -616,7 +609,7 @@ test_setting_ip4_config_address_data (void)
 	g_object_unref (conn);
 
 	/* When we reserialize that dictionary as a client, 'address-data' will be preferred. */
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert_no_error (error);
 
 	s_ip4 = nm_connection_get_setting_ip4_config (conn);
@@ -632,7 +625,7 @@ test_setting_ip4_config_address_data (void)
 
 	/* But on the server side, 'addresses' will have precedence. */
 	_nm_utils_is_manager_process = TRUE;
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	_nm_utils_is_manager_process = FALSE;
 	g_assert_no_error (error);
 	g_variant_unref (dict);
@@ -656,25 +649,17 @@ test_setting_gsm_apn_spaces (void)
 	const char *tmp;
 
 	s_gsm = (NMSettingGsm *) nm_setting_gsm_new ();
-	ASSERT (s_gsm != NULL,
-	        "gsm-apn-spaces",
-	        "error creating GSM setting");
+	g_assert (s_gsm);
 
 	/* Trailing space */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, "foobar ", NULL);
 	tmp = nm_setting_gsm_get_apn (s_gsm);
-	ASSERT (tmp != NULL,
-	        "gsm-apn-spaces", "empty APN");
-	ASSERT (strcmp (tmp, "foobar") == 0,
-	        "gsm-apn-spaces", "unexpected APN");
+	g_assert_cmpstr (tmp, ==, "foobar");
 
 	/* Leading space */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, " foobar", NULL);
 	tmp = nm_setting_gsm_get_apn (s_gsm);
-	ASSERT (tmp != NULL,
-	        "gsm-apn-spaces", "empty APN");
-	ASSERT (strcmp (tmp, "foobar") == 0,
-	        "gsm-apn-spaces", "unexpected APN");
+	g_assert_cmpstr (tmp, ==, "foobar");
 }
 
 static void
@@ -683,36 +668,29 @@ test_setting_gsm_apn_bad_chars (void)
 	gs_unref_object NMSettingGsm *s_gsm = NULL;
 
 	s_gsm = (NMSettingGsm *) nm_setting_gsm_new ();
-	ASSERT (s_gsm != NULL,
-	        "gsm-apn-bad-chars",
-	        "error creating GSM setting");
+	g_assert (s_gsm);
 
 	g_object_set (s_gsm, NM_SETTING_GSM_NUMBER, "*99#", NULL);
 
 	/* Make sure a valid APN works */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, "foobar123.-baz", NULL);
-	ASSERT (nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL) == TRUE,
-	        "gsm-apn-bad-chars", "unexpectedly invalid GSM setting");
+	g_assert (nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL));
 
 	/* Random invalid chars */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, "@#%$@#%@#%", NULL);
-	ASSERT (nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL) == FALSE,
-	        "gsm-apn-bad-chars", "unexpectedly valid GSM setting");
+	g_assert (!nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL));
 
 	/* Spaces */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, "foobar baz", NULL);
-	ASSERT (nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL) == FALSE,
-	        "gsm-apn-bad-chars", "unexpectedly valid GSM setting");
+	g_assert (!nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL));
 
 	/* 0 characters long */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, "", NULL);
-	ASSERT (nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL) == FALSE,
-	        "gsm-apn-bad-chars", "unexpectedly valid GSM setting");
+	g_assert (!nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL));
 
 	/* 65-character long */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl1", NULL);
-	ASSERT (nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL) == FALSE,
-	        "gsm-apn-bad-chars", "unexpectedly valid GSM setting");
+	g_assert (!nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL));
 }
 
 static void
@@ -746,13 +724,42 @@ test_setting_gsm_without_number (void)
 	                                   NM_CONNECTION_ERROR_INVALID_PROPERTY);
 }
 
+static void
+test_setting_gsm_sim_operator_id (void)
+{
+	gs_unref_object NMSettingGsm *s_gsm = NULL;
+
+	s_gsm = (NMSettingGsm *) nm_setting_gsm_new ();
+	g_assert (s_gsm);
+
+	/* Valid */
+	g_object_set (s_gsm, NM_SETTING_GSM_SIM_OPERATOR_ID, "12345", NULL);
+	nmtst_assert_setting_verifies (NM_SETTING (s_gsm));
+
+	g_object_set (s_gsm, NM_SETTING_GSM_SIM_OPERATOR_ID, "123456", NULL);
+	nmtst_assert_setting_verifies (NM_SETTING (s_gsm));
+
+	/* Invalid */
+	g_object_set (s_gsm, NM_SETTING_GSM_SIM_OPERATOR_ID, "", NULL);
+	nmtst_assert_setting_verify_fails (NM_SETTING (s_gsm), NM_CONNECTION_ERROR,
+	                                   NM_CONNECTION_ERROR_INVALID_PROPERTY);
+
+	g_object_set (s_gsm, NM_SETTING_GSM_SIM_OPERATOR_ID, "     ", NULL);
+	nmtst_assert_setting_verify_fails (NM_SETTING (s_gsm), NM_CONNECTION_ERROR,
+	                                   NM_CONNECTION_ERROR_INVALID_PROPERTY);
+
+	g_object_set (s_gsm, NM_SETTING_GSM_SIM_OPERATOR_ID, "abcdef", NULL);
+	nmtst_assert_setting_verify_fails (NM_SETTING (s_gsm), NM_CONNECTION_ERROR,
+	                                   NM_CONNECTION_ERROR_INVALID_PROPERTY);
+}
+
 static NMSettingWirelessSecurity *
 make_test_wsec_setting (const char *detail)
 {
 	NMSettingWirelessSecurity *s_wsec;
 
 	s_wsec = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new ();
-	ASSERT (s_wsec != NULL, detail, "error creating setting");
+	g_assert (s_wsec);
 
 	g_object_set (s_wsec,
 	              NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-psk",
@@ -761,24 +768,17 @@ make_test_wsec_setting (const char *detail)
 	              NM_SETTING_WIRELESS_SECURITY_PSK_FLAGS, NM_SETTING_SECRET_FLAG_NOT_SAVED,
 	              NM_SETTING_WIRELESS_SECURITY_WEP_KEY0, "aaaaaaaaaa",
 	              NULL);
-
 	return s_wsec;
 }
 
-#define ASSERT_CONTAINS(vardict, key, test_name, msg) \
-	{ \
-		GVariant *value; \
-		value = g_variant_lookup_value (vardict, key, NULL); \
-		ASSERT (value != NULL, test_name, msg); \
-		g_variant_unref (value); \
-	}
+static gboolean
+_variant_contains (GVariant *vardict, const char *key)
+{
+	gs_unref_variant GVariant *value = NULL;
 
-#define ASSERT_NOT_CONTAINS(vardict, key, test_name, msg) \
-	{ \
-		GVariant *value; \
-		value = g_variant_lookup_value (vardict, key, NULL); \
-		ASSERT (value == NULL, test_name, msg); \
-	}
+	value = g_variant_lookup_value (vardict, key, NULL);
+	return !!value;
+}
 
 static void
 test_setting_to_dbus_all (void)
@@ -791,14 +791,10 @@ test_setting_to_dbus_all (void)
 	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ALL);
 
 	/* Make sure all keys are there */
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
-	        "setting-to-dbus-all", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_KEY_MGMT);
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME,
-	        "setting-to-dbus-all", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME);
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_PSK,
-	        "setting-to-dbus-all", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_PSK);
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_WEP_KEY0,
-	        "setting-to-dbus-all", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_WEP_KEY0);
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT));
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME));
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_PSK));
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_WEP_KEY0));
 
 	g_variant_unref (dict);
 	g_object_unref (s_wsec);
@@ -815,16 +811,12 @@ test_setting_to_dbus_no_secrets (void)
 	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_NO_SECRETS);
 
 	/* Make sure non-secret keys are there */
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
-	                 "setting-to-dbus-no-secrets", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_KEY_MGMT);
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME,
-	                 "setting-to-dbus-no-secrets", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME);
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT));
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME));
 
 	/* Make sure secrets are not there */
-	ASSERT_NOT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_PSK,
-	                     "setting-to-dbus-no-secrets", "unexpectedly present " NM_SETTING_WIRELESS_SECURITY_PSK);
-	ASSERT_NOT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_WEP_KEY0,
-	                     "setting-to-dbus-no-secrets", "unexpectedly present " NM_SETTING_WIRELESS_SECURITY_WEP_KEY0);
+	g_assert (!_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_PSK));
+	g_assert (!_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_WEP_KEY0));
 
 	g_variant_unref (dict);
 	g_object_unref (s_wsec);
@@ -841,16 +833,12 @@ test_setting_to_dbus_only_secrets (void)
 	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ONLY_SECRETS);
 
 	/* Make sure non-secret keys are not there */
-	ASSERT_NOT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
-	                     "setting-to-dbus-only-secrets", "unexpectedly present " NM_SETTING_WIRELESS_SECURITY_KEY_MGMT);
-	ASSERT_NOT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME,
-	                     "setting-to-dbus-only-secrets", "unexpectedly present " NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME);
+	g_assert (!_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT));
+	g_assert (!_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME));
 
 	/* Make sure secrets are there */
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_PSK,
-	                 "setting-to-dbus-only-secrets", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_PSK);
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_WEP_KEY0,
-	                 "setting-to-dbus-only-secrets", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_WEP_KEY0);
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_PSK));
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_WEP_KEY0));
 
 	g_variant_unref (dict);
 	g_object_unref (s_wsec);
@@ -972,8 +960,7 @@ test_connection_to_dbus_setting_name (void)
 	/* Make sure the keys of the first level dict are setting names, not
 	 * the GType name of the setting objects.
 	 */
-	ASSERT_CONTAINS (dict, NM_SETTING_WIRELESS_SECURITY_SETTING_NAME,
-	                 "connection-to-dbus-setting-name", "unexpectedly missing " NM_SETTING_WIRELESS_SECURITY_SETTING_NAME);
+	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_SETTING_NAME));
 
 	g_variant_unref (dict);
 	g_object_unref (connection);
@@ -1044,7 +1031,7 @@ test_setting_new_from_dbus (void)
 	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ALL);
 	g_object_unref (s_wsec);
 
-	s_wsec = (NMSettingWirelessSecurity *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_WIRELESS_SECURITY, dict, NULL, NULL);
+	s_wsec = (NMSettingWirelessSecurity *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_WIRELESS_SECURITY, dict, NULL, NM_SETTING_PARSE_FLAGS_NONE, NULL);
 	g_variant_unref (dict);
 
 	g_assert (s_wsec);
@@ -1073,7 +1060,7 @@ test_setting_new_from_dbus_transform (void)
 	                                                  dbus_mac_address, ETH_ALEN, 1));
 	dict = g_variant_builder_end (&builder);
 
-	s_wired = _nm_setting_new_from_dbus (NM_TYPE_SETTING_WIRED, dict, NULL, &error);
+	s_wired = _nm_setting_new_from_dbus (NM_TYPE_SETTING_WIRED, dict, NULL, NM_SETTING_PARSE_FLAGS_NONE, &error);
 	g_assert_no_error (error);
 
 	g_assert_cmpstr (nm_setting_wired_get_mac_address (NM_SETTING_WIRED (s_wired)), ==, test_mac_address);
@@ -1099,7 +1086,7 @@ test_setting_new_from_dbus_enum (void)
 	                       g_variant_new_int32 (NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR));
 	dict = g_variant_builder_end (&builder);
 
-	s_ip6 = (NMSettingIP6Config *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_IP6_CONFIG, dict, NULL, &error);
+	s_ip6 = (NMSettingIP6Config *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_IP6_CONFIG, dict, NULL, NM_SETTING_PARSE_FLAGS_NONE, &error);
 	g_assert_no_error (error);
 
 	g_assert_cmpint (nm_setting_ip6_config_get_ip6_privacy (s_ip6), ==, NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR);
@@ -1118,7 +1105,7 @@ test_setting_new_from_dbus_enum (void)
 	                                             NM_SETTING_SECRET_FLAG_NOT_SAVED));
 	dict = g_variant_builder_end (&builder);
 
-	s_wsec = (NMSettingWirelessSecurity *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_WIRELESS_SECURITY, dict, NULL, &error);
+	s_wsec = (NMSettingWirelessSecurity *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_WIRELESS_SECURITY, dict, NULL, NM_SETTING_PARSE_FLAGS_NONE, &error);
 	g_assert_no_error (error);
 
 	g_assert_cmpint (nm_setting_wireless_security_get_wep_key_type (s_wsec), ==, NM_WEP_KEY_TYPE_KEY);
@@ -1135,7 +1122,7 @@ test_setting_new_from_dbus_enum (void)
 	                       g_variant_new_byte ('E'));
 	dict = g_variant_builder_end (&builder);
 
-	s_serial = (NMSettingSerial *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_SERIAL, dict, NULL, &error);
+	s_serial = (NMSettingSerial *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_SERIAL, dict, NULL, NM_SETTING_PARSE_FLAGS_NONE, &error);
 	g_assert_no_error (error);
 
 	g_assert_cmpint (nm_setting_serial_get_parity (s_serial), ==, NM_SETTING_SERIAL_PARITY_EVEN);
@@ -1207,7 +1194,7 @@ test_setting_new_from_dbus_bad (void)
 	g_object_unref (conn);
 
 	/* sanity-check */
-	conn = nm_simple_connection_new_from_dbus (orig_dict, &error);
+	conn = _connection_new_from_dbus (orig_dict, &error);
 	g_assert_no_error (error);
 	g_assert (conn);
 	g_object_unref (conn);
@@ -1220,7 +1207,7 @@ test_setting_new_from_dbus_bad (void)
 	                                                     NM_SETTING_WIRELESS_RATE,
 	                                                     "i", 10);
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert (conn);
 	g_assert_no_error (error);
 	setting = nm_connection_get_setting (conn, NM_TYPE_SETTING_WIRELESS);
@@ -1235,7 +1222,7 @@ test_setting_new_from_dbus_bad (void)
 	                                                     NM_SETTING_IP6_CONFIG_IP6_PRIVACY,
 	                                                     "i", NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR);
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert (conn);
 	g_assert_no_error (error);
 	setting = nm_connection_get_setting (conn, NM_TYPE_SETTING_IP6_CONFIG);
@@ -1252,7 +1239,7 @@ test_setting_new_from_dbus_bad (void)
 	                                                     NM_SETTING_WIRELESS_RATE,
 	                                                     "s", "ten");
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
 	g_assert (g_str_has_prefix (error->message, "802-11-wireless.rate:"));
 	g_clear_error (&error);
@@ -1264,7 +1251,7 @@ test_setting_new_from_dbus_bad (void)
 	                                                     NM_SETTING_WIRELESS_MODE,
 	                                                     "b", FALSE);
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
 	g_assert (g_str_has_prefix (error->message, "802-11-wireless.mode:"));
 	g_clear_error (&error);
@@ -1276,7 +1263,7 @@ test_setting_new_from_dbus_bad (void)
 	                                                     NM_SETTING_WIRELESS_SSID,
 	                                                     "s", "fred");
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
 	g_assert (g_str_has_prefix (error->message, "802-11-wireless.ssid:"));
 	g_clear_error (&error);
@@ -1288,7 +1275,7 @@ test_setting_new_from_dbus_bad (void)
 	                                                     NM_SETTING_WIRELESS_BSSID,
 	                                                     "i", 42);
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
 	g_assert (g_str_has_prefix (error->message, "802-11-wireless.bssid:"));
 	g_clear_error (&error);
@@ -1300,7 +1287,7 @@ test_setting_new_from_dbus_bad (void)
 	                                                     NM_SETTING_IP6_CONFIG_IP6_PRIVACY,
 	                                                     "s", "private");
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
 	g_assert (g_str_has_prefix (error->message, "ipv6.ip6-privacy:"));
 	g_clear_error (&error);
@@ -1312,7 +1299,7 @@ test_setting_new_from_dbus_bad (void)
 	                                                     NM_SETTING_IP_CONFIG_ADDRESSES,
 	                                                     "s", "1234::5678");
 	                      );
-	conn = nm_simple_connection_new_from_dbus (dict, &error);
+	conn = _connection_new_from_dbus (dict, &error);
 	g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
 	g_assert (g_str_has_prefix (error->message, "ipv6.addresses:"));
 	g_clear_error (&error);
@@ -1580,7 +1567,7 @@ test_connection_new_from_dbus (void)
 	g_assert (new_settings);
 
 	/* Replace settings and test */
-	connection = nm_simple_connection_new_from_dbus (new_settings, &error);
+	connection = _connection_new_from_dbus (new_settings, &error);
 	g_assert_no_error (error);
 	g_assert (connection);
 
@@ -1604,24 +1591,20 @@ test_connection_new_from_dbus (void)
 static void
 check_permission (NMSettingConnection *s_con,
                   guint32 idx,
-                  const char *expected_uname,
-                  const char *tag)
+                  const char *expected_uname)
 {
 	gboolean success;
 	const char *ptype = NULL, *pitem = NULL, *detail = NULL;
 
 	success = nm_setting_connection_get_permission (s_con, 0, &ptype, &pitem, &detail);
-	ASSERT (success == TRUE, tag, "unexpected failure getting added permission");
+	g_assert (success);
 
-	/* Permission type */
-	ASSERT (ptype != NULL, tag, "unexpected failure getting permission type");
-	ASSERT (strcmp (ptype, "user") == 0, tag, "retrieved unexpected permission type");
+	g_assert_cmpstr (ptype, ==, "user");
 
-	/* Permission item */
-	ASSERT (pitem != NULL, tag, "unexpected failure getting permission item");
-	ASSERT (strcmp (pitem, expected_uname) == 0, tag, "retrieved unexpected permission item");
+	g_assert (pitem);
+	g_assert_cmpstr (pitem, ==, expected_uname);
 
-	ASSERT (detail == NULL, tag, "unexpected success getting permission detail");
+	g_assert (!detail);
 }
 
 #define TEST_UNAME "asdfasfasdf"
@@ -1641,79 +1624,66 @@ test_setting_connection_permissions_helpers (void)
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*strcmp (ptype, \"user\") == 0*");
 	success = nm_setting_connection_add_permission (s_con, "foobar", "blah", NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (success == FALSE,
-	        "setting-connection-permissions-helpers", "unexpected success adding bad permission type #1");
+	g_assert (!success);
 
 	/* Ensure a bad [type] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*ptype*");
 	success = nm_setting_connection_add_permission (s_con, NULL, "blah", NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (success == FALSE,
-	        "setting-connection-permissions-helpers", "unexpected success adding bad permission type #2");
+	g_assert (!success);
 
 	/* Ensure a bad [item] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*uname*");
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*p != NULL*");
 	success = nm_setting_connection_add_permission (s_con, "user", NULL, NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (success == FALSE,
-	        "setting-connection-permissions-helpers", "unexpected success adding bad permission item #1");
+	g_assert (!success);
 
 	/* Ensure a bad [item] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*uname[0] != '\\0'*");
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*p != NULL*");
 	success = nm_setting_connection_add_permission (s_con, "user", "", NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (success == FALSE,
-	        "setting-connection-permissions-helpers", "unexpected success adding bad permission item #2");
+	g_assert (!success);
 
 	/* Ensure an [item] with ':' is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*strchr (uname, ':')*");
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*p != NULL*");
 	success = nm_setting_connection_add_permission (s_con, "user", "ad:asdf", NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (success == FALSE,
-	        "setting-connection-permissions-helpers", "unexpected success adding bad permission item #3");
+	g_assert (!success);
 
 	/* Ensure a non-UTF-8 [item] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*g_utf8_validate (uname, -1, NULL)*");
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*p != NULL*");
 	success = nm_setting_connection_add_permission (s_con, "user", buf, NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (success == FALSE,
-	        "setting-connection-permissions-helpers", "unexpected success adding bad permission item #4");
+	g_assert (!success);
 
 	/* Ensure a non-NULL [detail] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*detail == NULL*");
 	success = nm_setting_connection_add_permission (s_con, "user", "dafasdf", "asdf");
 	g_test_assert_expected_messages ();
-	ASSERT (success == FALSE,
-	        "setting-connection-permissions-helpers", "unexpected success adding bad detail");
+	g_assert (!success);
 
 	/* Ensure a valid call results in success */
 	success = nm_setting_connection_add_permission (s_con, "user", TEST_UNAME, NULL);
-	ASSERT (success == TRUE,
-	        "setting-connection-permissions-helpers", "unexpected failure adding valid user permisson");
+	g_assert (success);
 
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 1,
-	        "setting-connection-permissions-helpers", "unexpected failure getting number of permissions");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 1);
 
-	check_permission (s_con, 0, TEST_UNAME, "setting-connection-permissions-helpers");
+	check_permission (s_con, 0, TEST_UNAME);
 
 	/* Check the actual GObject property just to be paranoid */
 	g_object_get (G_OBJECT (s_con), NM_SETTING_CONNECTION_PERMISSIONS, &perms, NULL);
-	ASSERT (perms != NULL,
-	        "setting-connection-permissions-helpers", "unexpected failure getting permissions");
-	ASSERT (g_strv_length (perms) == 1,
-	        "setting-connection-permissions-helpers", "unexpected failure getting number of permissions");
-	ASSERT (strcmp (perms[0], expected_perm) == 0,
-	        "setting-connection-permissions-helpers", "unexpected permission property data");
+	g_assert (perms);
+	g_assert_cmpint (g_strv_length (perms), ==, 1);
+	g_assert_cmpstr (perms[0], ==, expected_perm);
 	g_strfreev (perms);
 
 	/* Now remove that permission and ensure we have 0 permissions */
 	nm_setting_connection_remove_permission (s_con, 0);
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-helpers", "unexpected failure removing permission");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	g_object_unref (s_con);
 }
@@ -1765,69 +1735,59 @@ test_setting_connection_permissions_property (void)
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*strncmp (str, PERM_USER_PREFIX, strlen (PERM_USER_PREFIX)) == 0*");
 	add_permission_property (s_con, "foobar", "blah", -1, NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected success adding bad permission type #1");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a bad [type] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*strncmp (str, PERM_USER_PREFIX, strlen (PERM_USER_PREFIX)) == 0*");
 	add_permission_property (s_con, NULL, "blah", -1, NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected success adding bad permission type #2");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a bad [item] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*last_colon > str*");
 	add_permission_property (s_con, "user", NULL, -1, NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected success adding bad permission item #1");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a bad [item] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*last_colon > str*");
 	add_permission_property (s_con, "user", "", -1, NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected success adding bad permission item #2");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure an [item] with ':' in the middle is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*str[i] != ':'*");
 	add_permission_property (s_con, "user", "ad:asdf", -1, NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected success adding bad permission item #3");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure an [item] with ':' at the end is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*str[i] != ':'*");
 	add_permission_property (s_con, "user", "adasdfaf:", -1, NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected success adding bad permission item #4");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a non-UTF-8 [item] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*g_utf8_validate (str, -1, NULL)*");
 	add_permission_property (s_con, "user", buf, (int) sizeof (buf), NULL);
 	g_test_assert_expected_messages ();
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected success adding bad permission item #5");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a non-NULL [detail] is rejected */
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*(last_colon + 1) == '\\0'*");
 	add_permission_property (s_con, "user", "dafasdf", -1, "asdf");
 	g_test_assert_expected_messages ();
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected success adding bad detail");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a valid call results in success */
 	success = nm_setting_connection_add_permission (s_con, "user", TEST_UNAME, NULL);
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 1,
-	        "setting-connection-permissions-property", "unexpected failure adding valid user permisson");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 1);
 
-	check_permission (s_con, 0, TEST_UNAME, "setting-connection-permissions-property");
+	check_permission (s_con, 0, TEST_UNAME);
 
 	/* Now remove that permission and ensure we have 0 permissions */
 	nm_setting_connection_remove_permission (s_con, 0);
-	ASSERT (nm_setting_connection_get_num_permissions (s_con) == 0,
-	        "setting-connection-permissions-property", "unexpected failure removing permission");
+	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	g_object_unref (s_con);
 }
@@ -1969,6 +1929,8 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES,   NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_SECONDARIES,          NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT, NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_CONNECTION_METERED,              NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_CONNECTION_LLDP,                 NM_SETTING_DIFF_RESULT_IN_A },
 			{ NULL, NM_SETTING_DIFF_RESULT_UNKNOWN }
 		} },
 		{ NM_SETTING_WIRED_SETTING_NAME, {
@@ -1983,12 +1945,15 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_WIRED_S390_SUBCHANNELS,      NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_WIRED_S390_NETTYPE,          NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_WIRED_S390_OPTIONS,          NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_WIRED_WAKE_ON_LAN,           NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_WIRED_WAKE_ON_LAN_PASSWORD,  NM_SETTING_DIFF_RESULT_IN_A },
 			{ NULL, NM_SETTING_DIFF_RESULT_UNKNOWN },
 		} },
 		{ NM_SETTING_IP4_CONFIG_SETTING_NAME, {
 			{ NM_SETTING_IP_CONFIG_METHOD,             NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_DNS,                NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_DNS_SEARCH,         NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_IP_CONFIG_DNS_OPTIONS,        NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_ADDRESSES,          NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_GATEWAY,            NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_ROUTES,             NM_SETTING_DIFF_RESULT_IN_A },
@@ -1996,10 +1961,13 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES, NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS,    NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID,    NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_IP_CONFIG_DHCP_TIMEOUT,       NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_DHCP_SEND_HOSTNAME, NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_DHCP_HOSTNAME,      NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_IP4_CONFIG_DHCP_FQDN,         NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_NEVER_DEFAULT,      NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_MAY_FAIL,           NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_IP_CONFIG_DAD_TIMEOUT,        NM_SETTING_DIFF_RESULT_IN_A },
 			{ NULL, NM_SETTING_DIFF_RESULT_UNKNOWN },
 		} },
 	};
@@ -2727,18 +2695,18 @@ test_ip4_netmask_to_prefix (void)
 }
 
 #define ASSERT_CHANGED(statement) \
-{ \
+G_STMT_START { \
 	changed = FALSE; \
 	statement; \
 	g_assert (changed); \
-}
+} G_STMT_END
 
 #define ASSERT_UNCHANGED(statement) \
-{ \
+G_STMT_START { \
 	changed = FALSE; \
 	statement; \
 	g_assert (!changed); \
-}
+} G_STMT_END
 
 static void
 test_connection_changed_signal (void)
@@ -2846,7 +2814,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns (s_ip4, "11.22.0.0"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*i < priv->dns->len*");
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->dns->len*");
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -2856,7 +2824,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns_search (s_ip4, "foobar.com"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns_search (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*i < priv->dns_search->len*");
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->dns_search->len*");
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns_search (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -2868,7 +2836,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_address (s_ip4, addr));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_address (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*i < priv->addresses->len*");
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->addresses->len*");
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_address (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -2881,12 +2849,19 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_route (s_ip4, route));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_route (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*i < priv->routes->len*");
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->routes->len*");
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_route (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
 	nm_setting_ip_config_add_route (s_ip4, route);
 	ASSERT_CHANGED (nm_setting_ip_config_clear_routes (s_ip4));
+
+	ASSERT_CHANGED (nm_setting_ip_config_add_dns_option (s_ip4, "debug"));
+	ASSERT_CHANGED (nm_setting_ip_config_remove_dns_option (s_ip4, 0));
+
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->dns_options->len*");
+	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns_option (s_ip4, 1));
+	g_test_assert_expected_messages ();
 
 	nm_ip_address_unref (addr);
 	nm_ip_route_unref (route);
@@ -2915,7 +2890,7 @@ test_setting_ip6_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns (s_ip6, "1:2:3::4:5:6"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns (s_ip6, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*i < priv->dns->len*");
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->dns->len*");
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns (s_ip6, 1));
 	g_test_assert_expected_messages ();
 
@@ -2925,7 +2900,7 @@ test_setting_ip6_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns_search (s_ip6, "foobar.com"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns_search (s_ip6, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*i < priv->dns_search->len*");
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->dns_search->len*");
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns_search (s_ip6, 1));
 	g_test_assert_expected_messages ();
 
@@ -2938,7 +2913,7 @@ test_setting_ip6_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_address (s_ip6, addr));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_address (s_ip6, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*i < priv->addresses->len*");
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->addresses->len*");
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_address (s_ip6, 1));
 	g_test_assert_expected_messages ();
 
@@ -2951,7 +2926,7 @@ test_setting_ip6_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_route (s_ip6, route));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_route (s_ip6, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*i < priv->routes->len*");
+	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, "*idx < priv->routes->len*");
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_route (s_ip6, 1));
 	g_test_assert_expected_messages ();
 
@@ -3272,7 +3247,7 @@ test_connection_normalize_virtual_iface_name (void)
 	                                                     ":::this-is-not-a-valid-interface-name:::");
 	                      );
 
-	con = nm_simple_connection_new_from_dbus (connection_dict, &error);
+	con = _connection_new_from_dbus (connection_dict, &error);
 	g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
 	g_clear_error (&error);
 
@@ -3284,7 +3259,7 @@ test_connection_normalize_virtual_iface_name (void)
 	                                                     IFACE_VIRT);
 	                      );
 
-	con = nm_simple_connection_new_from_dbus (connection_dict, &error);
+	con = _connection_new_from_dbus (connection_dict, &error);
 	g_assert_no_error (error);
 
 	g_assert_cmpstr (nm_connection_get_interface_name (con), ==, IFACE_NAME);
@@ -3300,7 +3275,7 @@ test_connection_normalize_virtual_iface_name (void)
 	                                                   NM_SETTING_CONNECTION_INTERFACE_NAME);
 	                      );
 
-	con = nm_simple_connection_new_from_dbus (connection_dict, &error);
+	con = _connection_new_from_dbus (connection_dict, &error);
 	g_assert_no_error (error);
 
 	g_assert_cmpstr (nm_connection_get_interface_name (con), ==, IFACE_VIRT);
@@ -3336,6 +3311,7 @@ _test_connection_normalize_type_normalizable_setting (const char *type,
 
 	g_assert (!nm_connection_get_setting_by_name (con, type));
 	nmtst_assert_connection_verifies_after_normalization (con, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_MISSING_SETTING);
+	nmtst_connection_normalize (con);
 
 	s_base = nm_connection_get_setting_by_name (con, type);
 	g_assert (s_base);
@@ -3392,6 +3368,7 @@ _test_connection_normalize_type_normalizable_type (const char *type,
 	g_assert (nm_connection_get_setting_by_name (con, type) == s_base);
 
 	nmtst_assert_connection_verifies_after_normalization (con, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_MISSING_PROPERTY);
+	nmtst_connection_normalize (con);
 
 	g_assert_cmpstr (nm_connection_get_connection_type (con), ==, type);
 	g_assert (nm_connection_get_setting_by_name (con, type) == s_base);
@@ -3656,6 +3633,7 @@ test_connection_normalize_slave_type_1 (void)
 
 	g_assert (!nm_connection_get_setting_by_name (con, NM_SETTING_BRIDGE_PORT_SETTING_NAME));
 	nmtst_assert_connection_verifies_after_normalization (con, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_MISSING_SETTING);
+	nmtst_connection_normalize (con);
 	g_assert (nm_connection_get_setting_by_name (con, NM_SETTING_BRIDGE_PORT_SETTING_NAME));
 	g_assert_cmpstr (nm_setting_connection_get_slave_type (s_con), ==, NM_SETTING_BRIDGE_SETTING_NAME);
 }
@@ -3686,6 +3664,7 @@ test_connection_normalize_slave_type_2 (void)
 	g_assert (nm_connection_get_setting_by_name (con, NM_SETTING_BRIDGE_PORT_SETTING_NAME));
 	g_assert_cmpstr (nm_setting_connection_get_slave_type (s_con), ==, NULL);
 	nmtst_assert_connection_verifies_after_normalization (con, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_MISSING_PROPERTY);
+	nmtst_connection_normalize (con);
 	g_assert (nm_connection_get_setting_by_name (con, NM_SETTING_BRIDGE_PORT_SETTING_NAME));
 	g_assert_cmpstr (nm_setting_connection_get_slave_type (s_con), ==, NM_SETTING_BRIDGE_SETTING_NAME);
 }
@@ -3709,7 +3688,8 @@ test_connection_normalize_infiniband_mtu (void)
 	              NM_SETTING_INFINIBAND_TRANSPORT_MODE, "datagram",
 	              NM_SETTING_INFINIBAND_MTU, (guint) 2044,
 	              NULL);
-	nmtst_assert_connection_verifies_without_normalization (con);
+	nmtst_assert_connection_verifies_and_normalizable (con);
+	nmtst_connection_normalize (con);
 	g_assert_cmpint (2044, ==, nm_setting_infiniband_get_mtu (s_infini));
 
 	g_object_set (s_infini,
@@ -3717,6 +3697,7 @@ test_connection_normalize_infiniband_mtu (void)
 	              NM_SETTING_INFINIBAND_MTU, (guint) 2045,
 	              NULL);
 	nmtst_assert_connection_verifies_after_normalization (con, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
+	nmtst_connection_normalize (con);
 	g_assert_cmpint (2044, ==, nm_setting_infiniband_get_mtu (s_infini));
 
 	g_object_set (s_infini,
@@ -3731,6 +3712,7 @@ test_connection_normalize_infiniband_mtu (void)
 	              NM_SETTING_INFINIBAND_MTU, (guint) 65521,
 	              NULL);
 	nmtst_assert_connection_verifies_after_normalization (con, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
+	nmtst_connection_normalize (con);
 	g_assert_cmpint (65520, ==, nm_setting_infiniband_get_mtu (s_infini));
 }
 
@@ -3807,7 +3789,7 @@ test_setting_ip4_gateway (void)
 	                                                   "address-data");
 	                      );
 
-	conn = nm_simple_connection_new_from_dbus (conn_dict, &error);
+	conn = _connection_new_from_dbus (conn_dict, &error);
 	g_assert_no_error (error);
 
 	s_ip4 = (NMSettingIPConfig *) nm_connection_get_setting_ip4_config (conn);
@@ -3829,7 +3811,7 @@ test_setting_ip4_gateway (void)
 	                                                     "addresses", "aau", &addrs_builder);
 	                      );
 
-	conn = nm_simple_connection_new_from_dbus (conn_dict, &error);
+	conn = _connection_new_from_dbus (conn_dict, &error);
 	g_assert_no_error (error);
 	g_variant_unref (conn_dict);
 
@@ -3914,7 +3896,7 @@ test_setting_ip6_gateway (void)
 	                                                   "address-data");
 	                      );
 
-	conn = nm_simple_connection_new_from_dbus (conn_dict, &error);
+	conn = _connection_new_from_dbus (conn_dict, &error);
 	g_assert_no_error (error);
 
 	s_ip6 = (NMSettingIPConfig *) nm_connection_get_setting_ip6_config (conn);
@@ -3942,7 +3924,7 @@ test_setting_ip6_gateway (void)
 	                                                     "addresses", "a(ayuay)", &addrs_builder);
 	                      );
 
-	conn = nm_simple_connection_new_from_dbus (conn_dict, &error);
+	conn = _connection_new_from_dbus (conn_dict, &error);
 	g_assert_no_error (error);
 	g_variant_unref (conn_dict);
 
@@ -3957,6 +3939,52 @@ typedef struct {
 	const guint8 expected[20];
 	const guint expected_len;
 } HexItem;
+
+static void
+test_setting_compare_default_strv (void)
+{
+	gs_unref_object NMConnection *c1 = NULL, *c2 = NULL;
+	char **strv;
+	NMSettingIPConfig *s_ip2, *s_ip1;
+	gboolean compare;
+	GHashTable *out_settings = NULL;
+
+	c1 = nmtst_create_minimal_connection ("test_compare_default_strv", NULL,
+	                                      NM_SETTING_WIRED_SETTING_NAME, NULL);
+	nmtst_assert_connection_verifies_and_normalizable (c1);
+	nmtst_connection_normalize (c1);
+
+	c2 = nm_simple_connection_new_clone (c1);
+	nmtst_assert_connection_verifies_without_normalization (c2);
+
+	nmtst_assert_connection_equals (c1, FALSE, c2, FALSE);
+
+	s_ip1 = nm_connection_get_setting_ip4_config (c1);
+	s_ip2 = nm_connection_get_setting_ip4_config (c2);
+
+	nm_setting_ip_config_clear_dns_options (s_ip2, FALSE);
+	g_object_get (G_OBJECT (s_ip2), NM_SETTING_IP_CONFIG_DNS_OPTIONS, &strv, NULL);
+	g_assert (!strv);
+	nmtst_assert_connection_equals (c1, FALSE, c2, FALSE);
+
+	nm_setting_ip_config_clear_dns_options (s_ip2, TRUE);
+	g_object_get (G_OBJECT (s_ip2), NM_SETTING_IP_CONFIG_DNS_OPTIONS, &strv, NULL);
+	g_assert (strv && !strv[0]);
+	g_strfreev (strv);
+
+	compare = nm_setting_diff ((NMSetting *) s_ip1, (NMSetting *) s_ip2, NM_SETTING_COMPARE_FLAG_EXACT, FALSE, &out_settings);
+	g_assert (!compare);
+	g_assert (out_settings);
+	g_assert (g_hash_table_contains (out_settings, NM_SETTING_IP_CONFIG_DNS_OPTIONS));
+	g_hash_table_unref (out_settings);
+	out_settings = NULL;
+
+	compare = nm_connection_diff (c1, c2, NM_SETTING_COMPARE_FLAG_EXACT, &out_settings);
+	g_assert (!compare);
+	g_assert (out_settings);
+	g_hash_table_unref (out_settings);
+	out_settings = NULL;
+}
 
 static void
 test_hexstr2bin (void)
@@ -4222,6 +4250,138 @@ test_nm_utils_ascii_str_to_int64 (void)
 
 /******************************************************************************/
 
+static void
+test_nm_utils_strstrdictkey (void)
+{
+#define _VALUES_STATIC(_v1, _v2) { .v1 = _v1, .v2 = _v2, .v_static = _nm_utils_strstrdictkey_static (_v1, _v2), }
+	const struct {
+		const char *v1;
+		const char *v2;
+		NMUtilsStrStrDictKey *v_static;
+	} *val1, *val2, values[] = {
+		{ NULL, NULL },
+		{ "", NULL },
+		{ NULL, "" },
+		{ "a", NULL },
+		{ NULL, "a" },
+		_VALUES_STATIC ("", ""),
+		_VALUES_STATIC ("a", ""),
+		_VALUES_STATIC ("", "a"),
+		_VALUES_STATIC ("a", "b"),
+	};
+	guint i, j;
+
+	for (i = 0; i < G_N_ELEMENTS (values); i++) {
+		gs_free NMUtilsStrStrDictKey *key1 = NULL;
+
+		val1 = &values[i];
+
+		key1 = _nm_utils_strstrdictkey_create (val1->v1, val1->v2);
+		if (val1->v_static) {
+			g_assert (_nm_utils_strstrdictkey_equal (key1, val1->v_static));
+			g_assert (_nm_utils_strstrdictkey_equal (val1->v_static, key1));
+			g_assert_cmpint (_nm_utils_strstrdictkey_hash (key1), ==, _nm_utils_strstrdictkey_hash (val1->v_static));
+		}
+
+		for (j = 0; j < G_N_ELEMENTS (values); j++) {
+			gs_free NMUtilsStrStrDictKey *key2 = NULL;
+
+			val2 = &values[j];
+			key2 = _nm_utils_strstrdictkey_create (val2->v1, val2->v2);
+			if (i != j) {
+				g_assert (!_nm_utils_strstrdictkey_equal (key1, key2));
+				g_assert (!_nm_utils_strstrdictkey_equal (key2, key1));
+			}
+		}
+	}
+}
+
+/******************************************************************************/
+
+static void
+test_nm_utils_dns_option_validate_do (char *option, gboolean ipv6, const NMUtilsDNSOptionDesc *descs,
+                                      gboolean exp_result, char *exp_name, gboolean exp_value)
+{
+	char *name;
+	long value = 0;
+	gboolean result;
+
+	result = _nm_utils_dns_option_validate (option, &name, &value, ipv6, descs);
+
+	g_assert (result == exp_result);
+	g_assert_cmpstr (name, ==, exp_name);
+	g_assert (value == exp_value);
+
+	g_free (name);
+}
+
+static const NMUtilsDNSOptionDesc opt_descs[] = {
+	/* name                   num      ipv6 */
+	{ "opt1",                 FALSE,   FALSE },
+	{ "opt2",                 TRUE,    FALSE },
+	{ "opt3",                 FALSE,   TRUE  },
+	{ "opt4",                 TRUE,    TRUE  },
+	{ NULL,                   FALSE,   FALSE }
+};
+
+static void
+test_nm_utils_dns_option_validate (void)
+{
+	/*                                    opt            ipv6    descs        result name       value */
+	test_nm_utils_dns_option_validate_do ("",            FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do (":",           FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do (":1",          FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do (":val",        FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt",         FALSE,  NULL,        TRUE,  "opt",     -1);
+	test_nm_utils_dns_option_validate_do ("opt:",        FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt:12",      FALSE,  NULL,        TRUE,  "opt",     12);
+	test_nm_utils_dns_option_validate_do ("opt:12 ",     FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt:val",     FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt:2val",    FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt:2:3",     FALSE,  NULL,        FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt-6",       FALSE,  NULL,        TRUE,  "opt-6",   -1);
+
+	test_nm_utils_dns_option_validate_do ("opt1",        FALSE,  opt_descs,   TRUE,  "opt1",    -1);
+	test_nm_utils_dns_option_validate_do ("opt1",        TRUE,   opt_descs,   TRUE,  "opt1",    -1);
+	test_nm_utils_dns_option_validate_do ("opt1:3",      FALSE,  opt_descs,   FALSE,  NULL,     -1);
+
+	test_nm_utils_dns_option_validate_do ("opt2",        FALSE,  opt_descs,   FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt2:5",      FALSE,  opt_descs,   TRUE,  "opt2",    5);
+
+	test_nm_utils_dns_option_validate_do ("opt3",        FALSE,  opt_descs,   FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt3",        TRUE,   opt_descs,   TRUE,  "opt3",    -1);
+
+	test_nm_utils_dns_option_validate_do ("opt4",        FALSE,  opt_descs,   FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt4",        TRUE,   opt_descs,   FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt4:40",     FALSE,  opt_descs,   FALSE, NULL,      -1);
+	test_nm_utils_dns_option_validate_do ("opt4:40",     TRUE,   opt_descs,   TRUE,  "opt4",    40);
+}
+
+static void
+test_nm_utils_dns_option_find_idx (void)
+{
+	GPtrArray *options;
+
+	options = g_ptr_array_new ();
+
+	g_ptr_array_add (options, "debug");
+	g_ptr_array_add (options, "timeout:5");
+	g_ptr_array_add (options, "edns0");
+
+	g_assert_cmpint (_nm_utils_dns_option_find_idx (options, "debug"),      ==, 0);
+	g_assert_cmpint (_nm_utils_dns_option_find_idx (options, "debug:1"),    ==, 0);
+	g_assert_cmpint (_nm_utils_dns_option_find_idx (options, "timeout"),    ==, 1);
+	g_assert_cmpint (_nm_utils_dns_option_find_idx (options, "timeout:5"),  ==, 1);
+	g_assert_cmpint (_nm_utils_dns_option_find_idx (options, "timeout:2"),  ==, 1);
+	g_assert_cmpint (_nm_utils_dns_option_find_idx (options, "edns0"),      ==, 2);
+	g_assert_cmpint (_nm_utils_dns_option_find_idx (options, "rotate"),     ==, -1);
+	g_assert_cmpint (_nm_utils_dns_option_find_idx (options, ""),           ==, -1);
+
+	g_ptr_array_free (options, TRUE);
+}
+
+/******************************************************************************/
+
 enum TEST_IS_POWER_OF_TWP_ENUM_SIGNED {
 	_DUMMY_1 = -1,
 };
@@ -4279,7 +4439,7 @@ again:
 			 * by randomly setting bits. */
 			numbits = g_rand_int_range (rand, 1, 65);
 			while (xno != ~((guint64) 0) && numbits > 0) {
-				guint64 v = (1LL << g_rand_int_range (rand, 0, 65));
+				guint64 v = (1LL << g_rand_int_range (rand, 0, 64));
 
 				if ((xno | v) != xno) {
 					xno |= v;
@@ -4340,6 +4500,41 @@ test_g_ptr_array_insert (void)
 		g_assert (memcmp (arr1->pdata, arr2->pdata, arr1->len * sizeof (gpointer)) == 0);
 	}
 #endif
+}
+
+/******************************************************************************/
+
+static void
+test_g_hash_table_get_keys_as_array (void)
+{
+	GHashTable *table = g_hash_table_new (g_str_hash, g_str_equal);
+	guint length = 0;
+	char **keys;
+
+	g_hash_table_insert (table, "one",   "1");
+	g_hash_table_insert (table, "two",   "2");
+	g_hash_table_insert (table, "three", "3");
+
+	keys = (char **) _nm_g_hash_table_get_keys_as_array (table, &length);
+	g_assert (keys);
+	g_assert_cmpuint (length, ==, 3);
+
+	g_assert (   !strcmp (keys[0], "one")
+	          || !strcmp (keys[1], "one")
+	          || !strcmp (keys[2], "one"));
+
+	g_assert (   !strcmp (keys[0], "two")
+	          || !strcmp (keys[1], "two")
+	          || !strcmp (keys[2], "two"));
+
+	g_assert (   !strcmp (keys[0], "three")
+	          || !strcmp (keys[1], "three")
+	          || !strcmp (keys[2], "three"));
+
+	g_assert (!keys[3]);
+
+	g_free (keys);
+	g_hash_table_unref (table);
 }
 
 /******************************************************************************/
@@ -4447,6 +4642,317 @@ test_nm_utils_ptrarray_find_binary_search (void)
 }
 
 /******************************************************************************/
+static void
+test_nm_utils_enum_from_str_do (GType type, const char *str,
+                                gboolean exp_result, int exp_flags,
+                                const char *exp_err_token)
+{
+	int flags = 1;
+	char *err_token = NULL;
+	gboolean result;
+
+	result = nm_utils_enum_from_str (type, str, &flags, &err_token);
+
+	g_assert (result == exp_result);
+	g_assert_cmpint (flags, ==, exp_flags);
+	g_assert_cmpstr (err_token, ==, exp_err_token);
+
+	g_free (err_token);
+}
+
+static void
+test_nm_utils_enum_to_str_do (GType type, int flags, const char *exp_str)
+{
+	char *str;
+
+	str = nm_utils_enum_to_str (type, flags);
+	g_assert_cmpstr (str, ==, exp_str);
+	g_free (str);
+}
+
+static void
+test_nm_utils_enum_get_values_do (GType type, int from, int to, const char *exp_str)
+{
+	const char **strv;
+	char *str;
+
+	strv = nm_utils_enum_get_values (type, from, to);
+	g_assert (strv);
+	str = g_strjoinv (",", (char **) strv);
+	g_assert_cmpstr (str, ==, exp_str);
+	g_free (str);
+	g_free (strv);
+}
+
+
+static void test_nm_utils_enum (void)
+{
+	GType bool_enum = nm_test_general_bool_enum_get_type();
+	GType meta_flags = nm_test_general_meta_flags_get_type();
+	GType color_flags = nm_test_general_color_flags_get_type();
+
+	test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_YES, "yes");
+	test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_UNKNOWN, "unknown");
+	test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_INVALID, NULL);
+
+	test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_NONE, "");
+	test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_BAZ, "baz");
+	test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_FOO |
+	                                          NM_TEST_GENERAL_META_FLAGS_BAR |
+	                                          NM_TEST_GENERAL_META_FLAGS_BAZ, "foo, bar, baz");
+
+	test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_RED, "red");
+	test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_WHITE, "");
+	test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_RED |
+	                                           NM_TEST_GENERAL_COLOR_FLAGS_GREEN, "red, green");
+
+	test_nm_utils_enum_from_str_do (bool_enum, "", FALSE, 0, NULL);
+	test_nm_utils_enum_from_str_do (bool_enum, " ", FALSE, 0, NULL);
+	test_nm_utils_enum_from_str_do (bool_enum, "invalid", FALSE, 0, NULL);
+	test_nm_utils_enum_from_str_do (bool_enum, "yes", TRUE, NM_TEST_GENERAL_BOOL_ENUM_YES, NULL);
+	test_nm_utils_enum_from_str_do (bool_enum, "no", TRUE, NM_TEST_GENERAL_BOOL_ENUM_NO, NULL);
+	test_nm_utils_enum_from_str_do (bool_enum, "yes,no", FALSE, 0, NULL);
+
+	test_nm_utils_enum_from_str_do (meta_flags, "", TRUE, 0, NULL);
+	test_nm_utils_enum_from_str_do (meta_flags, " ", TRUE, 0, NULL);
+	test_nm_utils_enum_from_str_do (meta_flags, "foo", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO, NULL);
+	test_nm_utils_enum_from_str_do (meta_flags, "foo,baz", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
+	                                                             NM_TEST_GENERAL_META_FLAGS_BAZ, NULL);
+	test_nm_utils_enum_from_str_do (meta_flags, "foo, baz", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
+	                                                              NM_TEST_GENERAL_META_FLAGS_BAZ, NULL);
+	test_nm_utils_enum_from_str_do (meta_flags, "foo,,bar", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
+	                                                              NM_TEST_GENERAL_META_FLAGS_BAR, NULL);
+	test_nm_utils_enum_from_str_do (meta_flags, "foo,baz,quux,bar", FALSE, 0, "quux");
+
+	test_nm_utils_enum_from_str_do (color_flags, "green", TRUE, NM_TEST_GENERAL_COLOR_FLAGS_GREEN, NULL);
+	test_nm_utils_enum_from_str_do (color_flags, "blue,red", TRUE, NM_TEST_GENERAL_COLOR_FLAGS_BLUE |
+	                                                               NM_TEST_GENERAL_COLOR_FLAGS_RED, NULL);
+	test_nm_utils_enum_from_str_do (color_flags, "blue,white", FALSE, 0, "white");
+
+	test_nm_utils_enum_get_values_do (bool_enum, 0, G_MAXINT, "no,yes,maybe,unknown");
+	test_nm_utils_enum_get_values_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_YES,
+	                                  NM_TEST_GENERAL_BOOL_ENUM_MAYBE, "yes,maybe");
+	test_nm_utils_enum_get_values_do (meta_flags, 0, G_MAXINT, "none,foo,bar,baz");
+	test_nm_utils_enum_get_values_do (color_flags, 0, G_MAXINT, "blue,red,green");
+}
+
+/******************************************************************************/
+
+static int
+_test_nm_in_set_get (int *call_counter, gboolean allow_called, int value)
+{
+	g_assert (call_counter);
+	*call_counter += 1;
+	if (!allow_called)
+		g_assert_not_reached ();
+	return value;
+}
+
+static void
+_test_nm_in_set_assert (int *call_counter, int expected)
+{
+	g_assert (call_counter);
+	g_assert_cmpint (expected, ==, *call_counter);
+	*call_counter = 0;
+}
+
+static void
+test_nm_in_set (void)
+{
+	int call_counter = 0;
+
+#define G(x) _test_nm_in_set_get (&call_counter, TRUE,  x)
+#define N(x) _test_nm_in_set_get (&call_counter, FALSE,  x)
+#define _ASSERT(expected, expr) \
+	G_STMT_START { \
+		_test_nm_in_set_assert (&call_counter, 0); \
+		g_assert (expr); \
+		_test_nm_in_set_assert (&call_counter, (expected)); \
+	} G_STMT_END
+	_ASSERT (1, !NM_IN_SET (-1, G( 1)));
+	_ASSERT (1,  NM_IN_SET (-1, G(-1)));
+
+	_ASSERT (2, !NM_IN_SET (-1, G( 1), G( 2)));
+	_ASSERT (1,  NM_IN_SET (-1, G(-1), N( 2)));
+	_ASSERT (2,  NM_IN_SET (-1, G( 1), G(-1)));
+	_ASSERT (1,  NM_IN_SET (-1, G(-1), N(-1)));
+
+	_ASSERT (3, !NM_IN_SET (-1, G( 1), G( 2), G( 3)));
+	_ASSERT (1,  NM_IN_SET (-1, G(-1), N( 2), N( 3)));
+	_ASSERT (2,  NM_IN_SET (-1, G( 1), G(-1), N( 3)));
+	_ASSERT (3,  NM_IN_SET (-1, G( 1), G( 2), G(-1)));
+	_ASSERT (2,  NM_IN_SET (-1, G( 1), G(-1), N(-1)));
+	_ASSERT (1,  NM_IN_SET (-1, G(-1), N( 2), N(-1)));
+	_ASSERT (1,  NM_IN_SET (-1, G(-1), N(-1), N( 3)));
+	_ASSERT (1,  NM_IN_SET (-1, G(-1), N(-1), N(-1)));
+
+	_ASSERT (4, !NM_IN_SET (-1, G( 1), G( 2), G( 3), G( 4)));
+	_ASSERT (1,  NM_IN_SET (-1, G(-1), N( 2), N( 3), N( 4)));
+	_ASSERT (2,  NM_IN_SET (-1, G( 1), G(-1), N( 3), N( 4)));
+	_ASSERT (3,  NM_IN_SET (-1, G( 1), G( 2), G(-1), N( 4)));
+	_ASSERT (4,  NM_IN_SET (-1, G( 1), G( 2), G( 3), G(-1)));
+
+	_ASSERT (4,  NM_IN_SET (-1, G( 1), G( 2), G( 3), G(-1), G( 5)));
+	_ASSERT (5,  NM_IN_SET (-1, G( 1), G( 2), G( 3), G( 4), G(-1)));
+	_ASSERT (6,  NM_IN_SET (-1, G( 1), G( 2), G( 3), G( 4), G( 5), G( -1)));
+
+	_ASSERT (1, !NM_IN_SET_SE (-1, G( 1)));
+	_ASSERT (1,  NM_IN_SET_SE (-1, G(-1)));
+
+	_ASSERT (2, !NM_IN_SET_SE (-1, G( 1), G( 2)));
+	_ASSERT (2,  NM_IN_SET_SE (-1, G(-1), G( 2)));
+	_ASSERT (2,  NM_IN_SET_SE (-1, G( 1), G(-1)));
+	_ASSERT (2,  NM_IN_SET_SE (-1, G(-1), G(-1)));
+
+	_ASSERT (3, !NM_IN_SET_SE (-1, G( 1), G( 2), G( 3)));
+	_ASSERT (3,  NM_IN_SET_SE (-1, G(-1), G( 2), G( 3)));
+	_ASSERT (3,  NM_IN_SET_SE (-1, G( 1), G(-1), G( 3)));
+	_ASSERT (3,  NM_IN_SET_SE (-1, G( 1), G( 2), G(-1)));
+	_ASSERT (3,  NM_IN_SET_SE (-1, G( 1), G(-1), G(-1)));
+	_ASSERT (3,  NM_IN_SET_SE (-1, G(-1), G( 2), G(-1)));
+	_ASSERT (3,  NM_IN_SET_SE (-1, G(-1), G(-1), G( 3)));
+	_ASSERT (3,  NM_IN_SET_SE (-1, G(-1), G(-1), G(-1)));
+
+	_ASSERT (4, !NM_IN_SET_SE (-1, G( 1), G( 2), G( 3), G( 4)));
+	_ASSERT (4,  NM_IN_SET_SE (-1, G(-1), G( 2), G( 3), G( 4)));
+	_ASSERT (4,  NM_IN_SET_SE (-1, G( 1), G(-1), G( 3), G( 4)));
+	_ASSERT (4,  NM_IN_SET_SE (-1, G( 1), G( 2), G(-1), G( 4)));
+	_ASSERT (4,  NM_IN_SET_SE (-1, G( 1), G( 2), G( 3), G(-1)));
+
+	_ASSERT (5,  NM_IN_SET_SE (-1, G( 1), G( 2), G( 3), G(-1), G( 5)));
+	_ASSERT (6,  NM_IN_SET_SE (-1, G( 1), G( 2), G( 3), G( 4), G( 5), G(-1)));
+#undef G
+#undef N
+#undef _ASSERT
+}
+
+/******************************************************************************/
+
+static const char *
+_test_nm_in_set_getstr (int *call_counter, gboolean allow_called, const char *value)
+{
+	g_assert (call_counter);
+	*call_counter += 1;
+	if (!allow_called)
+		g_assert_not_reached ();
+	return value;
+}
+
+static void
+test_nm_in_strset (void)
+{
+	int call_counter = 0;
+
+#define G(x) _test_nm_in_set_getstr (&call_counter, TRUE,  x)
+#define N(x) _test_nm_in_set_getstr (&call_counter, FALSE,  x)
+#define _ASSERT(expected, expr) \
+	G_STMT_START { \
+		_test_nm_in_set_assert (&call_counter, 0); \
+		g_assert (expr); \
+		_test_nm_in_set_assert (&call_counter, (expected)); \
+	} G_STMT_END
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL)));
+	_ASSERT (1, !NM_IN_STRSET ("a",  G(NULL)));
+	_ASSERT (1, !NM_IN_STRSET (NULL, G("a")));
+
+	_ASSERT (1,  NM_IN_STRSET_SE (NULL, G(NULL)));
+	_ASSERT (1, !NM_IN_STRSET_SE ("a",  G(NULL)));
+	_ASSERT (1, !NM_IN_STRSET_SE (NULL, G("a")));
+
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N(NULL)));
+	_ASSERT (2, !NM_IN_STRSET ("a",  G(NULL), G(NULL)));
+	_ASSERT (2,  NM_IN_STRSET (NULL, G("a"),  G(NULL)));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N("a")));
+	_ASSERT (2,  NM_IN_STRSET ("a",  G(NULL), G("a")));
+	_ASSERT (2, !NM_IN_STRSET (NULL, G("a"),  G("a")));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N("b")));
+	_ASSERT (2, !NM_IN_STRSET ("a",  G(NULL), G("b")));
+	_ASSERT (2, !NM_IN_STRSET (NULL, G("a"),  G("b")));
+
+	_ASSERT (2,  NM_IN_STRSET_SE (NULL, G(NULL), G(NULL)));
+	_ASSERT (2, !NM_IN_STRSET_SE ("a",  G(NULL), G(NULL)));
+	_ASSERT (2,  NM_IN_STRSET_SE (NULL, G("a"),  G(NULL)));
+	_ASSERT (2,  NM_IN_STRSET_SE (NULL, G(NULL), G("a")));
+	_ASSERT (2,  NM_IN_STRSET_SE ("a",  G(NULL), G("a")));
+	_ASSERT (2, !NM_IN_STRSET_SE (NULL, G("a"),  G("a")));
+	_ASSERT (2,  NM_IN_STRSET_SE (NULL, G(NULL), G("b")));
+	_ASSERT (2, !NM_IN_STRSET_SE ("a",  G(NULL), G("b")));
+	_ASSERT (2, !NM_IN_STRSET_SE (NULL, G("a"),  G("b")));
+
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N(NULL), N(NULL)));
+	_ASSERT (3, !NM_IN_STRSET ("a",  G(NULL), G(NULL), G(NULL)));
+	_ASSERT (2,  NM_IN_STRSET (NULL, G("a"),  G(NULL), N(NULL)));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N("a"),  N(NULL)));
+	_ASSERT (2,  NM_IN_STRSET ("a",  G(NULL), G("a"),  N(NULL)));
+	_ASSERT (3,  NM_IN_STRSET (NULL, G("a"),  G("a"),  G(NULL)));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N("b"),  N(NULL)));
+	_ASSERT (3, !NM_IN_STRSET ("a",  G(NULL), G("b"),  G(NULL)));
+	_ASSERT (3,  NM_IN_STRSET (NULL, G("a"),  G("b"),  G(NULL)));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N(NULL), N("a")));
+	_ASSERT (3,  NM_IN_STRSET ("a",  G(NULL), G(NULL), G("a")));
+	_ASSERT (2,  NM_IN_STRSET (NULL, G("a"),  G(NULL), N("a")));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N("a"),  N("a")));
+	_ASSERT (2,  NM_IN_STRSET ("a",  G(NULL), G("a"),  N("a")));
+	_ASSERT (3, !NM_IN_STRSET (NULL, G("a"),  G("a"),  G("a")));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N("b"),  N("a")));
+	_ASSERT (3,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("a")));
+	_ASSERT (3, !NM_IN_STRSET (NULL, G("a"),  G("b"),  G("a")));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N(NULL), N("b")));
+	_ASSERT (3, !NM_IN_STRSET ("a",  G(NULL), G(NULL), G("b")));
+	_ASSERT (2,  NM_IN_STRSET (NULL, G("a"),  G(NULL), N("b")));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N("a"),  N("b")));
+	_ASSERT (2,  NM_IN_STRSET ("a",  G(NULL), G("a"),  N("b")));
+	_ASSERT (3, !NM_IN_STRSET (NULL, G("a"),  G("a"),  G("b")));
+	_ASSERT (1,  NM_IN_STRSET (NULL, G(NULL), N("b"),  N("b")));
+	_ASSERT (3, !NM_IN_STRSET ("a",  G(NULL), G("b"),  G("b")));
+	_ASSERT (3, !NM_IN_STRSET (NULL, G("a"),  G("b"),  G("b")));
+
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G(NULL), G(NULL)));
+	_ASSERT (3, !NM_IN_STRSET_SE ("a",  G(NULL), G(NULL), G(NULL)));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G("a"),  G(NULL), G(NULL)));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G("a"),  G(NULL)));
+	_ASSERT (3,  NM_IN_STRSET_SE ("a",  G(NULL), G("a"),  G(NULL)));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G("a"),  G("a"),  G(NULL)));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G("b"),  G(NULL)));
+	_ASSERT (3, !NM_IN_STRSET_SE ("a",  G(NULL), G("b"),  G(NULL)));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G("a"),  G("b"),  G(NULL)));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G(NULL), G("a")));
+	_ASSERT (3,  NM_IN_STRSET_SE ("a",  G(NULL), G(NULL), G("a")));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G("a"),  G(NULL), G("a")));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G("a"),  G("a")));
+	_ASSERT (3,  NM_IN_STRSET_SE ("a",  G(NULL), G("a"),  G("a")));
+	_ASSERT (3, !NM_IN_STRSET_SE (NULL, G("a"),  G("a"),  G("a")));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G("b"),  G("a")));
+	_ASSERT (3,  NM_IN_STRSET_SE ("a",  G(NULL), G("b"),  G("a")));
+	_ASSERT (3, !NM_IN_STRSET_SE (NULL, G("a"),  G("b"),  G("a")));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G(NULL), G("b")));
+	_ASSERT (3, !NM_IN_STRSET_SE ("a",  G(NULL), G(NULL), G("b")));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G("a"),  G(NULL), G("b")));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G("a"),  G("b")));
+	_ASSERT (3,  NM_IN_STRSET_SE ("a",  G(NULL), G("a"),  G("b")));
+	_ASSERT (3, !NM_IN_STRSET_SE (NULL, G("a"),  G("a"),  G("b")));
+	_ASSERT (3,  NM_IN_STRSET_SE (NULL, G(NULL), G("b"),  G("b")));
+	_ASSERT (3, !NM_IN_STRSET_SE ("a",  G(NULL), G("b"),  G("b")));
+	_ASSERT (3, !NM_IN_STRSET_SE (NULL, G("a"),  G("b"),  G("b")));
+
+
+	_ASSERT (3,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("a"),  N("a")));
+	_ASSERT (4,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("a")));
+	_ASSERT (4, !NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("d")));
+
+	_ASSERT (4,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("a"),  N("a")));
+	_ASSERT (5,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("d"),  G("a")));
+	_ASSERT (5, !NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("d"),  G("e")));
+
+	_ASSERT (5,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("d"),  G("a"),  N("a")));
+	_ASSERT (6,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("d"),  G("e"),  G("a")));
+	_ASSERT (6, !NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("d"),  G("e"),  G("f")));
+#undef G
+#undef N
+#undef _ASSERT
+}
+
+/******************************************************************************/
 
 NMTST_DEFINE ();
 
@@ -4455,6 +4961,8 @@ int main (int argc, char **argv)
 	nmtst_init (&argc, &argv, TRUE);
 
 	/* The tests */
+	g_test_add_func ("/core/general/test_nm_in_set", test_nm_in_set);
+	g_test_add_func ("/core/general/test_nm_in_strset", test_nm_in_strset);
 	g_test_add_func ("/core/general/test_setting_vpn_items", test_setting_vpn_items);
 	g_test_add_func ("/core/general/test_setting_vpn_update_secrets", test_setting_vpn_update_secrets);
 	g_test_add_func ("/core/general/test_setting_vpn_modify_during_foreach", test_setting_vpn_modify_during_foreach);
@@ -4464,6 +4972,7 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/test_setting_gsm_apn_bad_chars", test_setting_gsm_apn_bad_chars);
 	g_test_add_func ("/core/general/test_setting_gsm_apn_underscore", test_setting_gsm_apn_underscore);
 	g_test_add_func ("/core/general/test_setting_gsm_without_number", test_setting_gsm_without_number);
+	g_test_add_func ("/core/general/test_setting_gsm_sim_operator_id", test_setting_gsm_sim_operator_id);
 	g_test_add_func ("/core/general/test_setting_to_dbus_all", test_setting_to_dbus_all);
 	g_test_add_func ("/core/general/test_setting_to_dbus_no_secrets", test_setting_to_dbus_no_secrets);
 	g_test_add_func ("/core/general/test_setting_to_dbus_only_secrets", test_setting_to_dbus_only_secrets);
@@ -4471,18 +4980,18 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/test_setting_to_dbus_enum", test_setting_to_dbus_enum);
 	g_test_add_func ("/core/general/test_setting_compare_id", test_setting_compare_id);
 	g_test_add_func ("/core/general/test_setting_compare_timestamp", test_setting_compare_timestamp);
-#define ADD_FUNC(func, secret_flags, comp_flags, remove_secret) \
-	g_test_add_data_func_full ("/core/general/" G_STRINGIFY (func), \
+#define ADD_FUNC(name, func, secret_flags, comp_flags, remove_secret) \
+	g_test_add_data_func_full ("/core/general/" G_STRINGIFY (func) "_" name, \
 	                           test_data_compare_secrets_new (secret_flags, comp_flags, remove_secret), \
 	                           func, g_free)
-	ADD_FUNC (test_setting_compare_secrets, NM_SETTING_SECRET_FLAG_AGENT_OWNED, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, TRUE);
-	ADD_FUNC (test_setting_compare_secrets, NM_SETTING_SECRET_FLAG_NOT_SAVED, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, TRUE);
-	ADD_FUNC (test_setting_compare_secrets, NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, TRUE);
-	ADD_FUNC (test_setting_compare_secrets, NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_EXACT, FALSE);
-	ADD_FUNC (test_setting_compare_vpn_secrets, NM_SETTING_SECRET_FLAG_AGENT_OWNED, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, TRUE);
-	ADD_FUNC (test_setting_compare_vpn_secrets, NM_SETTING_SECRET_FLAG_NOT_SAVED, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, TRUE);
-	ADD_FUNC (test_setting_compare_vpn_secrets, NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, TRUE);
-	ADD_FUNC (test_setting_compare_vpn_secrets, NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_EXACT, FALSE);
+	ADD_FUNC ("agent_owned", test_setting_compare_secrets, NM_SETTING_SECRET_FLAG_AGENT_OWNED, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, TRUE);
+	ADD_FUNC ("not_saved", test_setting_compare_secrets, NM_SETTING_SECRET_FLAG_NOT_SAVED, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, TRUE);
+	ADD_FUNC ("secrets", test_setting_compare_secrets, NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, TRUE);
+	ADD_FUNC ("exact", test_setting_compare_secrets, NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_EXACT, FALSE);
+	ADD_FUNC ("agent_owned", test_setting_compare_vpn_secrets, NM_SETTING_SECRET_FLAG_AGENT_OWNED, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS, TRUE);
+	ADD_FUNC ("not_saved", test_setting_compare_vpn_secrets, NM_SETTING_SECRET_FLAG_NOT_SAVED, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS, TRUE);
+	ADD_FUNC ("secrets", test_setting_compare_vpn_secrets, NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS, TRUE);
+	ADD_FUNC ("exact", test_setting_compare_vpn_secrets, NM_SETTING_SECRET_FLAG_NONE, NM_SETTING_COMPARE_FLAG_EXACT, FALSE);
 	g_test_add_func ("/core/general/test_setting_old_uuid", test_setting_old_uuid);
 
 	g_test_add_func ("/core/general/test_connection_to_dbus_setting_name", test_connection_to_dbus_setting_name);
@@ -4542,6 +5051,7 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/test_setting_802_1x_changed_signal", test_setting_802_1x_changed_signal);
 	g_test_add_func ("/core/general/test_setting_ip4_gateway", test_setting_ip4_gateway);
 	g_test_add_func ("/core/general/test_setting_ip6_gateway", test_setting_ip6_gateway);
+	g_test_add_func ("/core/general/test_setting_compare_default_strv", test_setting_compare_default_strv);
 
 	g_test_add_func ("/core/general/hexstr2bin", test_hexstr2bin);
 	g_test_add_func ("/core/general/test_nm_utils_uuid_generate_from_string", test_nm_utils_uuid_generate_from_string);
@@ -4550,7 +5060,14 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/_nm_utils_ascii_str_to_int64", test_nm_utils_ascii_str_to_int64);
 	g_test_add_func ("/core/general/nm_utils_is_power_of_two", test_nm_utils_is_power_of_two);
 	g_test_add_func ("/core/general/_glib_compat_g_ptr_array_insert", test_g_ptr_array_insert);
+	g_test_add_func ("/core/general/_glib_compat_g_hash_table_get_keys_as_array", test_g_hash_table_get_keys_as_array);
 	g_test_add_func ("/core/general/_nm_utils_ptrarray_find_binary_search", test_nm_utils_ptrarray_find_binary_search);
+	g_test_add_func ("/core/general/_nm_utils_strstrdictkey", test_nm_utils_strstrdictkey);
+
+	g_test_add_func ("/core/general/_nm_utils_dns_option_validate", test_nm_utils_dns_option_validate);
+	g_test_add_func ("/core/general/_nm_utils_dns_option_find_idx", test_nm_utils_dns_option_find_idx);
+
+	g_test_add_func ("/core/general/test_nm_utils_enum", test_nm_utils_enum);
 
 	return g_test_run ();
 }

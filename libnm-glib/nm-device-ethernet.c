@@ -19,16 +19,14 @@
  * Copyright 2007 - 2012 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <netinet/ether.h>
 
-#include "nm-glib-compat.h"
-
-#include <nm-setting-connection.h>
-#include <nm-setting-wired.h>
-#include <nm-setting-pppoe.h>
+#include "nm-setting-connection.h"
+#include "nm-setting-wired.h"
+#include "nm-setting-pppoe.h"
 
 #include "nm-device-ethernet.h"
 #include "nm-device-private.h"

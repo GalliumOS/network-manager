@@ -147,6 +147,9 @@
 <a name="NMSettingWimax.description"></a><h2>Description</h2>
 <p>The <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes properties
 necessary for connection to 802.16e Mobile WiMAX networks.</p>
+<p>NetworkManager no longer supports WiMAX; while this API remains available for
+backward-compatibility reasons, it serves no real purpose, since WiMAX
+connections cannot be activated.</p>
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.functions_details"></a><h2>Functions</h2>
@@ -154,9 +157,13 @@ necessary for connection to 802.16e Mobile WiMAX networks.</p>
 <a name="nm-setting-wimax-error-quark"></a><h3>nm_setting_wimax_error_quark ()</h3>
 <pre class="programlisting"><span class="returnvalue">GQuark</span>
 nm_setting_wimax_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_setting_wimax_error_quark</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Registers an error quark for <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> if necessary.</p>
 <div class="refsect3">
-<a name="id-1.2.12.9.2.5"></a><h4>Returns</h4>
+<a name="id-1.2.12.9.2.6"></a><h4>Returns</h4>
 <p> the error quark used for <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> errors.</p>
 </div>
 </div>
@@ -165,9 +172,13 @@ nm_setting_wimax_error_quark (<em class="parameter"><code><span class="type">voi
 <a name="nm-setting-wimax-new"></a><h3>nm_setting_wimax_new ()</h3>
 <pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
 nm_setting_wimax_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_setting_wimax_new</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Creates a new <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.2.12.9.3.5"></a><h4>Returns</h4>
+<a name="id-1.2.12.9.3.6"></a><h4>Returns</h4>
 <p> the new empty <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object</p>
 </div>
 </div>
@@ -176,10 +187,14 @@ nm_setting_wimax_new (<em class="parameter"><code><span class="type">void</span>
 <a name="nm-setting-wimax-get-network-name"></a><h3>nm_setting_wimax_get_network_name ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_wimax_get_network_name (<em class="parameter"><code><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> *setting</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_setting_wimax_get_network_name</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Returns the WiMAX NSP name (ex "Sprint" or "CLEAR") which identifies the
 specific WiMAX network this setting describes a connection to.</p>
 <div class="refsect3">
-<a name="id-1.2.12.9.4.5"></a><h4>Parameters</h4>
+<a name="id-1.2.12.9.4.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -194,7 +209,7 @@ specific WiMAX network this setting describes a connection to.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.12.9.4.6"></a><h4>Returns</h4>
+<a name="id-1.2.12.9.4.7"></a><h4>Returns</h4>
 <p> the WiMAX NSP name</p>
 </div>
 </div>
@@ -203,10 +218,14 @@ specific WiMAX network this setting describes a connection to.</p>
 <a name="nm-setting-wimax-get-mac-address"></a><h3>nm_setting_wimax_get_mac_address ()</h3>
 <pre class="programlisting">const <span class="returnvalue">GByteArray</span> *
 nm_setting_wimax_get_mac_address (<em class="parameter"><code><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> *setting</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_setting_wimax_get_mac_address</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Returns the MAC address of a WiMAX device which this connection is locked
 to.</p>
 <div class="refsect3">
-<a name="id-1.2.12.9.5.5"></a><h4>Parameters</h4>
+<a name="id-1.2.12.9.5.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -221,7 +240,7 @@ to.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.12.9.5.6"></a><h4>Returns</h4>
+<a name="id-1.2.12.9.5.7"></a><h4>Returns</h4>
 <p> the MAC address</p>
 </div>
 </div>
@@ -298,6 +317,10 @@ required</p>
 <p>If specified, this connection will only apply to the WiMAX device whose
 MAC address matches. This property does not change the MAC address of the
 device (known as MAC spoofing).</p>
+<div class="warning">
+<p><code class="literal">NMSettingWimax:mac-address</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -306,6 +329,10 @@ device (known as MAC spoofing).</p>
 <pre class="programlisting">  “network-name”             <span class="type">gchar</span> *</pre>
 <p>Network Service Provider (NSP) name of the WiMAX network this connection
 should use.</p>
+<div class="warning">
+<p><code class="literal">NMSettingWimax:network-name</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>

@@ -22,10 +22,9 @@
 #ifndef __NETWORKMANAGER_DISPATCHER_H__
 #define __NETWORKMANAGER_DISPATCHER_H__
 
-#include <glib.h>
 #include <stdio.h>
 
-#include "nm-types.h"
+#include "nm-default.h"
 #include "nm-connection.h"
 
 typedef enum {
@@ -45,18 +44,21 @@ typedef enum {
 typedef void (*DispatcherFunc) (guint call_id, gpointer user_data);
 
 gboolean nm_dispatcher_call (DispatcherAction action,
-                             NMConnection *connection,
+                             NMSettingsConnection *settings_connection,
+                             NMConnection *applied_connection,
                              NMDevice *device,
                              DispatcherFunc callback,
                              gpointer user_data,
                              guint *out_call_id);
 
 gboolean nm_dispatcher_call_sync (DispatcherAction action,
-                                  NMConnection *connection,
+                                  NMSettingsConnection *settings_connection,
+                                  NMConnection *applied_connection,
                                   NMDevice *device);
 
 gboolean nm_dispatcher_call_vpn (DispatcherAction action,
-                                 NMConnection *connection,
+                                 NMSettingsConnection *settings_connection,
+                                 NMConnection *applied_connection,
                                  NMDevice *parent_device,
                                  const char *vpn_iface,
                                  NMIP4Config *vpn_ip4_config,
@@ -66,7 +68,8 @@ gboolean nm_dispatcher_call_vpn (DispatcherAction action,
                                  guint *out_call_id);
 
 gboolean nm_dispatcher_call_vpn_sync (DispatcherAction action,
-                                      NMConnection *connection,
+                                      NMSettingsConnection *settings_connection,
+                                      NMConnection *applied_connection,
                                       NMDevice *parent_device,
                                       const char *vpn_iface,
                                       NMIP4Config *vpn_ip4_config,

@@ -20,11 +20,10 @@
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <net/ethernet.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-param-spec-specialized.h"
 #include "nm-dbus-glib-types.h"

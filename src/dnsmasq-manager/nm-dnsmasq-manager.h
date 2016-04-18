@@ -21,9 +21,8 @@
 #ifndef __NETWORKMANAGER_DNSMASQ_MANAGER_H__
 #define __NETWORKMANAGER_DNSMASQ_MANAGER_H__
 
-#include <glib.h>
-#include <glib-object.h>
 
+#include "nm-default.h"
 #include "nm-ip4-config.h"
 
 #define NM_TYPE_DNSMASQ_MANAGER            (nm_dnsmasq_manager_get_type ())
@@ -32,6 +31,9 @@
 #define NM_IS_DNSMASQ_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DNSMASQ_MANAGER))
 #define NM_IS_DNSMASQ_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_DNSMASQ_MANAGER))
 #define NM_DNSMASQ_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_DNSMASQ_MANAGER, NMDnsMasqManagerClass))
+
+/* signals */
+#define NM_DNS_MASQ_MANAGER_STATE_CHANGED "state-changed"
 
 typedef enum {
 	NM_DNSMASQ_STATUS_UNKNOWN,

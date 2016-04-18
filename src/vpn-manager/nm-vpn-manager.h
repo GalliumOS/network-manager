@@ -22,8 +22,7 @@
 #ifndef __NETWORKMANAGER_VPN_MANAGER_H__
 #define __NETWORKMANAGER_VPN_MANAGER_H__
 
-#include <glib.h>
-#include <glib-object.h>
+#include "nm-default.h"
 #include "nm-vpn-connection.h"
 
 #define NM_TYPE_VPN_MANAGER            (nm_vpn_manager_get_type ())
@@ -48,9 +47,5 @@ NMVpnManager *nm_vpn_manager_get (void);
 gboolean nm_vpn_manager_activate_connection (NMVpnManager *manager,
                                              NMVpnConnection *vpn,
                                              GError **error);
-
-gboolean nm_vpn_manager_deactivate_connection (NMVpnManager *manager,
-                                               NMVpnConnection *connection,
-                                               NMVpnConnectionStateReason reason);
 
 #endif /* __NETWORKMANAGER_VPN_MANAGER_H__ */

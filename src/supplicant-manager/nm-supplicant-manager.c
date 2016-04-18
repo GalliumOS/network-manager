@@ -19,17 +19,13 @@
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <glib.h>
-#include <dbus/dbus.h>
-
-#include "nm-glib-compat.h"
 
 #include "nm-supplicant-manager.h"
 #include "nm-supplicant-interface.h"
-#include "nm-logging.h"
+#include "nm-supplicant-types.h"
 #include "nm-core-internal.h"
 
 #define NM_SUPPLICANT_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), \
@@ -38,17 +34,31 @@
 
 G_DEFINE_TYPE (NMSupplicantManager, nm_supplicant_manager, G_TYPE_OBJECT)
 
+#define _NMLOG_DOMAIN         LOGD_SUPPLICANT
+#define _NMLOG_PREFIX_NAME    "supplicant"
+#define _NMLOG(level, ...) \
+    G_STMT_START { \
+        nm_log ((level), _NMLOG_DOMAIN, \
+                "%s" _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
+                _NMLOG_PREFIX_NAME": " \
+                _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
+    } G_STMT_END
+
 typedef struct {
 	GDBusProxy *     proxy;
 	GCancellable *   cancellable;
 	gboolean         running;
 
-	GHashTable *    ifaces;
-	gboolean        fast_supported;
-	ApSupport       ap_support;
-	guint           die_count_reset_id;
-	guint           die_count;
+	GSList          *ifaces;
+	gboolean          fast_supported;
+	NMSupplicantFeature ap_support;
+	guint             die_count_reset_id;
+	guint             die_count;
 } NMSupplicantManagerPrivate;
+
+/********************************************************************/
+
+G_DEFINE_QUARK (nm-supplicant-error-quark, nm_supplicant_error);
 
 /********************************************************************/
 
@@ -58,67 +68,40 @@ die_count_exceeded (guint32 count)
 	return count > 2;
 }
 
-NMSupplicantInterface *
-nm_supplicant_manager_iface_get (NMSupplicantManager * self,
-                                 const char *ifname,
-                                 gboolean is_wireless)
+static gboolean
+is_available (NMSupplicantManager *self)
 {
-	NMSupplicantManagerPrivate *priv;
-	NMSupplicantInterface *iface = NULL;
-	gboolean start_now;
+	NMSupplicantManagerPrivate *priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
 
-	g_return_val_if_fail (NM_IS_SUPPLICANT_MANAGER (self), NULL);
-	g_return_val_if_fail (ifname != NULL, NULL);
-
-	priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
-
-	iface = g_hash_table_lookup (priv->ifaces, ifname);
-	if (!iface) {
-		/* If we're making the supplicant take a time out for a bit, don't
-		 * let the supplicant interface start immediately, just let it hang
-		 * around in INIT state until we're ready to talk to the supplicant
-		 * again.
-		 */
-		start_now = !die_count_exceeded (priv->die_count);
-
-		nm_log_dbg (LOGD_SUPPLICANT, "(%s): creating new supplicant interface", ifname);
-		iface = nm_supplicant_interface_new (ifname,
-		                                     is_wireless,
-		                                     priv->fast_supported,
-		                                     priv->ap_support,
-		                                     start_now);
-		if (iface) {
-			g_hash_table_insert (priv->ifaces,
-			                     (char *) nm_supplicant_interface_get_ifname (iface),
-			                     iface);
-		}
-	} else {
-		nm_log_dbg (LOGD_SUPPLICANT, "(%s): returning existing supplicant interface", ifname);
-	}
-
-	return iface;
+	return    priv->running
+	       && !die_count_exceeded (priv->die_count);
 }
 
-void
-nm_supplicant_manager_iface_release (NMSupplicantManager *self,
-                                     NMSupplicantInterface *iface)
+/********************************************************************/
+
+static void
+_sup_iface_last_ref (gpointer data,
+                     GObject *object,
+                     gboolean is_last_ref)
 {
+	NMSupplicantManager *self = data;
 	NMSupplicantManagerPrivate *priv;
-	const char *ifname, *op;
+	NMSupplicantInterface *sup_iface = (NMSupplicantInterface *) object;
+	const char *op;
 
 	g_return_if_fail (NM_IS_SUPPLICANT_MANAGER (self));
-	g_return_if_fail (NM_IS_SUPPLICANT_INTERFACE (iface));
-
-	ifname = nm_supplicant_interface_get_ifname (iface);
-	g_assert (ifname);
+	g_return_if_fail (NM_IS_SUPPLICANT_INTERFACE (sup_iface));
+	g_return_if_fail (is_last_ref);
 
 	priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
 
-	g_return_if_fail (g_hash_table_lookup (priv->ifaces, ifname) == iface);
+	if (!g_slist_find (priv->ifaces, sup_iface))
+		g_return_if_reached ();
 
 	/* Ask wpa_supplicant to remove this interface */
-	op = nm_supplicant_interface_get_object_path (iface);
-	if (priv->running && priv->proxy && op) {
+	if (   priv->running
+	    && priv->proxy
+	    && (op = nm_supplicant_interface_get_object_path (sup_iface))) {
 		g_dbus_proxy_call (priv->proxy,
 		                   "RemoveInterface",
 		                   g_variant_new ("(o)", op),
@@ -129,15 +112,69 @@ nm_supplicant_manager_iface_release (NMSupplicantManager *self,
 		                   NULL);
 	}
 
-	g_hash_table_remove (priv->ifaces, ifname);
+	priv->ifaces = g_slist_remove (priv->ifaces, sup_iface);
+	g_object_remove_toggle_ref ((GObject *) sup_iface, _sup_iface_last_ref, self);
+}
+
+/**
+ * nm_supplicant_manager_create_interface:
+ * @self: the #NMSupplicantManager
+ * @ifname: the interface for which to obtain the supplicant interface
+ * @is_wireless: whether the interface is supposed to be wireless.
+ *
+ * Note: the manager owns a reference to the instance and the only way to
+ *   get the manager to release it, is by dropping all other references
+ *   to the supplicant-interface (or destroying the manager).
+ *
+ * Returns: (transfer full): returns a #NMSupplicantInterface or %NULL.
+ *   Must be unrefed at the end.
+ * */
+NMSupplicantInterface *
+nm_supplicant_manager_create_interface (NMSupplicantManager *self,
+                                        const char *ifname,
+                                        gboolean is_wireless)
+{
+	NMSupplicantManagerPrivate *priv;
+	NMSupplicantInterface *iface;
+	GSList *ifaces;
+
+	g_return_val_if_fail (NM_IS_SUPPLICANT_MANAGER (self), NULL);
+	g_return_val_if_fail (ifname != NULL, NULL);
+
+	priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
+
+	_LOGD ("(%s): creating new supplicant interface", ifname);
+
+	/* assert against not requesting duplicate interfaces. */
+	for (ifaces = priv->ifaces; ifaces; ifaces = ifaces->next) {
+		if (g_strcmp0 (nm_supplicant_interface_get_ifname (ifaces->data), ifname) == 0)
+			g_return_val_if_reached (NULL);
+	}
+
+	iface = nm_supplicant_interface_new (ifname,
+	                                     is_wireless,
+	                                     priv->fast_supported,
+	                                     priv->ap_support);
+
+	priv->ifaces = g_slist_prepend (priv->ifaces, iface);
+	g_object_add_toggle_ref ((GObject *) iface, _sup_iface_last_ref, self);
+
+	/* If we're making the supplicant take a time out for a bit, don't
+	 * let the supplicant interface start immediately, just let it hang
+	 * around in INIT state until we're ready to talk to the supplicant
+	 * again.
+	 */
+	if (is_available (self))
+		nm_supplicant_interface_set_supplicant_available (iface, TRUE);
+
+	return iface;
 }
 
 static void
 update_capabilities (NMSupplicantManager *self)
 {
 	NMSupplicantManagerPrivate *priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
-	NMSupplicantInterface *iface;
-	GHashTableIter hash_iter;
+	GSList *ifaces;
 	const char **array;
 	GVariant *value;
 
@@ -150,28 +187,27 @@ update_capabilities (NMSupplicantManager *self)
 	 *
 	 * dbus: Add global capabilities property
 	 */
-	priv->ap_support = AP_SUPPORT_UNKNOWN;
+	priv->ap_support = NM_SUPPLICANT_FEATURE_UNKNOWN;
 
 	value = g_dbus_proxy_get_cached_property (priv->proxy, "Capabilities");
 	if (value) {
 		if (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING_ARRAY)) {
 			array = g_variant_get_strv (value, NULL);
-			priv->ap_support = AP_SUPPORT_NO;
+			priv->ap_support = NM_SUPPLICANT_FEATURE_NO;
 			if (_nm_utils_string_in_list ("ap", array))
-				priv->ap_support = AP_SUPPORT_YES;
+				priv->ap_support = NM_SUPPLICANT_FEATURE_YES;
 			g_free (array);
 		}
 		g_variant_unref (value);
 	}
 
 	/* Tell all interfaces about results of the AP check */
-	g_hash_table_iter_init (&hash_iter, priv->ifaces);
-	while (g_hash_table_iter_next (&hash_iter, NULL, (gpointer) &iface))
-		nm_supplicant_interface_set_ap_support (iface, priv->ap_support);
+	for (ifaces = priv->ifaces; ifaces; ifaces = ifaces->next)
+		nm_supplicant_interface_set_ap_support (ifaces->data, priv->ap_support);
 
-	nm_log_dbg (LOGD_SUPPLICANT, "AP mode is %ssupported",
-	            (priv->ap_support == AP_SUPPORT_YES) ? "" :
-	                (priv->ap_support == AP_SUPPORT_NO) ? "not " : "possibly ");
+	_LOGD ("AP mode is %ssupported",
+	       (priv->ap_support == NM_SUPPLICANT_FEATURE_YES) ? "" :
+	           (priv->ap_support == NM_SUPPLICANT_FEATURE_NO) ? "not " : "possibly ");
 
 	/* EAP-FAST */
 	priv->fast_supported = FALSE;
@@ -186,30 +222,27 @@ update_capabilities (NMSupplicantManager *self)
 		g_variant_unref (value);
 	}
 
-	nm_log_dbg (LOGD_SUPPLICANT, "EAP-FAST is %ssupported", priv->fast_supported ? "" : "not ");
+	_LOGD ("EAP-FAST is %ssupported", priv->fast_supported ? "" : "not ");
 }
 
 static void
 availability_changed (NMSupplicantManager *self, gboolean available)
 {
 	NMSupplicantManagerPrivate *priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
-	GList *ifaces, *iter;
+	GSList *ifaces, *iter;
 
-	/* priv->ifaces may be modified if availability changes; can't use GHashTableIter */
-	ifaces = g_hash_table_get_values (priv->ifaces);
+	if (!priv->ifaces)
+		return;
+
+	/* setting the supplicant as unavailable might cause the caller to unref
+	 * the supplicant (and thus remove the instance from the list of interfaces.
+	 * Delay that by taking an additional reference first. */
+	ifaces = g_slist_copy (priv->ifaces);
 	for (iter = ifaces; iter; iter = iter->next)
-		nm_supplicant_interface_set_supplicant_available (NM_SUPPLICANT_INTERFACE (iter->data), available);
-	g_list_free (ifaces);
-}
-
-static gboolean
-is_available (NMSupplicantManager *self)
-{
-	g_return_val_if_fail (NM_IS_SUPPLICANT_MANAGER (self), FALSE);
-
-	if (die_count_exceeded (NM_SUPPLICANT_MANAGER_GET_PRIVATE (self)->die_count))
-		return FALSE;
-	return NM_SUPPLICANT_MANAGER_GET_PRIVATE (self)->running;
+		g_object_ref (iter->data);
+	for (iter = ifaces; iter; iter = iter->next)
+		nm_supplicant_interface_set_supplicant_available (iter->data, available);
+	g_slist_free_full (ifaces, g_object_unref);
 }
 
 static void
@@ -247,7 +280,7 @@ wpas_die_count_reset_cb (gpointer user_data)
 	/* Reset the die count back to zero, which allows use of the supplicant again */
 	priv->die_count_reset_id = 0;
 	set_die_count (self, 0);
-	nm_log_info (LOGD_SUPPLICANT, "wpa_supplicant die count reset");
+	_LOGI ("wpa_supplicant die count reset");
 	return FALSE;
 }
 
@@ -261,7 +294,7 @@ name_owner_cb (GDBusProxy *proxy, GParamSpec *pspec, gpointer user_data)
 	g_return_if_fail (proxy == priv->proxy);
 
 	owner = g_dbus_proxy_get_name_owner (proxy);
-	nm_log_info (LOGD_SUPPLICANT, "wpa_supplicant %s", owner ? "running" : "stopped");
+	_LOGI ("wpa_supplicant %s", owner ? "running" : "stopped");
 
 	if (owner) {
 		set_running (self, TRUE);
@@ -278,9 +311,8 @@ name_owner_cb (GDBusProxy *proxy, GParamSpec *pspec, gpointer user_data)
 		set_die_count (self, priv->die_count + 1);
 
 		if (die_count_exceeded (priv->die_count)) {
-			nm_log_info (LOGD_SUPPLICANT,
-			             "wpa_supplicant die count %d; ignoring for 10 seconds",
-			             priv->die_count);
+			_LOGI ("wpa_supplicant die count %d; ignoring for 10 seconds",
+			       priv->die_count);
 		}
 
 		set_running (self, FALSE);
@@ -301,9 +333,8 @@ on_proxy_acquired (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	proxy = g_dbus_proxy_new_for_bus_finish (result, &error);
 	if (!proxy) {
-		nm_log_warn (LOGD_SUPPLICANT,
-		             "Failed to acquire wpa_supplicant proxy: Wi-Fi and 802.1x will not be available (%s)",
-		             error->message);
+		_LOGW ("failed to acquire wpa_supplicant proxy: Wi-Fi and 802.1x will not be available (%s)",
+		       error->message);
 		g_clear_error (&error);
 		return;
 	}
@@ -318,26 +349,12 @@ on_proxy_acquired (GObject *object, GAsyncResult *result, gpointer user_data)
 
 /*******************************************************************/
 
-NMSupplicantManager *
-nm_supplicant_manager_get (void)
-{
-	static NMSupplicantManager *singleton = NULL;
-
-	if (!singleton)
-		singleton = NM_SUPPLICANT_MANAGER (g_object_new (NM_TYPE_SUPPLICANT_MANAGER, NULL));
-	else
-		g_object_ref (singleton);
-
-	g_assert (singleton);
-	return singleton;
-}
+NM_DEFINE_SINGLETON_GETTER (NMSupplicantManager, nm_supplicant_manager_get, NM_TYPE_SUPPLICANT_MANAGER);
 
 static void
 nm_supplicant_manager_init (NMSupplicantManager *self)
 {
 	NMSupplicantManagerPrivate *priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
-
-	priv->ifaces = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
 
 	priv->cancellable = g_cancellable_new ();
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
@@ -354,19 +371,24 @@ nm_supplicant_manager_init (NMSupplicantManager *self)
 static void
 dispose (GObject *object)
 {
-	NMSupplicantManagerPrivate *priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (object);
+	NMSupplicantManager *self = (NMSupplicantManager *) object;
+	NMSupplicantManagerPrivate *priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
+	GSList *ifaces;
 
-	if (priv->die_count_reset_id) {
-		g_source_remove (priv->die_count_reset_id);
-		priv->die_count_reset_id = 0;
-	}
+	nm_clear_g_source (&priv->die_count_reset_id);
 
 	if (priv->cancellable) {
 		g_cancellable_cancel (priv->cancellable);
 		g_clear_object (&priv->cancellable);
 	}
 
-	g_clear_pointer (&priv->ifaces, g_hash_table_unref);
+	if (priv->ifaces) {
+		for (ifaces = priv->ifaces; ifaces; ifaces = ifaces->next)
+			g_object_remove_toggle_ref (ifaces->data, _sup_iface_last_ref, self);
+		g_slist_free (priv->ifaces);
+		priv->ifaces = NULL;
+	}
+
 	g_clear_object (&priv->proxy);
 
 	G_OBJECT_CLASS (nm_supplicant_manager_parent_class)->dispose (object);

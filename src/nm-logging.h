@@ -26,11 +26,6 @@
 #error nm-test-utils.h must be included as last header
 #endif
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include "nm-macros-internal.h"
-
 /* Log domains */
 typedef enum  { /*< skip >*/
 	LOGD_NONE       = 0LL,
@@ -57,18 +52,19 @@ typedef enum  { /*< skip >*/
 	LOGD_CORE       = (1LL << 20), /* Core daemon and policy stuff */
 	LOGD_DEVICE     = (1LL << 21), /* Device state and activation */
 	LOGD_OLPC       = (1LL << 22),
-	LOGD_WIMAX      = (1LL << 23),
-	LOGD_INFINIBAND = (1LL << 24),
-	LOGD_FIREWALL   = (1LL << 25),
-	LOGD_ADSL       = (1LL << 26),
-	LOGD_BOND       = (1LL << 27),
-	LOGD_VLAN       = (1LL << 28),
-	LOGD_BRIDGE     = (1LL << 29),
-	LOGD_DBUS_PROPS = (1LL << 30),
-	LOGD_TEAM       = (1LL << 31),
-	LOGD_CONCHECK   = (1LL << 32),
-	LOGD_DCB        = (1LL << 33), /* Data Center Bridging */
-	LOGD_DISPATCH   = (1LL << 34),
+	LOGD_INFINIBAND = (1LL << 23),
+	LOGD_FIREWALL   = (1LL << 24),
+	LOGD_ADSL       = (1LL << 25),
+	LOGD_BOND       = (1LL << 26),
+	LOGD_VLAN       = (1LL << 27),
+	LOGD_BRIDGE     = (1LL << 28),
+	LOGD_DBUS_PROPS = (1LL << 29),
+	LOGD_TEAM       = (1LL << 30),
+	LOGD_CONCHECK   = (1LL << 31),
+	LOGD_DCB        = (1LL << 32), /* Data Center Bridging */
+	LOGD_DISPATCH   = (1LL << 33),
+	LOGD_AUDIT      = (1LL << 34),
+	LOGD_SYSTEMD    = (1LL << 35),
 
 	__LOGD_MAX,
 	LOGD_ALL       = ((__LOGD_MAX - 1LL) << 1) - 1LL,
@@ -91,7 +87,12 @@ typedef enum  { /*< skip >*/
 	LOGL_WARN,
 	LOGL_ERR,
 
-	LOGL_MAX
+	_LOGL_N_REAL, /* the number of actual logging levels */
+
+	_LOGL_OFF = _LOGL_N_REAL, /* special logging level that is always disabled. */
+	_LOGL_KEEP,               /* special logging level to indicate that the logging level should not be changed. */
+
+	_LOGL_N, /* the number of logging levels including "OFF" */
 } NMLogLevel;
 
 #define nm_log_err(domain, ...)     nm_log (LOGL_ERR,   (domain), __VA_ARGS__)
@@ -118,30 +119,32 @@ typedef enum  { /*< skip >*/
     } G_STMT_END
 
 
-#define _nm_log_ptr(level, domain, self, ...) \
-   nm_log ((level), (domain), "[%p] " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), self _NM_UTILS_MACRO_REST(__VA_ARGS__))
+#define _nm_log_ptr(level, domain, self, prefix, ...) \
+   nm_log ((level), (domain), "%s[%p] " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), (prefix) ?: "", self _NM_UTILS_MACRO_REST(__VA_ARGS__))
 
 /* log a message for an object (with providing a generic @self pointer) */
-#define nm_log_ptr(level, domain, self, ...) \
+#define nm_log_ptr(level, domain, self, prefix, ...) \
     G_STMT_START { \
         NM_PRAGMA_WARNING_DISABLE("-Wtautological-compare") \
         if ((level) <= LOGL_DEBUG) { \
-            _nm_log_ptr ((level), (domain), (self), __VA_ARGS__); \
+            _nm_log_ptr ((level), (domain), (self), (prefix), __VA_ARGS__); \
         } else { \
-            nm_log ((level), (domain), __VA_ARGS__); \
+            const char *__prefix = (prefix); \
+            \
+            nm_log ((level), (domain), "%s%s" _NM_UTILS_MACRO_FIRST(__VA_ARGS__), __prefix ?: "", __prefix ? " " : "" _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
         } \
         NM_PRAGMA_WARNING_REENABLE \
     } G_STMT_END
 
 
-#define _nm_log_obj(level, domain, self, ...) \
-    _nm_log_ptr ((level), (domain), (self), __VA_ARGS__)
+#define _nm_log_obj(level, domain, self, prefix, ...) \
+    _nm_log_ptr ((level), (domain), (self), prefix, __VA_ARGS__)
 
 /* log a message for an object (with providing a @self pointer to a GObject).
  * Contrary to nm_log_ptr(), @self must be a GObject type (or %NULL).
  * As of now, nm_log_obj() is identical to nm_log_ptr(), but we might change that */
-#define nm_log_obj(level, domain, self, ...) \
-    nm_log_ptr ((level), (domain), (self), __VA_ARGS__)
+#define nm_log_obj(level, domain, self, prefix, ...) \
+    nm_log_ptr ((level), (domain), (self), prefix, __VA_ARGS__)
 
 
 void _nm_log_impl (const char *file,
@@ -164,7 +167,87 @@ gboolean nm_logging_setup (const char  *level,
                            const char  *domains,
                            char       **bad_domains,
                            GError     **error);
-void     nm_logging_syslog_openlog   (gboolean debug);
-void     nm_logging_syslog_closelog  (void);
+void     nm_logging_syslog_openlog (const char *logging_backend);
+
+/*****************************************************************************/
+
+/* This is the default definition of _NMLOG_ENABLED(). Special implementations
+ * might want to undef this and redefine it. */
+#define _NMLOG_ENABLED(level) ( nm_logging_enabled ((level), (_NMLOG_DOMAIN)) )
+
+#define _LOGT(...)          _NMLOG (LOGL_TRACE, __VA_ARGS__)
+#define _LOGD(...)          _NMLOG (LOGL_DEBUG, __VA_ARGS__)
+#define _LOGI(...)          _NMLOG (LOGL_INFO , __VA_ARGS__)
+#define _LOGW(...)          _NMLOG (LOGL_WARN , __VA_ARGS__)
+#define _LOGE(...)          _NMLOG (LOGL_ERR  , __VA_ARGS__)
+
+#define _LOGT_ENABLED(...)  _NMLOG_ENABLED (LOGL_TRACE, ##__VA_ARGS__)
+#define _LOGD_ENABLED(...)  _NMLOG_ENABLED (LOGL_DEBUG, ##__VA_ARGS__)
+#define _LOGI_ENABLED(...)  _NMLOG_ENABLED (LOGL_INFO , ##__VA_ARGS__)
+#define _LOGW_ENABLED(...)  _NMLOG_ENABLED (LOGL_WARN , ##__VA_ARGS__)
+#define _LOGE_ENABLED(...)  _NMLOG_ENABLED (LOGL_ERR  , ##__VA_ARGS__)
+
+#define _LOGT_err(errsv, ...) _NMLOG_err (errsv, LOGL_TRACE, __VA_ARGS__)
+#define _LOGD_err(errsv, ...) _NMLOG_err (errsv, LOGL_DEBUG, __VA_ARGS__)
+#define _LOGI_err(errsv, ...) _NMLOG_err (errsv, LOGL_INFO , __VA_ARGS__)
+#define _LOGW_err(errsv, ...) _NMLOG_err (errsv, LOGL_WARN , __VA_ARGS__)
+#define _LOGE_err(errsv, ...) _NMLOG_err (errsv, LOGL_ERR  , __VA_ARGS__)
+
+/* _LOGT() and _LOGt() both log with level TRACE, but the latter is disabled by default,
+ * unless building with --with-more-logging. */
+#ifdef NM_MORE_LOGGING
+#define _LOGt_ENABLED(...)    _NMLOG_ENABLED (LOGL_TRACE, ##__VA_ARGS__)
+#define _LOGt(...)            _NMLOG (LOGL_TRACE, __VA_ARGS__)
+#define _LOGt_err(errsv, ...) _NMLOG_err (errsv, LOGL_TRACE, __VA_ARGS__)
+#else
+/* still call the logging macros to get compile time checks, but they will be optimized out. */
+#define _LOGt_ENABLED(...)    ( FALSE && (_NMLOG_ENABLED (LOGL_TRACE, ##__VA_ARGS__)) )
+#define _LOGt(...)            G_STMT_START { if (FALSE) { _NMLOG (LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#define _LOGt_err(errsv, ...) G_STMT_START { if (FALSE) { _NMLOG_err (errsv, LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#endif
+
+/*****************************************************************************/
+
+/* Some implementation define a second set of logging macros, for a separate
+ * use. As with the _LOGD() macro familiy above, the exact implementation
+ * depends on the file that uses them.
+ * Still, it encourages a common pattern to have the common set of macros
+ * like _LOG2D(), _LOG2I(), etc. and have _LOG2t() which by default
+ * is disabled at compile time. */
+
+#define _NMLOG2_ENABLED(level) ( nm_logging_enabled ((level), (_NMLOG2_DOMAIN)) )
+
+#define _LOG2T(...)          _NMLOG2 (LOGL_TRACE, __VA_ARGS__)
+#define _LOG2D(...)          _NMLOG2 (LOGL_DEBUG, __VA_ARGS__)
+#define _LOG2I(...)          _NMLOG2 (LOGL_INFO , __VA_ARGS__)
+#define _LOG2W(...)          _NMLOG2 (LOGL_WARN , __VA_ARGS__)
+#define _LOG2E(...)          _NMLOG2 (LOGL_ERR  , __VA_ARGS__)
+
+#define _LOG2T_ENABLED(...)  _NMLOG2_ENABLED (LOGL_TRACE, ##__VA_ARGS__)
+#define _LOG2D_ENABLED(...)  _NMLOG2_ENABLED (LOGL_DEBUG, ##__VA_ARGS__)
+#define _LOG2I_ENABLED(...)  _NMLOG2_ENABLED (LOGL_INFO , ##__VA_ARGS__)
+#define _LOG2W_ENABLED(...)  _NMLOG2_ENABLED (LOGL_WARN , ##__VA_ARGS__)
+#define _LOG2E_ENABLED(...)  _NMLOG2_ENABLED (LOGL_ERR  , ##__VA_ARGS__)
+
+#define _LOG2T_err(errsv, ...) _NMLOG2_err (errsv, LOGL_TRACE, __VA_ARGS__)
+#define _LOG2D_err(errsv, ...) _NMLOG2_err (errsv, LOGL_DEBUG, __VA_ARGS__)
+#define _LOG2I_err(errsv, ...) _NMLOG2_err (errsv, LOGL_INFO , __VA_ARGS__)
+#define _LOG2W_err(errsv, ...) _NMLOG2_err (errsv, LOGL_WARN , __VA_ARGS__)
+#define _LOG2E_err(errsv, ...) _NMLOG2_err (errsv, LOGL_ERR  , __VA_ARGS__)
+
+#ifdef NM_MORE_LOGGING
+#define _LOG2t_ENABLED(...)    _NMLOG2_ENABLED (LOGL_TRACE, ##__VA_ARGS__)
+#define _LOG2t(...)            _NMLOG2 (LOGL_TRACE, __VA_ARGS__)
+#define _LOG2t_err(errsv, ...) _NMLOG2_err (errsv, LOGL_TRACE, __VA_ARGS__)
+#else
+/* still call the logging macros to get compile time checks, but they will be optimized out. */
+#define _LOG2t_ENABLED(...)    ( FALSE && (_NMLOG2_ENABLED (LOGL_TRACE, ##__VA_ARGS__)) )
+#define _LOG2t(...)            G_STMT_START { if (FALSE) { _NMLOG2 (LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#define _LOG2t_err(errsv, ...) G_STMT_START { if (FALSE) { _NMLOG2_err (errsv, LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#endif
+
+extern void (*_nm_logging_clear_platform_logging_cache) (void);
+
+/*****************************************************************************/
 
 #endif /* __NETWORKMANAGER_LOGGING_H__ */

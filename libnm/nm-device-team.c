@@ -18,16 +18,13 @@
  * Copyright 2013 Jiri Pirko <jiri@resnulli.us>
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <glib/gi18n-lib.h>
 
-#include "nm-glib-compat.h"
-
-#include <nm-setting-connection.h>
-#include <nm-setting-team.h>
-#include <nm-utils.h>
+#include "nm-setting-connection.h"
+#include "nm-setting-team.h"
+#include "nm-utils.h"
 
 #include "nm-device-team.h"
 #include "nm-device-private.h"

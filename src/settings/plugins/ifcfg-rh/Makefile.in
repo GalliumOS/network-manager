@@ -148,7 +148,8 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libnm_settings_plugin_ifcfg_rh_la_DEPENDENCIES = libifcfg-rh-io.la
+libnm_settings_plugin_ifcfg_rh_la_DEPENDENCIES = libifcfg-rh-io.la \
+	libnmdbus-ifcfg-rh.la
 am_libnm_settings_plugin_ifcfg_rh_la_OBJECTS = plugin.lo \
 	nm-ifcfg-connection.lo
 libnm_settings_plugin_ifcfg_rh_la_OBJECTS =  \
@@ -157,6 +158,11 @@ libnm_settings_plugin_ifcfg_rh_la_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libnm_settings_plugin_ifcfg_rh_la_LDFLAGS) $(LDFLAGS) -o $@
+libnmdbus_ifcfg_rh_la_LIBADD =
+nodist_libnmdbus_ifcfg_rh_la_OBJECTS =  \
+	libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.lo
+libnmdbus_ifcfg_rh_la_OBJECTS =  \
+	$(nodist_libnmdbus_ifcfg_rh_la_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -192,7 +198,8 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(libifcfg_rh_io_la_SOURCES) \
-	$(libnm_settings_plugin_ifcfg_rh_la_SOURCES)
+	$(libnm_settings_plugin_ifcfg_rh_la_SOURCES) \
+	$(nodist_libnmdbus_ifcfg_rh_la_SOURCES)
 DIST_SOURCES = $(libifcfg_rh_io_la_SOURCES) \
 	$(libnm_settings_plugin_ifcfg_rh_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
@@ -280,7 +287,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -292,8 +298,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -303,6 +307,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -357,16 +362,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -387,6 +389,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -402,6 +405,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -430,7 +435,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -445,6 +449,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -505,6 +511,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -512,6 +519,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -528,11 +536,16 @@ with_netconfig = @with_netconfig@
 with_resolvconf = @with_resolvconf@
 with_valgrind = @with_valgrind@
 SUBDIRS = . tests
-BUILT_SOURCES = \
-	nm-ifcfg-rh-glue.h
 
+# See note about gdbus-codegen in introspection/Makefile.am
+noinst_LTLIBRARIES = libnmdbus-ifcfg-rh.la libifcfg-rh-io.la
+nodist_libnmdbus_ifcfg_rh_la_SOURCES = \
+	nmdbus-ifcfg-rh.c \
+	nmdbus-ifcfg-rh.h
+
+libnmdbus_ifcfg_rh_la_CPPFLAGS = $(filter-out -DGLIB_VERSION_MAX_ALLOWED%,$(AM_CPPFLAGS))
+BUILT_SOURCES = nmdbus-ifcfg-rh.h nmdbus-ifcfg-rh.c
 pkglib_LTLIBRARIES = libnm-settings-plugin-ifcfg-rh.la
-noinst_LTLIBRARIES = libifcfg-rh-io.la
 libifcfg_rh_io_la_SOURCES = \
 	shvar.c \
 	shvar.h \
@@ -548,13 +561,12 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/ \
 	-I$(top_srcdir)/src/platform \
 	-I$(top_srcdir)/src/settings \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
 	$(GLIB_CFLAGS) \
-	$(DBUS_CFLAGS) \
 	$(NSS_CFLAGS) \
 	-DG_LOG_DOMAIN=\""NetworkManager-ifcfg-rh"\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" \
@@ -567,7 +579,7 @@ libnm_settings_plugin_ifcfg_rh_la_SOURCES = \
 	nm-ifcfg-connection.h
 
 libnm_settings_plugin_ifcfg_rh_la_LDFLAGS = -module -avoid-version
-libnm_settings_plugin_ifcfg_rh_la_LIBADD = libifcfg-rh-io.la
+libnm_settings_plugin_ifcfg_rh_la_LIBADD = libifcfg-rh-io.la libnmdbus-ifcfg-rh.la
 dbusservicedir = $(DBUS_SYS_DIR)
 dbusservice_DATA = nm-ifcfg-rh.conf
 EXTRA_DIST = \
@@ -662,12 +674,16 @@ libifcfg-rh-io.la: $(libifcfg_rh_io_la_OBJECTS) $(libifcfg_rh_io_la_DEPENDENCIES
 libnm-settings-plugin-ifcfg-rh.la: $(libnm_settings_plugin_ifcfg_rh_la_OBJECTS) $(libnm_settings_plugin_ifcfg_rh_la_DEPENDENCIES) $(EXTRA_libnm_settings_plugin_ifcfg_rh_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libnm_settings_plugin_ifcfg_rh_la_LINK) -rpath $(pkglibdir) $(libnm_settings_plugin_ifcfg_rh_la_OBJECTS) $(libnm_settings_plugin_ifcfg_rh_la_LIBADD) $(LIBS)
 
+libnmdbus-ifcfg-rh.la: $(libnmdbus_ifcfg_rh_la_OBJECTS) $(libnmdbus_ifcfg_rh_la_DEPENDENCIES) $(EXTRA_libnmdbus_ifcfg_rh_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(LINK)  $(libnmdbus_ifcfg_rh_la_OBJECTS) $(libnmdbus_ifcfg_rh_la_LIBADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-ifcfg-connection.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plugin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reader.Plo@am__quote@
@@ -695,6 +711,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.lo: nmdbus-ifcfg-rh.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnmdbus_ifcfg_rh_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.lo -MD -MP -MF $(DEPDIR)/libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.Tpo -c -o libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.lo `test -f 'nmdbus-ifcfg-rh.c' || echo '$(srcdir)/'`nmdbus-ifcfg-rh.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.Tpo $(DEPDIR)/libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nmdbus-ifcfg-rh.c' object='libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnmdbus_ifcfg_rh_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnmdbus_ifcfg_rh_la-nmdbus-ifcfg-rh.lo `test -f 'nmdbus-ifcfg-rh.c' || echo '$(srcdir)/'`nmdbus-ifcfg-rh.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1015,8 +1038,15 @@ uninstall-am: uninstall-dbusserviceDATA uninstall-pkglibLTLIBRARIES
 
 @GNOME_CODE_COVERAGE_RULES@
 
-nm-ifcfg-rh-glue.h: nm-ifcfg-rh.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_ifcfg_rh --mode=glib-server --output=$@ $<
+nmdbus-ifcfg-rh.h: nm-ifcfg-rh.xml
+	$(AM_V_GEN) gdbus-codegen \
+		--generate-c-code $(basename $@) \
+		--c-namespace NMDBus \
+		--interface-prefix com.redhat \
+		$<
+
+nmdbus-ifcfg-rh.c: nmdbus-ifcfg-rh.h
+	@true
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

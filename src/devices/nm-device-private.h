@@ -24,9 +24,9 @@
 
 #include "nm-device.h"
 
-/* This file should only be used by subclasses of NMDevice */
+#include "nm-default.h"
 
-#define NM_DEVICE_PLATFORM_DEVICE "platform-device"
+/* This file should only be used by subclasses of NMDevice */
 
 enum NMActStageReturn {
 	NM_ACT_STAGE_RETURN_FAILURE = 0,
@@ -91,11 +91,10 @@ gboolean nm_device_get_enslaved (NMDevice *device);
 NMDevice *nm_device_master_get_slave_by_ifindex (NMDevice *dev, int ifindex);
 
 void nm_device_master_check_slave_physical_port (NMDevice *self, NMDevice *slave,
-                                                 guint64 log_domain);
+                                                 NMLogDomain log_domain);
 
 void nm_device_set_carrier (NMDevice *self, gboolean carrier);
 
-void nm_device_emit_recheck_auto_activate (NMDevice *device);
 void nm_device_queue_recheck_assume (NMDevice *device);
 void nm_device_queue_recheck_available (NMDevice *device,
                                         NMDeviceStateReason available_reason,
@@ -105,5 +104,12 @@ void nm_device_set_wwan_ip4_config (NMDevice *device, NMIP4Config *config);
 void nm_device_set_wwan_ip6_config (NMDevice *device, NMIP6Config *config);
 
 gboolean nm_device_ipv6_sysctl_set (NMDevice *self, const char *property, const char *value);
+
+#define NM_DEVICE_CLASS_DECLARE_TYPES(klass, conn_type, ...) \
+	NM_DEVICE_CLASS (klass)->connection_type = conn_type; \
+	{ \
+		static const NMLinkType link_types[] = { __VA_ARGS__, NM_LINK_TYPE_NONE }; \
+		NM_DEVICE_CLASS (klass)->link_types = link_types; \
+	}
 
 #endif	/* NM_DEVICE_PRIVATE_H */

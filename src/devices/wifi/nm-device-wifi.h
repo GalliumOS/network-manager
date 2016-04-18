@@ -22,8 +22,6 @@
 #ifndef __NETWORKMANAGER_DEVICE_WIFI_H__
 #define __NETWORKMANAGER_DEVICE_WIFI_H__
 
-#include <glib-object.h>
-
 #include "nm-device.h"
 #include "nm-wifi-ap.h"
 
@@ -75,7 +73,7 @@ struct _NMDeviceWifiClass
 
 GType nm_device_wifi_get_type (void);
 
-NMDevice *nm_device_wifi_new (NMPlatformLink *platform_device);
+NMDevice * nm_device_wifi_new (const char *iface, NMDeviceWifiCapabilities capabilities);
 
 G_END_DECLS
 

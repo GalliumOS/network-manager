@@ -18,17 +18,15 @@
  * Copyright 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include "nm-device-generic.h"
 #include "nm-device-private.h"
 #include "nm-enum-types.h"
 #include "nm-platform.h"
-#include "nm-glib-compat.h"
-#include "nm-dbus-manager.h"
 #include "nm-core-internal.h"
 
-#include "nm-device-generic-glue.h"
+#include "nmdbus-device-generic.h"
 
 G_DEFINE_TYPE (NMDeviceGeneric, nm_device_generic, NM_TYPE_DEVICE)
 
@@ -60,6 +58,21 @@ get_type_description (NMDevice *device)
 	if (NM_DEVICE_GENERIC_GET_PRIVATE (device)->type_description)
 		return NM_DEVICE_GENERIC_GET_PRIVATE (device)->type_description;
 	return NM_DEVICE_CLASS (nm_device_generic_parent_class)->get_type_description (device);
+}
+
+static void
+realize_start_notify (NMDevice *device, const NMPlatformLink *plink)
+{
+	NMDeviceGeneric *self = NM_DEVICE_GENERIC (device);
+	NMDeviceGenericPrivate *priv = NM_DEVICE_GENERIC_GET_PRIVATE (self);
+	int ifindex;
+
+	NM_DEVICE_CLASS (nm_device_generic_parent_class)->realize_start_notify (device, plink);
+
+	g_clear_pointer (&priv->type_description, g_free);
+	ifindex = nm_device_get_ip_ifindex (NM_DEVICE (self));
+	if (ifindex > 0)
+		priv->type_description = g_strdup (nm_platform_link_get_type_name (NM_PLATFORM_GET, ifindex));
 }
 
 static gboolean
@@ -98,12 +111,12 @@ update_connection (NMDevice *device, NMConnection *connection)
 /**************************************************************/
 
 NMDevice *
-nm_device_generic_new (NMPlatformLink *platform_device)
+nm_device_generic_new (const NMPlatformLink *plink)
 {
-	g_return_val_if_fail (platform_device != NULL, NULL);
+	g_return_val_if_fail (plink != NULL, NULL);
 
 	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_GENERIC,
-	                                  NM_DEVICE_PLATFORM_DEVICE, platform_device,
+	                                  NM_DEVICE_IFACE, plink->name,
 	                                  NM_DEVICE_TYPE_DESC, "Generic",
 	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_GENERIC,
 	                                  NULL);
@@ -112,23 +125,22 @@ nm_device_generic_new (NMPlatformLink *platform_device)
 static void
 nm_device_generic_init (NMDeviceGeneric *self)
 {
-	nm_device_set_initial_unmanaged_flag (NM_DEVICE (self), NM_UNMANAGED_DEFAULT, TRUE);
 }
 
-static void
-constructed (GObject *object)
+static GObject *
+constructor (GType type,
+             guint n_construct_params,
+             GObjectConstructParam *construct_params)
 {
-	NMDeviceGeneric *self = NM_DEVICE_GENERIC (object);
-	NMDeviceGenericPrivate *priv = NM_DEVICE_GENERIC_GET_PRIVATE (self);
+	GObject *object;
 
-	if (!priv->type_description) {
-		int ifindex = nm_device_get_ip_ifindex (NM_DEVICE (self));
+	object = G_OBJECT_CLASS (nm_device_generic_parent_class)->constructor (type,
+	                                                                       n_construct_params,
+	                                                                       construct_params);
 
-		if (ifindex != 0)
-			priv->type_description = g_strdup (nm_platform_link_get_type_name (NM_PLATFORM_GET, ifindex));
-	}
+	nm_device_set_unmanaged_flags ((NMDevice *) object, NM_UNMANAGED_BY_DEFAULT, TRUE);
 
-	G_OBJECT_CLASS (nm_device_generic_parent_class)->constructed (object);
+	return object;
 }
 
 static void
@@ -184,13 +196,14 @@ nm_device_generic_class_init (NMDeviceGenericClass *klass)
 
 	g_type_class_add_private (klass, sizeof (NMDeviceGenericPrivate));
 
-	parent_class->connection_type = NM_SETTING_GENERIC_SETTING_NAME;
+	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NM_SETTING_GENERIC_SETTING_NAME, NM_LINK_TYPE_ANY)
 
-	object_class->constructed = constructed;
+	object_class->constructor = constructor;
 	object_class->dispose = dispose;
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 
+	parent_class->realize_start_notify = realize_start_notify;
 	parent_class->get_generic_capabilities = get_generic_capabilities;
 	parent_class->get_type_description = get_type_description;
 	parent_class->check_connection_compatible = check_connection_compatible;
@@ -204,7 +217,7 @@ nm_device_generic_class_init (NMDeviceGenericClass *klass)
 		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
 		                      G_PARAM_STATIC_STRINGS));
 
-	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
-	                                        G_TYPE_FROM_CLASS (klass),
-	                                        &dbus_glib_nm_device_generic_object_info);
+	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
+	                                        NMDBUS_TYPE_DEVICE_GENERIC_SKELETON,
+	                                        NULL);
 }

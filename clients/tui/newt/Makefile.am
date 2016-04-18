@@ -1,5 +1,8 @@
 AM_CPPFLAGS= \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
+	-I$(top_srcdir)/libnm-core \
+	-I$(top_builddir)/libnm-core \
 	-DG_LOG_DOMAIN=\""nmtui"\" \
 	$(GLIB_CFLAGS) \
 	$(NEWT_CFLAGS) \

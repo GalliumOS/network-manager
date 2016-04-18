@@ -18,27 +18,21 @@
  * Copyright 2011 Red Hat, Inc.
  */
 
-#include "config.h"
-
-#include <glib.h>
-#include <glib/gi18n.h>
+#include "nm-default.h"
 
 #include <linux/if_infiniband.h>
 
 #include "nm-device-infiniband.h"
-#include "nm-logging.h"
 #include "NetworkManagerUtils.h"
 #include "nm-device-private.h"
 #include "nm-enum-types.h"
-#include "nm-dbus-manager.h"
 #include "nm-activation-request.h"
 #include "nm-ip4-config.h"
 #include "nm-platform.h"
 #include "nm-device-factory.h"
 #include "nm-core-internal.h"
 
-#include "nm-device-infiniband-glue.h"
-
+#include "nmdbus-device-infiniband.h"
 
 G_DEFINE_TYPE (NMDeviceInfiniband, nm_device_infiniband, NM_TYPE_DEVICE)
 
@@ -57,10 +51,7 @@ enum {
 	LAST_PROP
 };
 
-static void
-nm_device_infiniband_init (NMDeviceInfiniband * self)
-{
-}
+/*************************************************************/
 
 static NMDeviceCapabilities
 get_generic_capabilities (NMDevice *dev)
@@ -77,12 +68,10 @@ static NMActStageReturn
 act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *reason)
 {
 	NMActStageReturn ret;
-	NMActRequest *req;
-	NMConnection *connection;
 	NMSettingInfiniband *s_infiniband;
 	const char *transport_mode;
 	char *mode_path;
-	gboolean ok;
+	gboolean ok, no_firmware = FALSE;
 
 	g_return_val_if_fail (reason != NULL, NM_ACT_STAGE_RETURN_FAILURE);
 
@@ -90,18 +79,13 @@ act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *reason)
 	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
 		return ret;
 
-	req = nm_device_get_act_request (dev);
-	g_return_val_if_fail (req != NULL, NM_ACT_STAGE_RETURN_FAILURE);
-
-	connection = nm_act_request_get_connection (req);
-	g_assert (connection);
-	s_infiniband = nm_connection_get_setting_infiniband (connection);
+	s_infiniband = (NMSettingInfiniband *) nm_device_get_applied_setting (dev, NM_TYPE_SETTING_INFINIBAND);
 	g_assert (s_infiniband);
 
 	transport_mode = nm_setting_infiniband_get_transport_mode (s_infiniband);
 
 	mode_path = g_strdup_printf ("/sys/class/net/%s/mode",
-	                             ASSERT_VALID_PATH_COMPONENT (nm_device_get_iface (dev)));
+	                             NM_ASSERT_VALID_PATH_COMPONENT (nm_device_get_iface (dev)));
 	if (!g_file_test (mode_path, G_FILE_TEST_EXISTS)) {
 		g_free (mode_path);
 
@@ -113,8 +97,11 @@ act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *reason)
 		}
 	}
 
+	/* With some drivers the interface must be down to set transport mode */
+	nm_device_take_down (dev, TRUE);
 	ok = nm_platform_sysctl_set (NM_PLATFORM_GET, mode_path, transport_mode);
 	g_free (mode_path);
+	nm_device_bring_up (dev, TRUE, &no_firmware);
 
 	if (!ok) {
 		*reason = NM_DEVICE_STATE_REASON_CONFIG_FAILED;
@@ -131,7 +118,7 @@ ip4_config_pre_commit (NMDevice *self, NMIP4Config *config)
 	NMSettingInfiniband *s_infiniband;
 	guint32 mtu;
 
-	connection = nm_device_get_connection (self);
+	connection = nm_device_get_applied_connection (self);
 	g_assert (connection);
 	s_infiniband = nm_connection_get_setting_infiniband (connection);
 	g_assert (s_infiniband);
@@ -157,7 +144,7 @@ check_connection_compatible (NMDevice *device, NMConnection *connection)
 	if (!s_infiniband)
 		return FALSE;
 
-	if (s_infiniband) {
+	if (nm_device_is_real (device)) {
 		const char *mac;
 
 		mac = nm_setting_infiniband_get_mac_address (s_infiniband);
@@ -179,7 +166,8 @@ complete_connection (NMDevice *device,
 	const char *setting_mac;
 	const char *hw_address;
 
-	nm_utils_complete_generic (connection,
+	nm_utils_complete_generic (NM_PLATFORM_GET,
+	                           connection,
 	                           NM_SETTING_INFINIBAND_SETTING_NAME,
 	                           existing_connections,
 	                           NULL,
@@ -234,10 +222,67 @@ update_connection (NMDevice *device, NMConnection *connection)
 
 	ifindex = nm_device_get_ifindex (device);
 	if (ifindex > 0) {
-		if (!nm_platform_infiniband_get_info (NM_PLATFORM_GET, ifindex, NULL, NULL, &transport_mode))
+		if (!nm_platform_link_infiniband_get_properties (NM_PLATFORM_GET, ifindex, NULL, NULL, &transport_mode))
 			transport_mode = "datagram";
 	}
 	g_object_set (G_OBJECT (s_infiniband), NM_SETTING_INFINIBAND_TRANSPORT_MODE, transport_mode, NULL);
+}
+
+static gboolean
+create_and_realize (NMDevice *device,
+                    NMConnection *connection,
+                    NMDevice *parent,
+                    const NMPlatformLink **out_plink,
+                    GError **error)
+{
+	NMSettingInfiniband *s_infiniband;
+	int parent_ifindex, p_key;
+	NMPlatformError plerr;
+
+	if (!NM_IS_DEVICE_INFINIBAND (parent)) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+		             "Parent interface %s must be an InfiniBand interface",
+		             nm_device_get_iface (parent));
+		return FALSE;
+	}
+
+	s_infiniband = nm_connection_get_setting_infiniband (connection);
+
+	/* Can only create partitions at this time */
+	p_key = nm_setting_infiniband_get_p_key (s_infiniband);
+	if (p_key < 0) {
+		g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+		                     "only InfiniBand partitions can be created");
+		return FALSE;
+	}
+
+	parent_ifindex = nm_device_get_ifindex (parent);
+	if (parent_ifindex <= 0) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+		             "failed to get InfiniBand parent %s ifindex",
+		             nm_device_get_iface (parent));
+		return FALSE;
+	}
+
+	plerr = nm_platform_link_infiniband_add (NM_PLATFORM_GET, parent_ifindex, p_key, out_plink);
+	if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+		             "Failed to create InfiniBand P_Key interface '%s' for '%s': %s",
+		             nm_device_get_iface (device),
+		             nm_connection_get_id (connection),
+		             nm_platform_error_to_string (plerr));
+		return FALSE;
+	}
+
+	NM_DEVICE_INFINIBAND_GET_PRIVATE (device)->is_partition = TRUE;
+	return TRUE;
+}
+
+/*************************************************************/
+
+static void
+nm_device_infiniband_init (NMDeviceInfiniband * self)
+{
 }
 
 static void
@@ -276,10 +321,13 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *klass)
 
 	g_type_class_add_private (object_class, sizeof (NMDeviceInfinibandPrivate));
 
+	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NM_SETTING_INFINIBAND_SETTING_NAME, NM_LINK_TYPE_INFINIBAND)
+
 	/* virtual methods */
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 
+	parent_class->create_and_realize = create_and_realize;
 	parent_class->get_generic_capabilities = get_generic_capabilities;
 	parent_class->check_connection_compatible = check_connection_compatible;
 	parent_class->complete_connection = complete_connection;
@@ -296,9 +344,9 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *klass)
 		                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
 		                       G_PARAM_STATIC_STRINGS));
 
-	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
-	                                        G_TYPE_FROM_CLASS (klass),
-	                                        &dbus_glib_nm_device_infiniband_object_info);
+	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
+	                                        NMDBUS_TYPE_DEVICE_INFINIBAND_SKELETON,
+	                                        NULL);
 }
 
 /*************************************************************/
@@ -307,58 +355,33 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *klass)
 #define NM_INFINIBAND_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_INFINIBAND_FACTORY, NMInfinibandFactory))
 
 static NMDevice *
-new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
+create_device (NMDeviceFactory *factory,
+               const char *iface,
+               const NMPlatformLink *plink,
+               NMConnection *connection,
+               gboolean *out_ignore)
 {
-	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_INFINIBAND,
-	                                  NM_DEVICE_PLATFORM_DEVICE, plink,
-	                                  NM_DEVICE_TYPE_DESC, "InfiniBand",
-	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_INFINIBAND,
-	                                  NM_DEVICE_INFINIBAND_IS_PARTITION, (plink->parent > 0),
-	                                  NULL);
-}
+	gboolean is_partition = FALSE;
 
-static NMDevice *
-create_virtual_device_for_connection (NMDeviceFactory *factory,
-                                      NMConnection *connection,
-                                      NMDevice *parent,
-                                      GError **error)
-{
-	NMSettingInfiniband *s_infiniband;
-	int p_key, parent_ifindex;
-	const char *iface;
-	NMPlatformError plerr;
+	if (plink)
+		is_partition = (plink->parent > 0 || plink->parent == NM_PLATFORM_LINK_OTHER_NETNS);
+	else if (connection) {
+		NMSettingInfiniband *s_infiniband;
 
-	if (!NM_IS_DEVICE_INFINIBAND (parent)) {
-		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
-		             "Parent interface %s must be an InfiniBand interface",
-		             nm_device_get_iface (parent));
-		return NULL;
-	}
-
-	s_infiniband = nm_connection_get_setting_infiniband (connection);
-
-	iface = nm_setting_infiniband_get_virtual_interface_name (s_infiniband);
-	g_assert (iface);
-
-	parent_ifindex = nm_device_get_ifindex (parent);
-	p_key = nm_setting_infiniband_get_p_key (s_infiniband);
-
-	plerr = nm_platform_infiniband_partition_add (NM_PLATFORM_GET, parent_ifindex, p_key, NULL);
-	if (plerr != NM_PLATFORM_ERROR_SUCCESS && plerr != NM_PLATFORM_ERROR_EXISTS) {
-		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
-		             "Failed to create InfiniBand P_Key interface '%s' for '%s': %s",
-		             iface,
-		             nm_connection_get_id (connection),
-		             nm_platform_error_to_string (plerr));
-		return NULL;
+		s_infiniband = nm_connection_get_setting_infiniband (connection);
+		g_return_val_if_fail (s_infiniband, NULL);
+		is_partition =    !!nm_setting_infiniband_get_parent (s_infiniband)
+		               || (   nm_setting_infiniband_get_p_key (s_infiniband) >= 0
+		                   && nm_setting_infiniband_get_mac_address (s_infiniband));
 	}
 
 	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_INFINIBAND,
 	                                  NM_DEVICE_IFACE, iface,
-	                                  NM_DEVICE_DRIVER, nm_device_get_driver (parent),
 	                                  NM_DEVICE_TYPE_DESC, "InfiniBand",
 	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_INFINIBAND,
-	                                  NM_DEVICE_INFINIBAND_IS_PARTITION, TRUE,
+	                                  NM_DEVICE_LINK_TYPE, NM_LINK_TYPE_INFINIBAND,
+	                                  /* XXX: Partition should probably be a different link type! */
+	                                  NM_DEVICE_INFINIBAND_IS_PARTITION, is_partition,
 	                                  NULL);
 }
 
@@ -376,9 +399,9 @@ get_connection_parent (NMDeviceFactory *factory, NMConnection *connection)
 }
 
 static char *
-get_virtual_iface_name (NMDeviceFactory *factory,
-                        NMConnection *connection,
-                        const char *parent_iface)
+get_connection_iface (NMDeviceFactory *factory,
+                      NMConnection *connection,
+                      const char *parent_iface)
 {
 	NMSettingInfiniband *s_infiniband;
 
@@ -398,9 +421,8 @@ get_virtual_iface_name (NMDeviceFactory *factory,
 NM_DEVICE_FACTORY_DEFINE_INTERNAL (INFINIBAND, Infiniband, infiniband,
 	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES    (NM_LINK_TYPE_INFINIBAND)
 	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_INFINIBAND_SETTING_NAME),
-	factory_iface->new_link = new_link;
-	factory_iface->create_virtual_device_for_connection = create_virtual_device_for_connection;
+	factory_iface->create_device = create_device;
 	factory_iface->get_connection_parent = get_connection_parent;
-	factory_iface->get_virtual_iface_name = get_virtual_iface_name;
+	factory_iface->get_connection_iface = get_connection_iface;
 	)
 

@@ -18,27 +18,25 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
-#include <glib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <signal.h>
 
-#include <NetworkManager.h>
-
-#include <nm-setting-connection.h>
-#include <nm-setting-wired.h>
-#include <nm-utils.h>
+#include "NetworkManager.h"
+#include "nm-setting-connection.h"
+#include "nm-setting-wired.h"
+#include "nm-utils.h"
 
 #include "nm-remote-settings.h"
-#include "common.h"
-#include "gsystem-local-alloc.h"
 
-static NMTestServiceInfo *sinfo;
+#include "nm-test-libnm-utils.h"
+
+static NMTstcServiceInfo *sinfo;
 static NMRemoteSettings *settings = NULL;
 DBusGConnection *bus = NULL;
 NMRemoteConnection *remote = NULL;
@@ -376,7 +374,7 @@ test_service_running (void)
 	g_assert (running == TRUE);
 
 	/* Now kill the test service. */
-	nm_test_service_cleanup (sinfo);
+	nmtstc_service_cleanup (sinfo);
 
 	settings2 = nm_remote_settings_new (bus);
 
@@ -405,7 +403,7 @@ test_service_running (void)
 	g_assert (running == FALSE);
 
 	/* Now restart it */
-	sinfo =  nm_test_service_init ();
+	sinfo =  nmtstc_service_init ();
 
 	quit_id = g_timeout_add_seconds (5, loop_quit, loop);
 	g_main_loop_run (loop);
@@ -422,25 +420,22 @@ test_service_running (void)
 
 /*******************************************************************/
 
+NMTST_DEFINE ();
+
 int
 main (int argc, char **argv)
 {
 	int ret;
 	GError *error = NULL;
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
-	
-	g_test_init (&argc, &argv, NULL);
+	nmtst_init (&argc, &argv, TRUE);
 
 	bus = dbus_g_bus_get (DBUS_BUS_SESSION, &error);
 	g_assert_no_error (error);
 
-	sinfo = nm_test_service_init ();
+	sinfo = nmtstc_service_init ();
 
-	settings = nm_remote_settings_new (bus);
-	g_assert (settings != NULL);
+	settings = nmtstc_nm_remote_settings_new ();
 
 	/* FIXME: these tests assume that they get run in order, but g_test_run()
 	 * does not actually guarantee that!
@@ -453,7 +448,7 @@ main (int argc, char **argv)
 
 	ret = g_test_run ();
 
-	nm_test_service_cleanup (sinfo);
+	nmtstc_service_cleanup (sinfo);
 	g_object_unref (settings);
 	dbus_g_connection_unref (bus);
 

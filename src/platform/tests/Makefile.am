@@ -1,14 +1,14 @@
 AM_CPPFLAGS = \
 	-I${top_srcdir} \
-	-I${top_srcdir}/include \
+	-I${top_srcdir}/shared \
+	-I${top_builddir}/shared \
 	-I${top_srcdir}/src \
 	-I${top_builddir}/src \
 	-I${top_srcdir}/libnm-core \
 	-I${top_builddir}/libnm-core \
 	-I${srcdir}/.. \
 	-DG_LOG_DOMAIN=\""NetworkManager"\" \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
 	$(GLIB_CFLAGS) \
 	$(GUDEV_CFLAGS) \
 	$(LIBNL_CFLAGS)
@@ -21,7 +21,10 @@ PLATFORM_SOURCES = \
 	../nm-platform.c \
 	../nm-fake-platform.c \
 	../nm-linux-platform.c
-TEST_SOURCES = $(PLATFORM_SOURCES) test-common.c test-common.h
+TEST_SOURCES = \
+	test-common.c \
+	test-common.h \
+	$(PLATFORM_SOURCES)
 AM_CFLAGS = $(CODE_COVERAGE_CFLAGS)
 AM_LDFLAGS = $(GLIB_LIBS) $(GUDEV_LIBS) $(LIBNL_LIBS) $(CODE_COVERAGE_LDFLAGS)
 PLATFORM_LDADD = \
@@ -30,9 +33,7 @@ PLATFORM_LDADD = \
 @GNOME_CODE_COVERAGE_RULES@
 
 noinst_PROGRAMS = \
-	dump \
 	monitor \
-	platform \
 	test-link-fake \
 	test-link-linux \
 	test-address-fake \
@@ -48,12 +49,6 @@ EXTRA_DIST = test-common.h
 
 monitor_SOURCES = monitor.c $(PLATFORM_SOURCES)
 monitor_LDADD = $(PLATFORM_LDADD)
-
-dump_SOURCES = dump.c $(PLATFORM_SOURCES)
-dump_LDADD = $(PLATFORM_LDADD)
-
-platform_SOURCES = platform.c $(PLATFORM_SOURCES)
-platform_LDADD = $(PLATFORM_LDADD)
 
 test_link_fake_SOURCES = test-link.c $(TEST_SOURCES)
 test_link_fake_CPPFLAGS = \

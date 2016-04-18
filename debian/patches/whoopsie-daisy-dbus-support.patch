@@ -13,9 +13,9 @@ Index: b/src/org.freedesktop.NetworkManager.conf
 ===================================================================
 --- a/src/org.freedesktop.NetworkManager.conf
 +++ b/src/org.freedesktop.NetworkManager.conf
-@@ -26,6 +26,24 @@
-                 <allow send_destination="org.freedesktop.NetworkManager.ssh"/>
-                 <allow send_destination="org.freedesktop.NetworkManager.iodine"/>
+@@ -27,6 +27,24 @@
+                 <allow send_destination="org.freedesktop.NetworkManager.strongswan"/>
+                 <allow send_interface="org.freedesktop.NetworkManager.VPN.Plugin"/>
          </policy>
 +        <policy user="whoopsie">
 +                <allow send_destination="org.freedesktop.NetworkManager"/>

@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 07/14/2015
+.\"      Date: 04/05/2016
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.0
+.\"    Source: NetworkManager 1.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CON" "5" "" "NetworkManager 1\&.0" "Configuration"
+.TH "NETWORKMANAGER\&.CON" "5" "" "NetworkManager 1\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -32,20 +32,35 @@ NetworkManager.conf \- NetworkManager configuration file
 .SH "SYNOPSIS"
 .PP
 /etc/NetworkManager/NetworkManager\&.conf,
-/etc/NetworkManager/conf\&.d/\fIname\fR\&.conf
+/etc/NetworkManager/conf\&.d/\fIname\fR\&.conf,
+/usr/lib/NetworkManager/conf\&.d/\fIname\fR\&.conf,
+/var/lib/NetworkManager/NetworkManager\-intern\&.conf
 .SH "DESCRIPTION"
 .PP
-This is a configuration file for NetworkManager\&. It is used to set up various aspects of NetworkManager\*(Aqs behavior\&. The location of the file may be changed through use of the
-\fB\-\-config\fR
-argument for NetworkManager\&.
+NetworkManager\&.conf
+is the configuration file for NetworkManager\&. It is used to set up various aspects of NetworkManager\*(Aqs behavior\&. The location of the main file and configuration directories may be changed through use of the
+\fB\-\-config\fR,
+\fB\-\-config\-dir\fR,
+\fB\-\-system\-config\-dir\fR, and
+\fB\-\-intern\-config\fR
+argument for NetworkManager, respectively\&.
 .PP
 If a default
 NetworkManager\&.conf
 is provided by your distribution\*(Aqs packages, you should not modify it, since your changes may get overwritten by package updates\&. Instead, you can add additional
 \&.conf
 files to the
-conf\&.d
-directory\&. These will be read in order, with later files overriding earlier ones\&.
+/etc/NetworkManager/conf\&.d
+directory\&. These will be read in order, with later files overriding earlier ones\&. Packages might install further configuration snippets to
+/usr/lib/NetworkManager/conf\&.d\&. This directory is parsed first, even before
+NetworkManager\&.conf\&. The loading of a file
+/usr/lib/NetworkManager/conf\&.d/\fIname\fR\&.conf
+can be prevented by adding a file
+/etc/NetworkManager/conf\&.d/\fIname\fR\&.conf\&. In this case, the file from the etc configuration shadows the file from the system configuration directory\&.
+.PP
+NetworkManager can overwrite certain user configuration options via D\-Bus or other internal operations\&. In this case it writes those changes to
+/var/lib/NetworkManager/NetworkManager\-intern\&.conf\&. This file is not intended to be modified by the user, but it is read last and can shadow user configuration from
+NetworkManager\&.conf\&.
 .SH "FILE FORMAT"
 .PP
 The configuration file format is so\-called key file (sort of ini\-style format)\&. It consists of sections (groups) of key\-value pairs\&. Lines beginning with a \*(Aq#\*(Aq and blank lines are considered comments\&. Sections are started by a header line containing the section enclosed in \*(Aq[\*(Aq and \*(Aq]\*(Aq, and ended implicitly by the start of the next section or the end of the file\&. Each key\-value pair must be contained in a section\&.
@@ -60,9 +75,8 @@ Minimal system settings configuration file looks like this:
 .RS 4
 .\}
 .nf
-	[main]
-	plugins=keyfile
-      
+[main]
+plugins=keyfile
 .fi
 .if n \{\
 .RE
@@ -74,9 +88,8 @@ As an extension to the normal keyfile format, you can also append a value to a p
 .RS 4
 .\}
 .nf
-	plugins+=another\-plugin
-	plugins\-=remove\-me
-      
+plugins+=another\-plugin
+plugins\-=remove\-me
 .fi
 .if n \{\
 .RE
@@ -96,7 +109,7 @@ keyfile\&.
 .PP
 \fImonitor\-connection\-files\fR
 .RS 4
-Whether the configured settings plugin(s) should set up file monitors and immediately pick up changes made to connection files while NetworkManager is running\&. This is disabled by default; NetworkManager will only read the connection files at startup, and when explicitly requested via the ReloadConnections D\-Bus call\&. If this key is set to \*(Aqtrue\*(Aq, then NetworkManager will reload connection files any time they changed\&.
+Whether the configured settings plugin(s) should set up file monitors and immediately pick up changes made to connection files while NetworkManager is running\&. This is disabled by default; NetworkManager will only read the connection files at startup, and when explicitly requested via the ReloadConnections D\-Bus call\&. If this key is set to \*(Aqtrue\*(Aq, then NetworkManager will reload connection files any time they changed\&. Automatic reloading is not advised because there are race conditions involved and it depends on the way how the editor updates the file\&. In some situations, NetworkManager might first delete and add the connection anew, instead of updating the existing one\&. Also, NetworkManager might pick up incomplete settings while the user is still editing the files\&.
 .RE
 .PP
 \fIauth\-polkit\fR
@@ -118,7 +131,7 @@ and
 dhcpcd
 options require the indicated clients to be installed\&. The
 internal
-option uses a built\-in DHCP client which is not currently as featureful as the external clients (and in particular, does not yet support DHCPv6)\&.
+option uses a built\-in DHCP client which is not currently as featureful as the external clients\&.
 .sp
 If this key is missing, available DHCP clients are looked for in this order:
 dhclient,
@@ -149,7 +162,6 @@ Example:
 no\-auto\-default=00:22:68:5c:5d:c4,00:1e:65:ff:aa:ee
 no\-auto\-default=eth0,eth1
 no\-auto\-default=*
-	  
 .fi
 .if n \{\
 .RE
@@ -202,6 +214,25 @@ unbound: NetworkManager will talk to unbound and dnssec\-triggerd, providing a "
 none: NetworkManager will not modify resolv\&.conf\&.
 .RE
 .PP
+\fIrc\-manager\fR
+.RS 4
+Set the
+resolv\&.conf
+management mode\&. The default value depends on how NetworkManager was built\&. Regardless of this setting, NetworkManager will always write resolv\&.conf to its runtime state directory\&.
+.sp
+none: NetworkManager will symlink
+/etc/resolv\&.conf
+to its private resolv\&.conf file in the runtime state directory\&.
+.sp
+file: NetworkManager will write
+/etc/resolv\&.conf
+as file\&.
+.sp
+resolvconf: NetworkManager will run resolvconf to update the DNS configuration\&.
+.sp
+netconfig: NetworkManager will run netconfig to update the DNS configuration\&.
+.RE
+.PP
 \fIdebug\fR
 .RS 4
 Comma separated list of options to aid debugging\&. This value will be combined with the environment variable
@@ -218,7 +249,12 @@ This section contains keyfile\-plugin\-specific options, and is normally only us
 .PP
 \fIhostname\fR
 .RS 4
-Set a persistent hostname\&.
+This key is deprecated and has no effect since the hostname is now stored in /etc/hostname or other system configuration files according to build options\&.
+.RE
+.PP
+\fIpath\fR
+.RS 4
+The location where keyfiles are read and stored\&. This defaults to "/usr/local/etc/NetworkManager/conf\&.d"\&.
 .RE
 .PP
 \fIunmanaged\-devices\fR
@@ -237,7 +273,6 @@ Example:
 .nf
 unmanaged\-devices=interface\-name:em4
 unmanaged\-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface\-name:eth2
-	    
 .fi
 .if n \{\
 .RE
@@ -276,6 +311,7 @@ command\-line options\&.
 \fIlevel\fR
 .RS 4
 The default logging verbosity level\&. One of
+OFF,
 ERR,
 WARN,
 INFO,
@@ -285,11 +321,11 @@ TRACE\&. The ERR level logs only critical errors\&. WARN logs warnings that may 
 .PP
 \fIdomains\fR
 .RS 4
-The following log domains are available: PLATFORM, RFKILL, ETHER, WIFI, BT, MB, DHCP4, DHCP6, PPP, WIFI_SCAN, IP4, IP6, AUTOIP4, DNS, VPN, SHARING, SUPPLICANT, AGENTS, SETTINGS, SUSPEND, CORE, DEVICE, OLPC, WIMAX, INFINIBAND, FIREWALL, ADSL, BOND, VLAN, BRIDGE, DBUS_PROPS, TEAM, CONCHECK, DCB, DISPATCH\&.
+The following log domains are available: PLATFORM, RFKILL, ETHER, WIFI, BT, MB, DHCP4, DHCP6, PPP, WIFI_SCAN, IP4, IP6, AUTOIP4, DNS, VPN, SHARING, SUPPLICANT, AGENTS, SETTINGS, SUSPEND, CORE, DEVICE, OLPC, WIMAX, INFINIBAND, FIREWALL, ADSL, BOND, VLAN, BRIDGE, DBUS_PROPS, TEAM, CONCHECK, DCB, DISPATCH, AUDIT\&.
 .sp
 In addition, these special domains can be used: NONE, ALL, DEFAULT, DHCP, IP\&.
 .sp
-You can specify per\-domain log level overrides by adding a colon and a log level to any domain\&. E\&.g\&., "WIFI:DEBUG"\&.
+You can specify per\-domain log level overrides by adding a colon and a log level to any domain\&. E\&.g\&., "WIFI:DEBUG,WIFI_SCAN:OFF"\&.
 .RE
 .PP
 .RS 4
@@ -332,7 +368,7 @@ IP4         : IPv4\-related operations
 IP6         : IPv6\-related operations
 .RE
 .RS 4
-AUTOIP4     : AutoIP (avahi) operations
+AUTOIP4     : AutoIP operations
 .RE
 .RS 4
 DNS         : Domain Name System related operations
@@ -401,6 +437,9 @@ DCB         : Data Center Bridging (DCB) operations
 DISPATCH    : Dispatcher scripts
 .RE
 .RS 4
+AUDIT       : Audit records
+.RE
+.RS 4
  
 .RE
 .RS 4
@@ -425,11 +464,22 @@ IP          : shortcut for "IP4,IP6"
 HW          : deprecated alias for "PLATFORM"
 .RE
 .RE
+.PP
+\fIbackend\fR
+.RS 4
+The logging backend\&. Supported values are "debug", "syslog", "journal"\&. "debug" uses syslog and logs to standard error\&. If NetworkManager is started in debug mode (\-\-debug) this option is ignored and "debug" is always used\&. Otherwise, the default is "journal"\&.
+.RE
+.PP
+\fIaudit\fR
+.RS 4
+Whether the audit records are delivered to auditd, the audit daemon\&. If
+false, audit records will be sent only to the NetworkManager logging system\&. If set to
+true, they will be also sent to auditd\&. The default value is
+true\&.
+.RE
 .SH "CONNECTION SECTION"
 .PP
-This section allows to specify default values for connections\&. Not all properties can be overwritten, only a selected list below\&. You can have multiple
-connection
-sections, by having different sections with a name that all start with "connection"\&.
+Specify default values for connections\&.
 .PP
 Example:
 .sp
@@ -439,7 +489,81 @@ Example:
 .nf
 [connection]
 ipv6\&.ip6\-privacy=0
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SS "Supported Properties"
+.PP
+Not all properties can be overwritten, only the following properties are supported to have their default values configured (see
+\fBnm-settings\fR(5)
+for details)\&. A default value is only consulted if the corresponding per\-connection value explicitly allows for that\&.
+.PP
+\fIconnection\&.autoconnect\-slaves\fR
+.RS 4
+.RE
+.PP
+\fIconnection\&.lldp\fR
+.RS 4
+.RE
+.PP
+\fIethernet\&.wake\-on\-lan\fR
+.RS 4
+.RE
+.PP
+\fIipv4\&.dad\-timeout\fR
+.RS 4
+.RE
+.PP
+\fIipv4\&.dhcp\-timeout\fR
+.RS 4
+If left unspecified, the default value for the interface type is used\&.
+.RE
+.PP
+\fIipv4\&.route\-metric\fR
+.RS 4
+.RE
+.PP
+\fIipv6\&.ip6\-privacy\fR
+.RS 4
+If
+ipv6\&.ip6\-privacy
+is unset, use the content of "/proc/sys/net/ipv6/conf/default/use_tempaddr" as last fallback\&.
+.RE
+.PP
+\fIipv6\&.route\-metric\fR
+.RS 4
+.RE
+.PP
+\fIvpn\&.timeout\fR
+.RS 4
+If left unspecified, default value of 60 seconds is used\&.
+.RE
+.PP
+\fIwifi\&.mac\-address\-randomization\fR
+.RS 4
+If left unspecified, MAC address randomization is disabled\&.
+.RE
+.PP
+\fIwifi\&.powersave\fR
+.RS 4
+If left unspecified, the default value "ignore" will be used\&.
+.RE
+.SS "Sections"
+.PP
+You can configure multiple
+connection
+sections, by having different sections with a name that all start with "connection"\&. Example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+[connection]
+ipv6\&.ip6\-privacy=0
 connection\&.autoconnect\-slaves=1
+vpn\&.timeout=120
 
 [connection\-wifi\-wlan0]
 match\-device=interface\-name:wlan0
@@ -459,10 +583,11 @@ The sections within one file are considered in order of appearance, with the exc
 section is always considered last\&. In the example above, this order is
 [connection\-wifi\-wlan0],
 [connection\-wlan\-other], and
-[connection]\&. When checking for a default configuration value, the section are searched until the requested value is found\&. In the example above, "ipv4\&.route\-metric" for wlan0 interface is set to 50, and for all other Wi\-Fi typed interfaces to 55\&. Also, Wi\-Fi devices would have IPv6 private addresses enabled by default, but other devices would have it disabled\&. Note that also "wlan0" gets "ipv6\&.ip6\-privacy=1", because although the section "[connection\-wifi\-wlan0]" matches the device, it does not contain that property and the search continues\&.
+[connection]\&. When checking for a default configuration value, the sections are searched until the requested value is found\&. In the example above, "ipv4\&.route\-metric" for wlan0 interface is set to 50, and for all other Wi\-Fi typed interfaces to 55\&. Also, Wi\-Fi devices would have IPv6 private addresses enabled by default, but other devices would have it disabled\&. Note that also "wlan0" gets "ipv6\&.ip6\-privacy=1", because although the section "[connection\-wifi\-wlan0]" matches the device, it does not contain that property and the search continues\&.
 .PP
 When having different sections in multiple files, sections from files that are read later have higher priority\&. So within one file the priority of the sections is top\-to\-bottom\&. Across multiple files later definitions take precedence\&.
 .PP
+The following properties further control how a connection section applies\&.
 .PP
 \fImatch\-device\fR
 .RS 4
@@ -483,27 +608,6 @@ set to
 yes, its
 ipv6\&.ip6\-privacy
 value would be unspecified\&.
-.RE
-.PP
-The following properties are supported to have their default values configured:
-.PP
-\fIipv4\&.route\-metric\fR
-.RS 4
-.RE
-.PP
-\fIipv6\&.ip6\-privacy\fR
-.RS 4
-If
-ipv6\&.ip6\-privacy
-is unset, use the content of "/proc/sys/net/ipv6/conf/default/use_tempaddr" as last fallback\&.
-.RE
-.PP
-\fIipv6\&.route\-metric\fR
-.RS 4
-.RE
-.PP
-\fIconnection\&.autoconnect\-slaves\fR
-.RS 4
 .RE
 .SH "CONNECTIVITY SECTION"
 .PP
@@ -526,6 +630,133 @@ Specified in seconds; controls how often connectivity is checked when a network 
 .RS 4
 If set controls what body content NetworkManager checks for when requesting the URI for connectivity checking\&. If missing, defaults to "NetworkManager is online"
 .RE
+.SH "GLOBAL\-DNS SECTION"
+.PP
+This section specifies global DNS settings that override connection\-specific configuration\&.
+.PP
+.PP
+\fIsearches\fR
+.RS 4
+A list of search domains to be used during hostname lookup\&.
+.RE
+.PP
+\fIoptions\fR
+.RS 4
+A list of of options to be passed to the hostname resolver\&.
+.RE
+.SH "GLOBAL\-DNS\-DOMAIN SECTIONS"
+.PP
+Sections with a name starting with the "global\-dns\-domain\-" prefix allow to define global DNS configuration for specific domains\&. The part of section name after "global\-dns\-domain\-" specifies the domain name a section applies to\&. More specific domains have the precedence over less specific ones and the default domain is represented by the wildcard "*"\&. A default domain section is mandatory\&.
+.PP
+.PP
+\fIservers\fR
+.RS 4
+A list of addresses of DNS servers to be used for the given domain\&.
+.RE
+.PP
+\fIoptions\fR
+.RS 4
+A list of domain\-specific DNS options\&. Not used at the moment\&.
+.RE
+.SH "\&.CONFIG SECTIONS"
+.PP
+This is a special section that contains options which apply to the configuration file that contains the option\&.
+.PP
+.PP
+\fIenable\fR
+.RS 4
+Defaults to "true"\&. If "false", the configuration file will be skipped during loading\&. Note that the main configuration file
+NetworkManager\&.conf
+cannot be disabled\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+# always skip loading the config file
+[\&.config]
+enable=false
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+You can also match against the version of NetworkManager\&. For example the following are valid configurations:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+# only load on version 1\&.0\&.6
+[\&.config]
+enable=nm\-version:1\&.0\&.6
+
+# load on all versions 1\&.0\&.x, but not 1\&.2\&.x
+[\&.config]
+enable=nm\-version:1\&.0
+
+# only load on versions >= 1\&.1\&.6\&. This does not match
+# with version 1\&.2\&.0 or 1\&.4\&.4\&. Only the last digit is considered\&.
+[\&.config]
+enable=nm\-version\-min:1\&.1\&.6
+
+# only load on versions >= 1\&.2\&. Contrary to the previous
+# example, this also matches with 1\&.2\&.0, 1\&.2\&.10, 1\&.4\&.4, etc\&.
+[\&.config]
+enable=nm\-version\-min:1\&.2
+
+# Match against the maximum allowed version\&. The example matches
+# versions 1\&.2\&.0, 1\&.2\&.2, 1\&.2\&.4\&. Again, only the last version digit
+# is allowed to be smaller\&. So this would not match match on 1\&.1\&.10\&.
+[\&.config]
+enable=nm\-version\-max:1\&.2\&.6
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+You can also match against the value of the environment variable
+NM_CONFIG_ENABLE_TAG, like:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+# always skip loading the file when running NetworkManager with
+# environment variable "NM_CONFIG_ENABLE_TAG=TAG1"
+[\&.config]
+enable=env:TAG1
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+More then one match can be specified\&. The configuration will be enabled if one of the predicates matches ("or")\&. The special prefix "except:" can be used to negate the match\&. Note that if one except\-predicate matches, the entire configuration will be disabled\&. In other words, a except predicate always wins over other predicates\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+# enable the configuration either when the environment variable
+# is present or the version is at least 1\&.2\&.0\&.
+[\&.config]
+enable=env:TAG2,nm\-version\-min:1\&.2
+
+# enable the configuration for version >= 1\&.2\&.0, but disable
+# it when the environment variable is set to "TAG3"
+[\&.config]
+enable=except:env:TAG3,nm\-version\-min:1\&.2
+
+# enable the configuration on >= 1\&.3, >= 1\&.2\&.6, and >= 1\&.0\&.16\&.
+# Useful if a certain feature is only present since those releases\&.
+[\&.config]
+enable=nm\-version\-min:1\&.3,nm\-version\-min:1\&.2\&.6,nm\-version\-min:1\&.0\&.16
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.RE
 .SH "PLUGINS"
 .PP
 \fIkeyfile\fR
@@ -534,7 +765,7 @@ The
 keyfile
 plugin is the generic plugin that supports all the connection types and capabilities that NetworkManager has\&. It writes files out in an \&.ini\-style format in /etc/NetworkManager/system\-connections\&.
 .sp
-The stored connection file may contain passwords and private keys, so it will be made readable only to root, and the plugin will ignore files that are readable or writeable by any user or group other than root\&.
+The stored connection file may contain passwords and private keys, so it will be made readable only to root, and the plugin will ignore files that are readable or writable by any user or group other than root\&.
 .sp
 This plugin is always active, and will automatically be used to store any connections that aren\*(Aqt supported by any other active plugin\&.
 .RE
@@ -543,16 +774,19 @@ This plugin is always active, and will automatically be used to store any connec
 .RS 4
 This plugin is used on the Fedora and Red Hat Enterprise Linux distributions to read and write configuration from the standard
 /etc/sysconfig/network\-scripts/ifcfg\-*
-files\&. It currently supports reading Ethernet, Wi\-Fi, InfiniBand, VLAN, Bond, Bridge, and Team connections\&.
+files\&. It currently supports reading Ethernet, Wi\-Fi, InfiniBand, VLAN, Bond, Bridge, and Team connections\&. Enabling
+ifcfg\-rh
+implicitly enables
+ibft
+plugin, if it is available\&. This can be disabled by adding
+no\-ibft\&.
 .RE
 .PP
 \fIifcfg\-suse\fR
 .RS 4
-This plugin is only provided for simple backward compatibility with SUSE and OpenSUSE configuration\&. Most setups should be using the
+This plugin is deprecated and its selection has no effect\&. The
 keyfile
-plugin instead\&. The
-ifcfg\-suse
-plugin supports reading Ethernet and Wi\-Fi connections, but does not support saving any connection types\&.
+plugin should be used instead\&.
 .RE
 .PP
 \fIifupdown\fR
@@ -565,9 +799,15 @@ keyfile
 plugin instead\&.
 .RE
 .PP
-\fIibft\fR
+\fIibft\fR, \fIno\-ibft\fR
 .RS 4
-This plugin allows to read iBFT configuration (iSCSI Boot Firmware Table)\&. The configuration is read using /sbin/iscsiadm\&. Users are expected to configure iBFT connections via the firmware interfaces\&.
+This plugin allows to read iBFT configuration (iSCSI Boot Firmware Table)\&. The configuration is read using /sbin/iscsiadm\&. Users are expected to configure iBFT connections via the firmware interfaces\&. If ibft support is available, it is automatically enabled after
+ifcfg\-rh\&. This can be disabled by
+no\-ibft\&. You can also explicitly specify
+ibft
+to load the plugin without
+ifcfg\-rh
+or to change the plugin order\&.
 .RE
 .SH "APPENDIX"
 .SS "Device List Format"
@@ -634,9 +874,9 @@ interface\-name:\&. A negative match has higher priority then the positive match
 .PP
 SPEC[,;]SPEC
 .RS 4
-Multiple specs can be concatenated with comman or semicolon\&. The order does not matter as matches are either positive (inclusive) or negative, with negative matches having higher priority\&.
+Multiple specs can be concatenated with commas or semicolons\&. The order does not matter as matches are either inclusive or negative (except:), with negative matches having higher priority\&.
 .sp
-Backslash is supported to escape the separators \*(Aq;\*(Aq and \*(Aq,\*(Aq, and to express special characters such as newline (\*(Aq\en\*(Aq), tabulator (\*(Aq\et\*(Aq), whitespace (\*(Aq\es\*(Aq) and backslash (\*(Aq\e\e\*(Aq)\&. The globbing of interface names cannot be escaped\&. Whitespace is taken literally so usually the specs will be concatenated without spaces\&.
+Backslash is supported to escape the separators \*(Aq;\*(Aq and \*(Aq,\*(Aq, and to express special characters such as newline (\*(Aq\en\*(Aq), tabulator (\*(Aq\et\*(Aq), whitespace (\*(Aq\es\*(Aq) and backslash (\*(Aq\e\e\*(Aq)\&. The globbing of interface names cannot be escaped\&. Whitespace is not a separator but will be trimmed between two specs (unless escaped as \*(Aq\es\*(Aq)\&.
 .RE
 .PP
 Example:
@@ -649,7 +889,6 @@ interface\-name:em4
 mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface\-name:eth2
 interface\-name:vboxnet*,except:interface\-name:vboxnet2
 *,except:mac:00:22:68:1c:59:b1
-        
 .fi
 .if n \{\
 .RE
@@ -659,7 +898,7 @@ interface\-name:vboxnet*,except:interface\-name:vboxnet2
 .PP
 \fBNetworkManager\fR(8),
 \fBnmcli\fR(1),
-\fBnmcli-examples\fR(5),
+\fBnmcli-examples\fR(7),
 \fBnm-online\fR(1),
 \fBnm-settings\fR(5),
 \fBnm-applet\fR(1),

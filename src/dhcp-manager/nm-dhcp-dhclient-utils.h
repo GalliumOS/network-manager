@@ -19,17 +19,17 @@
 #ifndef __NETWORKMANAGER_DHCP_DHCLIENT_UTILS_H__
 #define __NETWORKMANAGER_DHCP_DHCLIENT_UTILS_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
 #include <nm-setting-ip4-config.h>
 #include <nm-setting-ip6-config.h>
+
+#include "nm-default.h"
 
 char *nm_dhcp_dhclient_create_config (const char *interface,
                                       gboolean is_ip6,
                                       GBytes *client_id,
                                       const char *anycast_addr,
                                       const char *hostname,
+                                      const char *fqdn,
                                       const char *orig_path,
                                       const char *orig_contents,
                                       GBytes **out_new_client_id);
@@ -45,6 +45,7 @@ gboolean nm_dhcp_dhclient_save_duid (const char *leasefile,
                                      GError **error);
 
 GSList *nm_dhcp_dhclient_read_lease_ip_configs (const char *iface,
+                                                int ifindex,
                                                 const char *contents,
                                                 gboolean ipv6,
                                                 GDateTime *now);

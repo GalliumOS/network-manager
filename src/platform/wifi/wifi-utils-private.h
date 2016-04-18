@@ -21,8 +21,8 @@
 #ifndef __WIFI_UTILS_PRIVATE_H__
 #define __WIFI_UTILS_PRIVATE_H__
 
-#include <glib.h>
 
+#include "nm-default.h"
 #include "nm-dbus-interface.h"
 #include "wifi-utils.h"
 
@@ -35,14 +35,14 @@ struct WifiData {
 
 	gboolean (*set_mode) (WifiData *data, const NM80211Mode mode);
 
+	/* Set power saving mode on an interface */
+	gboolean (*set_powersave) (WifiData *data, guint32 powersave);
+
 	/* Return current frequency in MHz (really associated BSS frequency) */
 	guint32 (*get_freq) (WifiData *data);
 
 	/* Return first supported frequency in the zero-terminated list */
 	guint32 (*find_freq) (WifiData *data, const guint32 *freqs);
-
-	/* If SSID is empty/blank (zero-length or all \0s) return NULL */
-	GByteArray * (*get_ssid) (WifiData *data);
 
 	/* Return current bitrate in Kbps */
 	guint32 (*get_rate) (WifiData *data);

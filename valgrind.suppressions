@@ -3,7 +3,7 @@
 # are mainly tested.
 #
 # Make sure to install debug information, otherwise the suppression trace might
-# not match. On Fedora, try 'debuginfo-install dbus-glib glib libnl3'.
+# not match. On Fedora, try 'debuginfo-install dbus-glib glib'.
 {
   NSS_NoDB_Init
   Memcheck:Leak
@@ -293,10 +293,11 @@
    fun:g_thread_new_internal
    ...
    fun:g_thread_pool_push
-   fun:g_task_start_task_thread
+   ...
    fun:g_task_run_in_thread
    fun:g_async_initable_real_init_async
    fun:g_bus_get
+   ...
 }
 
 {
@@ -412,47 +413,30 @@
    fun:g_dbus_proxy_finalize
    ...
 }
-
-###############################################################
-# libnl3
-###############################################################
-
 {
-   # fixed by https://github.com/thom311/libnl/commit/d65c32a7205e679c7fc13f0e4565b13e698ba906
-   # Same issue as libnl_rtnl_link_set_type_01, but different backtrace by calling nl_msg_parse().
-   libnl_rtnl_link_set_type_02
+   _gdbus_f23_1
    Memcheck:Leak
    match-leak-kinds: definite
-   fun:calloc
-   fun:vlan_alloc
-   fun:rtnl_link_set_type
-   fun:link_msg_parser
-   fun:nl_cache_parse
-   fun:nl_msg_parse
+   fun:malloc
+   fun:g_malloc
+   fun:g_slice_alloc
+   fun:g_slice_alloc0
+   fun:g_type_create_instance
+   fun:g_object_new_internal
+   fun:g_object_newv
+   fun:g_object_new
+   fun:g_task_new
+   fun:_g_socket_read_with_control_messages
+   fun:_g_dbus_worker_do_read_unlocked
+   fun:_g_dbus_worker_do_read_cb
+   fun:g_task_return_now
    ...
+   fun:g_main_dispatch
+   fun:g_main_context_dispatch
+   fun:g_main_context_iterate.isra.29
+   fun:g_main_loop_run
+   fun:gdbus_shared_thread_func
+   fun:g_thread_proxy
+   fun:start_thread
+   fun:clone
 }
-
-# disable the following suppression. I cannot remember why it was needed,
-# maybe it's wrong.
-#
-# {
-#    libnl_02
-#    libnl_rtnl_link_alloc_cache
-#    Memcheck:Leak
-#    match-leak-kinds: definite
-#    fun:calloc
-#    fun:nl_object_alloc
-#    fun:link_msg_parser
-#    fun:nl_cache_parse
-#    fun:update_msg_parser
-#    fun:nl_cb_call
-#    fun:recvmsgs
-#    fun:nl_recvmsgs_report
-#    fun:nl_recvmsgs
-#    fun:__cache_pickup
-#    fun:nl_cache_pickup
-#    fun:nl_cache_refill
-#    fun:rtnl_link_alloc_cache
-#    ...
-# }
-

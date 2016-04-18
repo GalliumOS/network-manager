@@ -17,7 +17,7 @@
  * Copyright 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #if WITH_POLKIT_AGENT
 
@@ -25,10 +25,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <termios.h>
-
-#include <glib.h>
-#include <glib/gi18n-lib.h>
 
 #include "polkit-agent.h"
 #include "nm-polkit-listener.h"
@@ -44,17 +40,9 @@ polkit_request (const char *request,
 		gpointer user_data)
 {
 	char *response, *tmp, *p;
-	struct termios termios_orig, termios_new;
 
 	g_print ("%s\n", message);
 	g_print ("(action_id: %s)\n", action_id);
-
-	if (!echo_on) {
-		tcgetattr (STDIN_FILENO, &termios_orig);
-		termios_new = termios_orig;
-		termios_new.c_lflag &= ~(ECHO);
-		tcsetattr (STDIN_FILENO, TCSADRAIN, &termios_new);
-	}
 
 	/* Ask user for polkit authorization password */
 	if (user) {
@@ -63,15 +51,11 @@ polkit_request (const char *request,
 		p = strrchr (tmp, ':');
 		if (p && !strcmp (p, ": "))
 			*p = '\0';
-		response = nmc_readline ("%s (%s): ", tmp, user);
+		response = nmc_readline_echo (echo_on, "%s (%s): ", tmp, user);
 		g_free (tmp);
 	} else
-		response = nmc_readline ("%s", request);
+		response = nmc_readline_echo (echo_on, "%s", request);
 	g_print ("\n");
-
-	/* Restore original terminal settings */
-	if (!echo_on)
-		tcsetattr (STDIN_FILENO, TCSADRAIN, &termios_orig);
 
 	return response;
 }
@@ -142,7 +126,7 @@ nmc_start_polkit_agent_start_try (NmCli *nmc)
 #else
 /* polkit agent is not avalable; implement stub functions. */
 
-#include <glib.h>
+#include "nm-default.h"
 #include "nmcli.h"
 #include "polkit-agent.h"
 

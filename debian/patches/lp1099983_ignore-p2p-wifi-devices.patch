@@ -9,8 +9,8 @@ Index: b/src/nm-manager.c
 ===================================================================
 --- a/src/nm-manager.c
 +++ b/src/nm-manager.c
-@@ -1949,6 +1949,16 @@ platform_link_added (NMManager *self,
- 		!strncmp (plink->name, "ccmni", STRLEN ("ccmni")))
+@@ -2048,6 +2048,16 @@ platform_link_added (NMManager *self,
+ 		!strncmp (plink->name, "ccmni", NM_STRLEN ("ccmni")))
  		return;
  
 +	/*
@@ -18,7 +18,7 @@ Index: b/src/nm-manager.c
 +	 */
 +	NMDeviceType devtype = nm_device_get_device_type (device);
 +	if ((plink->type == NM_LINK_TYPE_WIFI)
-+	    && !strncmp (plink->name, "p2p0", STRLEN ("p2p0"))) {
++	    && !strncmp (plink->name, "p2p0", NM_STRLEN ("p2p0"))) {
 +		nm_log_info (LOGD_HW, "(%s): ignoring P2P wireless iface", plink->name);
 +		return;
 +	}

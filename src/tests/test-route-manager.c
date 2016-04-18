@@ -18,9 +18,8 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
 #include <arpa/inet.h>
 #include <linux/rtnetlink.h>
 
@@ -28,7 +27,6 @@
 
 #include "nm-platform.h"
 #include "nm-route-manager.h"
-#include "nm-logging.h"
 
 #include "nm-test-utils.h"
 
@@ -78,15 +76,16 @@ setup_dev1_ip4 (int ifindex)
 
 	/* Add some route outside of route manager. The route manager
 	 * should get rid of it upon sync. */
-	nm_platform_ip4_route_add (NM_PLATFORM_GET,
-	                           route.ifindex,
-	                           NM_IP_CONFIG_SOURCE_USER,
-	                           nmtst_inet4_from_string ("9.0.0.0"),
-	                           8,
-	                           INADDR_ANY,
-	                           0,
-	                           10,
-	                           route.mss);
+	if (!nm_platform_ip4_route_add (NM_PLATFORM_GET,
+	                                route.ifindex,
+	                                NM_IP_CONFIG_SOURCE_USER,
+	                                nmtst_inet4_from_string ("9.0.0.0"),
+	                                8,
+	                                INADDR_ANY,
+	                                0,
+	                                10,
+	                                route.mss))
+		g_assert_not_reached ();
 
 	route.source = NM_IP_CONFIG_SOURCE_USER;
 	inet_pton (AF_INET, "6.6.6.0", &route.network);
@@ -377,9 +376,9 @@ setup_dev0_ip6 (int ifindex)
 	/* Add an address so that a route to the gateway below gets added. */
 	nm_platform_ip6_address_add (NM_PLATFORM_GET,
 	                             ifindex,
-	                             *nmtst_inet6_from_string ("2001:db8:8086::2"),
-	                             in6addr_any,
+	                             *nmtst_inet6_from_string ("2001:db8:8086::666"),
 	                             64,
+	                             in6addr_any,
 	                             3600,
 	                             3600,
 	                             0);
@@ -423,14 +422,15 @@ setup_dev1_ip6 (int ifindex)
 
 	/* Add some route outside of route manager. The route manager
 	 * should get rid of it upon sync. */
-	nm_platform_ip6_route_add (NM_PLATFORM_GET,
-	                           ifindex,
-	                           NM_IP_CONFIG_SOURCE_USER,
-	                           *nmtst_inet6_from_string ("2001:db8:8088::"),
-	                           48,
-	                           in6addr_any,
-	                           10,
-	                           0);
+	if (!nm_platform_ip6_route_add (NM_PLATFORM_GET,
+	                                ifindex,
+	                                NM_IP_CONFIG_SOURCE_USER,
+	                                *nmtst_inet6_from_string ("2001:db8:8088::"),
+	                                48,
+	                                in6addr_any,
+	                                10,
+	                                0))
+		g_assert_not_reached ();
 
 	route = nmtst_platform_ip6_route_full ("2001:db8:8086::",
 	                                       48,
@@ -482,8 +482,8 @@ update_dev0_ip6 (int ifindex)
 	nm_platform_ip6_address_add (NM_PLATFORM_GET,
 	                             ifindex,
 	                             *nmtst_inet6_from_string ("2001:db8:8086::2"),
-	                             in6addr_any,
 	                             64,
+	                             in6addr_any,
 	                             3600,
 	                             3600,
 	                             0);
@@ -798,10 +798,12 @@ _assert_route_check (const NMPlatformVTableRoute *vtable, gboolean has, const NM
 	if (!has) {
 		g_assert (!r);
 	} else {
+		char buf[sizeof (_nm_utils_to_string_buffer)];
+
 		if (!r || vtable->route_cmp (route, r) != 0)
 			g_error ("Invalid route. Expect %s, has %s",
-			         nmtst_static_1024_01 (vtable->route_to_string (route)),
-			         nmtst_static_1024_02 (vtable->route_to_string (r)));
+			         vtable->route_to_string (route, NULL, 0),
+			         vtable->route_to_string (r, buf, sizeof (buf)));
 		g_assert (r);
 	}
 }
@@ -874,7 +876,8 @@ fixture_setup (test_fixture *fixture, gconstpointer user_data)
 	                                link_callback,
 	                                "nm-test-device0");
 	nm_platform_link_delete (NM_PLATFORM_GET, nm_platform_link_get_ifindex (NM_PLATFORM_GET, "nm-test-device0"));
-	g_assert (nm_platform_dummy_add (NM_PLATFORM_GET, "nm-test-device0", NULL) == NM_PLATFORM_ERROR_SUCCESS);
+	g_assert (!nm_platform_link_get_by_ifname (NM_PLATFORM_GET, "nm-test-device0"));
+	g_assert (nm_platform_link_dummy_add (NM_PLATFORM_GET, "nm-test-device0", NULL) == NM_PLATFORM_ERROR_SUCCESS);
 	accept_signal (link_added);
 	free_signal (link_added);
 	fixture->ifindex0 = nm_platform_link_get_ifindex (NM_PLATFORM_GET, "nm-test-device0");
@@ -885,7 +888,8 @@ fixture_setup (test_fixture *fixture, gconstpointer user_data)
 	                                link_callback,
 	                                "nm-test-device1");
 	nm_platform_link_delete (NM_PLATFORM_GET, nm_platform_link_get_ifindex (NM_PLATFORM_GET, "nm-test-device1"));
-	g_assert (nm_platform_dummy_add (NM_PLATFORM_GET, "nm-test-device1", NULL) == NM_PLATFORM_ERROR_SUCCESS);
+	g_assert (!nm_platform_link_get_by_ifname (NM_PLATFORM_GET, "nm-test-device1"));
+	g_assert (nm_platform_link_dummy_add (NM_PLATFORM_GET, "nm-test-device1", NULL) == NM_PLATFORM_ERROR_SUCCESS);
 	accept_signal (link_added);
 	free_signal (link_added);
 	fixture->ifindex1 = nm_platform_link_get_ifindex (NM_PLATFORM_GET, "nm-test-device1");

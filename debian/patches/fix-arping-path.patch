@@ -1,0 +1,38 @@
+From: Laurent Bigonville <bigon@bigon.be>
+Date: Mon, 27 Oct 2014 11:08:02 +0100
+Subject: fix arping path
+
+Debian provides two arping implementations:
+/usr/sbin/arping, shipped by the arping package,
+/usr/bin/arping, shipped by the iputils-arping package.
+
+They aren't completely command line compatible, so we choose the one
+which upstream (Fedora) is using, i.e. iputils-arping.
+
+Closes: #755039
+---
+ src/devices/nm-arping-manager.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/devices/nm-arping-manager.c b/src/devices/nm-arping-manager.c
+index dfb20b4..eb8338f 100644
+--- a/src/devices/nm-arping-manager.c
++++ b/src/devices/nm-arping-manager.c
+@@ -202,7 +202,7 @@ nm_arping_manager_start_probe (NMArpingManager *self, guint timeout, GError **er
+ 
+ 	priv->completed = 0;
+ 
+-	argv[0] = nm_utils_find_helper ("arping", NULL, NULL);
++	argv[0] = nm_utils_find_helper ("arping", "/usr/bin/arping", NULL);
+ 	if (!argv[0]) {
+ 		g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
+ 		                     "arping could not be found");
+@@ -317,7 +317,7 @@ send_announcements (NMArpingManager *self, const char *mode_arg)
+ 		return;
+ 	}
+ 
+-	argv[0] = nm_utils_find_helper ("arping", NULL, NULL);
++	argv[0] = nm_utils_find_helper ("arping", "/usr/bin/arping", NULL);
+ 	if (!argv[0]) {
+ 		_LOGW ("arping could not be found; no ARPs will be sent");
+ 		return;

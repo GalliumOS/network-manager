@@ -20,14 +20,14 @@
  * Copyright (C) 2009 Canonical Ltd.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 
 #include <libmm-glib.h>
 
 #include "nm-modem-manager.h"
-#include "nm-logging.h"
+#include "nm-dbus-compat.h"
 #include "nm-modem.h"
 #include "nm-modem-broadband.h"
 
@@ -145,7 +145,7 @@ modem_object_added (MMManager *modem_manager,
 		handle_new_modem (self, modem);
 	else {
 		nm_log_warn (LOGD_MB, "failed to create modem: %s",
-		             error ? error->message : "(unknown)");
+		             error->message);
 	}
 	g_clear_error (&error);
 }
@@ -193,10 +193,7 @@ modem_manager_name_owner_changed (MMManager *modem_manager,
 	gchar *name_owner;
 
 	/* Quit poking, if any */
-	if (self->priv->mm_launch_id) {
-		g_source_remove (self->priv->mm_launch_id);
-		self->priv->mm_launch_id = 0;
-	}
+	nm_clear_g_source (&self->priv->mm_launch_id);
 
 	name_owner = g_dbus_object_manager_client_get_name_owner (G_DBUS_OBJECT_MANAGER_CLIENT (modem_manager));
 	if (!name_owner) {
@@ -265,7 +262,7 @@ modem_manager_poke (NMModemManager *self)
 	g_dbus_connection_call (self->priv->dbus_connection,
 	                        "org.freedesktop.ModemManager1",
 	                        "/org/freedesktop/ModemManager1",
-	                        "org.freedesktop.DBus.Peer",
+	                        DBUS_INTERFACE_PEER,
 	                        "Ping",
 	                        NULL, /* inputs */
 	                        NULL, /* outputs */
@@ -434,10 +431,7 @@ dispose (GObject *object)
 {
 	NMModemManager *self = NM_MODEM_MANAGER (object);
 
-	if (self->priv->mm_launch_id) {
-		g_source_remove (self->priv->mm_launch_id);
-		self->priv->mm_launch_id = 0;
-	}
+	nm_clear_g_source (&self->priv->mm_launch_id);
 
 	modem_manager_clear_signals (self);
 	g_clear_object (&self->priv->modem_manager);

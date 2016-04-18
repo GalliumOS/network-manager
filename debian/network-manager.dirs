@@ -1,5 +1,6 @@
 var/lib/NetworkManager/
 etc/NetworkManager/conf.d/
+etc/NetworkManager/dnsmasq.d/
+etc/NetworkManager/dnsmasq-shared.d/
 etc/NetworkManager/system-connections/
 etc/NetworkManager/VPN/
-etc/NetworkManager/dnsmasq.d/

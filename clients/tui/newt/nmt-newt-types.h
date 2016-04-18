@@ -19,9 +19,9 @@
 #ifndef NMT_NEWT_TYPES_H
 #define NMT_NEWT_TYPES_H
 
-#include <glib-object.h>
 #include <newt.h>
-#include "nm-glib-compat.h"
+
+#include "nm-default.h"
 
 G_BEGIN_DECLS
 

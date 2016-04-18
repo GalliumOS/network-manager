@@ -17,24 +17,39 @@
  * Author: Matthias Clasen <mclasen@redhat.com>
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include "nm-logging.h"
-#include "nm-dbus-manager.h"
+#include "nm-core-internal.h"
+#include "NetworkManagerUtils.h"
 
 #include "nm-sleep-monitor.h"
 
-#define SD_NAME              "org.freedesktop.login1"
-#define SD_PATH              "/org/freedesktop/login1"
-#define SD_INTERFACE         "org.freedesktop.login1.Manager"
+#if defined (SUSPEND_RESUME_SYSTEMD) == defined (SUSPEND_RESUME_CONSOLEKIT)
+#error either define SUSPEND_RESUME_SYSTEMD or SUSPEND_RESUME_CONSOLEKIT
+#endif
 
+#ifdef SUSPEND_RESUME_SYSTEMD
+
+#define SUSPEND_DBUS_NAME               "org.freedesktop.login1"
+#define SUSPEND_DBUS_PATH               "/org/freedesktop/login1"
+#define SUSPEND_DBUS_INTERFACE          "org.freedesktop.login1.Manager"
+
+#else
+
+/* ConsoleKit2 has added the same suspend/resume DBUS API that Systemd
+ * uses. http://consolekit2.github.io/ConsoleKit2/#Manager.Inhibit
+ */
+
+#define SUSPEND_DBUS_NAME               "org.freedesktop.ConsoleKit"
+#define SUSPEND_DBUS_PATH               "/org/freedesktop/ConsoleKit/Manager"
+#define SUSPEND_DBUS_INTERFACE          "org.freedesktop.ConsoleKit.Manager"
+
+#endif
 
 struct _NMSleepMonitor {
 	GObject parent_instance;
@@ -87,6 +102,7 @@ inhibit_done (GObject      *source,
 
 	res = g_dbus_proxy_call_with_unix_fd_list_finish (sd_proxy, &fd_list, result, &error);
 	if (!res) {
+		g_dbus_error_strip_remote_error (error);
 		nm_log_warn (LOGD_SUSPEND, "Inhibit failed: %s", error->message);
 		g_error_free (error);
 	} else {
@@ -123,19 +139,12 @@ take_inhibitor (NMSleepMonitor *self)
 }
 
 static void
-signal_cb (GDBusProxy  *proxy,
-           const gchar *sendername,
-           const gchar *signalname,
-           GVariant    *args,
-           gpointer     data)
+prepare_for_sleep_cb (GDBusProxy  *proxy,
+                      gboolean     is_about_to_suspend,
+                      gpointer     data)
 {
 	NMSleepMonitor *self = data;
-	gboolean is_about_to_suspend;
 
-	if (strcmp (signalname, "PrepareForSleep") != 0)
-		return;
-
-	g_variant_get (args, "(b)", &is_about_to_suspend);
 	nm_log_dbg (LOGD_SUSPEND, "Received PrepareForSleep signal: %d", is_about_to_suspend);
 
 	if (is_about_to_suspend) {
@@ -182,7 +191,8 @@ on_proxy_acquired (GObject *object,
 	}
 
 	g_signal_connect (self->sd_proxy, "notify::g-name-owner", G_CALLBACK (name_owner_cb), self);
-	g_signal_connect (self->sd_proxy, "g-signal", G_CALLBACK (signal_cb), self);
+	_nm_dbus_signal_connect (self->sd_proxy, "PrepareForSleep", G_VARIANT_TYPE ("(b)"),
+	                         G_CALLBACK (prepare_for_sleep_cb), self);
 
 	owner = g_dbus_proxy_get_name_owner (self->sd_proxy);
 	if (owner)
@@ -198,7 +208,7 @@ nm_sleep_monitor_init (NMSleepMonitor *self)
 	                          G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START |
 	                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
 	                          NULL,
-	                          SD_NAME, SD_PATH, SD_INTERFACE,
+	                          SUSPEND_DBUS_NAME, SUSPEND_DBUS_PATH, SUSPEND_DBUS_INTERFACE,
 	                          NULL,
 	                          (GAsyncReadyCallback) on_proxy_acquired, self);
 }
@@ -243,16 +253,6 @@ nm_sleep_monitor_class_init (NMSleepMonitorClass *klass)
 	                                  G_TYPE_NONE, 0);
 }
 
-NMSleepMonitor *
-nm_sleep_monitor_get (void)
-{
-	static NMSleepMonitor *singleton = NULL;
-
-	if (singleton)
-		return g_object_ref (singleton);
-
-	singleton = NM_SLEEP_MONITOR (g_object_new (NM_TYPE_SLEEP_MONITOR, NULL));
-	return singleton;
-}
+NM_DEFINE_SINGLETON_GETTER (NMSleepMonitor, nm_sleep_monitor_get, NM_TYPE_SLEEP_MONITOR);
 
 /* ---------------------------------------------------------------------------------------------------- */

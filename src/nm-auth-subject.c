@@ -26,19 +26,16 @@
  * makes requests, like process identifier and user UID.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include "nm-auth-subject.h"
 
 #include <string.h>
 #include <stdlib.h>
-#include <gio/gio.h>
 
-#include "nm-dbus-manager.h"
+#include "nm-bus-manager.h"
 #include "nm-enum-types.h"
-#include "nm-glib-compat.h"
 #include "NetworkManagerUtils.h"
-#include "gsystem-local-alloc.h"
 
 G_DEFINE_TYPE (NMAuthSubject, nm_auth_subject, G_TYPE_OBJECT)
 
@@ -169,9 +166,9 @@ nm_auth_subject_get_unix_process_dbus_sender (NMAuthSubject *subject)
 /**************************************************************/
 
 static NMAuthSubject *
-_new_unix_process (DBusGMethodInvocation *context,
-                   DBusConnection *connection,
-                   DBusMessage *message)
+_new_unix_process (GDBusMethodInvocation *context,
+                   GDBusConnection *connection,
+                   GDBusMessage *message)
 {
 	NMAuthSubject *self;
 	gboolean success = FALSE;
@@ -181,18 +178,18 @@ _new_unix_process (DBusGMethodInvocation *context,
 	g_return_val_if_fail (context || (connection && message), NULL);
 
 	if (context) {
-		success = nm_dbus_manager_get_caller_info (nm_dbus_manager_get (),
-		                                           context,
-		                                           &dbus_sender,
-		                                           &uid,
-		                                           &pid);
+		success = nm_bus_manager_get_caller_info (nm_bus_manager_get (),
+		                                          context,
+		                                          &dbus_sender,
+		                                          &uid,
+		                                          &pid);
 	} else if (message) {
-		success = nm_dbus_manager_get_caller_info_from_message (nm_dbus_manager_get (),
-		                                                        connection,
-		                                                        message,
-		                                                        &dbus_sender,
-		                                                        &uid,
-		                                                        &pid);
+		success = nm_bus_manager_get_caller_info_from_message (nm_bus_manager_get (),
+		                                                       connection,
+		                                                       message,
+		                                                       &dbus_sender,
+		                                                       &uid,
+		                                                       &pid);
 	} else
 		g_assert_not_reached ();
 
@@ -223,14 +220,14 @@ _new_unix_process (DBusGMethodInvocation *context,
 }
 
 NMAuthSubject *
-nm_auth_subject_new_unix_process_from_context (DBusGMethodInvocation *context)
+nm_auth_subject_new_unix_process_from_context (GDBusMethodInvocation *context)
 {
 	return _new_unix_process (context, NULL, NULL);
 }
 
 NMAuthSubject *
-nm_auth_subject_new_unix_process_from_message (DBusConnection *connection,
-                                               DBusMessage *message)
+nm_auth_subject_new_unix_process_from_message (GDBusConnection *connection,
+                                               GDBusMessage *message)
 {
 	return _new_unix_process (NULL, connection, message);
 }

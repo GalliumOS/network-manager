@@ -19,11 +19,8 @@
  * Copyright (C) 2013 Intel Corporation.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
 #include <string.h>
 
 #include "nm-core-internal.h"
@@ -31,7 +28,6 @@
 #include "nm-bt-error.h"
 #include "nm-bluez-common.h"
 #include "nm-bluez-device.h"
-#include "nm-logging.h"
 #include "nm-settings-connection.h"
 #include "NetworkManagerUtils.h"
 
@@ -250,9 +246,8 @@ pan_connection_check_create (NMBluezDevice *self)
 		priv->pan_connection = added;
 		nm_log_dbg (LOGD_BT, "bluez[%s] added new Bluetooth connection for NAP device: '%s' (%s)", priv->path, id, uuid);
 	} else {
-		nm_log_warn (LOGD_BT, "bluez[%s] couldn't add new Bluetooth connection for NAP device: '%s' (%s): %d / %s",
-		             priv->path, id, uuid, error ? error->code : -1,
-		             (error && error->message) ? error->message : "(unknown)");
+		nm_log_warn (LOGD_BT, "bluez[%s] couldn't add new Bluetooth connection for NAP device: '%s' (%s): %s",
+		             priv->path, id, uuid, error->message);
 		g_clear_error (&error);
 
 	}
@@ -603,8 +598,10 @@ nm_bluez_device_connect_finish (NMBluezDevice *self,
 		return NULL;
 
 	device = (const char *) g_simple_async_result_get_op_res_gpointer (simple);
-	if (device && priv->bluez_version == 5)
+	if (device && priv->bluez_version == 5) {
 		priv->connected = TRUE;
+		g_object_notify (G_OBJECT (self), NM_BLUEZ_DEVICE_CONNECTED);
+	}
 
 	return device;
 }
@@ -867,21 +864,14 @@ properties_changed (GDBusProxy *proxy,
 
 static void
 bluez4_property_changed (GDBusProxy *proxy,
-                         const char *sender,
-                         const char *signal_name,
-                         GVariant   *parameters,
-                         gpointer user_data)
+                         const char *property,
+                         GVariant   *v,
+                         gpointer    user_data)
 {
 	NMBluezDevice *self = NM_BLUEZ_DEVICE (user_data);
 
-	if (g_strcmp0 (signal_name, "PropertyChanged") == 0) {
-		const char *property = NULL;
-		GVariant *v = NULL;
-
-		g_variant_get (parameters, "(&sv)", &property, &v);
-		_take_one_variant_property (self, property, v);
-		check_emit_usable (self);
-	}
+	_take_one_variant_property (self, property, v);
+	check_emit_usable (self);
 }
 
 static void
@@ -891,27 +881,22 @@ get_properties_cb_4 (GObject *source_object, GAsyncResult *res, gpointer user_da
 	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
 	GError *err = NULL;
 	GVariant *v_properties, *v_dict;
-	GVariantType *v_type;
 
-	v_properties = g_dbus_proxy_call_finish (priv->proxy, res, &err);
+	v_properties = _nm_dbus_proxy_call_finish (priv->proxy, res,
+	                                           G_VARIANT_TYPE ("(a{sv})"),
+	                                           &err);
 	if (!v_properties) {
+		g_dbus_error_strip_remote_error (err);
 		nm_log_warn (LOGD_BT, "bluez[%s] error getting device properties: %s",
-		             priv->path, err && err->message ? err->message : "(unknown)");
+		             priv->path, err->message);
 		g_error_free (err);
 		g_signal_emit (self, signals[INITIALIZED], 0, FALSE);
 		goto END;
 	}
 
-	v_type = g_variant_type_new ("(a{sv})");
-	if (g_variant_is_of_type (v_properties, v_type)) {
-		v_dict = g_variant_get_child_value (v_properties, 0);
-		_set_properties (self, v_dict);
-		g_variant_unref (v_dict);
-	} else {
-		nm_log_warn (LOGD_BT, "bluez[%s] GetProperties returns unexpected result of type %s", priv->path, g_variant_get_type_string (v_properties));
-	}
-	g_variant_type_free (v_type);
-
+	v_dict = g_variant_get_child_value (v_properties, 0);
+	_set_properties (self, v_dict);
+	g_variant_unref (v_dict);
 	g_variant_unref (v_properties);
 
 	/* Check if any connections match this device */
@@ -919,7 +904,6 @@ get_properties_cb_4 (GObject *source_object, GAsyncResult *res, gpointer user_da
 
 	priv->initialized = TRUE;
 	g_signal_emit (self, signals[INITIALIZED], 0, TRUE);
-
 
 	check_emit_usable (self);
 
@@ -988,8 +972,8 @@ on_proxy_acquired (GObject *object, GAsyncResult *res, NMBluezDevice *self)
 		                  G_CALLBACK (properties_changed), self);
 		if (priv->bluez_version == 4) {
 			/* Watch for custom Bluez4 PropertyChanged signals */
-			g_signal_connect (priv->proxy, "g-signal",
-			                  G_CALLBACK (bluez4_property_changed), self);
+			_nm_dbus_signal_connect (priv->proxy, "PropertyChanged", G_VARIANT_TYPE ("(sv)"),
+			                         G_CALLBACK (bluez4_property_changed), self);
 		}
 
 		query_properties (self);
@@ -1028,7 +1012,7 @@ nm_bluez_device_new (const char *path,
 	const char *interface_name = NULL;
 
 	g_return_val_if_fail (path != NULL, NULL);
-	g_return_val_if_fail (provider != NULL, NULL);
+	g_return_val_if_fail (NM_IS_CONNECTION_PROVIDER (provider), NULL);
 	g_return_val_if_fail (bluez_version == 4 || bluez_version == 5, NULL);
 
 	self = (NMBluezDevice *) g_object_new (NM_TYPE_BLUEZ_DEVICE,
@@ -1042,7 +1026,7 @@ nm_bluez_device_new (const char *path,
 	priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
 
 	priv->bluez_version = bluez_version;
-	priv->provider = provider;
+	priv->provider = g_object_ref (provider);
 	g_return_val_if_fail (bluez_version == 5 || (bluez_version == 4 && adapter_address), NULL);
 	if (adapter_address)
 		set_adapter_address (self, adapter_address);
@@ -1116,9 +1100,11 @@ dispose (GObject *object)
 	}
 #endif
 
-	g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_added, self);
-	g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_removed, self);
-	g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_updated, self);
+	if (priv->provider) {
+		g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_added, self);
+		g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_removed, self);
+		g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_updated, self);
+	}
 
 	g_slist_free_full (priv->connections, g_object_unref);
 	priv->connections = NULL;
@@ -1134,6 +1120,8 @@ dispose (GObject *object)
 		nm_settings_connection_delete (NM_SETTINGS_CONNECTION (to_delete), NULL, NULL);
 		g_object_unref (to_delete);
 	}
+
+	g_clear_object (&priv->provider);
 }
 
 static void

@@ -27,6 +27,8 @@
 # https://developer.gnome.org/NetworkManager/1.0/ref-settings.html
 #
 
+import gi
+gi.require_version('NM', '1.0')
 from gi.repository import GLib, NM
 import sys, socket
 
@@ -80,6 +82,6 @@ if __name__ == "__main__":
             c.commit_changes(True, None)
             print("The connection profile has been updated.")
         except Exception, e:
-            print("Error: %s" % e)
+            sys.stderr.write("Error: %s\n" % e)
         break
 

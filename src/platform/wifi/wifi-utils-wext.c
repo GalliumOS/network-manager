@@ -19,7 +19,7 @@
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <errno.h>
 #include <string.h>
@@ -28,12 +28,10 @@
 #include <unistd.h>
 #include <math.h>
 
-#include <glib.h>
-
 #include "wifi-utils-private.h"
 #include "wifi-utils-wext.h"
-#include "nm-logging.h"
 #include "nm-utils.h"
+#include "nm-platform-utils.h"
 
 /* Hacks necessary to #include wireless.h; yay for WEXT */
 #ifndef __user
@@ -43,7 +41,6 @@
 #include <linux/types.h>
 #include <sys/socket.h>
 #include <linux/wireless.h>
-
 
 typedef struct {
 	WifiData parent;
@@ -104,7 +101,7 @@ wifi_wext_get_mode (WifiData *data)
 	struct iwreq wrq;
 
 	memset (&wrq, 0, sizeof (struct iwreq));
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 
 	if (ioctl (wext->fd, SIOCGIWMODE, &wrq) < 0) {
 		if (errno != ENODEV) {
@@ -121,6 +118,7 @@ wifi_wext_get_mode (WifiData *data)
 	case IW_MODE_MASTER:
 		return NM_802_11_MODE_AP;
 	case IW_MODE_INFRA:
+	case IW_MODE_AUTO: /* hack for WEXT devices reporting IW_MODE_AUTO */
 		return NM_802_11_MODE_INFRA;
 	default:
 		break;
@@ -153,11 +151,35 @@ wifi_wext_set_mode (WifiData *data, const NM80211Mode mode)
 		return FALSE;
 	}
 
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 	if (ioctl (wext->fd, SIOCSIWMODE, &wrq) < 0) {
 		if (errno != ENODEV) {
 			nm_log_err (LOGD_HW | LOGD_WIFI, "(%s): error setting mode %d",
 			            wext->parent.iface, mode);
+		}
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static gboolean
+wifi_wext_set_powersave (WifiData *data, guint32 powersave)
+{
+	WifiDataWext *wext = (WifiDataWext *) data;
+	struct iwreq wrq;
+
+	memset (&wrq, 0, sizeof (struct iwreq));
+	if (powersave == 1) {
+		wrq.u.power.flags = IW_POWER_ALL_R;
+	} else
+		wrq.u.power.disabled = 1;
+
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
+	if (ioctl (wext->fd, SIOCSIWPOWER, &wrq) < 0) {
+		if (errno != ENODEV) {
+			nm_log_err (LOGD_HW | LOGD_WIFI, "(%s): error setting powersave %" G_GUINT32_FORMAT,
+			            wext->parent.iface, powersave);
 		}
 		return FALSE;
 	}
@@ -172,7 +194,7 @@ wifi_wext_get_freq (WifiData *data)
 	struct iwreq wrq;
 
 	memset (&wrq, 0, sizeof (struct iwreq));
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 	if (ioctl (wext->fd, SIOCGIWFREQ, &wrq) < 0) {
 		nm_log_warn (LOGD_HW | LOGD_WIFI,
 		             "(%s): error getting frequency: %s",
@@ -199,36 +221,6 @@ wifi_wext_find_freq (WifiData *data, const guint32 *freqs)
 	return 0;
 }
 
-static GByteArray *
-wifi_wext_get_ssid (WifiData *data)
-{
-	WifiDataWext *wext = (WifiDataWext *) data;
-	struct iwreq wrq;
-	char ssid[IW_ESSID_MAX_SIZE + 2];
-	guint32 len;
-	GByteArray *array = NULL;
-
-	memset (ssid, 0, sizeof (ssid));
-	wrq.u.essid.pointer = (caddr_t) &ssid;
-	wrq.u.essid.length = sizeof (ssid);
-	wrq.u.essid.flags = 0;
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
-
-	if (ioctl (wext->fd, SIOCGIWESSID, &wrq) < 0) {
-		nm_log_err (LOGD_HW | LOGD_WIFI, "(%s): couldn't get SSID: %d",
-		            wext->parent.iface, errno);
-		return NULL;
-	}
-
-	len = wrq.u.essid.length;
-	if (nm_utils_is_empty_ssid ((guint8 *) ssid, len) == FALSE) {
-		array = g_byte_array_sized_new (len);
-		g_byte_array_append (array, (const guint8 *) ssid, len);
-	}
-
-	return array;
-}
-
 static gboolean
 wifi_wext_get_bssid (WifiData *data, guint8 *out_bssid)
 {
@@ -236,7 +228,7 @@ wifi_wext_get_bssid (WifiData *data, guint8 *out_bssid)
 	struct iwreq wrq;
 
 	memset (&wrq, 0, sizeof (wrq));
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 	if (ioctl (wext->fd, SIOCGIWAP, &wrq) < 0) {
 		nm_log_warn (LOGD_HW | LOGD_WIFI,
 		             "(%s): error getting associated BSSID: %s",
@@ -255,7 +247,7 @@ wifi_wext_get_rate (WifiData *data)
 	int err;
 
 	memset (&wrq, 0, sizeof (wrq));
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 	err = ioctl (wext->fd, SIOCGIWRATE, &wrq);
 	return ((err == 0) ? wrq.u.bitrate.value / 1000 : 0);
 }
@@ -322,7 +314,7 @@ wext_qual_to_percent (const struct iw_quality *qual,
 			noise = qual->noise - 0x100;
 		else if ((max_qual->noise > 0) && !(max_qual->updated & IW_QUAL_NOISE_INVALID))
 			noise = max_qual->noise - 0x100;
-		noise = CLAMP (noise, FALLBACK_NOISE_FLOOR_DBM, FALLBACK_SIGNAL_MAX_DBM);
+		noise = CLAMP (noise, FALLBACK_NOISE_FLOOR_DBM, FALLBACK_SIGNAL_MAX_DBM - 1);
 
 		/* A sort of signal-to-noise ratio calculation */
 		level_percent = (int) (100 - 70 * (((double)max_level - (double)level) /
@@ -365,7 +357,7 @@ wifi_wext_get_qual (WifiData *data)
 	wrq.u.data.pointer = &stats;
 	wrq.u.data.length = sizeof (stats);
 	wrq.u.data.flags = 1;  /* Clear updated flag */
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 
 	if (ioctl (wext->fd, SIOCGIWSTATS, &wrq) < 0) {
 		nm_log_warn (LOGD_HW | LOGD_WIFI,
@@ -402,7 +394,7 @@ wifi_wext_set_mesh_channel (WifiData *data, guint32 channel)
 	struct iwreq wrq;
 
 	memset (&wrq, 0, sizeof (struct iwreq));
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 
 	if (channel > 0) {
 		wrq.u.freq.flags = IW_FREQ_FIXED;
@@ -434,7 +426,7 @@ wifi_wext_set_mesh_ssid (WifiData *data, const guint8 *ssid, gsize len)
 	wrq.u.essid.length = len;
 	wrq.u.essid.flags = (len > 0) ? 1 : 0; /* 1=enable SSID, 0=disable/any */
 
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 	if (ioctl (wext->fd, SIOCSIWESSID, &wrq) == 0)
 		return TRUE;
 
@@ -457,7 +449,7 @@ wext_can_scan (WifiDataWext *wext)
 	struct iwreq wrq;
 
 	memset (&wrq, 0, sizeof (struct iwreq));
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 	if (ioctl (wext->fd, SIOCSIWSCAN, &wrq) < 0) {
 		if (errno == EOPNOTSUPP)
 			return FALSE;
@@ -475,7 +467,7 @@ wext_get_range (WifiDataWext *wext,
 	struct iwreq wrq;
 
 	memset (&wrq, 0, sizeof (struct iwreq));
-	strncpy (wrq.ifr_name, wext->parent.iface, IFNAMSIZ);
+	nm_utils_ifname_cpy (wrq.ifr_name, wext->parent.iface);
 	wrq.u.data.pointer = (caddr_t) range;
 	wrq.u.data.length = sizeof (struct iw_range);
 
@@ -574,9 +566,9 @@ wifi_wext_init (const char *iface, int ifindex, gboolean check_scan)
 	wext = wifi_data_new (iface, ifindex, sizeof (*wext));
 	wext->parent.get_mode = wifi_wext_get_mode;
 	wext->parent.set_mode = wifi_wext_set_mode;
+	wext->parent.set_powersave = wifi_wext_set_powersave;
 	wext->parent.get_freq = wifi_wext_get_freq;
 	wext->parent.find_freq = wifi_wext_find_freq;
-	wext->parent.get_ssid = wifi_wext_get_ssid;
 	wext->parent.get_bssid = wifi_wext_get_bssid;
 	wext->parent.get_rate = wifi_wext_get_rate;
 	wext->parent.get_qual = wifi_wext_get_qual;
@@ -670,9 +662,12 @@ wifi_wext_is_wifi (const char *iface)
 	struct iwreq iwr;
 	gboolean is_wifi = FALSE;
 
+	if (!nmp_utils_device_exists (iface))
+		return FALSE;
+
 	fd = socket (PF_INET, SOCK_DGRAM, 0);
 	if (fd >= 0) {
-		strncpy (iwr.ifr_ifrn.ifrn_name, iface, IFNAMSIZ);
+		nm_utils_ifname_cpy (iwr.ifr_ifrn.ifrn_name, iface);
 		if (ioctl (fd, SIOCGIWNAME, &iwr) == 0)
 			is_wifi = TRUE;
 		close (fd);

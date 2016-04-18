@@ -12,15 +12,13 @@ TMPFILE="$(mktemp .nm-check-exports.XXXXXX)"
 
 
 get_syms() {
-    nm "$1" |
+    ${NM:-nm} "$1" |
     sed -n 's/^[[:xdigit:]]\+ [DT] //p' |
     sort
 }
 
 get_syms_from_def() {
-    # be strict and only parse entries that start with one \t and end with a ';'
-    sed -n 's/^\t\([_a-zA-Z0-9]\+\);$/\1/p' "$1" |
-    grep '^\*$' -v |
+    sed -n 's/^\t\(\([_a-zA-Z0-9]\+\)\|#\s*\([_a-zA-Z0-9]\+@@\?[_a-zA-Z0-9]\+\)\);$/\2\3/p' "$1" |
     sort
 }
 

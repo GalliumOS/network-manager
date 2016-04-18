@@ -18,13 +18,12 @@
  * Copyright (C) 2009 - 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <gudev/gudev.h>
 
 #include "nm-rfkill-manager.h"
-#include "nm-logging.h"
 
 typedef struct {
 	GUdevClient *client;
@@ -268,8 +267,6 @@ rfkill_type_to_enum (const char *str)
 		return RFKILL_TYPE_WLAN;
 	else if (!strcmp (str, "wwan"))
 		return RFKILL_TYPE_WWAN;
-	else if (!strcmp (str, "wimax"))
-		return RFKILL_TYPE_WIMAX;
 
 	return RFKILL_TYPE_UNKNOWN;
 }

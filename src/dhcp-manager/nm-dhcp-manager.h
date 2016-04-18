@@ -22,9 +22,8 @@
 #ifndef __NETWORKMANAGER_DHCP_MANAGER_H__
 #define __NETWORKMANAGER_DHCP_MANAGER_H__
 
-#include <glib.h>
-#include <glib-object.h>
 
+#include "nm-default.h"
 #include "nm-dhcp-client.h"
 #include "nm-ip4-config.h"
 #include "nm-dhcp4-config.h"
@@ -59,6 +58,7 @@ NMDhcpClient * nm_dhcp_manager_start_ip4     (NMDhcpManager *manager,
                                               guint32 priority,
                                               gboolean send_hostname,
                                               const char *dhcp_hostname,
+                                              const char *dhcp_fqdn,
                                               const char *dhcp_client_id,
                                               guint32 timeout,
                                               const char *dhcp_anycast_addr,
@@ -68,6 +68,7 @@ NMDhcpClient * nm_dhcp_manager_start_ip6     (NMDhcpManager *manager,
                                               const char *iface,
                                               int ifindex,
                                               const GByteArray *hwaddr,
+                                              const struct in6_addr *ll_addr,
                                               const char *uuid,
                                               guint32 priority,
                                               gboolean send_hostname,
@@ -79,6 +80,7 @@ NMDhcpClient * nm_dhcp_manager_start_ip6     (NMDhcpManager *manager,
 
 GSList *       nm_dhcp_manager_get_lease_ip_configs (NMDhcpManager *self,
                                                      const char *iface,
+                                                     int ifindex,
                                                      const char *uuid,
                                                      gboolean ipv6,
                                                      guint32 default_route_metric);

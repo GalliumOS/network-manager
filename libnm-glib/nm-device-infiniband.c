@@ -18,17 +18,15 @@
  * Copyright 2011 - 2012 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <linux/if_infiniband.h>
 #include <netinet/ether.h>
 
-#include "nm-glib-compat.h"
-
-#include <nm-setting-connection.h>
-#include <nm-setting-infiniband.h>
-#include <nm-utils.h>
+#include "nm-setting-connection.h"
+#include "nm-setting-infiniband.h"
+#include "nm-utils.h"
 
 #include "nm-device-infiniband.h"
 #include "nm-device-private.h"

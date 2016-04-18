@@ -21,16 +21,13 @@
  * @short_description: Utility functions
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <errno.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
-#include <glib/gi18n-lib.h>
-
-#include "nm-glib-compat.h"
 #include "nmt-newt-utils.h"
 
 static void

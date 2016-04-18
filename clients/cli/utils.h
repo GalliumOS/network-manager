@@ -14,7 +14,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2010 - 2014 Red Hat, Inc.
+ * Copyright 2010 - 2015 Red Hat, Inc.
  */
 
 #ifndef NMC_UTILS_H
@@ -31,6 +31,12 @@ typedef struct {
 	gboolean mandatory;
 	gboolean found;
 } nmc_arg_t;
+
+typedef enum {
+	NMC_TRI_STATE_NO,
+	NMC_TRI_STATE_YES,
+	NMC_TRI_STATE_UNKNOWN,
+} NMCTriStateValue;
 
 /* === Functions === */
 int matches (const char *cmd, const char *pattern);
@@ -62,12 +68,17 @@ gboolean nmc_string_to_uint (const char *str,
                              unsigned long int max,
                              unsigned long int *value);
 gboolean nmc_string_to_bool (const char *str, gboolean *val_bool, GError **error);
+gboolean nmc_string_to_tristate (const char *str, NMCTriStateValue *val, GError **error);
 char *nmc_ip4_address_as_string (guint32 ip, GError **error);
 char *nmc_ip6_address_as_string (const struct in6_addr *ip, GError **error);
 void nmc_terminal_erase_line (void);
 void nmc_terminal_show_progress (const char *str);
 const char *nmc_term_color_sequence (NmcTermColor color);
-char *nmc_colorize (NmcTermColor color, const char * fmt, ...);
+const char *nmc_term_format_sequence (NmcTermFormat format);
+NmcTermColor nmc_term_color_parse_string (const char *str, GError **error);
+char *nmc_colorize (NmCli *nmc, NmcTermColor color, NmcTermFormat format, const char * fmt, ...);
+void nmc_filter_out_colors_inplace (char *str);
+char *nmc_filter_out_colors (const char *str);
 char *nmc_get_user_input (const char *ask_str);
 int nmc_string_to_arg_array (const char *line, const char *delim, gboolean unquote,
                              char ***argv, int *argc);
@@ -80,6 +91,8 @@ void set_val_str  (NmcOutputField fields_array[], guint32 index, char *value);
 void set_val_strc (NmcOutputField fields_array[], guint32 index, const char *value);
 void set_val_arr  (NmcOutputField fields_array[], guint32 index, char **value);
 void set_val_arrc (NmcOutputField fields_array[], guint32 index, const char **value);
+void set_val_color_all (NmcOutputField fields_array[], NmcTermColor color);
+void set_val_color_fmt_all (NmcOutputField fields_array[], NmcTermFormat format);
 void nmc_free_output_field_values (NmcOutputField fields_array[]);
 GArray *parse_output_fields (const char *fields_str,
                              const NmcOutputField fields_array[],

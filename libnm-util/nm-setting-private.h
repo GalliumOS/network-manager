@@ -21,7 +21,9 @@
 #ifndef NM_SETTING_PRIVATE_H
 #define NM_SETTING_PRIVATE_H
 
-#include "nm-glib-compat.h"
+#include "nm-default.h"
+
+#include "nm-connection.h"
 
 #define NM_SETTING_SECRET_FLAGS_ALL \
 	(NM_SETTING_SECRET_FLAG_NONE | \
@@ -62,6 +64,10 @@ gint _nm_setting_compare_priority (gconstpointer a, gconstpointer b);
 
 gboolean _nm_setting_get_property (NMSetting *setting, const char *name, GValue *value);
 
+NMConnection *_nm_connection_new_from_hash (GHashTable *hash);
+void          _nm_connection_replace_settings (NMConnection *connection,
+                                               GHashTable *new_settings);
+
 typedef enum NMSettingUpdateSecretResult {
 	NM_SETTING_UPDATE_SECRET_ERROR              = FALSE,
 	NM_SETTING_UPDATE_SECRET_SUCCESS_MODIFIED   = TRUE,
@@ -101,7 +107,7 @@ gboolean _nm_setting_clear_secrets_with_flags (NMSetting *setting,
 /* Ensure the setting's GType is registered at library load time */
 #define NM_SETTING_REGISTER_TYPE(x) \
 static void __attribute__((constructor)) register_setting (void) \
-{ g_type_init (); g_type_ensure (x); }
+{ nm_g_type_init (); g_type_ensure (x); }
 
 NMSetting *nm_setting_find_in_list (GSList *settings_list, const char *setting_name);
 

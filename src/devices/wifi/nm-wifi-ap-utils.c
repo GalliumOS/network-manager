@@ -18,12 +18,10 @@
  * (C) Copyright 2011 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <stdlib.h>
-
-#include <glib/gi18n.h>
 
 #include "nm-wifi-ap-utils.h"
 #include "nm-utils.h"
@@ -163,7 +161,7 @@ verify_no_wpa (NMSettingWirelessSecurity *s_wsec,
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
 		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-		             _("a connection using '%s' authentication cannot specific WPA protocols"),
+		             _("a connection using '%s' authentication cannot specify WPA protocols"),
 		             tag);
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME,
 		                NM_SETTING_WIRELESS_SECURITY_PROTO);
@@ -179,7 +177,7 @@ verify_no_wpa (NMSettingWirelessSecurity *s_wsec,
 			g_set_error (error,
 			             NM_CONNECTION_ERROR,
 			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             _("a connection using '%s' authentication cannot specific WPA ciphers"),
+			             _("a connection using '%s' authentication cannot specify WPA ciphers"),
 			             tag);
 			g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME,
 			                NM_SETTING_WIRELESS_SECURITY_PAIRWISE);
@@ -196,7 +194,7 @@ verify_no_wpa (NMSettingWirelessSecurity *s_wsec,
 			g_set_error (error,
 			             NM_CONNECTION_ERROR,
 			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             _("a connection using '%s' authentication cannot specific WPA ciphers"),
+			             _("a connection using '%s' authentication cannot specify WPA ciphers"),
 			             tag);
 			g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME,
 			                NM_SETTING_WIRELESS_SECURITY_GROUP);
@@ -208,7 +206,7 @@ verify_no_wpa (NMSettingWirelessSecurity *s_wsec,
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
 		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-		             _("a connection using '%s' authentication cannot specific a WPA password"),
+		             _("a connection using '%s' authentication cannot specify a WPA password"),
 		             tag);
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME,
 		                NM_SETTING_WIRELESS_SECURITY_PSK);
@@ -549,11 +547,11 @@ nm_ap_utils_complete_connection (const GByteArray *ap_ssid,
 	s_8021x = nm_connection_get_setting_802_1x (connection);
 
 	/* Fill in missing SSID */
-	ap_ssid_bytes = g_bytes_new (ap_ssid->data, ap_ssid->len);
+	ap_ssid_bytes = ap_ssid ? g_bytes_new (ap_ssid->data, ap_ssid->len) : NULL;
 	ssid = nm_setting_wireless_get_ssid (s_wifi);
 	if (!ssid)
 		g_object_set (G_OBJECT (s_wifi), NM_SETTING_WIRELESS_SSID, ap_ssid_bytes, NULL);
-	else if (!g_bytes_equal (ssid, ap_ssid_bytes)) {
+	else if (!ap_ssid_bytes || !g_bytes_equal (ssid, ap_ssid_bytes)) {
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
 		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,

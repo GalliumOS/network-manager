@@ -14,7 +14,7 @@ Index: b/libnm-util/nm-utils.c
 ===================================================================
 --- a/libnm-util/nm-utils.c
 +++ b/libnm-util/nm-utils.c
-@@ -727,8 +727,6 @@ nm_utils_security_valid (NMUtilsSecurity
+@@ -735,8 +735,6 @@ nm_utils_security_valid (NMUtilsSecurity
  		}
  		break;
  	case NMU_SEC_WPA_PSK:
@@ -23,7 +23,7 @@ Index: b/libnm-util/nm-utils.c
  		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_WPA))
  			return FALSE;
  		if (have_ap) {
-@@ -756,8 +754,6 @@ nm_utils_security_valid (NMUtilsSecurity
+@@ -764,8 +762,6 @@ nm_utils_security_valid (NMUtilsSecurity
  		}
  		break;
  	case NMU_SEC_WPA2_PSK:
@@ -36,7 +36,7 @@ Index: b/src/devices/wifi/nm-device-wifi.c
 ===================================================================
 --- a/src/devices/wifi/nm-device-wifi.c
 +++ b/src/devices/wifi/nm-device-wifi.c
-@@ -758,36 +758,6 @@ deactivate (NMDevice *device)
+@@ -510,36 +510,6 @@ deactivate (NMDevice *device)
  }
  
  static gboolean
@@ -73,7 +73,7 @@ Index: b/src/devices/wifi/nm-device-wifi.c
  check_connection_compatible (NMDevice *device, NMConnection *connection)
  {
  	NMDeviceWifi *self = NM_DEVICE_WIFI (device);
-@@ -833,9 +803,6 @@ check_connection_compatible (NMDevice *d
+@@ -585,9 +555,6 @@ check_connection_compatible (NMDevice *d
  	} else if (mac)
  		return FALSE;
  
@@ -83,7 +83,7 @@ Index: b/src/devices/wifi/nm-device-wifi.c
  	/* Early exit if supplicant or device doesn't support requested mode */
  	mode = nm_setting_wireless_get_mode (s_wireless);
  	if (g_strcmp0 (mode, NM_SETTING_WIRELESS_MODE_ADHOC) == 0) {
-@@ -1072,21 +1039,6 @@ complete_connection (NMDevice *device,
+@@ -828,21 +795,6 @@ complete_connection (NMDevice *device,
  		}
  	}
  
@@ -104,8 +104,8 @@ Index: b/src/devices/wifi/nm-device-wifi.c
 -
  	str_ssid = nm_utils_ssid_to_utf8 (ssid->data, ssid->len);
  
- 	nm_utils_complete_generic (connection,
-@@ -2538,16 +2490,6 @@ act_stage1_prepare (NMDevice *device, NM
+ 	nm_utils_complete_generic (NM_PLATFORM_GET,
+@@ -2305,16 +2257,6 @@ act_stage1_prepare (NMDevice *device, NM
  	}
  	g_object_notify (G_OBJECT (self), NM_DEVICE_WIFI_MODE);
  
@@ -121,12 +121,12 @@ Index: b/src/devices/wifi/nm-device-wifi.c
 -
  	/* Set spoof MAC to the interface */
  	cloned_mac = nm_setting_wireless_get_cloned_mac_address (s_wireless);
- 	if (cloned_mac)
+ 	nm_device_set_hw_addr (device, cloned_mac, "set", LOGD_WIFI);
 Index: b/src/settings/nm-settings.c
 ===================================================================
 --- a/src/settings/nm-settings.c
 +++ b/src/settings/nm-settings.c
-@@ -1173,38 +1173,6 @@ pk_add_cb (NMAuthChain *chain,
+@@ -1242,38 +1242,6 @@ pk_add_cb (NMAuthChain *chain,
  	nm_auth_chain_unref (chain);
  }
  
@@ -164,8 +164,8 @@ Index: b/src/settings/nm-settings.c
 -
  void
  nm_settings_add_connection_dbus (NMSettings *self,
-                             NMConnection *connection,
-@@ -1234,17 +1202,6 @@ nm_settings_add_connection_dbus (NMSetti
+                                  NMConnection *connection,
+@@ -1303,17 +1271,6 @@ nm_settings_add_connection_dbus (NMSetti
  		goto done;
  	}
  
@@ -181,5 +181,5 @@ Index: b/src/settings/nm-settings.c
 -	}
 -
  	/* Do any of the plugins support adding? */
- 	if (!get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS)) {
+ 	if (!get_plugin (self, NM_SETTINGS_PLUGIN_CAP_MODIFY_CONNECTIONS)) {
  		error = g_error_new_literal (NM_SETTINGS_ERROR,

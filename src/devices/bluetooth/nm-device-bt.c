@@ -18,21 +18,16 @@
  * Copyright (C) 2009 - 2011 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
+
+#include "nm-device-bt.h"
 
 #include <stdio.h>
 #include <string.h>
 
-#include <glib/gi18n.h>
-#include <gio/gio.h>
-
-#include "nm-glib-compat.h"
 #include "nm-bluez-common.h"
 #include "nm-bluez-device.h"
-#include "nm-dbus-manager.h"
-#include "nm-device-bt.h"
 #include "nm-device-private.h"
-#include "nm-logging.h"
 #include "ppp-manager/nm-ppp-manager.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-bluetooth.h"
@@ -40,14 +35,18 @@
 #include "nm-setting-gsm.h"
 #include "nm-setting-serial.h"
 #include "nm-setting-ppp.h"
-#include "nm-device-bt-glue.h"
 #include "NetworkManagerUtils.h"
 #include "nm-bt-enum-types.h"
 #include "nm-utils.h"
 #include "nm-bt-error.h"
 #include "nm-bt-enum-types.h"
+#include "nm-platform.h"
 
-#define MM_DBUS_SERVICE  "org.freedesktop.ModemManager1"
+#include "nmdbus-device-bt.h"
+
+#define MM_DBUS_SERVICE   "org.freedesktop.ModemManager1"
+#define MM_DBUS_PATH      "/org/freedesktop/ModemManager1"
+#define MM_DBUS_INTERFACE "org.freedesktop.ModemManager1"
 
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceBt);
@@ -59,8 +58,7 @@ G_DEFINE_TYPE (NMDeviceBt, nm_device_bt, NM_TYPE_DEVICE)
 static gboolean modem_stage1 (NMDeviceBt *self, NMModem *modem, NMDeviceStateReason *reason);
 
 typedef struct {
-	NMDBusManager *dbus_mgr;
-	guint mm_watch_id;
+	GDBusProxy *mm_proxy;
 	gboolean mm_running;
 
 	NMBluezDevice *bt_device;
@@ -319,7 +317,8 @@ complete_connection (NMDevice *device,
 		return FALSE;
 	}
 
-	nm_utils_complete_generic (connection,
+	nm_utils_complete_generic (NM_PLATFORM_GET,
+	                           connection,
 	                           NM_SETTING_BLUETOOTH_SETTING_NAME,
 	                           existing_connections,
 	                           preferred,
@@ -461,7 +460,7 @@ modem_prepare_result (NMModem *modem,
 			 * the device to be auto-activated anymore, which would risk locking
 			 * the SIM if the incorrect PIN continues to be used.
 			 */
-			g_object_set (G_OBJECT (device), NM_DEVICE_AUTOCONNECT, FALSE, NULL);
+			nm_device_set_autoconnect (device, FALSE);
 			_LOGI (LOGD_MB, "disabling autoconnect due to failed SIM PIN");
 		}
 
@@ -501,8 +500,8 @@ modem_ip4_config_result (NMModem *modem,
 
 	if (error) {
 		_LOGW (LOGD_MB | LOGD_IP4 | LOGD_BT,
-		       "retrieving IP4 configuration failed: (%d) %s",
-		       error->code, error->message ? error->message : "(unknown)");
+		       "retrieving IP4 configuration failed: %s",
+		       error->message);
 
 		nm_device_state_changed (device, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_IP_CONFIG_UNAVAILABLE);
 	} else
@@ -635,10 +634,7 @@ component_added (NMDevice *device, GObject *component)
 	g_free (base);
 
 	/* Got the modem */
-	if (priv->timeout_id) {
-		g_source_remove (priv->timeout_id);
-		priv->timeout_id = 0;
-	}
+	nm_clear_g_source (&priv->timeout_id);
 
 	/* Can only accept the modem in stage2, but since the interface matched
 	 * what we were expecting, don't let anything else claim the modem either.
@@ -706,10 +702,7 @@ check_connect_continue (NMDeviceBt *self)
 	       dun ? "DUN" : (pan ? "PAN" : "unknown"));
 
 	/* Kill the connect timeout since we're connected now */
-	if (priv->timeout_id) {
-		g_source_remove (priv->timeout_id);
-		priv->timeout_id = 0;
-	}
+	nm_clear_g_source (&priv->timeout_id);
 
 	if (pan) {
 		/* Bluez says we're connected now.  Start IP config. */
@@ -738,8 +731,7 @@ bluez_connect_cb (GObject *object,
 	                                         res, &error);
 
 	if (!device) {
-		_LOGW (LOGD_BT, "Error connecting with bluez: %s",
-		       error && error->message ? error->message : "(unknown)");
+		_LOGW (LOGD_BT, "Error connecting with bluez: %s", error->message);
 		g_clear_error (&error);
 
 		nm_device_state_changed (NM_DEVICE (self),
@@ -824,7 +816,7 @@ act_stage2_config (NMDevice *device, NMDeviceStateReason *reason)
 	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (device);
 	NMConnection *connection;
 
-	connection = nm_device_get_connection (device);
+	connection = nm_device_get_applied_connection (device);
 	g_assert (connection);
 	priv->bt_type = get_connection_bt_type (connection);
 	if (priv->bt_type == NM_BT_CAPABILITY_NONE) {
@@ -914,10 +906,7 @@ deactivate (NMDevice *device)
 	if (priv->bt_type != NM_BT_CAPABILITY_NONE)
 		nm_bluez_device_disconnect (priv->bt_device);
 
-	if (priv->timeout_id) {
-		g_source_remove (priv->timeout_id);
-		priv->timeout_id = 0;
-	}
+	nm_clear_g_source (&priv->timeout_id);
 
 	priv->bt_type = NM_BT_CAPABILITY_NONE;
 
@@ -967,25 +956,17 @@ set_mm_running (NMDeviceBt *self, gboolean running)
 }
 
 static void
-mm_name_owner_changed (NMDBusManager *dbus_mgr,
-                       const char *name,
-                       const char *old_owner,
-                       const char *new_owner,
+mm_name_owner_changed (GObject *object,
+                       GParamSpec *pspec,
                        NMDeviceBt *self)
 {
-	gboolean old_owner_good;
-	gboolean new_owner_good;
+	char *owner;
 
-	/* Can't handle the signal if its not from the modem service */
-	if (strcmp (MM_DBUS_SERVICE, name) != 0)
-		return;
-
-	old_owner_good = (old_owner && strlen (old_owner));
-	new_owner_good = (new_owner && strlen (new_owner));
-
-	if (!old_owner_good && new_owner_good)
+	owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (object));
+	if (owner) {
 		set_mm_running (self, TRUE);
-	else if (old_owner_good && !new_owner_good)
+		g_free (owner);
+	} else
 		set_mm_running (self, FALSE);
 }
 
@@ -1021,18 +1002,27 @@ static void
 nm_device_bt_init (NMDeviceBt *self)
 {
 	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (self);
-	gboolean mm_running;
+	GError *error = NULL;
 
-	priv->dbus_mgr = nm_dbus_manager_get ();
-
-	priv->mm_watch_id = g_signal_connect (priv->dbus_mgr,
-	                                      NM_DBUS_MANAGER_NAME_OWNER_CHANGED,
-	                                      G_CALLBACK (mm_name_owner_changed),
-	                                      self);
-
-	/* Initial check to see if ModemManager is running */
-	mm_running = nm_dbus_manager_name_has_owner (priv->dbus_mgr, MM_DBUS_SERVICE);
-	set_mm_running (self, mm_running);
+	priv->mm_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+	                                                G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
+	                                                    G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS |
+	                                                    G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START,
+	                                                NULL,
+	                                                MM_DBUS_SERVICE,
+	                                                MM_DBUS_PATH,
+	                                                MM_DBUS_INTERFACE,
+	                                                NULL, &error);
+	if (priv->mm_proxy) {
+		g_signal_connect (priv->mm_proxy, "notify::g-name-owner",
+		                  G_CALLBACK (mm_name_owner_changed),
+		                  self);
+		mm_name_owner_changed (G_OBJECT (priv->mm_proxy), NULL, self);
+	} else {
+		_LOGW (LOGD_MB, "Could not create proxy for '%s': %s",
+		       MM_DBUS_SERVICE, error->message);
+		g_clear_error (&error);
+	}
 }
 
 static void
@@ -1106,18 +1096,14 @@ dispose (GObject *object)
 {
 	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (object);
 
-	if (priv->timeout_id) {
-		g_source_remove (priv->timeout_id);
-		priv->timeout_id = 0;
-	}
+	nm_clear_g_source (&priv->timeout_id);
 
 	g_signal_handlers_disconnect_matched (priv->bt_device, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, object);
 
-	if (priv->dbus_mgr && priv->mm_watch_id) {
-		g_signal_handler_disconnect (priv->dbus_mgr, priv->mm_watch_id);
-		priv->mm_watch_id = 0;
+	if (priv->mm_proxy) {
+		g_signal_handlers_disconnect_by_func (priv->mm_proxy, G_CALLBACK (mm_name_owner_changed), object);
+		g_clear_object (&priv->mm_proxy);
 	}
-	priv->dbus_mgr = NULL;
 
 	modem_cleanup (NM_DEVICE_BT (object));
 	g_clear_object (&priv->bt_device);
@@ -1197,7 +1183,7 @@ nm_device_bt_class_init (NMDeviceBtClass *klass)
 		              G_TYPE_NONE, 2,
 		              G_TYPE_UINT, G_TYPE_UINT);
 
-	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
-	                                        G_TYPE_FROM_CLASS (klass),
-	                                        &dbus_glib_nm_device_bt_object_info);
+	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
+	                                        NMDBUS_TYPE_DEVICE_BLUETOOTH_SKELETON,
+	                                        NULL);
 }

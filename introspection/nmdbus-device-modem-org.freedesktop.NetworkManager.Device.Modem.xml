@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<refentry id="gdbus-org.freedesktop.NetworkManager.Device.Modem">
+  <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Modem.top_of_page">org.freedesktop.NetworkManager.Device.Modem</refentrytitle>
+  <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Modem.top_of_page"><primary sortas=".Device.Modem">org.freedesktop.NetworkManager.Device.Modem</primary></indexterm>
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Modem</refname>    <refpurpose></refpurpose>  </refnamediv>  <refsect1 role="signal_proto">
+    <title role="signal_proto.title">Signals</title>
+    <synopsis>
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Device-Modem.PropertiesChanged">PropertiesChanged</link> (a{sv} properties);
+</synopsis>
+  </refsect1>
+  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis>
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.ModemCapabilities">ModemCapabilities</link>    readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.CurrentCapabilities">CurrentCapabilities</link>  readable   u
+</synopsis>
+  </refsect1>
+<refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Modem">
+  <title role="desc.title">Description</title>
+  <para></para>
+</refsect1>
+<refsect1 role="details" id="gdbus-signals-org.freedesktop.NetworkManager.Device.Modem">
+  <title role="details.title">Signal Details</title>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Device-Modem.PropertiesChanged">
+  <title>The "PropertiesChanged" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Device-Modem.PropertiesChanged"><primary sortas=".Device.Modem::PropertiesChanged">org.freedesktop.NetworkManager.Device.Modem::PropertiesChanged</primary></indexterm>
+<programlisting>
+PropertiesChanged (a{sv} properties);
+</programlisting>
+<para></para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>a{sv} <parameter>properties</parameter></literal>:</term>
+  <listitem><para>A dictionary mapping property names to variant boxed values</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+</refsect1>
+<refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Modem">
+  <title role="details.title">Property Details</title>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.ModemCapabilities">
+  <title>The "ModemCapabilities" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.ModemCapabilities"><primary sortas=".Device.Modem:ModemCapabilities">org.freedesktop.NetworkManager.Device.Modem:ModemCapabilities</primary></indexterm>
+<programlisting>
+ModemCapabilities  readable   u
+</programlisting>
+<para>        The generic family of access technologies the modem supports. Not all
+        capabilities are available at the same time however; some modems require a
+        firmware reload or other reinitialization to switch between eg CDMA/EVDO
+        and GSM/UMTS.
+</para><para>        Returns: <link linkend="NMDeviceModemCapabilities">NMDeviceModemCapabilities</link>
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.CurrentCapabilities">
+  <title>The "CurrentCapabilities" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.CurrentCapabilities"><primary sortas=".Device.Modem:CurrentCapabilities">org.freedesktop.NetworkManager.Device.Modem:CurrentCapabilities</primary></indexterm>
+<programlisting>
+CurrentCapabilities  readable   u
+</programlisting>
+<para>        The generic family of access technologies the modem currently supports
+        without a firmware reload or reinitialization.
+</para><para>        Returns: <link linkend="NMDeviceModemCapabilities">NMDeviceModemCapabilities</link>
+</para>
+</refsect2>
+</refsect1>
+</refentry>
+

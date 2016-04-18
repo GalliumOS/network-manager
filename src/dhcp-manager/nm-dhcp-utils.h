@@ -20,15 +20,19 @@
 #define __NETWORKMANAGER_DHCP_UTILS_H__
 
 #include <stdlib.h>
-#include <glib.h>
+
 #include <nm-ip4-config.h>
 #include <nm-ip6-config.h>
 
-NMIP4Config *nm_dhcp_utils_ip4_config_from_options (const char *iface,
+#include "nm-default.h"
+
+NMIP4Config *nm_dhcp_utils_ip4_config_from_options (int ifindex,
+                                                    const char *iface,
                                                     GHashTable *options,
                                                     guint priority);
 
-NMIP6Config *nm_dhcp_utils_ip6_config_from_options (const char *iface,
+NMIP6Config *nm_dhcp_utils_ip6_config_from_options (int ifindex,
+                                                    const char *iface,
                                                     GHashTable *options,
                                                     guint priority,
                                                     gboolean info_only);

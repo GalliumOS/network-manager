@@ -21,15 +21,11 @@
 #ifndef __NMP_OBJECT_H__
 #define __NMP_OBJECT_H__
 
-#include "config.h"
-
-#include "nm-platform.h"
-#include "nm-multi-index.h"
-#include "nm-macros-internal.h"
-
 #include <netlink/netlink.h>
 #include <gudev/gudev.h>
 
+#include "nm-platform.h"
+#include "nm-multi-index.h"
 
 typedef enum { /*< skip >*/
 	NMP_OBJECT_TO_STRING_ID,
@@ -63,6 +59,9 @@ typedef enum { /*< skip >*/
 typedef enum { /*< skip >*/
 	/* all the objects of a certain type */
 	NMP_CACHE_ID_TYPE_OBJECT_TYPE,
+
+	/* index for the link objects by ifname. */
+	NMP_CACHE_ID_TYPE_LINK_BY_IFNAME,
 
 	/* all the visible objects of a certain type */
 	NMP_CACHE_ID_TYPE_OBJECT_TYPE_VISIBLE_ONLY,
@@ -104,6 +103,11 @@ typedef struct {
 			guint8 obj_type; /* NMPObjectType as guint8 */
 			int ifindex;
 		} object_type_by_ifindex;
+		struct {
+			/* NMP_CACHE_ID_TYPE_LINK_BY_IFNAME */
+			guint8 _id_type;
+			char ifname_short[IFNAMSIZ - 1]; /* don't include the trailing NUL so the struct fits in 4 bytes. */
+		} link_by_ifname;
 	};
 } NMPCacheId;
 
@@ -116,29 +120,31 @@ typedef struct {
 	int rtm_gettype;
 	int sizeof_data;
 	int sizeof_public;
+	NMPlatformSignalIdType signal_type_id;
 	const char *obj_type_name;
-	const char *nl_type;
 	const char *signal_type;
+
+	/* Only for NMPObjectLnk* types. */
+	NMLinkType lnk_link_type;
 
 	/* returns %FALSE, if the obj type would never have an entry for index type @id_type. If @obj has an index,
 	 * initialize @id and set @out_id to it. Otherwise, @out_id is NULL. */
 	gboolean (*cmd_obj_init_cache_id) (const NMPObject *obj, NMPCacheIdType id_type, NMPCacheId *id, const NMPCacheId **out_id);
 
-	gboolean (*cmd_obj_equal) (const NMPObject *obj1, const NMPObject *obj2);
+	int (*cmd_obj_cmp) (const NMPObject *obj1, const NMPObject *obj2);
 	void (*cmd_obj_copy) (NMPObject *dst, const NMPObject *src);
 	void (*cmd_obj_stackinit_id) (NMPObject *obj, const NMPObject *src);
 	void (*cmd_obj_dispose) (NMPObject *obj);
 	gboolean (*cmd_obj_is_alive) (const NMPObject *obj);
 	gboolean (*cmd_obj_is_visible) (const NMPObject *obj);
+	const char *(*cmd_obj_to_string) (const NMPObject *obj, NMPObjectToStringMode to_string_mode, char *buf, gsize buf_size);
 
 	/* functions that operate on NMPlatformObject */
-	gboolean (*cmd_plobj_init_from_nl) (NMPlatform *platform, NMPlatformObject *obj, const struct nl_object *nlo, gboolean id_only, gboolean complete_from_cache);
-	struct nl_object *(*cmd_plobj_to_nl) (NMPlatform *platform, const NMPlatformObject *obj, gboolean id_only);
 	void (*cmd_plobj_id_copy) (NMPlatformObject *dst, const NMPlatformObject *src);
 	gboolean (*cmd_plobj_id_equal) (const NMPlatformObject *obj1, const NMPlatformObject *obj2);
 	guint (*cmd_plobj_id_hash) (const NMPlatformObject *obj);
 	const char *(*cmd_plobj_to_string_id) (const NMPlatformObject *obj, char *buf, gsize buf_size);
-	const char *(*cmd_plobj_to_string) (const NMPlatformObject *obj);
+	const char *(*cmd_plobj_to_string) (const NMPlatformObject *obj, char *buf, gsize len);
 	int (*cmd_plobj_cmp) (const NMPlatformObject *obj1, const NMPlatformObject *obj2);
 } NMPClass;
 
@@ -148,13 +154,55 @@ typedef struct {
 	NMPlatformLink _public;
 
 	struct {
-		guint8 is_in_netlink;
+		bool is_in_netlink;
+
+		/* Additional data that depends on the link-type (IFLA_INFO_DATA) */
+		NMPObject *lnk;
 	} netlink;
 
 	struct {
 		GUdevDevice *device;
 	} udev;
 } NMPObjectLink;
+
+typedef struct {
+	NMPlatformLnkGre _public;
+} NMPObjectLnkGre;
+
+typedef struct {
+	NMPlatformLnkInfiniband _public;
+} NMPObjectLnkInfiniband;
+
+typedef struct {
+	NMPlatformLnkIp6Tnl _public;
+} NMPObjectLnkIp6Tnl;
+
+typedef struct {
+	NMPlatformLnkIpIp _public;
+} NMPObjectLnkIpIp;
+
+typedef struct {
+	NMPlatformLnkMacvlan _public;
+} NMPObjectLnkMacvlan;
+
+typedef NMPObjectLnkMacvlan NMPObjectLnkMacvtap;
+
+typedef struct {
+	NMPlatformLnkSit _public;
+} NMPObjectLnkSit;
+
+typedef struct {
+	NMPlatformLnkVlan _public;
+
+	guint n_ingress_qos_map;
+	guint n_egress_qos_map;
+	const NMVlanQosMapping *ingress_qos_map;
+	const NMVlanQosMapping *egress_qos_map;
+} NMPObjectLnkVlan;
+
+typedef struct {
+	NMPlatformLnkVxlan _public;
+} NMPObjectLnkVxlan;
 
 typedef struct {
 	NMPlatformIP4Address _public;
@@ -175,12 +223,36 @@ typedef struct {
 struct _NMPObject {
 	const NMPClass *_class;
 	int _ref_count;
-	guint8 is_cached;
+	bool is_cached;
 	union {
 		NMPlatformObject        object;
 
 		NMPlatformLink          link;
 		NMPObjectLink           _link;
+
+		NMPlatformLnkGre        lnk_gre;
+		NMPObjectLnkGre         _lnk_gre;
+
+		NMPlatformLnkInfiniband lnk_infiniband;
+		NMPObjectLnkInfiniband  _lnk_infiniband;
+
+		NMPlatformLnkIpIp       lnk_ipip;
+		NMPObjectLnkIpIp        _lnk_ipip;
+
+		NMPlatformLnkIp6Tnl     lnk_ip6tnl;
+		NMPObjectLnkIp6Tnl      _lnk_ip6tnl;
+
+		NMPlatformLnkMacvlan    lnk_macvlan;
+		NMPObjectLnkMacvlan     _lnk_macvlan;
+
+		NMPlatformLnkSit        lnk_sit;
+		NMPObjectLnkSit         _lnk_sit;
+
+		NMPlatformLnkVlan       lnk_vlan;
+		NMPObjectLnkVlan        _lnk_vlan;
+
+		NMPlatformLnkVxlan      lnk_vxlan;
+		NMPObjectLnkVxlan       _lnk_vxlan;
 
 		NMPlatformIPAddress     ip_address;
 		NMPlatformIPXAddress    ipx_address;
@@ -269,7 +341,7 @@ NMPObject *nmp_object_new_link (int ifindex);
 const NMPObject *nmp_object_stackinit (NMPObject *obj, NMPObjectType obj_type, const NMPlatformObject *plobj);
 const NMPObject *nmp_object_stackinit_id  (NMPObject *obj, const NMPObject *src);
 const NMPObject *nmp_object_stackinit_id_link (NMPObject *obj, int ifindex);
-const NMPObject *nmp_object_stackinit_id_ip4_address (NMPObject *obj, int ifindex, guint32 address, int plen);
+const NMPObject *nmp_object_stackinit_id_ip4_address (NMPObject *obj, int ifindex, guint32 address, int plen, guint32 peer_address);
 const NMPObject *nmp_object_stackinit_id_ip6_address (NMPObject *obj, int ifindex, const struct in6_addr *address, int plen);
 const NMPObject *nmp_object_stackinit_id_ip4_route (NMPObject *obj, int ifindex, guint32 network, int plen, guint32 metric);
 const NMPObject *nmp_object_stackinit_id_ip6_route (NMPObject *obj, int ifindex, const struct in6_addr *network, int plen, guint32 metric);
@@ -286,9 +358,9 @@ gboolean nmp_object_is_visible (const NMPObject *obj);
 
 void _nmp_object_fixup_link_udev_fields (NMPObject *obj, gboolean use_udev);
 
-#define auto_nmp_obj __attribute__((cleanup(_nmp_auto_obj_cleanup)))
+#define nm_auto_nmpobj __attribute__((cleanup(_nm_auto_nmpobj_cleanup)))
 static inline void
-_nmp_auto_obj_cleanup (NMPObject **pobj)
+_nm_auto_nmpobj_cleanup (NMPObject **pobj)
 {
 	nmp_object_unref (*pobj);
 }
@@ -306,6 +378,7 @@ void nmp_cache_id_destroy (NMPCacheId *id);
 NMPCacheId *nmp_cache_id_init_object_type (NMPCacheId *id, NMPObjectType obj_type, gboolean visible_only);
 NMPCacheId *nmp_cache_id_init_addrroute_visible_by_ifindex (NMPCacheId *id, NMPObjectType obj_type, int ifindex);
 NMPCacheId *nmp_cache_id_init_routes_visible (NMPCacheId *id, NMPObjectType obj_type, gboolean with_default, gboolean with_non_default, int ifindex);
+NMPCacheId *nmp_cache_id_init_link_by_ifname (NMPCacheId *id, const char *ifname);
 
 const NMPlatformObject *const *nmp_cache_lookup_multi (const NMPCache *cache, const NMPCacheId *cache_id, guint *out_len);
 GArray *nmp_cache_lookup_multi_to_array (const NMPCache *cache, NMPObjectType obj_type, const NMPCacheId *cache_id);
@@ -326,9 +399,7 @@ GHashTable *nmp_cache_lookup_all_to_hash (const NMPCache *cache,
 gboolean nmp_cache_link_connected_needs_toggle (const NMPCache *cache, const NMPObject *master, const NMPObject *potential_slave, const NMPObject *ignore_slave);
 const NMPObject *nmp_cache_link_connected_needs_toggle_by_ifindex (const NMPCache *cache, int master_ifindex, const NMPObject *potential_slave, const NMPObject *ignore_slave);
 
-gboolean nmp_cache_use_udev_detect (void);
 gboolean nmp_cache_use_udev_get (const NMPCache *cache);
-gboolean nmp_cache_use_udev_set (NMPCache *cache, gboolean use_udev);
 
 void ASSERT_nmp_cache_is_consistent (const NMPCache *cache);
 
@@ -338,24 +409,7 @@ NMPCacheOpsType nmp_cache_update_netlink (NMPCache *cache, NMPObject *obj, NMPOb
 NMPCacheOpsType nmp_cache_update_link_udev (NMPCache *cache, int ifindex, GUdevDevice *udev_device, NMPObject **out_obj, gboolean *out_was_visible, NMPCachePreHook pre_hook, gpointer user_data);
 NMPCacheOpsType nmp_cache_update_link_master_connected (NMPCache *cache, int ifindex, NMPObject **out_obj, gboolean *out_was_visible, NMPCachePreHook pre_hook, gpointer user_data);
 
-NMPCache *nmp_cache_new (void);
+NMPCache *nmp_cache_new (gboolean use_udev);
 void nmp_cache_free (NMPCache *cache);
-
-NMPObject *nmp_object_from_nl (NMPlatform *platform, const struct nl_object *nlo, gboolean id_only, gboolean complete_from_cache);
-struct nl_object *nmp_object_to_nl (NMPlatform *platform, const NMPObject *obj, gboolean id_only);
-
-/* the following functions are currently implemented inside nm-linux-platform, because
- * they depend on utility functions there. */
-NMPObjectType _nlo_get_object_type (const struct nl_object *nlo);
-gboolean _nmp_vt_cmd_plobj_init_from_nl_link (NMPlatform *platform, NMPlatformObject *_obj, const struct nl_object *_nlo, gboolean id_only, gboolean complete_from_cache);
-gboolean _nmp_vt_cmd_plobj_init_from_nl_ip4_address (NMPlatform *platform, NMPlatformObject *_obj, const struct nl_object *_nlo, gboolean id_only, gboolean complete_from_cache);
-gboolean _nmp_vt_cmd_plobj_init_from_nl_ip6_address (NMPlatform *platform, NMPlatformObject *_obj, const struct nl_object *_nlo, gboolean id_only, gboolean complete_from_cache);
-gboolean _nmp_vt_cmd_plobj_init_from_nl_ip4_route (NMPlatform *platform, NMPlatformObject *_obj, const struct nl_object *_nlo, gboolean id_only, gboolean complete_from_cache);
-gboolean _nmp_vt_cmd_plobj_init_from_nl_ip6_route (NMPlatform *platform, NMPlatformObject *_obj, const struct nl_object *_nlo, gboolean id_only, gboolean complete_from_cache);
-struct nl_object *_nmp_vt_cmd_plobj_to_nl_link (NMPlatform *platform, const NMPlatformObject *_obj, gboolean id_only);
-struct nl_object *_nmp_vt_cmd_plobj_to_nl_ip4_address (NMPlatform *platform, const NMPlatformObject *_obj, gboolean id_only);
-struct nl_object *_nmp_vt_cmd_plobj_to_nl_ip6_address (NMPlatform *platform, const NMPlatformObject *_obj, gboolean id_only);
-struct nl_object *_nmp_vt_cmd_plobj_to_nl_ip4_route (NMPlatform *platform, const NMPlatformObject *_obj, gboolean id_only);
-struct nl_object *_nmp_vt_cmd_plobj_to_nl_ip6_route (NMPlatform *platform, const NMPlatformObject *_obj, gboolean id_only);
 
 #endif /* __NMP_OBJECT_H__ */

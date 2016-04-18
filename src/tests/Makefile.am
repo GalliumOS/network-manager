@@ -1,7 +1,8 @@
 SUBDIRS = config
 
 AM_CPPFLAGS = \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
 	-I$(top_srcdir)/src/platform \
@@ -10,10 +11,8 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_builddir)/src \
 	-DG_LOG_DOMAIN=\""NetworkManager"\" \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
-	$(GLIB_CFLAGS) \
-	$(DBUS_CFLAGS)
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
+	$(GLIB_CFLAGS)
 
 noinst_PROGRAMS = \
 	test-general \
@@ -23,8 +22,10 @@ noinst_PROGRAMS = \
 	test-route-manager-linux \
 	test-route-manager-fake \
 	test-dcb \
+	test-systemd \
 	test-resolvconf-capture \
-	test-wired-defname
+	test-wired-defname \
+	test-utils
 
 ####### ip4 config test #######
 
@@ -110,6 +111,37 @@ test_wired_defname_SOURCES = \
 test_wired_defname_LDADD = \
 	$(top_builddir)/src/libNetworkManager.la
 
+####### systemd test #######
+
+test_systemd_CFLAGS = \
+	"-I$(srcdir)/../" \
+	"-I$(srcdir)/../platform" \
+	"-I$(srcdir)/../systemd" \
+	"-I$(srcdir)/../systemd/src/systemd"
+
+test_systemd_SOURCES = \
+	test-systemd.c
+
+test_systemd_LDADD = \
+	$(top_builddir)/src/libNetworkManager-base.la \
+	$(top_builddir)/src/libsystemd-nm.la
+
+####### utils test #######
+
+test_utils_SOURCES = \
+	test-utils.c
+
+test_utils_DEPENDENCIES = \
+	$(top_srcdir)/src/NetworkManagerUtils.c
+
+test_utils_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-DPREFIX=\"/nonexistent\" \
+	-DNMSTATEDIR=\"/nonsense\"
+
+test_utils_LDADD = \
+	$(top_builddir)/src/libNetworkManager.la
+
 ####### secret agent interface test #######
 
 EXTRA_DIST = test-secret-agent.py
@@ -126,13 +158,15 @@ TESTS = \
 	test-resolvconf-capture \
 	test-general \
 	test-general-with-expect \
-	test-wired-defname
+	test-systemd \
+	test-wired-defname \
+	test-utils
 
 
 if ENABLE_TESTS
 
 check-local:
-	@for t in bond bridge ethernet gre infiniband macvlan tun veth vlan vxlan; do \
+	@for t in bond bridge ethernet infiniband ip_tunnel macvlan tun veth vlan vxlan; do \
 		# Ensure the device subclass factory registration constructors exist \
 		# which could inadvertently break if src/Makefile.am gets changed \
 		if ! LC_ALL=C nm $(top_builddir)/src/NetworkManager | LC_ALL=C grep -q "register_device_factory_internal_$$t" ; then \

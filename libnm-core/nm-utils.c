@@ -19,7 +19,9 @@
  * Copyright 2005 - 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
+
+#include "nm-utils.h"
 
 #include <string.h>
 #include <errno.h>
@@ -29,16 +31,11 @@
 #include <uuid/uuid.h>
 #include <libintl.h>
 #include <gmodule.h>
-#include <glib/gi18n-lib.h>
+#include <sys/stat.h>
 
-#include "nm-utils.h"
 #include "nm-utils-private.h"
-#include "nm-glib-compat.h"
 #include "nm-setting-private.h"
 #include "crypto.h"
-#include "gsystem-local-alloc.h"
-#include "nm-macros-internal.h"
-
 #include "nm-setting-bond.h"
 #include "nm-setting-bridge.h"
 #include "nm-setting-infiniband.h"
@@ -47,9 +44,6 @@
 #include "nm-setting-vlan.h"
 #include "nm-setting-wired.h"
 #include "nm-setting-wireless.h"
-
-/* Embed the commit id in the build binary */
-static const char *const __nm_git_sha = STRLEN (NM_GIT_SHA) > 0 ? "NM_GIT_SHA:"NM_GIT_SHA : "";
 
 /**
  * SECTION:nm-utils
@@ -226,8 +220,6 @@ _nm_utils_init (void)
 	GModule *self;
 	gpointer func;
 
-	(void) __nm_git_sha;
-
 	if (initialized)
 		return;
 	initialized = TRUE;
@@ -240,7 +232,7 @@ _nm_utils_init (void)
 	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 
-	g_type_init ();
+	nm_g_type_init ();
 
 	_nm_dbus_errors_init ();
 }
@@ -315,6 +307,21 @@ nm_utils_ssid_to_utf8 (const guint8 *ssid, gsize len)
 	if (!converted) {
 		converted = g_convert_with_fallback ((const gchar *) ssid, len,
 		                                     "UTF-8", e1, "?", NULL, NULL, NULL);
+	}
+
+	if (!converted) {
+		/* If there is still no converted string, the SSID probably
+		 * contains characters not valid in the current locale. Convert
+		 * the string to ASCII instead.
+		 */
+
+		/* Use the printable range of 0x20-0x7E */
+		gchar *valid_chars = " !\"#$%&'()*+,-./0123456789:;<=>?@"
+		                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
+		                     "abcdefghijklmnopqrstuvwxyz{|}~";
+
+		converted = g_strndup ((const gchar *)ssid, len);
+		g_strcanon (converted, valid_chars, '?');
 	}
 
 	return converted;
@@ -827,6 +834,30 @@ _nm_utils_ptrarray_to_strv (GPtrArray *ptrarray)
 	strv[i] = NULL;
 
 	return strv;
+}
+
+/**
+ * _nm_utils_strv_equal:
+ * @strv1: a string array
+ * @strv2: a string array
+ *
+ * Compare NULL-terminated string arrays for equality.
+ *
+ * Returns: %TRUE if the arrays are equal, %FALSE otherwise.
+ **/
+gboolean
+_nm_utils_strv_equal (char **strv1, char **strv2)
+{
+	if (strv1 == strv2)
+		return TRUE;
+
+	if (!strv1 || !strv2)
+		return FALSE;
+
+	for ( ; *strv1 && *strv2 && !strcmp (*strv1, *strv2); strv1++, strv2++)
+		;
+
+	return !*strv1 && !*strv2;
 }
 
 /**
@@ -1715,7 +1746,7 @@ nm_utils_ip6_addresses_from_variant (GVariant *value, char **out_gateway)
 					*out_gateway = g_strdup (nm_utils_inet6_ntop (gateway_bytes, NULL));
 			}
 		} else {
-			g_warning ("Ignoring invalid IP4 address: %s", error->message);
+			g_warning ("Ignoring invalid IP6 address: %s", error->message);
 			g_clear_error (&error);
 		}
 
@@ -2048,8 +2079,7 @@ nm_utils_ip_routes_from_variant (GVariant *value,
 		if (   !g_variant_lookup (route_var, "dest", "&s", &dest)
 		    || !g_variant_lookup (route_var, "prefix", "u", &prefix)) {
 			g_warning ("Ignoring invalid address");
-			g_variant_unref (route_var);
-			continue;
+			goto next;
 		}
 		if (!g_variant_lookup (route_var, "next-hop", "&s", &next_hop))
 			next_hop = NULL;
@@ -2062,8 +2092,7 @@ nm_utils_ip_routes_from_variant (GVariant *value,
 		if (!route) {
 			g_warning ("Ignoring invalid route: %s", error->message);
 			g_clear_error (&error);
-			g_variant_unref (route_var);
-			continue;
+			goto next;
 		}
 
 		g_variant_iter_init (&attrs_iter, route_var);
@@ -2077,6 +2106,8 @@ nm_utils_ip_routes_from_variant (GVariant *value,
 		}
 
 		g_ptr_array_add (routes, route);
+next:
+		g_variant_unref (route_var);
 	}
 
 	return routes;
@@ -2394,6 +2425,132 @@ nm_utils_file_is_pkcs12 (const char *filename)
 
 /**********************************************************************************************/
 
+gboolean
+_nm_utils_check_file (const char *filename,
+                      gint64 check_owner,
+                      NMUtilsCheckFilePredicate check_file,
+                      gpointer user_data,
+                      struct stat *out_st,
+                      GError **error)
+{
+	struct stat st_backup;
+
+	if (!out_st)
+		out_st = &st_backup;
+
+	if (stat (filename, out_st) != 0) {
+		int errsv = errno;
+
+		g_set_error (error,
+		             NM_VPN_PLUGIN_ERROR,
+		             NM_VPN_PLUGIN_ERROR_FAILED,
+		             _("failed stat file %s: %s"), filename, strerror (errsv));
+		return FALSE;
+	}
+
+	/* ignore non-files. */
+	if (!S_ISREG (out_st->st_mode)) {
+		g_set_error (error,
+		             NM_VPN_PLUGIN_ERROR,
+		             NM_VPN_PLUGIN_ERROR_FAILED,
+		             _("not a file (%s)"), filename);
+		return FALSE;
+	}
+
+	/* with check_owner enabled, check that the file belongs to the
+	 * owner or root. */
+	if (   check_owner >= 0
+	    && (out_st->st_uid != 0 && (gint64) out_st->st_uid != check_owner)) {
+		g_set_error (error,
+		             NM_VPN_PLUGIN_ERROR,
+		             NM_VPN_PLUGIN_ERROR_FAILED,
+		             _("invalid file owner %d for %s"), out_st->st_uid, filename);
+		return FALSE;
+	}
+
+	/* with check_owner enabled, check that the file cannot be modified
+	 * by other users (except root). */
+	if (   check_owner >= 0
+	    && NM_FLAGS_ANY (out_st->st_mode, S_IWGRP | S_IWOTH | S_ISUID)) {
+		g_set_error (error,
+		             NM_VPN_PLUGIN_ERROR,
+		             NM_VPN_PLUGIN_ERROR_FAILED,
+		             _("file permissions for %s"), filename);
+		return FALSE;
+	}
+
+	if (    check_file
+	    && !check_file (filename, out_st, user_data, error)) {
+		if (error && !*error) {
+			g_set_error (error,
+			             NM_VPN_PLUGIN_ERROR,
+			             NM_VPN_PLUGIN_ERROR_FAILED,
+			             _("reject %s"), filename);
+		}
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+gboolean
+_nm_utils_check_module_file (const char *name,
+                             int check_owner,
+                             NMUtilsCheckFilePredicate check_file,
+                             gpointer user_data,
+                             GError **error)
+{
+	if (!g_path_is_absolute (name)) {
+		g_set_error (error,
+		             NM_VPN_PLUGIN_ERROR,
+		             NM_VPN_PLUGIN_ERROR_FAILED,
+		             _("path is not absolute (%s)"), name);
+		return FALSE;
+	}
+
+	/* Set special error code if the file doesn't exist.
+	 * The VPN package might be split into separate packages,
+	 * so it could be correct that the plugin file is missing.
+	 *
+	 * Note that nm-applet checks for this error code to fail
+	 * gracefully. */
+	if (!g_file_test (name, G_FILE_TEST_EXISTS)) {
+		g_set_error (error,
+		             G_FILE_ERROR,
+		             G_FILE_ERROR_NOENT,
+		             _("Plugin file does not exist (%s)"), name);
+		return FALSE;
+	}
+
+	if (!g_file_test (name, G_FILE_TEST_IS_REGULAR)) {
+		g_set_error (error,
+		             NM_VPN_PLUGIN_ERROR,
+		             NM_VPN_PLUGIN_ERROR_FAILED,
+		             _("Plugin is not a valid file (%s)"), name);
+		return FALSE;
+	}
+
+	if (g_str_has_suffix (name, ".la")) {
+		/* g_module_open() treats files that end with .la special.
+		 * We don't want to parse the libtool archive. Just error out. */
+		g_set_error (error,
+		             NM_VPN_PLUGIN_ERROR,
+		             NM_VPN_PLUGIN_ERROR_FAILED,
+		             _("libtool archives are not supported (%s)"), name);
+		return FALSE;
+	}
+
+	return _nm_utils_check_file (name,
+	                             check_owner,
+	                             check_file,
+	                             user_data,
+	                             NULL,
+	                             error);
+}
+
+/**********************************************************************************************/
+
 /**
  * nm_utils_file_search_in_paths:
  * @progname: the helper program name, like "iptables"
@@ -2676,6 +2833,63 @@ nm_utils_wifi_is_channel_valid (guint32 channel, const char *band)
 	else
 		return FALSE;
 }
+
+static const guint *
+_wifi_freqs (gboolean bg_band)
+{
+	static guint *freqs_2ghz = NULL;
+	static guint *freqs_5ghz = NULL;
+	guint *freqs;
+
+	freqs = bg_band ? freqs_2ghz : freqs_5ghz;
+	if (G_UNLIKELY (freqs == NULL)) {
+		struct cf_pair *table;
+		int i;
+
+		table = bg_band ? bg_table : a_table;
+		freqs = g_new0 (guint, bg_band ? G_N_ELEMENTS (bg_table) : G_N_ELEMENTS (a_table));
+		for (i = 0; table[i].chan; i++)
+			freqs[i] = table[i].freq;
+		freqs[i] = 0;
+		if (bg_band)
+			freqs_2ghz = freqs;
+		else
+			freqs_5ghz = freqs;
+	}
+	return freqs;
+}
+
+/**
+ * nm_utils_wifi_2ghz_freqs:
+ *
+ * Utility function to return 2.4 GHz Wi-Fi frequencies (802.11bg band).
+ *
+ * Returns: zero-terminated array of frequencies numbers (in MHz)
+ *
+ * Since: 1.2
+ **/
+const guint *
+nm_utils_wifi_2ghz_freqs (void)
+{
+	return _wifi_freqs (TRUE);
+}
+NM_BACKPORT_SYMBOL (libnm_1_0_6, const guint *, nm_utils_wifi_2ghz_freqs, (void), ());
+
+/**
+ * nm_utils_wifi_5ghz_freqs:
+ *
+ * Utility function to return 5 GHz Wi-Fi frequencies (802.11a band).
+ *
+ * Returns: zero-terminated array of frequencies numbers (in MHz)
+ *
+ * Since: 1.2
+ **/
+const guint *
+nm_utils_wifi_5ghz_freqs (void)
+{
+	return _wifi_freqs (FALSE);
+}
+NM_BACKPORT_SYMBOL (libnm_1_0_6, const guint *, nm_utils_wifi_5ghz_freqs, (void), ());
 
 /**
  * nm_utils_wifi_strength_bars:
@@ -3338,6 +3552,9 @@ nm_utils_ipaddr_valid (int family, const char *ip)
 
 	g_return_val_if_fail (family == AF_INET || family == AF_INET6 || family == AF_UNSPEC, FALSE);
 
+	if (!ip)
+		return FALSE;
+
 	if (family == AF_UNSPEC)
 		family = strchr (ip, ':') ? AF_INET6 : AF_INET;
 
@@ -3428,8 +3645,9 @@ static BondMode bond_mode_table[] = {
  * available modes.
  *
  * Returns: bonding mode string, or NULL on error
-*/
-
+ *
+ * Since: 1.2
+ */
 const char *
 nm_utils_bond_mode_int_to_string (int mode)
 {
@@ -3448,7 +3666,9 @@ nm_utils_bond_mode_int_to_string (int mode)
  * The @mode string can be either a descriptive name or a number (as string).
  *
  * Returns: numeric bond mode, or -1 on error
-*/
+ *
+ * Since: 1.2
+ */
 int
 nm_utils_bond_mode_string_to_int (const char *mode)
 {
@@ -3467,76 +3687,406 @@ nm_utils_bond_mode_string_to_int (const char *mode)
 
 /**********************************************************************************************/
 
-/* _nm_utils_ascii_str_to_int64:
- *
- * A wrapper for g_ascii_strtoll, that checks whether the whole string
- * can be successfully converted to a number and is within a given
- * range. On any error, @fallback will be returned and %errno will be set
- * to a non-zero value. On success, %errno will be set to zero, check %errno
- * for errors. Any trailing or leading (ascii) white space is ignored and the
- * functions is locale independent.
- *
- * The function is guaranteed to return a value between @min and @max
- * (inclusive) or @fallback. Also, the parsing is rather strict, it does
- * not allow for any unrecognized characters, except leading and trailing
- * white space.
- **/
-gint64
-_nm_utils_ascii_str_to_int64 (const char *str, guint base, gint64 min, gint64 max, gint64 fallback)
+#define STRSTRDICTKEY_V1_SET  0x01
+#define STRSTRDICTKEY_V2_SET  0x02
+#define STRSTRDICTKEY_ALL_SET 0x03
+
+struct _NMUtilsStrStrDictKey {
+	char type;
+	char data[1];
+};
+
+guint
+_nm_utils_strstrdictkey_hash (gconstpointer a)
 {
-	gint64 v;
-	size_t len;
-	char buf[64], *s, *str_free = NULL;
+	const NMUtilsStrStrDictKey *k = a;
+	const signed char *p;
+	guint32 h = 5381;
 
-	if (str) {
-		while (g_ascii_isspace (str[0]))
-			str++;
-	}
-	if (!str || !str[0]) {
-		errno = EINVAL;
-		return fallback;
-	}
+	if (k) {
+		if (((int) k->type) & ~STRSTRDICTKEY_ALL_SET)
+			g_return_val_if_reached (0);
 
-	len = strlen (str);
-	if (g_ascii_isspace (str[--len])) {
-		/* backward search the first non-ws character.
-		 * We already know that str[0] is non-ws. */
-		while (g_ascii_isspace (str[--len]))
-			;
-
-		/* str[len] is now the last non-ws character... */
-		len++;
-
-		if (len >= sizeof (buf))
-			s = str_free = g_malloc (len + 1);
-		else
-			s = buf;
-
-		memcpy (s, str, len);
-		s[len] = 0;
-
-		nm_assert (len > 0 && len < strlen (str) && len == strlen (s));
-		nm_assert (!g_ascii_isspace (str[len-1]) && g_ascii_isspace (str[len]));
-		nm_assert (strncmp (str, s, len) == 0);
-
-		str = s;
+		h = (h << 5) + h + k->type;
+		if (k->type & STRSTRDICTKEY_ALL_SET) {
+			p = (void *) k->data;
+			for (; *p != '\0'; p++)
+				h = (h << 5) + h + *p;
+			if (k->type == STRSTRDICTKEY_ALL_SET) {
+				/* the key contains two strings. Continue... */
+				h = (h << 5) + h + '\0';
+				for (p++; *p != '\0'; p++)
+					h = (h << 5) + h + *p;
+			}
+		}
 	}
 
-	errno = 0;
-	v = g_ascii_strtoll (str, &s, base);
+	return h;
+}
 
-	if (errno != 0)
-		v = fallback;
-	else if (s[0] != 0) {
-		errno = EINVAL;
-		v = fallback;
-	} else if (v > max || v < min) {
-		errno = ERANGE;
-		v = fallback;
+gboolean
+_nm_utils_strstrdictkey_equal  (gconstpointer a, gconstpointer b)
+{
+	const NMUtilsStrStrDictKey *k1 = a;
+	const NMUtilsStrStrDictKey *k2 = b;
+
+	if (k1 == k2)
+		return TRUE;
+	if (!k1 || !k2)
+		return FALSE;
+
+	if (k1->type != k2->type)
+		return FALSE;
+
+	if (k1->type & STRSTRDICTKEY_ALL_SET) {
+		if (strcmp (k1->data, k2->data) != 0)
+			return FALSE;
+
+		if (k1->type == STRSTRDICTKEY_ALL_SET) {
+			gsize l = strlen (k1->data) + 1;
+
+			return strcmp (&k1->data[l], &k2->data[l]) == 0;
+		}
 	}
 
-	if (G_UNLIKELY (str_free))
-		g_free (str_free);
-	return v;
+	return TRUE;
+}
+
+NMUtilsStrStrDictKey *
+_nm_utils_strstrdictkey_create (const char *v1, const char *v2)
+{
+	char type = 0;
+	gsize l1 = 0, l2 = 0;
+	NMUtilsStrStrDictKey *k;
+
+	if (!v1 && !v2)
+		return g_malloc0 (1);
+
+	/* we need to distinguish between ("",NULL) and (NULL,"").
+	 * Thus, in @type we encode which strings we have present
+	 * as not-NULL. */
+	if (v1) {
+		type |= STRSTRDICTKEY_V1_SET;
+		l1 = strlen (v1) + 1;
+	}
+	if (v2) {
+		type |= STRSTRDICTKEY_V2_SET;
+		l2 = strlen (v2) + 1;
+	}
+
+	k = g_malloc (G_STRUCT_OFFSET (NMUtilsStrStrDictKey, data) + l1 + l2);
+	k->type = type;
+	if (v1)
+		memcpy (&k->data[0], v1, l1);
+	if (v2)
+		memcpy (&k->data[l1], v2, l2);
+
+	return k;
+}
+
+static gboolean
+validate_dns_option (const char *name, gboolean numeric, gboolean ipv6,
+                     const NMUtilsDNSOptionDesc *option_descs)
+{
+	const NMUtilsDNSOptionDesc *desc;
+
+	if (!option_descs)
+		return !!*name;
+
+	for (desc = option_descs; desc->name; desc++) {
+		if (!strcmp (name, desc->name) &&
+		    numeric == desc->numeric &&
+		    (!desc->ipv6_only || ipv6))
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+/**
+ * _nm_utils_dns_option_validate:
+ * @option: option string
+ * @out_name: (out) (allow-none): the option name
+ * @out_value: (out) (allow-none): the option value
+ * @ipv6: whether the option refers to a IPv6 configuration
+ * @option_descs: (allow-none): an array of NMUtilsDNSOptionDesc which describes the
+ * valid options
+ *
+ * Parses a DNS option in the form "name" or "name:number" and, if
+ * @option_descs is not NULL, checks that the option conforms to one
+ * of the provided descriptors. If @option_descs is NULL @ipv6 is
+ * not considered.
+ *
+ * Returns: %TRUE when the parsing was successful and the option is valid,
+ * %FALSE otherwise
+ */
+gboolean
+_nm_utils_dns_option_validate (const char *option, char **out_name,
+                               long *out_value, gboolean ipv6,
+                               const NMUtilsDNSOptionDesc *option_descs)
+{
+	char **tokens, *ptr;
+	gboolean ret = FALSE;
+
+	g_return_val_if_fail (option != NULL, FALSE);
+
+	if (out_name)
+		*out_name = NULL;
+	if (out_value)
+		*out_value = -1;
+
+	if (!option[0])
+		return FALSE;
+
+	tokens = g_strsplit (option, ":", 2);
+
+	if (g_strv_length (tokens) == 1) {
+		ret = validate_dns_option (tokens[0], FALSE, ipv6, option_descs);
+		if (ret && out_name)
+			*out_name = g_strdup (tokens[0]);
+		goto out;
+	}
+
+	if (!tokens[1][0]) {
+		ret = FALSE;
+		goto out;
+	}
+
+	for (ptr = tokens[1]; *ptr; ptr++) {
+		if (!g_ascii_isdigit (*ptr)) {
+			ret = FALSE;
+			goto out;
+		}
+	}
+
+	ret = FALSE;
+	if (validate_dns_option (tokens[0], TRUE, ipv6, option_descs)) {
+		int value = _nm_utils_ascii_str_to_int64 (tokens[1], 10, 0, G_MAXINT32, -1);
+		if (value >= 0) {
+			if (out_name)
+				*out_name = g_strdup (tokens[0]);
+			if (out_value)
+				*out_value = value;
+			ret = TRUE;
+		}
+	}
+out:
+	g_strfreev (tokens);
+	return ret;
+}
+
+/**
+ * _nm_utils_dns_option_find_idx:
+ * @array: an array of strings
+ * @option: a dns option string
+ *
+ * Searches for an option in an array of strings. The match is
+ * performed only the option name; the option value is ignored.
+ *
+ * Returns: the index of the option in the array or -1 if was not
+ * found.
+ */
+int _nm_utils_dns_option_find_idx (GPtrArray *array, const char *option)
+{
+	gboolean ret;
+	char *option_name, *tmp_name;
+	int i;
+
+	if (!_nm_utils_dns_option_validate (option, &option_name, NULL, FALSE, NULL))
+		return -1;
+
+	for (i = 0; i < array->len; i++) {
+		if (_nm_utils_dns_option_validate (array->pdata[i], &tmp_name, NULL, FALSE, NULL)) {
+			ret = strcmp (tmp_name, option_name);
+			g_free (tmp_name);
+			if (!ret) {
+				g_free (option_name);
+				return i;
+			}
+		}
+
+	}
+
+	g_free (option_name);
+	return -1;
+}
+
+/**
+ * nm_utils_enum_to_str:
+ * @type: the %GType of the enum
+ * @value: the value to be translated
+ *
+ * Converts an enum value to its string representation. If the enum is a
+ * %G_TYPE_FLAGS the function returns a comma-separated list of matching values.
+ * If the enum is a %G_TYPE_ENUM and the given value is not valid the
+ * function returns %NULL.
+ *
+ * Returns: a newly allocated string or %NULL
+ *
+ * Since: 1.2
+ */
+char *nm_utils_enum_to_str (GType type, int value)
+{
+	GTypeClass *class;
+	char *ret;
+
+	class = g_type_class_ref (type);
+
+	if (G_IS_ENUM_CLASS (class)) {
+		GEnumValue *enum_value;
+
+		enum_value = g_enum_get_value (G_ENUM_CLASS (class), value);
+		ret = enum_value ? strdup (enum_value->value_nick) : NULL;
+	} else if (G_IS_FLAGS_CLASS (class)) {
+		GFlagsValue *flags_value;
+		GString *str = g_string_new ("");
+		gboolean first = TRUE;
+
+		while (value) {
+			flags_value = g_flags_get_first_value (G_FLAGS_CLASS (class), value);
+			if (!flags_value)
+				break;
+
+			if (!first)
+				g_string_append (str, ", ");
+			g_string_append (str, flags_value->value_nick);
+
+			value &= ~flags_value->value;
+			first = FALSE;
+		}
+		ret = g_string_free (str, FALSE);
+	} else
+		g_return_val_if_reached (NULL);
+
+	g_type_class_unref (class);
+	return ret;
+}
+NM_BACKPORT_SYMBOL (libnm_1_0_6, char *, nm_utils_enum_to_str,
+                    (GType type, int value), (type, value));
+
+/**
+ * nm_utils_enum_from_str:
+ * @type: the %GType of the enum
+ * @str: the input string
+ * @out_value: (out) (allow-none): the output value
+ * @err_token: (out) (allow-none): location to store the first unrecognized token
+ *
+ * Converts a string to the matching enum value.
+ *
+ * If the enum is a %G_TYPE_FLAGS the function returns the logical OR of values
+ * matching the comma-separated tokens in the string; if an unknown token is found
+ * the function returns %FALSE and stores a pointer to a newly allocated string
+ * containing the unrecognized token in @err_token.
+ *
+ * Returns: %TRUE if the conversion was successful, %FALSE otherwise
+ *
+ * Since: 1.2
+ */
+gboolean nm_utils_enum_from_str (GType type, const char *str,
+                                 int *out_value, char **err_token)
+{
+	GTypeClass *class;
+	gboolean ret = FALSE;
+	int value = 0;
+	gs_free char *stripped = NULL;
+
+	g_return_val_if_fail (str, FALSE);
+	stripped = g_strstrip (strdup (str));
+	class = g_type_class_ref (type);
+
+	if (G_IS_ENUM_CLASS (class)) {
+		GEnumValue *enum_value;
+
+		enum_value = g_enum_get_value_by_nick (G_ENUM_CLASS (class), stripped);
+		if (enum_value) {
+			value = enum_value->value;
+			ret = TRUE;
+		}
+	} else if (G_IS_FLAGS_CLASS (class)) {
+		GFlagsValue *flags_value;
+		gs_strfreev char **strv = NULL;
+		int i;
+
+		strv = g_strsplit_set (stripped, " \t,", 0);
+		for (i = 0; strv[i]; i++) {
+			if (!strv[i][0])
+				continue;
+
+			flags_value = g_flags_get_value_by_nick (G_FLAGS_CLASS (class), strv[i]);
+			if (!flags_value)
+				break;
+
+			value |= flags_value->value;
+		}
+
+		if (strv[i]) {
+			if (err_token)
+				*err_token = strdup (strv[i]);
+			value = 0;
+		} else
+			ret = TRUE;
+	} else
+		g_return_val_if_reached (FALSE);
+
+	if (out_value)
+		*out_value = value;
+
+	g_type_class_unref (class);
+	return ret;
+}
+NM_BACKPORT_SYMBOL (libnm_1_0_6, gboolean, nm_utils_enum_from_str,
+                    (GType type, const char *str, int *out_value, char **err_token),
+                    (type, str, out_value, err_token));
+
+/**
+ * nm_utils_enum_get_values:
+ * @type: the %GType of the enum
+ * @from: the first element to be returned
+ * @to: the last element to be returned
+ *
+ * Returns the list of possible values for a given enum.
+ *
+ * Returns: (transfer full): a NULL-terminated dynamically-allocated array of static strings
+ * or %NULL on error
+ *
+ * Since: 1.2
+ */
+const char **nm_utils_enum_get_values (GType type, gint from, gint to)
+{
+	GTypeClass *class;
+	GPtrArray *array;
+	gint i;
+
+	class = g_type_class_ref (type);
+	array = g_ptr_array_new ();
+
+	if (G_IS_ENUM_CLASS (class)) {
+		GEnumClass *enum_class = G_ENUM_CLASS (class);
+		GEnumValue *enum_value;
+
+		for (i = 0; i < enum_class->n_values; i++) {
+			enum_value = &enum_class->values[i];
+			if (enum_value->value >= from && enum_value->value <= to)
+				g_ptr_array_add (array, (gpointer) enum_value->value_nick);
+		}
+	} else if (G_IS_FLAGS_CLASS (class)) {
+		GFlagsClass *flags_class = G_FLAGS_CLASS (class);
+		GFlagsValue *flags_value;
+
+		for (i = 0; i < flags_class->n_values; i++) {
+			flags_value = &flags_class->values[i];
+			if (flags_value->value >= from && flags_value->value <= to)
+				g_ptr_array_add (array, (gpointer) flags_value->value_nick);
+		}
+	} else {
+		g_type_class_unref (class);
+		g_ptr_array_free (array, TRUE);
+		g_return_val_if_reached (NULL);
+	}
+
+	g_type_class_unref (class);
+	g_ptr_array_add (array, NULL);
+
+	return (const char **) g_ptr_array_free (array, FALSE);
 }
 

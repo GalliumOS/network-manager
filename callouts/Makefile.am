@@ -1,13 +1,12 @@
 SUBDIRS = . tests
 
 AM_CPPFLAGS = \
-	-I${top_srcdir}/include \
+	-I${top_srcdir}/shared \
+	-I${top_builddir}/shared \
 	-I${top_srcdir}/libnm-core \
 	-I${top_builddir}/libnm-core \
 	$(GLIB_CFLAGS) \
-	$(DBUS_CFLAGS) \
 	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	-DNMCONFDIR=\"$(nmconfdir)\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\"
@@ -22,20 +21,10 @@ noinst_LTLIBRARIES = \
 
 dbusservicedir = $(DBUS_SYS_DIR)
 dbusservice_DATA = \
-	nm-dispatcher.conf \
-	nm-avahi-autoipd.conf
+	nm-dispatcher.conf
 
 libexec_PROGRAMS = \
-	nm-dispatcher \
-	nm-avahi-autoipd.action
-
-
-nm_avahi_autoipd_action_SOURCES = \
-	nm-avahi-autoipd-action.c
-
-nm_avahi_autoipd_action_LDADD = \
-	$(DBUS_LIBS) \
-	$(GLIB_LIBS)
+	nm-dispatcher
 
 
 nm_dispatcher_SOURCES = \
@@ -105,6 +94,7 @@ install-data-hook:
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)/pre-down.d
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)/pre-up.d
+	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)/no-wait.d
 
 CLEANFILES = $(nodist_libnmdbus_dispatcher_la_SOURCES) $(dbusactivation_DATA)
 

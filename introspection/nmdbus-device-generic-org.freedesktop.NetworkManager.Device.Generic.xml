@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<refentry id="gdbus-org.freedesktop.NetworkManager.Device.Generic">
+  <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Generic.top_of_page">org.freedesktop.NetworkManager.Device.Generic</refentrytitle>
+  <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Generic.top_of_page"><primary sortas=".Device.Generic">org.freedesktop.NetworkManager.Device.Generic</primary></indexterm>
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Generic</refname>    <refpurpose></refpurpose>  </refnamediv>  <refsect1 role="signal_proto">
+    <title role="signal_proto.title">Signals</title>
+    <synopsis>
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Device-Generic.PropertiesChanged">PropertiesChanged</link> (a{sv} properties);
+</synopsis>
+  </refsect1>
+  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis>
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Generic.HwAddress">HwAddress</link>        readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Generic.TypeDescription">TypeDescription</link>  readable   s
+</synopsis>
+  </refsect1>
+<refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Generic">
+  <title role="desc.title">Description</title>
+  <para></para>
+</refsect1>
+<refsect1 role="details" id="gdbus-signals-org.freedesktop.NetworkManager.Device.Generic">
+  <title role="details.title">Signal Details</title>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Device-Generic.PropertiesChanged">
+  <title>The "PropertiesChanged" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Device-Generic.PropertiesChanged"><primary sortas=".Device.Generic::PropertiesChanged">org.freedesktop.NetworkManager.Device.Generic::PropertiesChanged</primary></indexterm>
+<programlisting>
+PropertiesChanged (a{sv} properties);
+</programlisting>
+<para></para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>a{sv} <parameter>properties</parameter></literal>:</term>
+  <listitem><para>A dictionary mapping property names to variant boxed values</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+</refsect1>
+<refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.Generic">
+  <title role="details.title">Property Details</title>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Generic.HwAddress">
+  <title>The "HwAddress" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Generic.HwAddress"><primary sortas=".Device.Generic:HwAddress">org.freedesktop.NetworkManager.Device.Generic:HwAddress</primary></indexterm>
+<programlisting>
+HwAddress  readable   s
+</programlisting>
+<para>        Hardware address of the device.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Generic.TypeDescription">
+  <title>The "TypeDescription" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Generic.TypeDescription"><primary sortas=".Device.Generic:TypeDescription">org.freedesktop.NetworkManager.Device.Generic:TypeDescription</primary></indexterm>
+<programlisting>
+TypeDescription  readable   s
+</programlisting>
+<para>        A (non-localized) description of the interface type, if known.
+</para>
+</refsect2>
+</refsect1>
+</refentry>
+

@@ -30,14 +30,12 @@
  * FIXME: The way this works is sort of weird.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <glib/gi18n-lib.h>
 
 #include "nmt-widget-list.h"
 #include "nmt-newt.h"

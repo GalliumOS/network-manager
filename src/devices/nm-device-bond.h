@@ -21,8 +21,6 @@
 #ifndef __NETWORKMANAGER_DEVICE_BOND_H__
 #define __NETWORKMANAGER_DEVICE_BOND_H__
 
-#include <glib-object.h>
-
 #include "nm-device.h"
 
 G_BEGIN_DECLS
@@ -33,8 +31,6 @@ G_BEGIN_DECLS
 #define NM_IS_DEVICE_BOND(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE_BOND))
 #define NM_IS_DEVICE_BOND_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_BOND))
 #define NM_DEVICE_BOND_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_BOND, NMDeviceBondClass))
-
-#define NM_DEVICE_BOND_SLAVES "slaves"
 
 typedef NMDevice NMDeviceBond;
 typedef NMDeviceClass NMDeviceBondClass;

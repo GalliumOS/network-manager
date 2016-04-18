@@ -1,4 +1,6 @@
 libnm-util.so.2 libnm-util2 #MINVER#
+ _nm_connection_new_from_hash@Base 1.1.93
+ _nm_connection_replace_settings@Base 1.1.93
  nm_connection_add_setting@Base 0.7.0
  nm_connection_clear_secrets@Base 0.7.0
  nm_connection_clear_secrets_with_flags@Base 0.9.1.95
@@ -354,6 +356,7 @@ libnm-util.so.2 libnm-util2 #MINVER#
  nm_setting_ip4_config_get_dhcp_client_id@Base 0.7.0
  nm_setting_ip4_config_get_dhcp_hostname@Base 0.7.0
  nm_setting_ip4_config_get_dhcp_send_hostname@Base 0.7.999
+ nm_setting_ip4_config_get_dhcp_timeout@Base 1.1.90
  nm_setting_ip4_config_get_dns@Base 0.7.0
  nm_setting_ip4_config_get_dns_search@Base 0.7.0
  nm_setting_ip4_config_get_ignore_auto_dns@Base 0.7.0
@@ -561,6 +564,7 @@ libnm-util.so.2 libnm-util2 #MINVER#
  nm_setting_wireless_get_mtu@Base 0.7.0
  nm_setting_wireless_get_num_mac_blacklist_items@Base 0.9.10.0
  nm_setting_wireless_get_num_seen_bssids@Base 0.7.0
+ nm_setting_wireless_get_powersave@Base 1.1.90
  nm_setting_wireless_get_rate@Base 0.7.0
  nm_setting_wireless_get_security@Base 0.7.0
  nm_setting_wireless_get_seen_bssid@Base 0.7.0

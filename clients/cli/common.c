@@ -19,60 +19,58 @@
  * Copyright 2012 - 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
-#include <glib/gi18n.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-
+#include <termios.h>
+#include <sys/ioctl.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "nm-glib-compat.h"
-
+#include "nm-vpn-helpers.h"
 #include "common.h"
 #include "utils.h"
 
 /* Available fields for IPv4 group */
 NmcOutputField nmc_fields_ip4_config[] = {
-	{"GROUP",      N_("GROUP"),       15},  /* 0 */
-	{"ADDRESS",    N_("ADDRESS"),     68},  /* 1 */
-	{"GATEWAY",    N_("GATEWAY"),      0},  /* 2 */
-	{"ROUTE",      N_("ROUTE"),       68},  /* 3 */
-	{"DNS",        N_("DNS"),         35},  /* 4 */
-	{"DOMAIN",     N_("DOMAIN"),      35},  /* 5 */
-	{"WINS",       N_("WINS"),        20},  /* 6 */
-	{NULL,         NULL,               0}
+	{"GROUP",      N_("GROUP")},    /* 0 */
+	{"ADDRESS",    N_("ADDRESS")},  /* 1 */
+	{"GATEWAY",    N_("GATEWAY")},  /* 2 */
+	{"ROUTE",      N_("ROUTE")},    /* 3 */
+	{"DNS",        N_("DNS")},      /* 4 */
+	{"DOMAIN",     N_("DOMAIN")},   /* 5 */
+	{"WINS",       N_("WINS")},     /* 6 */
+	{NULL, NULL}
 };
 #define NMC_FIELDS_IP4_CONFIG_ALL     "GROUP,ADDRESS,GATEWAY,ROUTE,DNS,DOMAIN,WINS"
 
 /* Available fields for DHCPv4 group */
 NmcOutputField nmc_fields_dhcp4_config[] = {
-	{"GROUP",      N_("GROUP"),       15},  /* 0 */
-	{"OPTION",     N_("OPTION"),      80},  /* 1 */
-	{NULL,         NULL,               0}
+	{"GROUP",      N_("GROUP")},   /* 0 */
+	{"OPTION",     N_("OPTION")},  /* 1 */
+	{NULL, NULL}
 };
 #define NMC_FIELDS_DHCP4_CONFIG_ALL     "GROUP,OPTION"
 
 /* Available fields for IPv6 group */
 NmcOutputField nmc_fields_ip6_config[] = {
-	{"GROUP",      N_("GROUP"),       15},  /* 0 */
-	{"ADDRESS",    N_("ADDRESS"),     95},  /* 1 */
-	{"GATEWAY",    N_("GATEWAY"),      0},  /* 2 */
-	{"ROUTE",      N_("ROUTE"),       95},  /* 3 */
-	{"DNS",        N_("DNS"),         60},  /* 4 */
-	{"DOMAIN",     N_("DOMAIN"),      35},  /* 5 */
-	{NULL,         NULL,               0}
+	{"GROUP",      N_("GROUP")},    /* 0 */
+	{"ADDRESS",    N_("ADDRESS")},  /* 1 */
+	{"GATEWAY",    N_("GATEWAY")},  /* 2 */
+	{"ROUTE",      N_("ROUTE")},    /* 3 */
+	{"DNS",        N_("DNS")},      /* 4 */
+	{"DOMAIN",     N_("DOMAIN")},   /* 5 */
+	{NULL, NULL}
 };
 #define NMC_FIELDS_IP6_CONFIG_ALL     "GROUP,ADDRESS,GATEWAY,ROUTE,DNS,DOMAIN"
 
 /* Available fields for DHCPv6 group */
 NmcOutputField nmc_fields_dhcp6_config[] = {
-	{"GROUP",      N_("GROUP"),       15},  /* 0 */
-	{"OPTION",     N_("OPTION"),      80},  /* 1 */
-	{NULL,         NULL,               0}
+	{"GROUP",      N_("GROUP")},   /* 0 */
+	{"OPTION",     N_("OPTION")},  /* 1 */
+	{NULL, NULL}
 };
 #define NMC_FIELDS_DHCP6_CONFIG_ALL     "GROUP,OPTION"
 
@@ -522,6 +520,23 @@ nmc_device_state_to_string (NMDeviceState state)
 }
 
 const char *
+nmc_device_metered_to_string (NMMetered value)
+{
+	switch (value) {
+	case NM_METERED_YES:
+		return _("yes");
+	case NM_METERED_NO:
+		return _("no");
+	case NM_METERED_GUESS_YES:
+		return _("yes (guessed)");
+	case NM_METERED_GUESS_NO:
+		return _("no (guessed)");
+	default:
+		return _("unknown");
+	}
+}
+
+const char *
 nmc_device_reason_to_string (NMDeviceStateReason reason)
 {
 	switch (reason) {
@@ -910,14 +925,96 @@ nmc_find_connection (const GPtrArray *connections,
 }
 
 static gboolean
+vpn_openconnect_get_secrets (NMConnection *connection, GPtrArray *secrets)
+{
+	GError *error = NULL;
+	NMSettingVpn *s_vpn;
+	const char *vpn_type, *gw, *port;
+	char *cookie = NULL;
+	char *gateway = NULL;
+	char *gwcert = NULL;
+	int status = 0;
+	int i;
+	gboolean ret;
+
+	if (!connection)
+		return FALSE;
+
+	if (!nm_connection_is_type (connection, NM_SETTING_VPN_SETTING_NAME))
+		return FALSE;
+
+	s_vpn = nm_connection_get_setting_vpn (connection);
+	vpn_type = nm_setting_vpn_get_service_type (s_vpn);
+	if (g_strcmp0 (vpn_type, NM_DBUS_INTERFACE ".openconnect"))
+		return FALSE;
+
+	/* Get gateway and port */
+	gw = nm_setting_vpn_get_data_item (s_vpn, "gateway");
+	port = gw ? strrchr (gw, ':') : NULL;
+
+	/* Interactively authenticate to OpenConnect server and get secrets */
+	ret = nm_vpn_openconnect_authenticate_helper (gw, &cookie, &gateway, &gwcert, &status, &error);
+	if (!ret) {
+		g_printerr (_("Error: openconnect failed: %s\n"), error->message);
+		g_clear_error (&error);
+		return FALSE;
+	}
+
+	if (WIFEXITED (status)) {
+		if (WEXITSTATUS (status) != 0)
+			g_printerr (_("Error: openconnect failed with status %d\n"), WEXITSTATUS (status));
+	} else if (WIFSIGNALED (status))
+		g_printerr (_("Error: openconnect failed with signal %d\n"), WTERMSIG (status));
+
+	/* Append port to the host value */
+	if (gateway && port) {
+		char *tmp = gateway;
+		gateway = g_strdup_printf ("%s%s", gateway, port);
+		g_free (tmp);
+	}
+
+	/* Fill secrets to the array */
+	for (i = 0; i < secrets->len; i++) {
+		NMSecretAgentSimpleSecret *secret = secrets->pdata[i];
+
+		if (!g_strcmp0 (secret->vpn_type, vpn_type)) {
+			if (!g_strcmp0 (secret->vpn_property, "cookie")) {
+				g_free (secret->value);
+				secret->value = cookie;
+				cookie = NULL;
+			} else if (!g_strcmp0 (secret->vpn_property, "gateway")) {
+				g_free (secret->value);
+				secret->value = gateway;
+				gateway = NULL;
+			} else if (!g_strcmp0 (secret->vpn_property, "gwcert")) {
+				g_free (secret->value);
+				secret->value = gwcert;
+				gwcert = NULL;
+			}
+		}
+	}
+	g_free (cookie);
+	g_free (gateway);
+	g_free (gwcert);
+
+	return TRUE;
+}
+
+static gboolean
 get_secrets_from_user (const char *request_id,
                        const char *title,
                        const char *msg,
+                       NMConnection *connection,
                        gboolean ask,
+                       gboolean echo_on,
                        GHashTable *pwds_hash,
                        GPtrArray *secrets)
 {
 	int i;
+
+	/* Check if there is a VPN OpenConnect secret to ask for */
+	if (ask)
+		vpn_openconnect_get_secrets (connection, secrets);
 
 	for (i = 0; i < secrets->len; i++) {
 		NMSecretAgentSimpleSecret *secret = secrets->pdata[i];
@@ -928,17 +1025,23 @@ get_secrets_from_user (const char *request_id,
 		if (pwds_hash && (pwd = g_hash_table_lookup (pwds_hash, secret->prop_name))) {
 			pwd = g_strdup (pwd);
 		} else {
-			g_print ("%s\n", msg);
 			if (ask) {
 				if (secret->value) {
-					/* Prefill the password if we have it. */
-					rl_startup_hook = nmc_rl_set_deftext;
-					nmc_rl_pre_input_deftext = g_strdup (secret->value);
+					if (!g_strcmp0 (secret->vpn_type, NM_DBUS_INTERFACE ".openconnect")) {
+						/* Do not present and ask user for openconnect secrets, we already have them */
+						continue;
+					} else {
+						/* Prefill the password if we have it. */
+						rl_startup_hook = nmc_rl_set_deftext;
+						nmc_rl_pre_input_deftext = g_strdup (secret->value);
+					}
 				}
-				pwd = nmc_readline ("%s (%s): ", secret->name, secret->prop_name);
+				g_print ("%s\n", msg);
+				pwd = nmc_readline_echo (echo_on, "%s (%s): ", secret->name, secret->prop_name);
 				if (!pwd)
 					pwd = g_strdup ("");
 			} else {
+				g_print ("%s\n", msg);
 				g_printerr (_("Warning: password for '%s' not given in 'passwd-file' "
 				              "and nmcli cannot ask without '--ask' option.\n"),
 				            secret->prop_name);
@@ -976,13 +1079,25 @@ nmc_secrets_requested (NMSecretAgentSimple *agent,
                        gpointer             user_data)
 {
 	NmCli *nmc = (NmCli *) user_data;
+	NMConnection *connection = NULL;
+	char *path, *p;
 	gboolean success = FALSE;
 
 	if (nmc->print_output == NMC_PRINT_PRETTY)
 		nmc_terminal_erase_line ();
 
-	success = get_secrets_from_user (request_id, title, msg, nmc->in_editor || nmc->ask,
-	                                 nmc->pwds_hash, secrets);
+	/* Find the connection for the request */
+	path = g_strdup (request_id);
+	if (path) {
+		p = strrchr (path, '/');
+		if (p)
+			*p = '\0';
+		connection = nmc_find_connection (nmc->connections, "path", path, NULL);
+		g_free (path);
+	}
+
+	success = get_secrets_from_user (request_id, title, msg, connection, nmc->in_editor || nmc->ask,
+	                                 nmc->show_secrets, nmc->pwds_hash, secrets);
 	if (success)
 		nm_secret_agent_simple_response (agent, request_id, secrets);
 	else {
@@ -992,9 +1107,32 @@ nmc_secrets_requested (NMSecretAgentSimple *agent,
 			nm_secret_agent_old_unregister (nmc->secret_agent, NULL, NULL);
 			g_clear_object (&nmc->secret_agent);
 		}
-        }
+	}
 }
 
+char *
+nmc_unique_connection_name (const GPtrArray *connections, const char *try_name)
+{
+	NMConnection *connection;
+	const char *name;
+	char *new_name;
+	unsigned int num = 1;
+	int i = 0;
+
+	new_name = g_strdup (try_name);
+	while (i < connections->len) {
+		connection = NM_CONNECTION (connections->pdata[i]);
+
+		name = nm_connection_get_id (connection);
+		if (g_strcmp0 (new_name, name) == 0) {
+			g_free (new_name);
+			new_name = g_strdup_printf ("%s-%d", try_name, num++);
+			i = 0;
+		} else
+			i++;
+	}
+	return new_name;
+}
 
 /**
  * nmc_cleanup_readline:
@@ -1035,29 +1173,12 @@ nmc_set_in_readline (gboolean in_readline)
 /* Global variable defined in nmcli.c */
 extern NmCli nm_cli;
 
-/**
- * nmc_readline:
- * @prompt_fmt: prompt to print (telling user what to enter). It is standard
- *   printf() format string
- * @...: a list of arguments according to the @prompt_fmt format string
- *
- * Wrapper around libreadline's readline() function.
- * If user pressed Ctrl-C, readline() is called again (if not in editor and
- * line is empty, nmcli will quit).
- * If user pressed Ctrl-D on empty line, nmcli will quit.
- *
- * Returns: the user provided string. In case the user entered empty string,
- * this function returns NULL.
- */
-char *
-nmc_readline (const char *prompt_fmt, ...)
-{
-	va_list args;
-	char *prompt, *str;
 
-	va_start (args, prompt_fmt);
-	prompt = g_strdup_vprintf (prompt_fmt, args);
-	va_end (args);
+static char *
+nmc_readline_helper (const char *prompt)
+{
+	char *str;
+	int b;
 
 readline_mark:
 	/* We are in readline -> Ctrl-C should not quit nmcli */
@@ -1065,6 +1186,13 @@ readline_mark:
 	str = readline (prompt);
 	/* We are outside readline -> Ctrl-C should quit nmcli */
 	nmc_set_in_readline (FALSE);
+
+	/* Check for an I/O error by attempting to peek into the input buffer.
+	 * Readline just inserts newlines when errors occur so we need to check ourselves. */
+	if (ioctl (0, FIONREAD, &b) == -1) {
+		g_free (str);
+		str = NULL;
+	}
 
 	/* Add string to the history */
 	if (str && *str)
@@ -1098,13 +1226,82 @@ readline_mark:
 				sleep (3);
 		}
 	}
-	g_free (prompt);
 
 	/* Return NULL, not empty string */
 	if (str && *str == '\0') {
 		g_free (str);
 		str = NULL;
 	}
+	return str;
+}
+
+/**
+ * nmc_readline:
+ * @prompt_fmt: prompt to print (telling user what to enter). It is standard
+ *   printf() format string
+ * @...: a list of arguments according to the @prompt_fmt format string
+ *
+ * Wrapper around libreadline's readline() function.
+ * If user pressed Ctrl-C, readline() is called again (if not in editor and
+ * line is empty, nmcli will quit).
+ * If user pressed Ctrl-D on empty line, nmcli will quit.
+ *
+ * Returns: the user provided string. In case the user entered empty string,
+ * this function returns NULL.
+ */
+char *
+nmc_readline (const char *prompt_fmt, ...)
+{
+	va_list args;
+	char *prompt, *str;
+
+	va_start (args, prompt_fmt);
+	prompt = g_strdup_vprintf (prompt_fmt, args);
+	va_end (args);
+
+	str = nmc_readline_helper (prompt);
+
+	g_free (prompt);
+
+	return str;
+}
+
+/**
+ * nmc_readline_echo:
+ *
+ * The same as nmc_readline() except it can disable echoing of input characters if @echo_on is %FALSE.
+ * nmc_readline(TRUE, ...) == nmc_readline(...)
+ */
+char *
+nmc_readline_echo (gboolean echo_on, const char *prompt_fmt, ...)
+{
+	va_list args;
+	char *prompt, *str;
+	struct termios termios_orig, termios_new;
+
+	va_start (args, prompt_fmt);
+	prompt = g_strdup_vprintf (prompt_fmt, args);
+	va_end (args);
+
+	/* Disable echoing characters */
+	if (!echo_on) {
+		tcgetattr (STDIN_FILENO, &termios_orig);
+		termios_new = termios_orig;
+		termios_new.c_lflag &= ~(ECHO);
+		tcsetattr (STDIN_FILENO, TCSADRAIN, &termios_new);
+	}
+
+	str = nmc_readline_helper (prompt);
+
+	g_free (prompt);
+
+	/* Restore original terminal settings */
+	if (!echo_on) {
+		tcsetattr (STDIN_FILENO, TCSADRAIN, &termios_orig);
+		/* New line - setting ECHONL | ICANON did not help */
+		fprintf (stdout, "\n");
+	}
+
 	return str;
 }
 
@@ -1153,3 +1350,46 @@ nmc_rl_set_deftext (void)
 	return 0;
 }
 
+/**
+ * nmc_parse_lldp_capabilities:
+ * @value: the capabilities value
+ *
+ * Parses LLDP capabilities flags
+ *
+ * Returns: a newly allocated string containing capabilities names separated by commas.
+ */
+char *
+nmc_parse_lldp_capabilities (guint value)
+{
+	/* IEEE Std 802.1AB-2009 - Table 8.4 */
+	const char *names[] = { "other", "repeater", "mac-bridge", "wlan-access-point",
+	                        "router", "telephone", "docsis-cable-device", "station-only",
+	                        "c-vlan-component", "s-vlan-component", "tpmr" };
+	gboolean first = TRUE;
+	GString *str;
+	int i;
+
+	if (!value)
+		return g_strdup ("none");
+
+	str = g_string_new ("");
+
+	for (i = 0; i < G_N_ELEMENTS (names); i++) {
+		if (value & (1 << i)) {
+			if (!first)
+				g_string_append_c (str, ',');
+
+			first = FALSE;
+			value &= ~(1 << i);
+			g_string_append (str, names[i]);
+		}
+	}
+
+	if (value) {
+		if (!first)
+			g_string_append_c (str, ',');
+		g_string_append (str, "reserved");
+	}
+
+	return g_string_free (str, FALSE);
+}

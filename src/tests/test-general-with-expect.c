@@ -18,20 +18,59 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 #include <netinet/ether.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 #include "NetworkManagerUtils.h"
-#include "nm-logging.h"
 #include "nm-multi-index.h"
 
 #include "nm-test-utils.h"
+
+#ifndef CLOCK_BOOTTIME
+#define CLOCK_BOOTTIME 7
+#endif
+
+/*******************************************/
+
+static void
+test_nm_utils_monotonic_timestamp_as_boottime (void)
+{
+	gint64 timestamp_ns_per_tick, now, now_boottime, now_boottime_2, now_boottime_3;
+	struct timespec tp;
+	clockid_t clockid;
+	guint i;
+
+	if (clock_gettime (CLOCK_BOOTTIME, &tp) != 0 && errno == EINVAL)
+		clockid = CLOCK_MONOTONIC;
+	else
+		clockid = CLOCK_BOOTTIME;
+
+	for (i = 0; i < 10; i++) {
+
+		if (clock_gettime (clockid, &tp) != 0)
+			g_assert_not_reached ();
+		now_boottime = ( ((gint64) tp.tv_sec) * NM_UTILS_NS_PER_SECOND ) + ((gint64) tp.tv_nsec);
+
+		now = nm_utils_get_monotonic_timestamp_ns ();
+
+		now_boottime_2 = nm_utils_monotonic_timestamp_as_boottime (now, 1);
+		g_assert_cmpint (now_boottime_2, >=, 0);
+		g_assert_cmpint (now_boottime_2, >=, now_boottime);
+		g_assert_cmpint (now_boottime_2 - now_boottime, <=, NM_UTILS_NS_PER_SECOND / 1000);
+
+		for (timestamp_ns_per_tick = 1; timestamp_ns_per_tick <= NM_UTILS_NS_PER_SECOND; timestamp_ns_per_tick *= 10) {
+			now_boottime_3 = nm_utils_monotonic_timestamp_as_boottime (now / timestamp_ns_per_tick, timestamp_ns_per_tick);
+
+			g_assert_cmpint (now_boottime_2 / timestamp_ns_per_tick, ==, now_boottime_3);
+		}
+	}
+}
 
 /*******************************************/
 
@@ -185,33 +224,33 @@ test_nm_utils_kill_child (void)
 	int err;
 	GLogLevelFlags fatal_mask;
 	char *argv_watchdog[] = {
-			"sh",
+			"bash",
 			"-c",
 			"sleep 4; "
 			"kill -KILL 0; #watchdog for #" TEST_TOKEN,
 			NULL,
 		};
 	char *argv1[] = {
-			"sh",
+			"bash",
 			"-c",
 			"trap \"sleep 0.3; exit 10\" EXIT; "
 			"sleep 100000; exit $? #" TEST_TOKEN,
 			NULL,
 		};
 	char *argv2[] = {
-			"sh",
+			"bash",
 			"-c",
 			"exit 47; #" TEST_TOKEN,
 			NULL,
 		};
 	char *argv3[] = {
-			"sh",
+			"bash",
 			"-c",
 			"trap \"exit 47\" TERM; while true; do :; done; #" TEST_TOKEN,
 			NULL,
 		};
 	char *argv4[] = {
-			"sh",
+			"bash",
 			"-c",
 			"trap \"while true; do :; done\" TERM; while true; do :; done; #" TEST_TOKEN,
 			NULL,
@@ -248,9 +287,9 @@ test_nm_utils_kill_child (void)
 
 	fatal_mask = g_log_set_always_fatal (G_LOG_FATAL_MASK);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-1' (*): waiting up to 500 milliseconds for process to terminate normally after sending SIGTERM (15)...");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-1' (*): waiting up to 3000 milliseconds for process to terminate normally after sending SIGTERM (15)...");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-1' (*): after sending SIGTERM (15), process * exited by signal 15 (* usec elapsed)");
-	test_nm_utils_kill_child_sync_do ("test-s-1-1", pid1s_1, SIGTERM, 1000 / 2, TRUE,  &expected_signal_TERM);
+	test_nm_utils_kill_child_sync_do ("test-s-1-1", pid1s_1, SIGTERM, 3000, TRUE,  &expected_signal_TERM);
 
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-2' (*): waiting for process to terminate after sending SIGKILL (9)...");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-2' (*): after sending SIGKILL (9), process * exited by signal 9 (* usec elapsed)");
@@ -262,20 +301,20 @@ test_nm_utils_kill_child (void)
 	test_nm_utils_kill_child_sync_do ("test-s-1-3", pid1s_3, 0, 1, TRUE,  &expected_signal_KILL);
 
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-2' (*): process * already terminated normally with status 47");
-	test_nm_utils_kill_child_sync_do ("test-s-2", pid2s, SIGTERM, 1000 / 2, TRUE,  &expected_exit_47);
+	test_nm_utils_kill_child_sync_do ("test-s-2", pid2s, SIGTERM, 3000, TRUE,  &expected_exit_47);
 
 	/* send invalid signal. */
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_WARNING, "*kill child process 'test-s-3-0' (*): failed to send Unexpected signal: Invalid argument (22)");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE, "*kill child process 'test-s-3-0' (*): failed to send Unexpected signal: Invalid argument (22)");
 	test_nm_utils_kill_child_sync_do ("test-s-3-0", pid3s, -1, 0, FALSE, NULL);
 
 	/* really kill pid3s */
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-3-1' (*): waiting up to 500 milliseconds for process to terminate normally after sending SIGTERM (15)...");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-3-1' (*): waiting up to 3000 milliseconds for process to terminate normally after sending SIGTERM (15)...");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-3-1' (*): after sending SIGTERM (15), process * exited normally with status 47 (* usec elapsed)");
-	test_nm_utils_kill_child_sync_do ("test-s-3-1", pid3s, SIGTERM, 1000 / 2, TRUE,  &expected_exit_47);
+	test_nm_utils_kill_child_sync_do ("test-s-3-1", pid3s, SIGTERM, 3000, TRUE,  &expected_exit_47);
 
 	/* pid3s should not be a valid process, hence the call should fail. Note, that there
 	 * is a race here. */
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_WARNING, "*kill child process 'test-s-3-2' (*): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending no signal (0)");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE, "*kill child process 'test-s-3-2' (*): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending no signal (0)");
 	test_nm_utils_kill_child_sync_do ("test-s-3-2", pid3s, 0, 0, FALSE, NULL);
 
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-4' (*): waiting up to 1 milliseconds for process to terminate normally after sending SIGTERM (15)...");
@@ -284,9 +323,9 @@ test_nm_utils_kill_child (void)
 	test_nm_utils_kill_child_sync_do ("test-s-4", pid4s, SIGTERM, 1, TRUE, &expected_signal_KILL);
 
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-1' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 500 milliseconds)...");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-1' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 3000 milliseconds)...");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-1' (*): terminated by signal 15 (* usec elapsed)");
-	test_nm_utils_kill_child_async_do ("test-a-1-1", pid1a_1, SIGTERM, 1000 / 2, TRUE, &expected_signal_TERM);
+	test_nm_utils_kill_child_async_do ("test-a-1-1", pid1a_1, SIGTERM, 3000, TRUE, &expected_signal_TERM);
 
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-2' (*): wait for process to terminate after sending SIGKILL (9)...");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-2' (*): terminated by signal 9 (* usec elapsed)");
@@ -299,20 +338,20 @@ test_nm_utils_kill_child (void)
 
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-2' (*): process * already terminated normally with status 47");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-2' (*): invoke callback: terminated normally with status 47");
-	test_nm_utils_kill_child_async_do ("test-a-2", pid2a, SIGTERM, 1000 / 2, TRUE, &expected_exit_47);
+	test_nm_utils_kill_child_async_do ("test-a-2", pid2a, SIGTERM, 3000, TRUE, &expected_exit_47);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_WARNING, "*kill child process 'test-a-3-0' (*): unexpected error sending Unexpected signal: Invalid argument (22)");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE, "*kill child process 'test-a-3-0' (*): unexpected error sending Unexpected signal: Invalid argument (22)");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-0' (*): invoke callback: killing child failed");
 	/* coverity[negative_returns] */
 	test_nm_utils_kill_child_async_do ("test-a-3-0", pid3a, -1, 1000 / 2, FALSE, NULL);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-1' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 500 milliseconds)...");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-1' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 3000 milliseconds)...");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-1' (*): terminated normally with status 47 (* usec elapsed)");
-	test_nm_utils_kill_child_async_do ("test-a-3-1", pid3a, SIGTERM, 1000 / 2, TRUE, &expected_exit_47);
+	test_nm_utils_kill_child_async_do ("test-a-3-1", pid3a, SIGTERM, 3000, TRUE, &expected_exit_47);
 
 	/* pid3a should not be a valid process, hence the call should fail. Note, that there
 	 * is a race here. */
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_WARNING, "*kill child process 'test-a-3-2' (*): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending no signal (0)");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE, "*kill child process 'test-a-3-2' (*): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending no signal (0)");
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-2' (*): invoke callback: killing child failed");
 	test_nm_utils_kill_child_async_do ("test-a-3-2", pid3a, 0, 0, FALSE, NULL);
 
@@ -385,7 +424,7 @@ _remove_at_indexes_init_random_idx (GArray *idx, guint array_len, guint idx_len)
 }
 
 static void
-test_nm_utils_array_remove_at_indexes ()
+test_nm_utils_array_remove_at_indexes (void)
 {
 	gs_unref_array GArray *idx = NULL, *array = NULL;
 	gs_unref_hashtable GHashTable *unique = NULL;
@@ -815,6 +854,49 @@ test_nm_multi_index (void)
 
 /*******************************************/
 
+static void
+test_nm_utils_new_vlan_name (void)
+{
+	guint i, j;
+	const char *parent_names[] = {
+		"a",
+		"a2",
+		"a23",
+		"a23456789",
+		"a2345678901",
+		"a23456789012",
+		"a234567890123",
+		"a2345678901234",
+		"a23456789012345",
+		"a234567890123456",
+		"a2345678901234567",
+	};
+
+	for (i = 0; i < G_N_ELEMENTS (parent_names); i++) {
+		for (j = 0; j < 10; j++) {
+			gs_free char *ifname = NULL;
+			gs_free char *vlan_id_s = NULL;
+			guint vlan_id;
+
+			/* Create a random VLAN id between 0 and 4094 */
+			vlan_id = nmtst_get_rand_int () % 4095;
+
+			vlan_id_s = g_strdup_printf (".%d", vlan_id);
+
+			ifname = nm_utils_new_vlan_name (parent_names[i], vlan_id);
+			g_assert (ifname && ifname[0]);
+			g_assert_cmpint (strlen (ifname), ==, MIN (15, strlen (parent_names[i]) + strlen (vlan_id_s)));
+			g_assert (g_str_has_suffix (ifname, vlan_id_s));
+			g_assert (ifname[strlen (ifname) - strlen (vlan_id_s)] == '.');
+			g_assert (strncmp (ifname, parent_names[i], strlen (ifname) - strlen (vlan_id_s)) == 0);
+			if (!g_str_has_prefix (ifname, parent_names[i]))
+				g_assert_cmpint (strlen (ifname), ==, 15);
+		}
+	}
+}
+
+/*******************************************/
+
 NMTST_DEFINE ();
 
 int
@@ -822,10 +904,12 @@ main (int argc, char **argv)
 {
 	nmtst_init_assert_logging (&argc, &argv, "DEBUG", "DEFAULT");
 
+	g_test_add_func ("/general/nm_utils_monotonic_timestamp_as_boottime", test_nm_utils_monotonic_timestamp_as_boottime);
 	g_test_add_func ("/general/nm_utils_kill_child", test_nm_utils_kill_child);
+	g_test_add_func ("/general/nm_utils_array_remove_at_indexes", test_nm_utils_array_remove_at_indexes);
 	g_test_add_func ("/general/nm_ethernet_address_is_valid", test_nm_ethernet_address_is_valid);
 	g_test_add_func ("/general/nm_multi_index", test_nm_multi_index);
-	g_test_add_func ("/general/nm_utils_array_remove_at_indexes", test_nm_utils_array_remove_at_indexes);
+	g_test_add_func ("/general/nm_utils_new_vlan_name", test_nm_utils_new_vlan_name);
 
 	return g_test_run ();
 }

@@ -18,7 +18,7 @@
  * Copyright (C) 2011 - 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <gmodule.h>
 
@@ -43,7 +43,7 @@ typedef struct {
 
 static GType nm_wifi_factory_get_type (void);
 
-static void device_factory_interface_init (NMDeviceFactory *factory_iface);
+static void device_factory_interface_init (NMDeviceFactoryInterface *factory_iface);
 
 G_DEFINE_TYPE_EXTENDED (NMWifiFactory, nm_wifi_factory, G_TYPE_OBJECT, 0,
                         G_IMPLEMENT_INTERFACE (NM_TYPE_DEVICE_FACTORY, device_factory_interface_init))
@@ -59,13 +59,41 @@ nm_device_factory_create (GError **error)
 /**************************************************************************/
 
 static NMDevice *
-new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
+create_device (NMDeviceFactory *factory,
+               const char *iface,
+               const NMPlatformLink *plink,
+               NMConnection *connection,
+               gboolean *out_ignore)
 {
+	NMDeviceWifiCapabilities capabilities;
+	NM80211Mode mode;
+
+	g_return_val_if_fail (iface != NULL, NULL);
+	g_return_val_if_fail (plink != NULL, NULL);
+	g_return_val_if_fail (g_strcmp0 (iface, plink->name) == 0, NULL);
+	g_return_val_if_fail (NM_IN_SET (plink->type, NM_LINK_TYPE_WIFI, NM_LINK_TYPE_OLPC_MESH), NULL);
+
+	if (!nm_platform_wifi_get_capabilities (NM_PLATFORM_GET,
+	                                        plink->ifindex,
+	                                        &capabilities)) {
+		nm_log_warn (LOGD_HW | LOGD_WIFI, "(%s) failed to initialize Wi-Fi driver for ifindex %d", iface, plink->ifindex);
+		return NULL;
+	}
+
+	/* Ignore monitor-mode and other unhandled interface types.
+	 * FIXME: keep TYPE_MONITOR devices in UNAVAILABLE state and manage
+	 * them if/when they change to a handled type.
+	 */
+	mode = nm_platform_wifi_get_mode (NM_PLATFORM_GET, plink->ifindex);
+	if (mode == NM_802_11_MODE_UNKNOWN) {
+		*out_ignore = TRUE;
+		return NULL;
+	}
+
 	if (plink->type == NM_LINK_TYPE_WIFI)
-		return nm_device_wifi_new (plink);
-	else if (plink->type == NM_LINK_TYPE_OLPC_MESH)
-		return nm_device_olpc_mesh_new (plink);
-	g_assert_not_reached ();
+		return nm_device_wifi_new (iface, capabilities);
+	else
+		return nm_device_olpc_mesh_new (iface);
 }
 
 NM_DEVICE_FACTORY_DECLARE_TYPES (
@@ -74,9 +102,9 @@ NM_DEVICE_FACTORY_DECLARE_TYPES (
 )
 
 static void
-device_factory_interface_init (NMDeviceFactory *factory_iface)
+device_factory_interface_init (NMDeviceFactoryInterface *factory_iface)
 {
-	factory_iface->new_link = new_link;
+	factory_iface->create_device = create_device;
 	factory_iface->get_supported_types = get_supported_types;
 }
 

@@ -31,16 +31,14 @@
  * Robert Love <rml@novell.com>
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <locale.h>
 
-#include <glib/gi18n.h>
-
-#include <NetworkManager.h>
+#include "NetworkManager.h"
 
 #define PROGRESS_STEPS 15
 #define WAIT_STARTUP_TAG "wait-startup"
@@ -93,7 +91,7 @@ handle_timeout (gpointer data)
 		progress_next_step_i = (elapsed_ms / timeout->progress_step_duration) + 1;
 		progress_next_step_i = MIN (progress_next_step_i, PROGRESS_STEPS);
 
-		g_print (_("\rConnecting"));
+		g_print ("\r%s", _("Connecting"));
 		for (i = 0; i < PROGRESS_STEPS; i++)
 			putchar (i < progress_next_step_i ? '.' : ' ');
 		g_print (" %4lds", (long) (MAX (0, remaining_ms) / 1000));
@@ -188,9 +186,7 @@ main (int argc, char *argv[])
 	}
 	remaining_ms = t_secs * 1000;
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
+	nm_g_type_init ();
 
 	client = nm_client_new (NULL, &error);
 	if (!client) {

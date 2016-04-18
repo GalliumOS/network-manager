@@ -19,18 +19,17 @@
  * Copyright (C) 2009 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
+
+#include "nm-modem.h"
 
 #include <string.h>
-#include "nm-modem.h"
+
+#include "nm-core-internal.h"
 #include "nm-platform.h"
-#include "nm-dbus-manager.h"
 #include "nm-setting-connection.h"
-#include "nm-properties-changed-signal.h"
-#include "nm-logging.h"
 #include "NetworkManagerUtils.h"
 #include "nm-device-private.h"
-#include "nm-dbus-glib-types.h"
 #include "nm-modem-enum-types.h"
 #include "nm-route-manager.h"
 
@@ -52,6 +51,7 @@ enum {
 	PROP_DEVICE_ID,
 	PROP_SIM_ID,
 	PROP_IP_TYPES,
+	PROP_SIM_OPERATOR_ID,
 
 	LAST_PROP
 };
@@ -71,12 +71,13 @@ typedef struct {
 	char *device_id;
 	char *sim_id;
 	NMModemIPType ip_types;
+	char *sim_operator_id;
 
 	NMPPPManager *ppp_manager;
 
 	NMActRequest *act_request;
 	guint32 secrets_tries;
-	guint32 secrets_id;
+	NMActRequestGetSecretsCallId secrets_id;
 
 	guint32 mm_ip_timeout;
 
@@ -287,7 +288,7 @@ nm_modem_get_connection_ip_type (NMModem *self,
 			                     NM_DEVICE_ERROR,
 			                     NM_DEVICE_ERROR_INCOMPATIBLE_CONNECTION,
 			                     "Connection requested IPv4 but IPv4 is "
-			                     "unsuported by the modem.");
+			                     "unsupported by the modem.");
 			return NULL;
 		}
 		return build_single_ip_type_array (NM_MODEM_IP_TYPE_IPV4);
@@ -299,7 +300,7 @@ nm_modem_get_connection_ip_type (NMModem *self,
 			                     NM_DEVICE_ERROR,
 			                     NM_DEVICE_ERROR_INCOMPATIBLE_CONNECTION,
 			                     "Connection requested IPv6 but IPv6 is "
-			                     "unsuported by the modem.");
+			                     "unsupported by the modem.");
 			return NULL;
 		}
 		return build_single_ip_type_array (NM_MODEM_IP_TYPE_IPV6);
@@ -348,6 +349,24 @@ nm_modem_get_connection_ip_type (NMModem *self,
 	                     NM_DEVICE_ERROR_INCOMPATIBLE_CONNECTION,
 	                     "Connection specified no IP configuration!");
 	return NULL;
+}
+
+const char *
+nm_modem_get_device_id (NMModem *self)
+{
+	return NM_MODEM_GET_PRIVATE (self)->device_id;
+}
+
+const char *
+nm_modem_get_sim_id (NMModem *self)
+{
+	return NM_MODEM_GET_PRIVATE (self)->sim_id;
+}
+
+const char *
+nm_modem_get_sim_operator_id (NMModem *self)
+{
+	return NM_MODEM_GET_PRIVATE (self)->sim_operator_id;
 }
 
 /*****************************************************************************/
@@ -493,7 +512,7 @@ ppp_stage3_ip_config_start (NMModem *self,
 		return NM_ACT_STAGE_RETURN_POSTPONE;
 
 	if (NM_MODEM_GET_CLASS (self)->get_user_pass) {
-		NMConnection *connection = nm_act_request_get_connection (req);
+		NMConnection *connection = nm_act_request_get_applied_connection (req);
 
 		g_assert (connection);
 		if (!NM_MODEM_GET_CLASS (self)->get_user_pass (self, connection, &ppp_name, NULL))
@@ -511,7 +530,7 @@ ppp_stage3_ip_config_start (NMModem *self,
 
 	priv->ppp_manager = nm_ppp_manager_new (priv->data_port);
 	if (nm_ppp_manager_start (priv->ppp_manager, req, ppp_name, ip_timeout, &error)) {
-		g_signal_connect (priv->ppp_manager, "state-changed",
+		g_signal_connect (priv->ppp_manager, NM_PPP_MANAGER_STATE_CHANGED,
 		                  G_CALLBACK (ppp_state_changed),
 		                  self);
 		g_signal_connect (priv->ppp_manager, "ip4-config",
@@ -526,14 +545,12 @@ ppp_stage3_ip_config_start (NMModem *self,
 
 		ret = NM_ACT_STAGE_RETURN_POSTPONE;
 	} else {
-		nm_log_err (LOGD_PPP, "(%s): error starting PPP: (%d) %s",
+		nm_log_err (LOGD_PPP, "(%s): error starting PPP: %s",
 		            nm_modem_get_uid (self),
-		            error ? error->code : -1,
-		            error && error->message ? error->message : "(unknown)");
+		            error->message);
 		g_error_free (error);
 
-		g_object_unref (priv->ppp_manager);
-		priv->ppp_manager = NULL;
+		nm_exported_object_clear_and_unexport (&priv->ppp_manager);
 
 		*reason = NM_DEVICE_STATE_REASON_PPP_START_FAILED;
 		ret = NM_ACT_STAGE_RETURN_FAILURE;
@@ -563,7 +580,7 @@ nm_modem_stage3_ip4_config_start (NMModem *self,
 
 	req = nm_device_get_act_request (device);
 	g_assert (req);
-	connection = nm_act_request_get_connection (req);
+	connection = nm_act_request_get_applied_connection (req);
 	g_assert (connection);
 	method = nm_utils_get_ip_config_method (connection, NM_TYPE_SETTING_IP4_CONFIG);
 
@@ -680,7 +697,7 @@ nm_modem_stage3_ip6_config_start (NMModem *self,
 	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), NM_ACT_STAGE_RETURN_FAILURE);
 	g_return_val_if_fail (reason != NULL, NM_ACT_STAGE_RETURN_FAILURE);
 
-	connection = nm_act_request_get_connection (req);
+	connection = nm_act_request_get_applied_connection (req);
 	g_assert (connection);
 	method = nm_utils_get_ip_config_method (connection, NM_TYPE_SETTING_IP6_CONFIG);
 
@@ -725,16 +742,13 @@ cancel_get_secrets (NMModem *self)
 {
 	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (self);
 
-	if (priv->secrets_id) {
-		nm_act_request_cancel_secrets (priv->act_request, priv->secrets_id);
-		priv->secrets_id = 0;
-	}
+	nm_act_request_cancel_secrets (priv->act_request, priv->secrets_id);
 }
 
 static void
 modem_secrets_cb (NMActRequest *req,
-                  guint32 call_id,
-                  NMConnection *connection,
+                  NMActRequestGetSecretsCallId call_id,
+                  NMSettingsConnection *connection,
                   GError *error,
                   gpointer user_data)
 {
@@ -743,7 +757,10 @@ modem_secrets_cb (NMActRequest *req,
 
 	g_return_if_fail (call_id == priv->secrets_id);
 
-	priv->secrets_id = 0;
+	priv->secrets_id = NULL;
+
+	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+		return;
 
 	if (error)
 		nm_log_warn (LOGD_MB, "(%s): %s", nm_modem_get_uid (self), error->message);
@@ -751,7 +768,7 @@ modem_secrets_cb (NMActRequest *req,
 	g_signal_emit (self, signals[AUTH_RESULT], 0, error);
 }
 
-gboolean
+void
 nm_modem_get_secrets (NMModem *self,
                       const char *setting_name,
                       gboolean request_new,
@@ -770,10 +787,8 @@ nm_modem_get_secrets (NMModem *self,
 	                                               hint,
 	                                               modem_secrets_cb,
 	                                               self);
-	if (priv->secrets_id)
-		g_signal_emit (self, signals[AUTH_REQUESTED], 0);
-
-	return !!(priv->secrets_id);
+	g_return_if_fail (priv->secrets_id);
+	g_signal_emit (self, signals[AUTH_REQUESTED], 0);
 }
 
 /*****************************************************************************/
@@ -793,8 +808,7 @@ nm_modem_act_stage1_prepare (NMModem *self,
                              NMDeviceStateReason *reason)
 {
 	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (self);
-	NMActStageReturn ret;
-	GPtrArray *hints = NULL;
+	gs_unref_ptrarray GPtrArray *hints = NULL;
 	const char *setting_name = NULL;
 	NMSecretAgentGetSecretsFlags flags = NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION;
 	NMConnection *connection;
@@ -803,7 +817,7 @@ nm_modem_act_stage1_prepare (NMModem *self,
 		g_object_unref (priv->act_request);
 	priv->act_request = g_object_ref (req);
 
-	connection = nm_act_request_get_connection (req);
+	connection = nm_act_request_get_applied_connection (req);
 	g_assert (connection);
 
 	setting_name = nm_connection_need_secrets (connection, &hints);
@@ -823,18 +837,9 @@ nm_modem_act_stage1_prepare (NMModem *self,
 	                                               hints ? g_ptr_array_index (hints, 0) : NULL,
 	                                               modem_secrets_cb,
 	                                               self);
-	if (priv->secrets_id) {
-		g_signal_emit (self, signals[AUTH_REQUESTED], 0);
-		ret = NM_ACT_STAGE_RETURN_POSTPONE;
-	} else {
-		*reason = NM_DEVICE_STATE_REASON_NO_SECRETS;
-		ret = NM_ACT_STAGE_RETURN_FAILURE;
-	}
-
-	if (hints)
-		g_ptr_array_free (hints, TRUE);
-
-	return ret;
+	g_return_val_if_fail (priv->secrets_id, NM_ACT_STAGE_RETURN_FAILURE);
+	g_signal_emit (self, signals[AUTH_REQUESTED], 0);
+	return NM_ACT_STAGE_RETURN_POSTPONE;
 }
 
 /*****************************************************************************/
@@ -859,6 +864,67 @@ nm_modem_act_stage2_config (NMModem *self,
 gboolean
 nm_modem_check_connection_compatible (NMModem *self, NMConnection *connection)
 {
+	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (self);
+	NMSettingConnection *s_con;
+
+	s_con = nm_connection_get_setting_connection (connection);
+	g_assert (s_con);
+
+	if (g_str_equal (nm_setting_connection_get_connection_type (s_con),
+	                 NM_SETTING_GSM_SETTING_NAME)) {
+		NMSettingGsm *s_gsm;
+		const char *str;
+
+		s_gsm = nm_connection_get_setting_gsm (connection);
+		if (!s_gsm)
+			return FALSE;
+
+		str = nm_setting_gsm_get_device_id (s_gsm);
+		if (str) {
+			if (!priv->device_id) {
+				nm_log_dbg (LOGD_MB, "(%s): %s/%s has device-id, device does not",
+				            priv->uid,
+				            nm_connection_get_uuid (connection),
+				            nm_connection_get_id (connection));
+				return FALSE;
+			}
+			if (strcmp (str, priv->device_id)) {
+				nm_log_dbg (LOGD_MB, "(%s): %s/%s device-id mismatch",
+				            priv->uid,
+				            nm_connection_get_uuid (connection),
+				            nm_connection_get_id (connection));
+				return FALSE;
+			}
+		}
+
+		/* SIM properties may not be available before the SIM is unlocked, so
+		 * to ensure that autoconnect works, the connection's SIM properties
+		 * are only compared if present on the device.
+		 */
+
+		str = nm_setting_gsm_get_sim_id (s_gsm);
+		if (str && priv->sim_id) {
+			if (strcmp (str, priv->sim_id)) {
+				nm_log_dbg (LOGD_MB, "(%s): %s/%s sim-id mismatch",
+				            priv->uid,
+				            nm_connection_get_uuid (connection),
+				            nm_connection_get_id (connection));
+				return FALSE;
+			}
+		}
+
+		str = nm_setting_gsm_get_sim_operator_id (s_gsm);
+		if (str && priv->sim_operator_id) {
+			if (strcmp (str, priv->sim_operator_id)) {
+				nm_log_dbg (LOGD_MB, "(%s): %s/%s sim-operator-id mismatch",
+				            priv->uid,
+				            nm_connection_get_uuid (connection),
+				            nm_connection_get_id (connection));
+				return FALSE;
+			}
+		}
+	}
+
 	if (NM_MODEM_GET_CLASS (self)->check_connection_compatible)
 		return NM_MODEM_GET_CLASS (self)->check_connection_compatible (self, connection);
 	return FALSE;
@@ -899,10 +965,7 @@ deactivate_cleanup (NMModem *self, NMDevice *device)
 
 	priv->in_bytes = priv->out_bytes = 0;
 
-	if (priv->ppp_manager) {
-		g_object_unref (priv->ppp_manager);
-		priv->ppp_manager = NULL;
-	}
+	nm_exported_object_clear_and_unexport (&priv->ppp_manager);
 
 	if (device) {
 		g_return_if_fail (NM_IS_DEVICE (device));
@@ -1315,6 +1378,9 @@ get_property (GObject *object, guint prop_id,
 	case PROP_IP_TYPES:
 		g_value_set_uint (value, priv->ip_types);
 		break;
+	case PROP_SIM_OPERATOR_ID:
+		g_value_set_string (value, priv->sim_operator_id);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1326,6 +1392,7 @@ set_property (GObject *object, guint prop_id,
               const GValue *value, GParamSpec *pspec)
 {
 	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (object);
+	const char *s;
 
 	switch (prop_id) {
 	case PROP_PATH:
@@ -1369,6 +1436,12 @@ set_property (GObject *object, guint prop_id,
 	case PROP_IP_TYPES:
 		priv->ip_types = g_value_get_uint (value);
 		break;
+	case PROP_SIM_OPERATOR_ID:
+		g_clear_pointer (&priv->sim_operator_id, g_free);
+		s = g_value_get_string (value);
+		if (s && s[0])
+			priv->sim_operator_id = g_strdup (s);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1400,6 +1473,7 @@ finalize (GObject *object)
 	g_free (priv->data_port);
 	g_free (priv->device_id);
 	g_free (priv->sim_id);
+	g_free (priv->sim_operator_id);
 
 	G_OBJECT_CLASS (nm_modem_parent_class)->finalize (object);
 }
@@ -1513,6 +1587,13 @@ nm_modem_class_init (NMModemClass *klass)
 		                    "Supported IP types",
 		                    0, G_MAXUINT32, NM_MODEM_IP_TYPE_IPV4,
 		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+
+	g_object_class_install_property
+		(object_class, PROP_SIM_OPERATOR_ID,
+		 g_param_spec_string (NM_MODEM_SIM_OPERATOR_ID, "", "",
+		                      NULL,
+		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+		                      G_PARAM_STATIC_STRINGS));
 
 	/* Signals */
 

@@ -21,8 +21,6 @@
 #ifndef __NETWORKMANAGER_DEVICE_VXLAN_H__
 #define __NETWORKMANAGER_DEVICE_VXLAN_H__
 
-#include <glib-object.h>
-
 #include "nm-device-generic.h"
 
 G_BEGIN_DECLS
@@ -51,8 +49,8 @@ G_BEGIN_DECLS
 #define NM_DEVICE_VXLAN_L2MISS       "l2miss"
 #define NM_DEVICE_VXLAN_L3MISS       "l3miss"
 
-typedef NMDeviceGeneric NMDeviceVxlan;
-typedef NMDeviceGenericClass NMDeviceVxlanClass;
+typedef NMDevice NMDeviceVxlan;
+typedef NMDeviceClass NMDeviceVxlanClass;
 
 GType nm_device_vxlan_get_type (void);
 

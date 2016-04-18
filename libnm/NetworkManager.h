@@ -61,16 +61,20 @@
 #include <nm-setting-gsm.h>
 #include <nm-setting-infiniband.h>
 #include <nm-setting-ip-config.h>
+#include <nm-setting-ip-tunnel.h>
 #include <nm-setting-ip4-config.h>
 #include <nm-setting-ip6-config.h>
+#include <nm-setting-macvlan.h>
 #include <nm-setting-olpc-mesh.h>
 #include <nm-setting-ppp.h>
 #include <nm-setting-pppoe.h>
 #include <nm-setting-serial.h>
 #include <nm-setting-team-port.h>
 #include <nm-setting-team.h>
+#include <nm-setting-tun.h>
 #include <nm-setting-vlan.h>
 #include <nm-setting-vpn.h>
+#include <nm-setting-vxlan.h>
 #include <nm-setting-wimax.h>
 #include <nm-setting-wired.h>
 #include <nm-setting-wireless-security.h>
@@ -81,7 +85,10 @@
 #include <nm-version.h>
 #include <nm-vpn-connection.h>
 #include <nm-vpn-dbus-interface.h>
+#include <nm-vpn-editor.h>
 #include <nm-vpn-editor-plugin.h>
+#include <nm-vpn-plugin-info.h>
+#include <nm-vpn-service-plugin.h>
 #include <nm-wimax-nsp.h>
 
 #undef __NETWORKMANAGER_H_INSIDE__

@@ -18,28 +18,21 @@
  * Copyright 2011 - 2012 Red Hat, Inc.
  */
 
-#include "config.h"
-
-#include <glib.h>
-#include <glib/gi18n.h>
+#include "nm-default.h"
 
 #include <errno.h>
 #include <stdlib.h>
 
-#include "gsystem-local-alloc.h"
 #include "nm-device-bond.h"
-#include "nm-logging.h"
 #include "NetworkManagerUtils.h"
 #include "nm-device-private.h"
 #include "nm-platform.h"
-#include "nm-dbus-glib-types.h"
-#include "nm-dbus-manager.h"
 #include "nm-enum-types.h"
 #include "nm-device-factory.h"
 #include "nm-core-internal.h"
 #include "nm-ip4-config.h"
 
-#include "nm-device-bond-glue.h"
+#include "nmdbus-device-bond.h"
 
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceBond);
@@ -51,13 +44,6 @@ G_DEFINE_TYPE (NMDeviceBond, nm_device_bond, NM_TYPE_DEVICE)
 typedef struct {
 	int dummy;
 } NMDeviceBondPrivate;
-
-enum {
-	PROP_0,
-	PROP_SLAVES,
-
-	LAST_PROP
-};
 
 /******************************************************************/
 
@@ -88,7 +74,6 @@ check_connection_available (NMDevice *device,
 static gboolean
 check_connection_compatible (NMDevice *device, NMConnection *connection)
 {
-	const char *iface;
 	NMSettingBond *s_bond;
 
 	if (!NM_DEVICE_CLASS (nm_device_bond_parent_class)->check_connection_compatible (device, connection))
@@ -96,11 +81,6 @@ check_connection_compatible (NMDevice *device, NMConnection *connection)
 
 	s_bond = nm_connection_get_setting_bond (connection);
 	if (!s_bond || !nm_connection_is_type (connection, NM_SETTING_BOND_SETTING_NAME))
-		return FALSE;
-
-	/* Bond connections must specify the virtual interface name */
-	iface = nm_connection_get_interface_name (connection);
-	if (!iface || strcmp (nm_device_get_iface (device), iface))
 		return FALSE;
 
 	/* FIXME: match bond properties like mode, etc? */
@@ -117,7 +97,8 @@ complete_connection (NMDevice *device,
 {
 	NMSettingBond *s_bond;
 
-	nm_utils_complete_generic (connection,
+	nm_utils_complete_generic (NM_PLATFORM_GET,
+	                           connection,
 	                           NM_SETTING_BOND_SETTING_NAME,
 	                           existing_connections,
 	                           NULL,
@@ -143,7 +124,7 @@ set_bond_attr (NMDevice *device, const char *attr, const char *value)
 	gboolean ret;
 	int ifindex = nm_device_get_ifindex (device);
 
-	ret = nm_platform_master_set_option (NM_PLATFORM_GET, ifindex, attr, value);
+	ret = nm_platform_sysctl_master_set_option (NM_PLATFORM_GET, ifindex, attr, value);
 	if (!ret)
 		_LOGW (LOGD_HW, "failed to set bonding attribute '%s' to '%s'", attr, value);
 	return ret;
@@ -177,18 +158,25 @@ update_connection (NMDevice *device, NMConnection *connection)
 	/* Read bond options from sysfs and update the Bond setting to match */
 	options = nm_setting_bond_get_valid_options (s_bond);
 	while (options && *options) {
-		gs_free char *value = nm_platform_master_get_option (NM_PLATFORM_GET, ifindex, *options);
+		gs_free char *value = nm_platform_sysctl_master_get_option (NM_PLATFORM_GET, ifindex, *options);
 		const char *defvalue = nm_setting_bond_get_option_default (s_bond, *options);
+		char *p;
 
-		if (value && !ignore_if_zero (*options, value) && (g_strcmp0 (value, defvalue) != 0)) {
+		if (_nm_setting_bond_get_option_type (s_bond, *options) == NM_BOND_OPTION_TYPE_BOTH) {
+			p = strchr (value, ' ');
+			if (p)
+				*p = '\0';
+		}
+
+		if (   value
+		    && value[0]
+		    && !ignore_if_zero (*options, value)
+		    && !nm_streq0 (value, defvalue)) {
 			/* Replace " " with "," for arp_ip_targets from the kernel */
 			if (strcmp (*options, "arp_ip_target") == 0) {
-				char *p = value;
-
-				while (p && *p) {
+				for (p = value; *p; p++) {
 					if (*p == ' ')
 						*p = ',';
-					p++;
 				}
 			}
 
@@ -270,7 +258,7 @@ apply_bonding_config (NMDevice *device)
 	 *     arp_interval doesn't require miimon to be 0
 	 */
 
-	connection = nm_device_get_connection (device);
+	connection = nm_device_get_applied_connection (device);
 	g_assert (connection);
 	s_bond = nm_connection_get_setting_bond (connection);
 	g_assert (s_bond);
@@ -304,7 +292,7 @@ apply_bonding_config (NMDevice *device)
 	set_bond_attr (device, "mode", mode);
 
 	/* arp_interval not compatible with ALB, TLB */
-	if (g_strcmp0 (mode, "balance-alb") == 0 || g_strcmp0 (mode, "balance-tlb") == 0)
+	if (NM_IN_STRSET (mode, "balance-alb", "balance-tlb"))
 		set_arp_interval = FALSE;
 
 	if (set_arp_interval) {
@@ -318,22 +306,21 @@ apply_bonding_config (NMDevice *device)
 	value = nm_setting_bond_get_option_by_name (s_bond, NM_SETTING_BOND_OPTION_ARP_VALIDATE);
 	/* arp_validate > 0 only valid in active-backup mode */
 	if (   value
-	    && g_strcmp0 (value, "0") != 0
-	    && g_strcmp0 (value, "none") != 0
-	    && g_strcmp0 (mode, "active-backup") == 0)
+	    && !nm_streq (value, "0")
+	    && !nm_streq (value, "none")
+	    && nm_streq (mode, "active-backup"))
 		set_bond_attr (device, "arp_validate", value);
 	else
 		set_bond_attr (device, "arp_validate", "0");
 
-	if (   g_strcmp0 (mode, "active-backup") == 0
-	    || g_strcmp0 (mode, "balance-alb") == 0
-	    || g_strcmp0 (mode, "balance-tlb") == 0) {
+	if (NM_IN_STRSET (mode, "active-backup", "balance-alb", "balance-tlb")) {
 		value = nm_setting_bond_get_option_by_name (s_bond, NM_SETTING_BOND_OPTION_PRIMARY);
 		set_bond_attr (device, "primary", value ? value : "");
+		set_simple_option (device, "lp_internal", s_bond, NM_SETTING_BOND_OPTION_LP_INTERVAL);
 	}
 
 	/* Clear ARP targets */
-	contents = nm_platform_master_get_option (NM_PLATFORM_GET, ifindex, "arp_ip_target");
+	contents = nm_platform_sysctl_master_get_option (NM_PLATFORM_GET, ifindex, "arp_ip_target");
 	set_arp_targets (device, contents, " \n", "-");
 	g_free (contents);
 
@@ -347,14 +334,30 @@ apply_bonding_config (NMDevice *device)
 	set_simple_option (device, "ad_select", s_bond, NM_SETTING_BOND_OPTION_AD_SELECT);
 	set_simple_option (device, "xmit_hash_policy", s_bond, NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY);
 	set_simple_option (device, "resend_igmp", s_bond, NM_SETTING_BOND_OPTION_RESEND_IGMP);
+	set_simple_option (device, "active_slave", s_bond, NM_SETTING_BOND_OPTION_ACTIVE_SLAVE);
+	set_simple_option (device, "all_slaves_active", s_bond, NM_SETTING_BOND_OPTION_ALL_SLAVES_ACTIVE);
+	set_simple_option (device, "num_grat_arp", s_bond, NM_SETTING_BOND_OPTION_NUM_GRAT_ARP);
+	set_simple_option (device, "num_unsol_na", s_bond, NM_SETTING_BOND_OPTION_NUM_UNSOL_NA);
 
-	if (   g_strcmp0 (mode, "4") == 0
-	    || g_strcmp0 (mode, "802.3ad") == 0)
+	if (nm_streq (mode, "802.3ad")) {
 		set_simple_option (device, "lacp_rate", s_bond, NM_SETTING_BOND_OPTION_LACP_RATE);
+		set_simple_option (device, "ad_actor_sys_prio", s_bond, NM_SETTING_BOND_OPTION_AD_ACTOR_SYS_PRIO);
+		set_simple_option (device, "ad_actor_system", s_bond, NM_SETTING_BOND_OPTION_AD_ACTOR_SYSTEM);
+		set_simple_option (device, "ad_user_port_key", s_bond, NM_SETTING_BOND_OPTION_AD_USER_PORT_KEY);
+		set_simple_option (device, "min_links", s_bond, NM_SETTING_BOND_OPTION_MIN_LINKS);
+	}
+
+	if (nm_streq (mode, "active-backup"))
+		set_simple_option (device, "arp_all_targets", s_bond, NM_SETTING_BOND_OPTION_ARP_ALL_TARGETS);
+
+	if (nm_streq (mode, "balance-rr"))
+		set_simple_option (device, "packets_per_slave", s_bond, NM_SETTING_BOND_OPTION_PACKETS_PER_SLAVE);
+
+	if (nm_streq (mode, "balance-tlb"))
+		set_simple_option (device, "tlb_dynamic_lb", s_bond, NM_SETTING_BOND_OPTION_TLB_DYNAMIC_LB);
 
 	return NM_ACT_STAGE_RETURN_SUCCESS;
 }
-
 
 static NMActStageReturn
 act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *reason)
@@ -383,7 +386,7 @@ ip4_config_pre_commit (NMDevice *self, NMIP4Config *config)
 	NMSettingWired *s_wired;
 	guint32 mtu;
 
-	connection = nm_device_get_connection (self);
+	connection = nm_device_get_applied_connection (self);
 	g_assert (connection);
 	s_wired = nm_connection_get_setting_wired (connection);
 
@@ -421,17 +424,16 @@ enslave_slave (NMDevice *device,
 	} else
 		_LOGI (LOGD_BOND, "bond slave %s was enslaved", slave_iface);
 
-	g_object_notify (G_OBJECT (device), NM_DEVICE_BOND_SLAVES);
 	return TRUE;
 }
 
-static gboolean
+static void
 release_slave (NMDevice *device,
                NMDevice *slave,
                gboolean configure)
 {
 	NMDeviceBond *self = NM_DEVICE_BOND (device);
-	gboolean success = TRUE, no_firmware = FALSE;
+	gboolean success, no_firmware = FALSE;
 
 	if (configure) {
 		success = nm_platform_link_release (NM_PLATFORM_GET,
@@ -445,24 +447,41 @@ release_slave (NMDevice *device,
 			_LOGW (LOGD_BOND, "failed to release bond slave %s",
 			       nm_device_get_ip_iface (slave));
 		}
-	} else {
-		_LOGI (LOGD_BOND, "bond slave %s was released",
-		             nm_device_get_ip_iface (slave));
-	}
 
-	if (success)
-		g_object_notify (G_OBJECT (device), NM_DEVICE_BOND_SLAVES);
-
-	if (configure) {
 		/* Kernel bonding code "closes" the slave when releasing it, (which clears
 		 * IFF_UP), so we must bring it back up here to ensure carrier changes and
 		 * other state is noticed by the now-released slave.
 		 */
 		if (!nm_device_bring_up (slave, TRUE, &no_firmware))
 			_LOGW (LOGD_BOND, "released bond slave could not be brought up.");
+	} else {
+		_LOGI (LOGD_BOND, "bond slave %s was released",
+		       nm_device_get_ip_iface (slave));
 	}
+}
 
-	return success;
+static gboolean
+create_and_realize (NMDevice *device,
+                    NMConnection *connection,
+                    NMDevice *parent,
+                    const NMPlatformLink **out_plink,
+                    GError **error)
+{
+	const char *iface = nm_device_get_iface (device);
+	NMPlatformError plerr;
+
+	g_assert (iface);
+
+	plerr = nm_platform_link_bond_add (NM_PLATFORM_GET, iface, out_plink);
+	if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+		             "Failed to create bond interface '%s' for '%s': %s",
+		             iface,
+		             nm_connection_get_id (connection),
+		             nm_platform_error_to_string (plerr));
+		return FALSE;
+	}
+	return TRUE;
 }
 
 /******************************************************************/
@@ -473,40 +492,6 @@ nm_device_bond_init (NMDeviceBond * self)
 }
 
 static void
-get_property (GObject *object, guint prop_id,
-              GValue *value, GParamSpec *pspec)
-{
-	GPtrArray *slaves;
-	GSList *list, *iter;
-
-	switch (prop_id) {
-		break;
-	case PROP_SLAVES:
-		slaves = g_ptr_array_new ();
-		list = nm_device_master_get_slaves (NM_DEVICE (object));
-		for (iter = list; iter; iter = iter->next)
-			g_ptr_array_add (slaves, g_strdup (nm_device_get_path (NM_DEVICE (iter->data))));
-		g_slist_free (list);
-		g_value_take_boxed (value, slaves);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
-
-static void
-set_property (GObject *object, guint prop_id,
-			  const GValue *value, GParamSpec *pspec)
-{
-	switch (prop_id) {
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
-
-static void
 nm_device_bond_class_init (NMDeviceBondClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -514,11 +499,7 @@ nm_device_bond_class_init (NMDeviceBondClass *klass)
 
 	g_type_class_add_private (object_class, sizeof (NMDeviceBondPrivate));
 
-	parent_class->connection_type = NM_SETTING_BOND_SETTING_NAME;
-
-	/* virtual methods */
-	object_class->get_property = get_property;
-	object_class->set_property = set_property;
+	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NM_SETTING_BOND_SETTING_NAME, NM_LINK_TYPE_BOND)
 
 	parent_class->get_generic_capabilities = get_generic_capabilities;
 	parent_class->is_available = is_available;
@@ -529,22 +510,15 @@ nm_device_bond_class_init (NMDeviceBondClass *klass)
 	parent_class->update_connection = update_connection;
 	parent_class->master_update_slave_connection = master_update_slave_connection;
 
+	parent_class->create_and_realize = create_and_realize;
 	parent_class->act_stage1_prepare = act_stage1_prepare;
 	parent_class->ip4_config_pre_commit = ip4_config_pre_commit;
 	parent_class->enslave_slave = enslave_slave;
 	parent_class->release_slave = release_slave;
 
-	/* properties */
-	g_object_class_install_property
-		(object_class, PROP_SLAVES,
-		 g_param_spec_boxed (NM_DEVICE_BOND_SLAVES, "", "",
-		                     DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
-
-	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
-	                                        G_TYPE_FROM_CLASS (klass),
-	                                        &dbus_glib_nm_device_bond_object_info);
+	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
+	                                        NMDBUS_TYPE_DEVICE_BOND_SKELETON,
+	                                        NULL);
 }
 
 /*************************************************************/
@@ -553,51 +527,25 @@ nm_device_bond_class_init (NMDeviceBondClass *klass)
 #define NM_BOND_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_BOND_FACTORY, NMBondFactory))
 
 static NMDevice *
-new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
+create_device (NMDeviceFactory *factory,
+               const char *iface,
+               const NMPlatformLink *plink,
+               NMConnection *connection,
+               gboolean *out_ignore)
 {
 	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_BOND,
-	                                  NM_DEVICE_PLATFORM_DEVICE, plink,
+	                                  NM_DEVICE_IFACE, iface,
 	                                  NM_DEVICE_DRIVER, "bonding",
 	                                  NM_DEVICE_TYPE_DESC, "Bond",
 	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_BOND,
+	                                  NM_DEVICE_LINK_TYPE, NM_LINK_TYPE_BOND,
 	                                  NM_DEVICE_IS_MASTER, TRUE,
 	                                  NULL);
-}
-
-static NMDevice *
-create_virtual_device_for_connection (NMDeviceFactory *factory,
-                                      NMConnection *connection,
-                                      NMDevice *parent,
-                                      GError **error)
-{
-	const char *iface = nm_connection_get_interface_name (connection);
-	NMPlatformError plerr;
-
-	g_assert (iface);
-
-	plerr = nm_platform_bond_add (NM_PLATFORM_GET, iface, NULL);
-	if (plerr != NM_PLATFORM_ERROR_SUCCESS && plerr != NM_PLATFORM_ERROR_EXISTS) {
-		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
-		             "Failed to create bond interface '%s' for '%s': %s",
-		             iface,
-		             nm_connection_get_id (connection),
-		             nm_platform_error_to_string (plerr));
-		return NULL;
-	}
-
-	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_BOND,
-		                              NM_DEVICE_IFACE, iface,
-		                              NM_DEVICE_DRIVER, "bonding",
-		                              NM_DEVICE_TYPE_DESC, "Bond",
-		                              NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_BOND,
-		                              NM_DEVICE_IS_MASTER, TRUE,
-		                              NULL);
 }
 
 NM_DEVICE_FACTORY_DEFINE_INTERNAL (BOND, Bond, bond,
 	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES    (NM_LINK_TYPE_BOND)
 	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_BOND_SETTING_NAME),
-	factory_iface->new_link = new_link;
-	factory_iface->create_virtual_device_for_connection = create_virtual_device_for_connection;
+	factory_iface->create_device = create_device;
 	)
 

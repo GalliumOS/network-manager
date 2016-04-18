@@ -127,8 +127,24 @@ typedef enum {
 	NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT = 0x00000040,
 	NM_SETTING_COMPARE_FLAG_IGNORE_TIMESTAMP = 0x00000080,
 
-	/* 0x80000000 is used for a private flag */
+	/* Higher flags like 0x80000000 and 0x40000000 are used internally as private flags */
 } NMSettingCompareFlags;
+
+
+/**
+ * NMSettingMacRandomization:
+ * @NM_SETTING_MAC_RANDOMIZATION_DEFAULT: the default value, which unless
+ * overridden by user-controlled defaults configuration, is "never".
+ * @NM_SETTING_MAC_RANDOMIZATION_NEVER: the device's MAC address is always used.
+ * @NM_SETTING_MAC_RANDOMIZATION_ALWAYS: a random MAC address is used.
+ *
+ * Controls if and how the MAC address of a device is randomzied.
+ **/
+typedef enum {
+	NM_SETTING_MAC_RANDOMIZATION_DEFAULT = 0,
+	NM_SETTING_MAC_RANDOMIZATION_NEVER,
+	NM_SETTING_MAC_RANDOMIZATION_ALWAYS,
+} NMSettingMacRandomization;
 
 
 /**
@@ -164,6 +180,10 @@ typedef struct {
 	                                  NMConnection  *connection,
 	                                  GError       **error);
 
+	gboolean    (*verify_secrets)    (NMSetting     *setting,
+	                                  NMConnection  *connection,
+	                                  GError       **error);
+
 	GPtrArray  *(*need_secrets)      (NMSetting  *setting);
 
 	int         (*update_one_secret) (NMSetting  *setting,
@@ -195,7 +215,7 @@ typedef struct {
 	                                  NMSettingCompareFlags flags);
 
 	/*< private >*/
-	gpointer padding[8];
+	gpointer padding[7];
 } NMSettingClass;
 
 /**
@@ -225,6 +245,11 @@ const char *nm_setting_get_name      (NMSetting *setting);
 gboolean    nm_setting_verify        (NMSetting     *setting,
                                       NMConnection  *connection,
                                       GError       **error);
+
+NM_AVAILABLE_IN_1_2
+gboolean    nm_setting_verify_secrets (NMSetting     *setting,
+                                       NMConnection  *connection,
+                                       GError       **error);
 
 gboolean    nm_setting_compare       (NMSetting *a,
                                       NMSetting *b,

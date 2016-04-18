@@ -18,7 +18,7 @@
  * Copyright 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -29,13 +29,11 @@
 
 #include "nm-device-veth.h"
 #include "nm-device-private.h"
-#include "nm-logging.h"
 #include "nm-manager.h"
 #include "nm-platform.h"
-#include "nm-dbus-manager.h"
 #include "nm-device-factory.h"
 
-#include "nm-device-veth-glue.h"
+#include "nmdbus-device-veth.h"
 
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceVeth);
@@ -77,17 +75,18 @@ get_peer (NMDeviceVeth *self)
 {
 	NMDeviceVethPrivate *priv = NM_DEVICE_VETH_GET_PRIVATE (self);
 	NMDevice *device = NM_DEVICE (self), *peer = NULL;
-	NMPlatformVethProperties props;
+	int peer_ifindex;
 
 	if (priv->ever_had_peer)
 		return priv->peer;
 
-	if (!nm_platform_veth_get_properties (NM_PLATFORM_GET, nm_device_get_ifindex (device), &props)) {
+	if (!nm_platform_link_veth_get_properties (NM_PLATFORM_GET, nm_device_get_ifindex (device), &peer_ifindex)) {
 		_LOGW (LOGD_HW, "could not read veth properties");
 		return NULL;
 	}
 
-	peer = nm_manager_get_device_by_ifindex (nm_manager_get (), props.peer);
+	if (peer_ifindex > 0)
+		peer = nm_manager_get_device_by_ifindex (nm_manager_get (), peer_ifindex);
 	if (peer && NM_IS_DEVICE_VETH (peer)) {
 		set_peer (self, peer);
 		set_peer (NM_DEVICE_VETH (peer), device);
@@ -137,7 +136,7 @@ get_property (GObject *object, guint prop_id,
 	switch (prop_id) {
 	case PROP_PEER:
 		peer = get_peer (self);
-		g_value_set_boxed (value, peer ? nm_device_get_path (peer) : "/");
+		nm_utils_g_value_set_object_path (value, peer);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -153,6 +152,8 @@ nm_device_veth_class_init (NMDeviceVethClass *klass)
 
 	g_type_class_add_private (klass, sizeof (NMDeviceVethPrivate));
 
+	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NULL, NM_LINK_TYPE_VETH)
+
 	object_class->get_property = get_property;
 	object_class->dispose = dispose;
 
@@ -161,14 +162,14 @@ nm_device_veth_class_init (NMDeviceVethClass *klass)
 	/* properties */
 	g_object_class_install_property
 		(object_class, PROP_PEER,
-		 g_param_spec_boxed (NM_DEVICE_VETH_PEER, "", "",
-		                     DBUS_TYPE_G_OBJECT_PATH,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
+		 g_param_spec_string (NM_DEVICE_VETH_PEER, "", "",
+		                      NULL,
+		                      G_PARAM_READABLE |
+		                      G_PARAM_STATIC_STRINGS));
 
-	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
-	                                        G_TYPE_FROM_CLASS (klass),
-	                                        &dbus_glib_nm_device_veth_object_info);
+	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
+	                                        NMDBUS_TYPE_DEVICE_VETH_SKELETON,
+	                                        NULL);
 }
 
 /*************************************************************/
@@ -177,17 +178,22 @@ nm_device_veth_class_init (NMDeviceVethClass *klass)
 #define NM_VETH_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_VETH_FACTORY, NMVethFactory))
 
 static NMDevice *
-new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
+create_device (NMDeviceFactory *factory,
+               const char *iface,
+               const NMPlatformLink *plink,
+               NMConnection *connection,
+               gboolean *out_ignore)
 {
 	return (NMDevice *) g_object_new (NM_TYPE_DEVICE_VETH,
-	                                  NM_DEVICE_PLATFORM_DEVICE, plink,
+	                                  NM_DEVICE_IFACE, iface,
 	                                  NM_DEVICE_TYPE_DESC, "Veth",
-	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_ETHERNET,
+	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_VETH,
+	                                  NM_DEVICE_LINK_TYPE, NM_LINK_TYPE_VETH,
 	                                  NULL);
 }
 
 NM_DEVICE_FACTORY_DEFINE_INTERNAL (VETH, Veth, veth,
 	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES (NM_LINK_TYPE_VETH),
-	factory_iface->new_link = new_link;
+	factory_iface->create_device = create_device;
 	)
 

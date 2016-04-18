@@ -18,9 +18,9 @@
  * Copyright (C) 2015 Red Hat, Inc.
  */
 
-#include "nmp-object.h"
+#include "nm-default.h"
 
-#include "nm-logging.h"
+#include "nmp-object.h"
 
 #include "nm-test-utils.h"
 
@@ -148,8 +148,8 @@ _nmp_cache_update_netlink (NMPCache *cache, NMPObject *obj, NMPObject **out_obj,
 	NMPCacheOpsType ops_type;
 	NMPObject *obj2;
 	gboolean was_visible;
-	auto_nmp_obj NMPObject *obj_clone = nmp_object_clone (obj, FALSE);
-	auto_nmp_obj NMPObject *new_clone = NULL;
+	nm_auto_nmpobj NMPObject *obj_clone = nmp_object_clone (obj, FALSE);
+	nm_auto_nmpobj NMPObject *new_clone = NULL;
 	const NMPObject *obj_old;
 	_NMPCacheUpdateData data = {
 		.cache = cache,
@@ -223,9 +223,7 @@ test_cache_link (void)
 	GUdevDevice *udev_device_3 = g_list_nth_data (global.udev_devices, 0);
 	NMPCacheOpsType ops_type;
 
-	cache = nmp_cache_new ();
-
-	nmp_cache_use_udev_set (cache, g_rand_int_range (nmtst_get_rand (), 0, 2));
+	cache = nmp_cache_new (nmtst_get_rand_int () % 2);
 
 	/* if we have a link, and don't set is_in_netlink, adding it has no effect. */
 	obj1 = nmp_object_new (NMP_OBJECT_TYPE_LINK, (NMPlatformObject *) &pl_link_2);

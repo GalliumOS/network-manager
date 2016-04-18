@@ -28,14 +28,12 @@
  * functions.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <glib/gi18n-lib.h>
 
 #include "nmt-address-list.h"
 #include "nmt-ip-entry.h"

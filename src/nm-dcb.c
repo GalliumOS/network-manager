@@ -18,16 +18,14 @@
  * Copyright (C) 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <sys/wait.h>
 #include <string.h>
 
-#include <glib.h>
 #include "nm-dcb.h"
 #include "nm-platform.h"
 #include "NetworkManagerUtils.h"
-#include "nm-logging.h"
 
 static const char *helper_names[] = { "dcbtool", "fcoeadm" };
 

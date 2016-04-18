@@ -20,12 +20,11 @@
  * Copyright (C) 2007 - 2008 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -34,6 +33,7 @@
 #include "nm-device.h"
 #include "nm-device-ethernet.h"
 #include "nm-device-wifi.h"
+#include "nm-device-generic.h"
 #include "nm-utils.h"
 #include "nm-active-connection.h"
 #include "nm-vpn-connection.h"
@@ -210,6 +210,12 @@ dump_wireless (NMDeviceWifi *device)
 }
 
 static void
+dump_generic (NMDeviceGeneric *device)
+{
+	g_print ("HW address: %s\n", nm_device_generic_get_hw_address (device));
+}
+
+static void
 dump_wired (NMDeviceEthernet *device)
 {
 	const char *str;
@@ -251,6 +257,8 @@ dump_device (NMDevice *device)
 		dump_wired (NM_DEVICE_ETHERNET (device));
 	else if (NM_IS_DEVICE_WIFI (device))
 		dump_wireless (NM_DEVICE_WIFI (device));
+	else if (NM_IS_DEVICE_GENERIC (device))
+		dump_generic (NM_DEVICE_GENERIC (device));
 
 	dump_dhcp4_config (nm_device_get_dhcp4_config (device));
 }
@@ -392,9 +400,7 @@ main (int argc, char *argv[])
 {
 	NMClient *client;
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
+	nm_g_type_init ();
 
 	client = nm_client_new ();
 	if (!client) {

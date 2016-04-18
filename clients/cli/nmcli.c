@@ -16,11 +16,11 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2010 - 2014 Red Hat, Inc.
+ * Copyright 2010 - 2015 Red Hat, Inc.
  */
 
 /* Generated configuration file */
-#include "config.h"
+#include "nm-default.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -32,9 +32,6 @@
 #include <locale.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-
-#include <glib.h>
-#include <glib/gi18n.h>
 
 #include "polkit-agent.h"
 #include "nmcli.h"
@@ -89,10 +86,12 @@ usage (const char *prog_name)
 	              "  -t[erse]                                   terse output\n"
 	              "  -p[retty]                                  pretty output\n"
 	              "  -m[ode] tabular|multiline                  output mode\n"
+	              "  -c[olors] auto|yes|no                      whether to use colors in output\n"
 	              "  -f[ields] <field1,field2,...>|all|common   specify fields to output\n"
 	              "  -e[scape] yes|no                           escape columns separators in values\n"
 	              "  -n[ocheck]                                 don't check nmcli and NetworkManager versions\n"
 	              "  -a[sk]                                     ask for missing parameters\n"
+	              "  -s[how-secrets]                            allow displaying passwords\n"
 	              "  -w[ait] <seconds>                          set timeout waiting for finishing operations\n"
 	              "  -v[ersion]                                 show program version\n"
 	              "  -h[elp]                                    print this help\n"
@@ -104,6 +103,7 @@ usage (const char *prog_name)
 	              "  c[onnection]    NetworkManager's connections\n"
 	              "  d[evice]        devices managed by NetworkManager\n"
 	              "  a[gent]         NetworkManager secret agent or polkit agent\n"
+	              "  m[onitor]       monitor NetworkManager changes\n"
 	              "\n"),
 	            prog_name);
 }
@@ -120,6 +120,7 @@ static const struct cmd {
 	NMCResultCode (*func) (NmCli *nmc, int argc, char **argv);
 } nmcli_cmds[] = {
 	{ "general",    do_general },
+	{ "monitor",    do_monitor },
 	{ "networking", do_networking },
 	{ "radio",      do_radio },
 	{ "connection", do_connections },
@@ -210,6 +211,24 @@ parse_command_line (NmCli *nmc, int argc, char **argv)
 				nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
 				return nmc->return_value;
 			}
+		} else if (matches (opt, "-colors") == 0) {
+			next_arg (&argc, &argv);
+			if (argc <= 1) {
+		 		g_string_printf (nmc->return_text, _("Error: missing argument for '%s' option."), opt);
+				nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
+				return nmc->return_value;
+			}
+			if (matches (argv[1], "auto") == 0)
+				nmc->use_colors = NMC_USE_COLOR_AUTO;
+			else if (matches (argv[1], "yes") == 0)
+				nmc->use_colors = NMC_USE_COLOR_YES;
+			else if (matches (argv[1], "no") == 0)
+				nmc->use_colors = NMC_USE_COLOR_NO;
+			else {
+		 		g_string_printf (nmc->return_text, _("Error: '%s' is not valid argument for '%s' option."), argv[1], opt);
+				nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
+				return nmc->return_value;
+			}
 		} else if (matches (opt, "-escape") == 0) {
 			next_arg (&argc, &argv);
 			if (argc <= 1) {
@@ -238,6 +257,8 @@ parse_command_line (NmCli *nmc, int argc, char **argv)
 			nmc->nocheck_ver = TRUE;
 		} else if (matches (opt, "-ask") == 0) {
 			nmc->ask = TRUE;
+		} else if (matches (opt, "-show-secrets") == 0) {
+			nmc->show_secrets = TRUE;
 		} else if (matches (opt, "-wait") == 0) {
 			unsigned long timeout;
 			next_arg (&argc, &argv);
@@ -515,7 +536,7 @@ nmc_init (NmCli *nmc)
 	nmc->pwds_hash = NULL;
 	nmc->pk_listener = NULL;
 
-	nmc->should_wait = FALSE;
+	nmc->should_wait = 0;
 	nmc->nowait_flag = TRUE;
 	nmc->print_output = NMC_PRINT_NORMAL;
 	nmc->multiline_output = FALSE;
@@ -526,6 +547,8 @@ nmc_init (NmCli *nmc)
 	memset (&nmc->print_fields, '\0', sizeof (NmcPrintFields));
 	nmc->nocheck_ver = FALSE;
 	nmc->ask = FALSE;
+	nmc->show_secrets = FALSE;
+	nmc->use_colors = NMC_USE_COLOR_AUTO;
 	nmc->in_editor = FALSE;
 	nmc->editor_status_line = FALSE;
 	nmc->editor_save_confirmation = TRUE;
@@ -587,10 +610,8 @@ main (int argc, char *argv[])
 	textdomain (GETTEXT_PACKAGE);
 #endif
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
-	
+	nm_g_type_init ();
+
 	/* Save terminal settings */
 	tcgetattr (STDIN_FILENO, &termios_orig);
 

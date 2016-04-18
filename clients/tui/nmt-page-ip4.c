@@ -21,12 +21,9 @@
  * @short_description: The editor page for IP4 configuration
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <stdlib.h>
-
-#include <glib.h>
-#include <glib/gi18n-lib.h>
 
 #include "nmt-page-ip4.h"
 #include "nmt-ip-entry.h"
@@ -175,6 +172,12 @@ nmt_page_ip4_constructed (GObject *object)
 
 	widget = nmt_newt_checkbox_new (_("Never use this network for default route"));
 	g_object_bind_property (s_ip4, NM_SETTING_IP_CONFIG_NEVER_DEFAULT,
+	                        widget, "active",
+	                        G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
+	nmt_editor_grid_append (grid, NULL, widget, NULL);
+
+	widget = nmt_newt_checkbox_new (_("Ignore automatically obtained routes"));
+	g_object_bind_property (s_ip4, NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES,
 	                        widget, "active",
 	                        G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
 	nmt_editor_grid_append (grid, NULL, widget, NULL);

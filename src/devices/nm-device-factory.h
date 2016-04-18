@@ -21,9 +21,6 @@
 #ifndef __NETWORKMANAGER_DEVICE_FACTORY_H__
 #define __NETWORKMANAGER_DEVICE_FACTORY_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
 #include "nm-dbus-interface.h"
 #include "nm-device.h"
 
@@ -56,13 +53,13 @@ typedef NMDeviceFactory * (*NMDeviceFactoryCreateFunc) (GError **error);
 #define NM_TYPE_DEVICE_FACTORY               (nm_device_factory_get_type ())
 #define NM_DEVICE_FACTORY(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE_FACTORY, NMDeviceFactory))
 #define NM_IS_DEVICE_FACTORY(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE_FACTORY))
-#define NM_DEVICE_FACTORY_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), NM_TYPE_DEVICE_FACTORY, NMDeviceFactory))
+#define NM_DEVICE_FACTORY_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), NM_TYPE_DEVICE_FACTORY, NMDeviceFactoryInterface))
 
 /* signals */
 #define NM_DEVICE_FACTORY_COMPONENT_ADDED "component-added"
 #define NM_DEVICE_FACTORY_DEVICE_ADDED    "device-added"
 
-struct _NMDeviceFactory {
+typedef struct {
 	GTypeInterface g_iface;
 
 	/**
@@ -87,51 +84,7 @@ struct _NMDeviceFactory {
 	 * Start the factory and discover any existing devices that the factory
 	 * can manage.
 	 */
-	void (*start)                   (NMDeviceFactory *factory);
-
-	/**
-	 * new_link:
-	 * @factory: the #NMDeviceFactory
-	 * @plink: the new link
-	 * @out_ignore: on return, %TRUE if the link should be ignored
-	 * @error: error if the link could be claimed but an error occurred
-	 *
-	 * The NetworkManager core was notified of a new link which the plugin
-	 * may want to claim and create a #NMDevice subclass for.  If the link
-	 * represents a device which the factory does not support, or the link
-	 * is supported but the device could not be created, %NULL should be
-	 * returned and @error should be set.
-	 *
-	 * If the plugin cannot create a #NMDevice for the link and wants the
-	 * core to ignore it, set @out_ignore to %TRUE and return no error.
-	 *
-	 * @plink is guaranteed to be one of the types the factory returns in
-	 * get_supported_types().
-	 *
-	 * Returns: the #NMDevice if the link was claimed and created, %NULL if not
-	 */
-	NMDevice * (*new_link)        (NMDeviceFactory *factory,
-	                               NMPlatformLink *plink,
-	                               gboolean *out_ignore,
-	                               GError **error);
-
-	/**
-	 * create_virtual_device_for_connection:
-	 * @factory: the #NMDeviceFactory
-	 * @connection: the #NMConnection
-	 * @error: a @GError in case of failure
-	 *
-	 * Virtual device types (such as team, bond, bridge) may need to be created.
-	 * This function tries to create a device based on the given @connection.
-	 *
-	 * Returns: the newly created #NMDevice. If the factory does not support the
-	 * connection type, it should return %NULL and leave @error unset. On error
-	 * it should set @error and return %NULL.
-	 */
-	NMDevice * (*create_virtual_device_for_connection) (NMDeviceFactory *factory,
-	                                                    NMConnection *connection,
-	                                                    NMDevice *parent,
-	                                                    GError **error);
+	void (*start)                 (NMDeviceFactory *factory);
 
 	/**
 	 * get_connection_parent:
@@ -148,19 +101,43 @@ struct _NMDeviceFactory {
 	                                       NMConnection *connection);
 
 	/**
-	 * get_virtual_iface_name:
+	 * get_connection_iface:
 	 * @factory: the #NMDeviceFactory
-	 * @connection: the #NMConnection to return the virtual interface name for
-	 * @parent_iface: parent interface name
+	 * @connection: the #NMConnection to return the interface name for
+	 * @parent_iface: optional parent interface name for virtual devices
 	 *
 	 * Given a connection, returns the interface name that a device activating
 	 * that connection would have.
 	 *
 	 * Returns: the interface name, or %NULL
 	 */
-	char * (*get_virtual_iface_name) (NMDeviceFactory *factory,
-	                                  NMConnection *connection,
-	                                  const char *parent_iface);
+	char * (*get_connection_iface) (NMDeviceFactory *factory,
+	                                NMConnection *connection,
+	                                const char *parent_iface);
+
+	/**
+	 * create_device:
+	 * @factory: the #NMDeviceFactory
+	 * @iface: the interface name of the device
+	 * @plink: the #NMPlatformLink if backed by a kernel device
+	 * @connection: the #NMConnection if not backed by a kernel device
+	 * @out_ignore: on return, %TRUE if the link should be ignored
+	 *
+	 * The plugin should create a new unrealized device using the details given
+	 * by @iface and @plink or @connection.  If both @iface and @plink are given,
+	 * they are guaranteed to match.  If both @iface and @connection are given,
+	 * @iface is guaranteed to be the interface name that @connection specifies.
+	 *
+	 * If the plugin cannot create a #NMDevice for the link and wants the
+	 * core to ignore it, set @out_ignore to %TRUE and return %NULL.
+	 *
+	 * Returns: the new unrealized #NMDevice, or %NULL
+	 */
+	NMDevice * (*create_device)   (NMDeviceFactory *factory,
+	                               const char *iface,
+	                               const NMPlatformLink *plink,
+	                               NMConnection *connection,
+	                               gboolean *out_ignore);
 
 	/* Signals */
 
@@ -187,7 +164,7 @@ struct _NMDeviceFactory {
 	 * Returns: %TRUE if the component was claimed by a device, %FALSE if not
 	 */
 	gboolean   (*component_added) (NMDeviceFactory *factory, GObject *component);
-};
+} NMDeviceFactoryInterface;
 
 GType      nm_device_factory_get_type    (void);
 
@@ -198,21 +175,19 @@ void       nm_device_factory_get_supported_types (NMDeviceFactory *factory,
 const char *nm_device_factory_get_connection_parent (NMDeviceFactory *factory,
                                                      NMConnection *connection);
 
-char *     nm_device_factory_get_virtual_iface_name (NMDeviceFactory *factory,
-                                                     NMConnection *connection,
-                                                     const char *parent_iface);
+char *     nm_device_factory_get_connection_iface (NMDeviceFactory *factory,
+                                                   NMConnection *connection,
+                                                   const char *parent_iface,
+                                                   GError **error);
 
 void       nm_device_factory_start       (NMDeviceFactory *factory);
 
-NMDevice * nm_device_factory_new_link    (NMDeviceFactory *factory,
-                                          NMPlatformLink *plink,
-                                          gboolean *out_ignore,
-                                          GError **error);
-
-NMDevice * nm_device_factory_create_virtual_device_for_connection (NMDeviceFactory *factory,
-                                                                   NMConnection *connection,
-                                                                   NMDevice *parent,
-                                                                   GError **error);
+NMDevice * nm_device_factory_create_device (NMDeviceFactory *factory,
+                                            const char *iface,
+                                            const NMPlatformLink *plink,
+                                            NMConnection *connection,
+                                            gboolean *out_ignore,
+                                            GError **error);
 
 /* For use by implementations */
 gboolean   nm_device_factory_emit_component_added (NMDeviceFactory *factory,
@@ -249,7 +224,7 @@ extern const char *_nm_device_factory_no_default_settings[];
 	typedef GObjectClass NM##mixed##FactoryClass; \
  \
 	static GType nm_##lower##_factory_get_type (void); \
-	static void device_factory_interface_init (NMDeviceFactory *factory_iface); \
+	static void device_factory_interface_init (NMDeviceFactoryInterface *factory_iface); \
  \
 	G_DEFINE_TYPE_EXTENDED (NM##mixed##Factory, nm_##lower##_factory, G_TYPE_OBJECT, 0, \
 	                        G_IMPLEMENT_INTERFACE (NM_TYPE_DEVICE_FACTORY, device_factory_interface_init) \
@@ -262,14 +237,14 @@ extern const char *_nm_device_factory_no_default_settings[];
 	static void __attribute__((constructor)) \
 	register_device_factory_internal_##lower (void) \
 	{ \
-		g_type_init (); \
+		nm_g_type_init (); \
 		g_type_ensure (NM_TYPE_##upper##_FACTORY); \
 	} \
  \
 	NM_DEVICE_FACTORY_DECLARE_TYPES(st_code) \
  \
 	static void \
-	device_factory_interface_init (NMDeviceFactory *factory_iface) \
+	device_factory_interface_init (NMDeviceFactoryInterface *factory_iface) \
 	{ \
 		factory_iface->get_supported_types = get_supported_types; \
 		dfi_code \

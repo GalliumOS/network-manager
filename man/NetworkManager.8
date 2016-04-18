@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 07/14/2015
+.\"      Date: 04/05/2016
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 1.0
+.\"    Source: NetworkManager 1.1.93
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.0" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.1\&.93" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -39,7 +39,9 @@ The NetworkManager daemon attempts to make networking configuration and operatio
 .PP
 NetworkManager will execute scripts in the /etc/NetworkManager/dispatcher\&.d directory or subdirectories in alphabetical order in response to network events\&. Each script should be a regular executable file owned by root\&. Furthermore, it must not be writable by group or other, and not setuid\&.
 .PP
-Each script receives two arguments, the first being the interface name of the device an operation just happened on, and second the action\&.
+Each script receives two arguments, the first being the interface name of the device an operation just happened on, and second the action\&. For device actions, the interface is the name of the kernel interface suitable for IP configuration\&. Thus it is either VPN_IP_IFACE, DEVICE_IP_IFACE, or DEVICE_IFACE, as applicable\&. For the
+\fIhostname\fR
+action it is always "none"\&.
 .PP
 The actions are:
 .PP
@@ -110,19 +112,30 @@ The UUID of the connection profile\&.
 The name (ID) of the connection profile\&.
 .RE
 .PP
+\fICONNECTION_DBUS_PATH\fR
+.RS 4
+The NetworkManager D\-Bus path of the connection\&.
+.RE
+.PP
 \fICONNECTION_FILENAME\fR
 .RS 4
 The backing file name of the connection profile (if any)\&.
 .RE
 .PP
+\fICONNECTION_EXTERNAL\fR
+.RS 4
+If "1", this indicates that the connection describes a network configuration created outside of NetworkManager\&.
+.RE
+.PP
 \fIDEVICE_IFACE\fR
 .RS 4
-The interface name of the device\&.
+The interface name of the control interface of the device\&. Depending on the device type, this differs from
+\fIDEVICE_IP_IFACE\fR\&. For example for ADSL devices, this could be \*(Aqatm0\*(Aq or for WWAN devices it might be \*(AqttyUSB0\*(Aq\&.
 .RE
 .PP
 \fIDEVICE_IP_IFACE\fR
 .RS 4
-The IP interface name of the device\&.
+The IP interface name of the device\&. This is the network interface on which IP addresses and routes will be configured\&.
 .RE
 .PP
 \fIIP4_ADDRESS_N\fR
@@ -172,7 +185,7 @@ The same variables as for IPv4 are available for IPv6, but the prefixes are IP6_
 .PP
 In case of VPN, VPN_IP_IFACE is set, and IP4_*, IP6_* variables with VPN prefix are exported too, like VPN_IP4_ADDRESS_0, VPN_IP4_NUM_ADDRESSES\&.
 .PP
-Dispatcher scripts are run one at a time, but asynchronously from the main NetworkManager process, and will be killed if they run for too long\&. If your script might take arbitrarily long to complete, you should spawn a child process and have the parent return immediately\&. Also beware that once a script is queued, it will always be run, even if a later event renders it obsolete\&. (Eg, if an interface goes up, and then back down again quickly, it is possible that one or more "up" scripts will be run after the interface has gone down\&.)
+Dispatcher scripts are run one at a time, but asynchronously from the main NetworkManager process, and will be killed if they run for too long\&. If your script might take arbitrarily long to complete, you should spawn a child process and have the parent return immediately\&. Scripts that are symbolic links pointing inside the /etc/NetworkManager/dispatcher\&.d/no\-wait\&.d/ directory are run immediately, without waiting for the termination of previous scripts, and in parallel\&. Also beware that once a script is queued, it will always be run, even if a later event renders it obsolete\&. (Eg, if an interface goes up, and then back down again quickly, it is possible that one or more "up" scripts will be run after the interface has gone down\&.)
 .SH "OPTIONS"
 .PP
 The following options are understood:
@@ -199,7 +212,7 @@ Do not daemonize, and direct log output to the controlling terminal in addition 
 .PP
 \fB\-\-pid\-file\fR | \fB\-p\fR
 .RS 4
-Specify location of a PID file\&. The PID file is used for storing PID of the running proccess and prevents running multiple instances\&.
+Specify location of a PID file\&. The PID file is used for storing PID of the running process and prevents running multiple instances\&.
 .RE
 .PP
 \fB\-\-state\-file\fR
@@ -239,6 +252,11 @@ in
 \fBNetworkManager.conf\fR(5)
 for more information\&.
 .RE
+.PP
+\fB\-\-print\-config\fR
+.RS 4
+Print the NetworkManager configuration to stdout and exit\&.
+.RE
 .SH "UDEV PROPERTIES"
 .PP
 \fBudev\fR(7)
@@ -249,6 +267,24 @@ device manager is used for the network device discovery\&. The following propert
 No default connection will be created and automatic activation will not be attempted when this property of a device is set to a true value ("1" or "true")\&. You will still be able to attach a connection to the device manually or observe externally added configuration such as addresses or routes\&.
 .sp
 Create an udev rule that sets this property to prevent NetworkManager from interfering with virtual Ethernet device interfaces that are managed by virtualization tools\&.
+.RE
+.SH "SIGNALS"
+.PP
+NetworkManager process handles the following signals:
+.PP
+\fISIGHUP\fR
+.RS 4
+The signal causes a reload of NetworkManager\*(Aqs configuration\&. Note that not all configuration parameters can be changed at runtime and therefore some changes may be applied only after the next restart of the daemon\&. The signal also forces a rewrite of DNS configuration\&.
+.RE
+.PP
+\fISIGUSR1\fR
+.RS 4
+The signal forces a rewrite of DNS configuration\&.
+.RE
+.PP
+\fISIGUSR2\fR
+.RS 4
+The signal has no effect at the moment\&.
 .RE
 .SH "DEBUGGING"
 .PP
@@ -265,7 +301,7 @@ to enable debug logging inside NetworkManager itself\&.
 .PP
 \fBNetworkManager.conf\fR(5),
 \fBnmcli\fR(1),
-\fBnmcli-examples\fR(5),
+\fBnmcli-examples\fR(7),
 \fBnm-online\fR(1),
 \fBnm-settings\fR(5),
 \fBnm-applet\fR(1),

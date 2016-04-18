@@ -18,12 +18,13 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
 #include <string.h>
 
 #include "nm-dcb.h"
+
+#include "nm-test-utils.h"
 
 typedef struct {
 	guint num;
@@ -335,14 +336,12 @@ test_fcoe_cleanup (void)
 
 /*******************************************/
 
+NMTST_DEFINE ();
+
 int
 main (int argc, char **argv)
 {
-	g_test_init (&argc, &argv, NULL);
-
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
+	nmtst_init_assert_logging (&argc, &argv, "INFO", "DEFAULT");
 
 	g_test_add_func ("/dcb/fcoe", test_dcb_fcoe);
 	g_test_add_func ("/dcb/iscsi", test_dcb_iscsi);

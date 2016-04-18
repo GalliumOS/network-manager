@@ -15,7 +15,7 @@
 <div>
 <div><table class="navigation" id="top" width="100%" cellpadding="2" cellspacing="0"><tr><th valign="middle"><p class="title">libnm Reference Manual</p></th></tr></table></div>
 <div><p class="releaseinfo">
-      for libnm 1.0.4
+      for libnm 1.1.93
 
       The latest version of this documentation can be found on-line at
       <a class="ulink" href="https://developer.gnome.org/libnm/1.0/" target="_top">https://developer.gnome.org/libnm/1.0/</a>.
@@ -114,17 +114,23 @@
 <span class="refentrytitle"><a href="NMSettingInfiniband.html">NMSettingInfiniband</a></span><span class="refpurpose"> — Describes connection properties for IP-over-InfiniBand networks</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMSettingIPConfig.html">NMSettingIPConfig</a></span><span class="refpurpose"> — Abstract base class for IPv4 and IPv6
-  addressing, routing, and name service properties</span>
-</dt>
-<dt>
 <span class="refentrytitle"><a href="NMSettingIP4Config.html">NMSettingIP4Config</a></span><span class="refpurpose"> — Describes IPv4 addressing, routing, and name service properties</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSettingIP6Config.html">NMSettingIP6Config</a></span><span class="refpurpose"> — Describes IPv6 addressing, routing, and name service properties</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMSettingOlpcMesh.html">NMSettingOlpcMesh</a></span><span class="refpurpose"></span>
+<span class="refentrytitle"><a href="NMSettingIPConfig.html">NMSettingIPConfig</a></span><span class="refpurpose"> — Abstract base class for IPv4 and IPv6
+  addressing, routing, and name service properties</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingIPTunnel.html">NMSettingIPTunnel</a></span><span class="refpurpose"> — Describes connection properties for IP tunnel devices</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingMacvlan.html">NMSettingMacvlan</a></span><span class="refpurpose"> — Describes connection properties for macvlan interfaces</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingOlpcMesh.html">NMSettingOlpcMesh</a></span><span class="refpurpose"> — Describes connection properties for OLPC-Mesh devices</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSettingPpp.html">NMSettingPpp</a></span><span class="refpurpose"> — Describes connection properties for devices/networks
@@ -144,10 +150,16 @@ serial communications</span>
 <span class="refentrytitle"><a href="NMSettingTeamPort.html">NMSettingTeamPort</a></span><span class="refpurpose"> — Describes connection properties for team ports</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="NMSettingTun.html">NMSettingTun</a></span><span class="refpurpose"> — Describes connection properties for TUN/TAP interfaces</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="NMSettingVlan.html">NMSettingVlan</a></span><span class="refpurpose"> — Describes connection properties for VLAN interfaces</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSettingVpn.html">NMSettingVpn</a></span><span class="refpurpose"> — Describes connection properties for Virtual Private Networks</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingVxlan.html">NMSettingVxlan</a></span><span class="refpurpose"> — Describes connection properties for VXLAN interfaces</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSettingWimax.html">NMSettingWimax</a></span><span class="refpurpose"> — Describes 802.16e Mobile WiMAX connection properties</span>
@@ -190,6 +202,12 @@ use WEP, LEAP, WPA or WPA2/RSN security</span>
 <span class="refentrytitle"><a href="NMDeviceInfiniband.html">NMDeviceInfiniband</a></span><span class="refpurpose"></span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="NMDeviceIPTunnel.html">NMDeviceIPTunnel</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMDeviceMacvlan.html">NMDeviceMacvlan</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="NMDeviceModem.html">NMDeviceModem</a></span><span class="refpurpose"></span>
 </dt>
 <dt>
@@ -199,7 +217,13 @@ use WEP, LEAP, WPA or WPA2/RSN security</span>
 <span class="refentrytitle"><a href="NMDeviceTeam.html">NMDeviceTeam</a></span><span class="refpurpose"></span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="NMDeviceTun.html">NMDeviceTun</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="NMDeviceVlan.html">NMDeviceVlan</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMDeviceVxlan.html">NMDeviceVxlan</a></span><span class="refpurpose"></span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMDeviceWifi.html">NMDeviceWifi</a></span><span class="refpurpose"></span>
@@ -244,7 +268,7 @@ use WEP, LEAP, WPA or WPA2/RSN security</span>
 <span class="refentrytitle"><a href="libnm-nm-vpn-dbus-interface.html">nm-vpn-dbus-interface</a></span><span class="refpurpose"></span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMVpnEditor.html">NMVpnEditor</a></span><span class="refpurpose"></span>
+<span class="refentrytitle"><a href="NMVpnEditorPlugin.html">NMVpnEditorPlugin</a></span><span class="refpurpose"></span>
 </dt>
 </dl></dd>
 <dt><span class="chapter"><a href="object-tree.html">Object Hierarchy</a></span></dt>

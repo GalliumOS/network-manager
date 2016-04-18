@@ -90,8 +90,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-libexec_PROGRAMS = nm-dispatcher$(EXEEXT) \
-	nm-avahi-autoipd.action$(EXEEXT)
+libexec_PROGRAMS = nm-dispatcher$(EXEEXT)
 subdir = callouts
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_lib_readline.m4 \
@@ -134,12 +133,6 @@ libtest_dispatcher_envp_la_OBJECTS =  \
 am__installdirs = "$(DESTDIR)$(libexecdir)" \
 	"$(DESTDIR)$(dbusactivationdir)" "$(DESTDIR)$(dbusservicedir)"
 PROGRAMS = $(libexec_PROGRAMS)
-am_nm_avahi_autoipd_action_OBJECTS =  \
-	nm-avahi-autoipd-action.$(OBJEXT)
-nm_avahi_autoipd_action_OBJECTS =  \
-	$(am_nm_avahi_autoipd_action_OBJECTS)
-nm_avahi_autoipd_action_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
 am_nm_dispatcher_OBJECTS = nm-dispatcher.$(OBJEXT) \
 	nm-dispatcher-utils.$(OBJEXT)
 nm_dispatcher_OBJECTS = $(am_nm_dispatcher_OBJECTS)
@@ -180,10 +173,9 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(nodist_libnmdbus_dispatcher_la_SOURCES) \
-	$(libtest_dispatcher_envp_la_SOURCES) \
-	$(nm_avahi_autoipd_action_SOURCES) $(nm_dispatcher_SOURCES)
+	$(libtest_dispatcher_envp_la_SOURCES) $(nm_dispatcher_SOURCES)
 DIST_SOURCES = $(libtest_dispatcher_envp_la_SOURCES) \
-	$(nm_avahi_autoipd_action_SOURCES) $(nm_dispatcher_SOURCES)
+	$(nm_dispatcher_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -296,7 +288,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -308,8 +299,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -319,6 +308,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -373,16 +363,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -403,6 +390,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -418,6 +406,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -446,7 +436,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -461,6 +450,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -521,6 +512,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -528,6 +520,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -545,13 +538,12 @@ with_resolvconf = @with_resolvconf@
 with_valgrind = @with_valgrind@
 SUBDIRS = . tests
 AM_CPPFLAGS = \
-	-I${top_srcdir}/include \
+	-I${top_srcdir}/shared \
+	-I${top_builddir}/shared \
 	-I${top_srcdir}/libnm-core \
 	-I${top_builddir}/libnm-core \
 	$(GLIB_CFLAGS) \
-	$(DBUS_CFLAGS) \
 	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	-DNMCONFDIR=\"$(nmconfdir)\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\"
@@ -566,15 +558,7 @@ noinst_LTLIBRARIES = libtest-dispatcher-envp.la \
 	libnmdbus-dispatcher.la
 dbusservicedir = $(DBUS_SYS_DIR)
 dbusservice_DATA = \
-	nm-dispatcher.conf \
-	nm-avahi-autoipd.conf
-
-nm_avahi_autoipd_action_SOURCES = \
-	nm-avahi-autoipd-action.c
-
-nm_avahi_autoipd_action_LDADD = \
-	$(DBUS_LIBS) \
-	$(GLIB_LIBS)
+	nm-dispatcher.conf
 
 nm_dispatcher_SOURCES = \
 	nm-dispatcher.c \
@@ -725,10 +709,6 @@ clean-libexecPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-nm-avahi-autoipd.action$(EXEEXT): $(nm_avahi_autoipd_action_OBJECTS) $(nm_avahi_autoipd_action_DEPENDENCIES) $(EXTRA_nm_avahi_autoipd_action_DEPENDENCIES) 
-	@rm -f nm-avahi-autoipd.action$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(nm_avahi_autoipd_action_OBJECTS) $(nm_avahi_autoipd_action_LDADD) $(LIBS)
-
 nm-dispatcher$(EXEEXT): $(nm_dispatcher_OBJECTS) $(nm_dispatcher_DEPENDENCIES) $(EXTRA_nm_dispatcher_DEPENDENCIES) 
 	@rm -f nm-dispatcher$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(nm_dispatcher_OBJECTS) $(nm_dispatcher_LDADD) $(LIBS)
@@ -741,7 +721,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnmdbus_dispatcher_la-nmdbus-dispatcher.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libtest_dispatcher_envp_la-nm-dispatcher-utils.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-avahi-autoipd-action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-dispatcher-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nm-dispatcher.Po@am__quote@
 
@@ -1138,6 +1117,7 @@ install-data-hook:
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)/pre-down.d
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)/pre-up.d
+	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)/no-wait.d
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

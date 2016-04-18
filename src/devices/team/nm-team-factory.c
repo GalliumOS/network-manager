@@ -18,7 +18,7 @@
  * Copyright (C) 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <gmodule.h>
@@ -26,13 +26,12 @@
 #include "nm-device-factory.h"
 #include "nm-team-factory.h"
 #include "nm-device-team.h"
-#include "nm-logging.h"
 #include "nm-platform.h"
 #include "nm-core-internal.h"
 
 static GType nm_team_factory_get_type (void);
 
-static void device_factory_interface_init (NMDeviceFactory *factory_iface);
+static void device_factory_interface_init (NMDeviceFactoryInterface *factory_iface);
 
 G_DEFINE_TYPE_EXTENDED (NMTeamFactory, nm_team_factory, G_TYPE_OBJECT, 0,
                         G_IMPLEMENT_INTERFACE (NM_TYPE_DEVICE_FACTORY, device_factory_interface_init))
@@ -48,18 +47,13 @@ nm_device_factory_create (GError **error)
 /************************************************************************/
 
 static NMDevice *
-new_link (NMDeviceFactory *factory, NMPlatformLink *plink, gboolean *out_ignore, GError **error)
+create_device (NMDeviceFactory *factory,
+               const char *iface,
+               const NMPlatformLink *plink,
+               NMConnection *connection,
+               gboolean *out_ignore)
 {
-	return nm_device_team_new (plink);
-}
-
-static NMDevice *
-create_virtual_device_for_connection (NMDeviceFactory *factory,
-                                      NMConnection *connection,
-                                      NMDevice *parent,
-                                      GError **error)
-{
-	return nm_device_team_new_for_connection (connection, error);
+	 return nm_device_team_new (iface);
 }
 
 NM_DEVICE_FACTORY_DECLARE_TYPES (
@@ -75,10 +69,9 @@ nm_team_factory_init (NMTeamFactory *self)
 }
 
 static void
-device_factory_interface_init (NMDeviceFactory *factory_iface)
+device_factory_interface_init (NMDeviceFactoryInterface *factory_iface)
 {
-	factory_iface->new_link = new_link;
-	factory_iface->create_virtual_device_for_connection = create_virtual_device_for_connection;
+	factory_iface->create_device = create_device;
 	factory_iface->get_supported_types = get_supported_types;
 }
 

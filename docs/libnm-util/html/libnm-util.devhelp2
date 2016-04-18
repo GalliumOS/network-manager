@@ -266,6 +266,7 @@
     <keyword type="function" name="nm_setting_wireless_clear_mac_blacklist_items ()" link="NMSettingWireless.html#nm-setting-wireless-clear-mac-blacklist-items" since="0.9.10"/>
     <keyword type="function" name="nm_setting_wireless_get_mtu ()" link="NMSettingWireless.html#nm-setting-wireless-get-mtu"/>
     <keyword type="function" name="nm_setting_wireless_get_hidden ()" link="NMSettingWireless.html#nm-setting-wireless-get-hidden"/>
+    <keyword type="function" name="nm_setting_wireless_get_powersave ()" link="NMSettingWireless.html#nm-setting-wireless-get-powersave" since="1.2"/>
     <keyword type="function" name="nm_setting_wireless_add_seen_bssid ()" link="NMSettingWireless.html#nm-setting-wireless-add-seen-bssid"/>
     <keyword type="function" name="nm_setting_wireless_get_num_seen_bssids ()" link="NMSettingWireless.html#nm-setting-wireless-get-num-seen-bssids"/>
     <keyword type="function" name="nm_setting_wireless_get_seen_bssid ()" link="NMSettingWireless.html#nm-setting-wireless-get-seen-bssid"/>
@@ -287,6 +288,7 @@
     <keyword type="macro" name="NM_SETTING_WIRELESS_MTU" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MTU:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SEEN_BSSIDS" link="NMSettingWireless.html#NM-SETTING-WIRELESS-SEEN-BSSIDS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_HIDDEN" link="NMSettingWireless.html#NM-SETTING-WIRELESS-HIDDEN:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_WIRELESS_POWERSAVE" link="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERSAVE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SEC" link="NMSettingWireless.html#NM-SETTING-WIRELESS-SEC:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_ADHOC" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-ADHOC:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_AP" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-AP:CAPS" since="0.9.8"/>
@@ -300,6 +302,7 @@
     <keyword type="property" name="The “mac-address-blacklist” property" link="NMSettingWireless.html#NMSettingWireless--mac-address-blacklist"/>
     <keyword type="property" name="The “mode” property" link="NMSettingWireless.html#NMSettingWireless--mode"/>
     <keyword type="property" name="The “mtu” property" link="NMSettingWireless.html#NMSettingWireless--mtu"/>
+    <keyword type="property" name="The “powersave” property" link="NMSettingWireless.html#NMSettingWireless--powersave"/>
     <keyword type="property" name="The “rate” property" link="NMSettingWireless.html#NMSettingWireless--rate"/>
     <keyword type="property" name="The “security” property" link="NMSettingWireless.html#NMSettingWireless--security"/>
     <keyword type="property" name="The “seen-bssids” property" link="NMSettingWireless.html#NMSettingWireless--seen-bssids"/>
@@ -466,10 +469,10 @@
     <keyword type="property" name="The “pin” property" link="NMSettingGsm.html#NMSettingGsm--pin"/>
     <keyword type="property" name="The “pin-flags” property" link="NMSettingGsm.html#NMSettingGsm--pin-flags"/>
     <keyword type="property" name="The “username” property" link="NMSettingGsm.html#NMSettingGsm--username"/>
-    <keyword type="function" name="nm_setting_wimax_error_quark ()" link="NMSettingWimax.html#nm-setting-wimax-error-quark"/>
-    <keyword type="function" name="nm_setting_wimax_new ()" link="NMSettingWimax.html#nm-setting-wimax-new"/>
-    <keyword type="function" name="nm_setting_wimax_get_network_name ()" link="NMSettingWimax.html#nm-setting-wimax-get-network-name"/>
-    <keyword type="function" name="nm_setting_wimax_get_mac_address ()" link="NMSettingWimax.html#nm-setting-wimax-get-mac-address"/>
+    <keyword type="function" name="nm_setting_wimax_error_quark ()" link="NMSettingWimax.html#nm-setting-wimax-error-quark" deprecated="1.2: WiMAX is no longer supported."/>
+    <keyword type="function" name="nm_setting_wimax_new ()" link="NMSettingWimax.html#nm-setting-wimax-new" deprecated="1.2: WiMAX is no longer supported."/>
+    <keyword type="function" name="nm_setting_wimax_get_network_name ()" link="NMSettingWimax.html#nm-setting-wimax-get-network-name" deprecated="1.2: WiMAX is no longer supported."/>
+    <keyword type="function" name="nm_setting_wimax_get_mac_address ()" link="NMSettingWimax.html#nm-setting-wimax-get-mac-address" deprecated="1.2: WiMAX is no longer supported."/>
     <keyword type="macro" name="NM_SETTING_WIMAX_SETTING_NAME" link="NMSettingWimax.html#NM-SETTING-WIMAX-SETTING-NAME:CAPS"/>
     <keyword type="enum" name="enum NMSettingWimaxError" link="NMSettingWimax.html#NMSettingWimaxError"/>
     <keyword type="macro" name="NM_SETTING_WIMAX_ERROR" link="NMSettingWimax.html#NM-SETTING-WIMAX-ERROR:CAPS"/>
@@ -598,6 +601,7 @@
     <keyword type="property" name="The “parent” property" link="NMSettingInfiniband.html#NMSettingInfiniband--parent"/>
     <keyword type="property" name="The “transport-mode” property" link="NMSettingInfiniband.html#NMSettingInfiniband--transport-mode"/>
     <keyword type="function" name="nm_setting_vlan_error_quark ()" link="NMSettingVlan.html#nm-setting-vlan-error-quark"/>
+    <keyword type="macro" name="NM_VLAN_FLAGS_ALL" link="NMSettingVlan.html#NM-VLAN-FLAGS-ALL:CAPS"/>
     <keyword type="function" name="nm_setting_vlan_new ()" link="NMSettingVlan.html#nm-setting-vlan-new"/>
     <keyword type="function" name="nm_setting_vlan_get_interface_name ()" link="NMSettingVlan.html#nm-setting-vlan-get-interface-name"/>
     <keyword type="function" name="nm_setting_vlan_get_parent ()" link="NMSettingVlan.html#nm-setting-vlan-get-parent"/>
@@ -927,6 +931,7 @@
     <keyword type="function" name="nm_setting_ip4_config_get_dhcp_client_id ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-dhcp-client-id"/>
     <keyword type="function" name="nm_setting_ip4_config_get_dhcp_send_hostname ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-dhcp-send-hostname"/>
     <keyword type="function" name="nm_setting_ip4_config_get_dhcp_hostname ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-dhcp-hostname"/>
+    <keyword type="function" name="nm_setting_ip4_config_get_dhcp_timeout ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-dhcp-timeout"/>
     <keyword type="function" name="nm_setting_ip4_config_get_never_default ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-never-default"/>
     <keyword type="function" name="nm_setting_ip4_config_get_may_fail ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-may-fail"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_SETTING_NAME" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-SETTING-NAME:CAPS"/>
@@ -943,6 +948,7 @@
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-DHCP-CLIENT-ID:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_DHCP_SEND_HOSTNAME" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-DHCP-SEND-HOSTNAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_DHCP_HOSTNAME" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-DHCP-HOSTNAME:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_IP4_CONFIG_DHCP_TIMEOUT" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-DHCP-TIMEOUT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_NEVER_DEFAULT" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-NEVER-DEFAULT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_MAY_FAIL" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-MAY-FAIL:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_METHOD_AUTO" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-AUTO:CAPS"/>
@@ -954,6 +960,7 @@
     <keyword type="property" name="The “dhcp-client-id” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-client-id"/>
     <keyword type="property" name="The “dhcp-hostname” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-hostname"/>
     <keyword type="property" name="The “dhcp-send-hostname” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-send-hostname"/>
+    <keyword type="property" name="The “dhcp-timeout” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-timeout"/>
     <keyword type="property" name="The “dns” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dns"/>
     <keyword type="property" name="The “dns-search” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dns-search"/>
     <keyword type="property" name="The “ignore-auto-dns” property" link="NMSettingIP4Config.html#NMSettingIP4Config--ignore-auto-dns"/>
@@ -1155,6 +1162,7 @@
     <keyword type="macro" name="NM_SETTING_VPN_PERSISTENT" link="NMSettingVPN.html#NM-SETTING-VPN-PERSISTENT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VPN_DATA" link="NMSettingVPN.html#NM-SETTING-VPN-DATA:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VPN_SECRETS" link="NMSettingVPN.html#NM-SETTING-VPN-SECRETS:CAPS"/>
+    <keyword type="macro" name="NMSettingVpn" link="NMSettingVPN.html#NMSettingVpn"/>
     <keyword type="property" name="The “data” property" link="NMSettingVPN.html#NMSettingVPN--data"/>
     <keyword type="property" name="The “persistent” property" link="NMSettingVPN.html#NMSettingVPN--persistent"/>
     <keyword type="property" name="The “secrets” property" link="NMSettingVPN.html#NMSettingVPN--secrets"/>
@@ -1457,6 +1465,7 @@
     <keyword type="constant" name="NM_VLAN_FLAG_REORDER_HEADERS" link="NMSettingVlan.html#NM-VLAN-FLAG-REORDER-HEADERS:CAPS"/>
     <keyword type="constant" name="NM_VLAN_FLAG_GVRP" link="NMSettingVlan.html#NM-VLAN-FLAG-GVRP:CAPS"/>
     <keyword type="constant" name="NM_VLAN_FLAG_LOOSE_BINDING" link="NMSettingVlan.html#NM-VLAN-FLAG-LOOSE-BINDING:CAPS"/>
+    <keyword type="constant" name="NM_VLAN_FLAG_MVRP" link="NMSettingVlan.html#NM-VLAN-FLAG-MVRP:CAPS"/>
     <keyword type="constant" name="NM_SETTING_OLPC_MESH_ERROR_UNKNOWN" link="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-ERROR-UNKNOWN:CAPS"/>
     <keyword type="constant" name="NM_SETTING_OLPC_MESH_ERROR_INVALID_PROPERTY" link="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-ERROR-INVALID-PROPERTY:CAPS"/>
     <keyword type="constant" name="NM_SETTING_OLPC_MESH_ERROR_MISSING_PROPERTY" link="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-ERROR-MISSING-PROPERTY:CAPS"/>
@@ -1541,6 +1550,11 @@
     <keyword type="constant" name="NM_DEVICE_TYPE_BRIDGE" link="libnm-util-NetworkManager.html#NM-DEVICE-TYPE-BRIDGE:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_TYPE_GENERIC" link="libnm-util-NetworkManager.html#NM-DEVICE-TYPE-GENERIC:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_TYPE_TEAM" link="libnm-util-NetworkManager.html#NM-DEVICE-TYPE-TEAM:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_TYPE_TUN" link="libnm-util-NetworkManager.html#NM-DEVICE-TYPE-TUN:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_TYPE_IP_TUNNEL" link="libnm-util-NetworkManager.html#NM-DEVICE-TYPE-IP-TUNNEL:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_TYPE_MACVLAN" link="libnm-util-NetworkManager.html#NM-DEVICE-TYPE-MACVLAN:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_TYPE_VXLAN" link="libnm-util-NetworkManager.html#NM-DEVICE-TYPE-VXLAN:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_TYPE_VETH" link="libnm-util-NetworkManager.html#NM-DEVICE-TYPE-VETH:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_CAP_NONE" link="libnm-util-NetworkManager.html#NM-DEVICE-CAP-NONE:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_CAP_NM_SUPPORTED" link="libnm-util-NetworkManager.html#NM-DEVICE-CAP-NM-SUPPORTED:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_CAP_CARRIER_DETECT" link="libnm-util-NetworkManager.html#NM-DEVICE-CAP-CARRIER-DETECT:CAPS"/>

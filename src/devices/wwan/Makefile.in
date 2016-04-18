@@ -140,7 +140,8 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(pkglibdir)"
 LTLIBRARIES = $(pkglib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libnm_device_plugin_wwan_la_DEPENDENCIES = libnm-wwan.la \
+libnm_device_plugin_wwan_la_DEPENDENCIES =  \
+	$(top_builddir)/introspection/libnmdbus.la libnm-wwan.la \
 	$(am__DEPENDENCIES_1)
 am_libnm_device_plugin_wwan_la_OBJECTS = nm-wwan-factory.lo \
 	nm-device-modem.lo
@@ -154,8 +155,9 @@ libnm_device_plugin_wwan_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(libnm_device_plugin_wwan_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
-libnm_wwan_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+libnm_wwan_la_DEPENDENCIES =  \
+	$(top_builddir)/introspection/libnmdbus.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__objects_1 = nm-modem-enum-types.lo
 am_libnm_wwan_la_OBJECTS = nm-modem-broadband.lo nm-modem-manager.lo \
 	nm-modem.lo $(am__objects_1)
@@ -243,7 +245,6 @@ BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-CKDB_PATH = @CKDB_PATH@
 CODE_COVERAGE_CFLAGS = @CODE_COVERAGE_CFLAGS@
 CODE_COVERAGE_ENABLED = @CODE_COVERAGE_ENABLED@
 CODE_COVERAGE_LDFLAGS = @CODE_COVERAGE_LDFLAGS@
@@ -255,8 +256,6 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBUS_CFLAGS = @DBUS_CFLAGS@
-DBUS_GLIB_100_CFLAGS = @DBUS_GLIB_100_CFLAGS@
-DBUS_GLIB_100_LIBS = @DBUS_GLIB_100_LIBS@
 DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
@@ -266,6 +265,7 @@ DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DNSMASQ_PATH = @DNSMASQ_PATH@
+DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -320,16 +320,13 @@ INTROSPECTION_MAKEFILE = @INTROSPECTION_MAKEFILE@
 INTROSPECTION_SCANNER = @INTROSPECTION_SCANNER@
 INTROSPECTION_TYPELIBDIR = @INTROSPECTION_TYPELIBDIR@
 IPTABLES_PATH = @IPTABLES_PATH@
-IWMX_SDK_CFLAGS = @IWMX_SDK_CFLAGS@
-IWMX_SDK_LIBS = @IWMX_SDK_LIBS@
 KERNEL_FIRMWARE_DIR = @KERNEL_FIRMWARE_DIR@
 LCOV = @LCOV@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBAUDIT_CFLAGS = @LIBAUDIT_CFLAGS@
+LIBAUDIT_LIBS = @LIBAUDIT_LIBS@
 LIBDL = @LIBDL@
-LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
-LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
-LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
@@ -350,6 +347,7 @@ LOG_DRIVER = @LOG_DRIVER@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
@@ -365,6 +363,8 @@ NEWT_LIBS = @NEWT_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_AUTH_POLKIT_TEXT@
+NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
+NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT = @NM_CONFIG_LOGGING_BACKEND_DEFAULT_TEXT@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
 NM_MICRO_VERSION = @NM_MICRO_VERSION@
 NM_MINOR_VERSION = @NM_MINOR_VERSION@
@@ -393,7 +393,6 @@ POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
-PPPOE_PATH = @PPPOE_PATH@
 QT_CFLAGS = @QT_CFLAGS@
 QT_LIBS = @QT_LIBS@
 RANLIB = @RANLIB@
@@ -408,6 +407,8 @@ SYSTEMD_200_CFLAGS = @SYSTEMD_200_CFLAGS@
 SYSTEMD_200_LIBS = @SYSTEMD_200_LIBS@
 SYSTEMD_INHIBIT_CFLAGS = @SYSTEMD_INHIBIT_CFLAGS@
 SYSTEMD_INHIBIT_LIBS = @SYSTEMD_INHIBIT_LIBS@
+SYSTEMD_JOURNAL_CFLAGS = @SYSTEMD_JOURNAL_CFLAGS@
+SYSTEMD_JOURNAL_LIBS = @SYSTEMD_JOURNAL_LIBS@
 SYSTEMD_LOGIN_CFLAGS = @SYSTEMD_LOGIN_CFLAGS@
 SYSTEMD_LOGIN_LIBS = @SYSTEMD_LOGIN_LIBS@
 SYSTEM_CA_PATH = @SYSTEM_CA_PATH@
@@ -468,6 +469,7 @@ mkdir_p = @mkdir_p@
 nmbinary = @nmbinary@
 nmconfdir = @nmconfdir@
 nmdatadir = @nmdatadir@
+nmlibdir = @nmlibdir@
 nmrundir = @nmrundir@
 nmstatedir = @nmstatedir@
 oldincludedir = @oldincludedir@
@@ -475,6 +477,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -496,16 +499,17 @@ AM_CPPFLAGS = \
 	-I${top_srcdir}/src/devices \
 	-I${top_srcdir}/src/settings \
 	-I${top_srcdir}/src/platform \
-	-I${top_srcdir}/include \
-	-I${top_builddir}/libnm-core \
+	-I${top_builddir}/introspection \
+	-I${top_srcdir}/shared \
+	-I$(top_builddir)/shared \
 	-I${top_srcdir}/libnm-core \
+	-I${top_builddir}/libnm-core \
 	-DG_LOG_DOMAIN=\""NetworkManager-wwan"\" \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
-	$(DBUS_CFLAGS) \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
+	$(GLIB_CFLAGS) \
 	$(MM_GLIB_CFLAGS)
 
-BUILT_SOURCES = $(null) $(GLIB_GENERATED) nm-device-modem-glue.h
+BUILT_SOURCES = $(null) $(GLIB_GENERATED)
 pkglib_LTLIBRARIES = libnm-wwan.la libnm-device-plugin-wwan.la
 
 ###########################################################
@@ -528,22 +532,28 @@ libnm_wwan_la_LDFLAGS = \
 	-avoid-version \
 	-Wl,--version-script=$(WWAN_SYMBOL_VIS_FILE)
 
-libnm_wwan_la_LIBADD = $(DBUS_LIBS) $(MM_GLIB_LIBS)
+libnm_wwan_la_LIBADD = \
+	$(top_builddir)/introspection/libnmdbus.la \
+	$(GLIB_LIBS) \
+	$(MM_GLIB_LIBS)
+
+
+###########################################################
 SYMBOL_VIS_FILE = $(srcdir)/exports.ver
 libnm_device_plugin_wwan_la_SOURCES = \
 	nm-wwan-factory.c \
 	nm-wwan-factory.h \
 	nm-device-modem.c \
-	nm-device-modem.h \
-	nm-device-modem-glue.h
+	nm-device-modem.h
 
 libnm_device_plugin_wwan_la_LDFLAGS = \
 	-module -avoid-version \
 	-Wl,--version-script=$(SYMBOL_VIS_FILE)
 
 libnm_device_plugin_wwan_la_LIBADD = \
+	$(top_builddir)/introspection/libnmdbus.la \
 	libnm-wwan.la \
-	$(DBUS_LIBS)
+	$(GLIB_LIBS)
 
 
 ###########################################################
@@ -883,11 +893,6 @@ uninstall-am: uninstall-pkglibLTLIBRARIES
 include $(GLIB_MAKEFILE)
 
 @GNOME_CODE_COVERAGE_RULES@
-
-###########################################################
-
-nm-device-modem-glue.h: $(top_srcdir)/introspection/nm-device-modem.xml
-	dbus-binding-tool --prefix=nm_device_modem --mode=glib-server --output=$@ $<
 
 @ENABLE_TESTS_TRUE@check-local:
 @ENABLE_TESTS_TRUE@	$(top_srcdir)/tools/check-exports.sh $(builddir)/.libs/libnm-device-plugin-wwan.so $(SYMBOL_VIS_FILE)

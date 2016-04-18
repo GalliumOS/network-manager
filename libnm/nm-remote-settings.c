@@ -19,20 +19,20 @@
  * Copyright 2009 - 2012 Red Hat, Inc.
  */
 
-#include "config.h"
-
-#include <string.h>
-#include <glib/gi18n-lib.h>
-#include <nm-dbus-interface.h>
-#include <nm-connection.h>
+#include "nm-default.h"
 
 #include "nm-remote-settings.h"
+
+#include <string.h>
+
+#include "nm-dbus-interface.h"
+#include "nm-connection.h"
+
 #include "nm-client.h"
 #include "nm-remote-connection.h"
 #include "nm-remote-connection-private.h"
 #include "nm-object-private.h"
 #include "nm-dbus-helpers.h"
-#include "nm-glib-compat.h"
 #include "nm-object-private.h"
 #include "nm-core-internal.h"
 
@@ -627,7 +627,7 @@ nm_running_changed (GObject *object,
 		GPtrArray *connections;
 		int i;
 
-		NM_UTILS_CLEAR_CANCELLABLE (priv->props_cancellable);
+		nm_clear_g_cancellable (&priv->props_cancellable);
 
 		/* Clear connections */
 		connections = priv->all_connections;
@@ -652,7 +652,7 @@ nm_running_changed (GObject *object,
 	} else {
 		_nm_object_suppress_property_updates (NM_OBJECT (self), FALSE);
 
-		NM_UTILS_CLEAR_CANCELLABLE (priv->props_cancellable);
+		nm_clear_g_cancellable (&priv->props_cancellable);
 		priv->props_cancellable = g_cancellable_new ();
 		_nm_object_reload_properties_async (NM_OBJECT (self), priv->props_cancellable, updated_properties, self);
 	}

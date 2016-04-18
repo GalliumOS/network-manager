@@ -20,9 +20,8 @@
 #ifndef __NETWORKMANAGER_SLEEP_MONITOR_H__
 #define __NETWORKMANAGER_SLEEP_MONITOR_H__
 
-#include <glib-object.h>
 
-#include "nm-types.h"
+#include "nm-default.h"
 
 G_BEGIN_DECLS
 

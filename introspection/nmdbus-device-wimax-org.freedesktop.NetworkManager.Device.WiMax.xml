@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<refentry id="gdbus-org.freedesktop.NetworkManager.Device.WiMax">
+  <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-WiMax.top_of_page">org.freedesktop.NetworkManager.Device.WiMax</refentrytitle>
+  <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-WiMax.top_of_page"><primary sortas=".Device.WiMax">org.freedesktop.NetworkManager.Device.WiMax</primary></indexterm>
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.WiMax</refname>    <refpurpose></refpurpose>  </refnamediv>  <refsynopsisdiv role="synopsis">
+    <title role="synopsis.title">Methods</title>
+    <synopsis>
+<link linkend="gdbus-method-org-freedesktop-NetworkManager-Device-WiMax.GetNspList">GetNspList</link> (OUT ao nsps);
+</synopsis>
+  </refsynopsisdiv>
+  <refsect1 role="signal_proto">
+    <title role="signal_proto.title">Signals</title>
+    <synopsis>
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.PropertiesChanged">PropertiesChanged</link> (a{sv} properties);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.NspAdded">NspAdded</link>          (o     nsp);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.NspRemoved">NspRemoved</link>        (o     nsp);
+</synopsis>
+  </refsect1>
+  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis>
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Nsps">Nsps</link>             readable   ao
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.HwAddress">HwAddress</link>        readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.CenterFrequency">CenterFrequency</link>  readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Rssi">Rssi</link>             readable   i
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Cinr">Cinr</link>             readable   i
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.TxPower">TxPower</link>          readable   i
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Bsid">Bsid</link>             readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.ActiveNsp">ActiveNsp</link>        readable   o
+</synopsis>
+  </refsect1>
+<refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-WiMax">
+  <title role="desc.title">Description</title>
+  <para></para>
+</refsect1>
+<refsect1 role="details" id="gdbus-methods-org.freedesktop.NetworkManager.Device.WiMax">
+  <title role="details.title">Method Details</title>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager-Device-WiMax.GetNspList">
+  <title>The GetNspList() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager-Device-WiMax.GetNspList"><primary sortas=".Device.WiMax.GetNspList">org.freedesktop.NetworkManager.Device.WiMax.GetNspList()</primary></indexterm>
+<programlisting>
+GetNspList (OUT ao nsps);
+</programlisting>
+<para>        Get the list of NSPs visible to this device.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>OUT ao <parameter>nsps</parameter></literal>:</term>
+  <listitem><para>List of NSP object paths</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+</refsect1>
+<refsect1 role="details" id="gdbus-signals-org.freedesktop.NetworkManager.Device.WiMax">
+  <title role="details.title">Signal Details</title>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.PropertiesChanged">
+  <title>The "PropertiesChanged" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.PropertiesChanged"><primary sortas=".Device.WiMax::PropertiesChanged">org.freedesktop.NetworkManager.Device.WiMax::PropertiesChanged</primary></indexterm>
+<programlisting>
+PropertiesChanged (a{sv} properties);
+</programlisting>
+<para>        Emitted when the WiMax device's properties changed.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>a{sv} <parameter>properties</parameter></literal>:</term>
+  <listitem><para>A dictionary mapping property names to variant boxed values.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.NspAdded">
+  <title>The "NspAdded" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.NspAdded"><primary sortas=".Device.WiMax::NspAdded">org.freedesktop.NetworkManager.Device.WiMax::NspAdded</primary></indexterm>
+<programlisting>
+NspAdded (o nsp);
+</programlisting>
+<para>        Emitted when a new NSP is found by the device.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>o <parameter>nsp</parameter></literal>:</term>
+  <listitem><para>The object path of the newly found NSP.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.NspRemoved">
+  <title>The "NspRemoved" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Device-WiMax.NspRemoved"><primary sortas=".Device.WiMax::NspRemoved">org.freedesktop.NetworkManager.Device.WiMax::NspRemoved</primary></indexterm>
+<programlisting>
+NspRemoved (o nsp);
+</programlisting>
+<para>        Emitted when an NSP disappears from view of the device.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>o <parameter>nsp</parameter></literal>:</term>
+  <listitem><para>The object path of the NSP that has disappeared.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+</refsect1>
+<refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Device.WiMax">
+  <title role="details.title">Property Details</title>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Nsps">
+  <title>The "Nsps" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Nsps"><primary sortas=".Device.WiMax:Nsps">org.freedesktop.NetworkManager.Device.WiMax:Nsps</primary></indexterm>
+<programlisting>
+Nsps  readable   ao
+</programlisting>
+<para>        List of object paths of Network Service Providers (NSPs) visible to this
+        WiMAX device.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.HwAddress">
+  <title>The "HwAddress" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.HwAddress"><primary sortas=".Device.WiMax:HwAddress">org.freedesktop.NetworkManager.Device.WiMax:HwAddress</primary></indexterm>
+<programlisting>
+HwAddress  readable   s
+</programlisting>
+<para>        Hardware address of the device.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.CenterFrequency">
+  <title>The "CenterFrequency" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.CenterFrequency"><primary sortas=".Device.WiMax:CenterFrequency">org.freedesktop.NetworkManager.Device.WiMax:CenterFrequency</primary></indexterm>
+<programlisting>
+CenterFrequency  readable   u
+</programlisting>
+<para>        Center frequency (in KHz) of the radio channel the device is using to
+        communicate with the network when connected. Has no meaning when the
+        device is not connected.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Rssi">
+  <title>The "Rssi" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Rssi"><primary sortas=".Device.WiMax:Rssi">org.freedesktop.NetworkManager.Device.WiMax:Rssi</primary></indexterm>
+<programlisting>
+Rssi  readable   i
+</programlisting>
+<para>        RSSI of the current radio link in dBm. This value indicates how strong the
+        raw received RF signal from the base station is, but does not indicate the
+        overall quality of the radio link. Has no meaning when the device is not
+        connected.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Cinr">
+  <title>The "Cinr" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Cinr"><primary sortas=".Device.WiMax:Cinr">org.freedesktop.NetworkManager.Device.WiMax:Cinr</primary></indexterm>
+<programlisting>
+Cinr  readable   i
+</programlisting>
+<para>        CINR (Carrier to Interference + Noise Ratio) of the current radio link in
+        dB. CINR is a more accurate measure of radio link quality. Has no meaning
+        when the device is not connected.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.TxPower">
+  <title>The "TxPower" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.TxPower"><primary sortas=".Device.WiMax:TxPower">org.freedesktop.NetworkManager.Device.WiMax:TxPower</primary></indexterm>
+<programlisting>
+TxPower  readable   i
+</programlisting>
+<para>        Average power of the last burst transmitted by the device, in units of 0.5
+        dBm. i.e. a TxPower of -11 represents an actual device TX power of -5.5
+        dBm. Has no meaning when the device is not connected.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Bsid">
+  <title>The "Bsid" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.Bsid"><primary sortas=".Device.WiMax:Bsid">org.freedesktop.NetworkManager.Device.WiMax:Bsid</primary></indexterm>
+<programlisting>
+Bsid  readable   s
+</programlisting>
+<para>        The ID of the serving base station as received from the network. Has no
+        meaning when the device is not connected.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.ActiveNsp">
+  <title>The "ActiveNsp" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-WiMax.ActiveNsp"><primary sortas=".Device.WiMax:ActiveNsp">org.freedesktop.NetworkManager.Device.WiMax:ActiveNsp</primary></indexterm>
+<programlisting>
+ActiveNsp  readable   o
+</programlisting>
+<para>        Object path of the NSP currently used by the WiMax device.
+</para>
+</refsect2>
+</refsect1>
+</refentry>
+

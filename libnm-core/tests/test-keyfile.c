@@ -19,12 +19,10 @@
  *
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include "nm-macros-internal.h"
 #include "nm-keyfile-utils.h"
 #include "nm-keyfile-internal.h"
-
 #include "nm-simple-connection.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-wired.h"
@@ -113,9 +111,10 @@ _nm_keyfile_read (GKeyFile *keyfile,
 	con = nm_keyfile_read (keyfile, keyfile_name, base_dir, read_handler, read_data, &error);
 	g_assert_no_error (error);
 	g_assert (NM_IS_CONNECTION (con));
-	if (needs_normalization)
+	if (needs_normalization) {
 		nmtst_assert_connection_verifies_after_normalization (con, 0, 0);
-	else
+		nmtst_connection_normalize (con);
+	} else
 		nmtst_assert_connection_verifies_without_normalization (con);
 	return con;
 }
@@ -287,7 +286,7 @@ _test_8021x_cert_check_blob_full (NMConnection *con, const void *data, gsize len
 	_test_8021x_cert_check (con, NM_SETTING_802_1X_CK_SCHEME_BLOB, g_bytes_get_data (bytes, NULL), g_bytes_get_size (bytes));
 	g_bytes_unref (bytes);
 }
-#define _test_8021x_cert_check_blob(con, data) _test_8021x_cert_check_blob_full(con, data, STRLEN (data))
+#define _test_8021x_cert_check_blob(con, data) _test_8021x_cert_check_blob_full(con, data, NM_STRLEN (data))
 
 static void
 test_8021x_cert (void)
@@ -334,6 +333,7 @@ test_8021x_cert (void)
 
 	nm_connection_add_setting (con, NM_SETTING (s_8021x));
 	nmtst_assert_connection_verifies_and_normalizable (con);
+	nmtst_connection_normalize (con);
 
 
 	_test_8021x_cert_check (con, scheme, full_TEST_WIRED_TLS_CA_CERT, -1);
@@ -352,7 +352,7 @@ test_8021x_cert (void)
 	_test_8021x_cert_check_blob (con, "\0");
 	_test_8021x_cert_check_blob (con, "10");
 	_test_8021x_cert_check_blob (con, "data:;base64,a");
-	_test_8021x_cert_check_blob_full (con, "data:;base64,a", STRLEN ("data:;base64,a") + 1);
+	_test_8021x_cert_check_blob_full (con, "data:;base64,a", NM_STRLEN ("data:;base64,a") + 1);
 	_test_8021x_cert_check_blob (con, "data:;base64,file://a");
 	_test_8021x_cert_check_blob (con, "123");
 

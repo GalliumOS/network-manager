@@ -18,17 +18,14 @@
  * Copyright (C) 2009 - 2011 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <glib.h>
 
 #include "nm-device-modem.h"
 #include "nm-modem.h"
 #include "nm-device-private.h"
 #include "nm-rfkill-manager.h"
-#include "nm-logging.h"
-#include "nm-dbus-manager.h"
 #include "nm-settings-connection.h"
 #include "nm-modem-broadband.h"
 #include "NetworkManagerUtils.h"
@@ -37,11 +34,11 @@
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceModem);
 
+#include "nmdbus-device-modem.h"
+
 G_DEFINE_TYPE (NMDeviceModem, nm_device_modem, NM_TYPE_DEVICE)
 
 #define NM_DEVICE_MODEM_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DEVICE_MODEM, NMDeviceModemPrivate))
-
-#include "nm-device-modem-glue.h"
 
 typedef struct {
 	NMModem *modem;
@@ -108,7 +105,7 @@ modem_prepare_result (NMModem *modem,
 			 * the device to be auto-activated anymore, which would risk locking
 			 * the SIM if the incorrect PIN continues to be used.
 			 */
-			g_object_set (G_OBJECT (device), NM_DEVICE_AUTOCONNECT, FALSE, NULL);
+			nm_device_set_autoconnect (device, FALSE);
 			_LOGI (LOGD_MB, "disabling autoconnect due to failed SIM PIN");
 		}
 
@@ -160,8 +157,8 @@ modem_ip4_config_result (NMModem *modem,
 	g_return_if_fail (nm_device_activate_ip4_state_in_conf (device) == TRUE);
 
 	if (error) {
-		_LOGW (LOGD_MB | LOGD_IP4, "retrieving IPv4 configuration failed: (%d) %s",
-		       error->code, error->message ? error->message : "(unknown)");
+		_LOGW (LOGD_MB | LOGD_IP4, "retrieving IPv4 configuration failed: %s",
+		       error->message);
 
 		nm_device_state_changed (device, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_IP_CONFIG_UNAVAILABLE);
 	} else {
@@ -187,8 +184,7 @@ modem_ip6_config_result (NMModem *modem,
 	g_return_if_fail (nm_device_activate_ip6_state_in_conf (device) == TRUE);
 
 	if (error) {
-		_LOGW (LOGD_MB | LOGD_IP6, "retrieving IPv6 configuration failed: (%d) %s",
-		       error->code, error->message ? error->message : "(unknown)");
+		_LOGW (LOGD_MB | LOGD_IP6, "retrieving IPv6 configuration failed: %s", error->message);
 
 		nm_device_state_changed (device, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_IP_CONFIG_UNAVAILABLE);
 		return;
@@ -253,6 +249,12 @@ data_port_changed_cb (NMModem *modem, GParamSpec *pspec, gpointer user_data)
 	 */
 	if (changed)
 		nm_device_ipv6_sysctl_set (self, "disable_ipv6", "1");
+}
+
+static void
+ids_changed_cb (NMModem *modem, GParamSpec *pspec, gpointer user_data)
+{
+	nm_device_recheck_available_connections (NM_DEVICE (user_data));
 }
 
 static void
@@ -332,7 +334,7 @@ device_state_changed (NMDevice *device,
 {
 	NMDeviceModem *self = NM_DEVICE_MODEM (device);
 	NMDeviceModemPrivate *priv = NM_DEVICE_MODEM_GET_PRIVATE (device);
-	NMConnection *connection = nm_device_get_connection (device);
+	NMConnection *connection = nm_device_get_applied_connection (device);
 
 	g_assert (priv->modem);
 
@@ -411,10 +413,7 @@ check_connection_available (NMDevice *device,
 		return FALSE;
 
 	if (state == NM_MODEM_STATE_LOCKED) {
-		NMSettingGsm *s_gsm = nm_connection_get_setting_gsm (connection);
-
-		/* Can't use a connection without a PIN if the modem is locked */
-		if (!s_gsm || !nm_setting_gsm_get_pin (s_gsm))
+		if (!nm_connection_get_setting_gsm (connection))
 			return FALSE;
 	}
 
@@ -679,6 +678,10 @@ set_modem (NMDeviceModem *self, NMModem *modem)
 	 * while in the new ModemManager the data port is set afterwards when the bearer gets
 	 * created */
 	g_signal_connect (modem, "notify::" NM_MODEM_DATA_PORT, G_CALLBACK (data_port_changed_cb), self);
+
+	g_signal_connect (modem, "notify::" NM_MODEM_DEVICE_ID, G_CALLBACK (ids_changed_cb), self);
+	g_signal_connect (modem, "notify::" NM_MODEM_SIM_ID, G_CALLBACK (ids_changed_cb), self);
+	g_signal_connect (modem, "notify::" NM_MODEM_SIM_OPERATOR_ID, G_CALLBACK (ids_changed_cb), self);
 }
 
 static void
@@ -795,7 +798,7 @@ nm_device_modem_class_init (NMDeviceModemClass *mclass)
 		                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
 		                    G_PARAM_STATIC_STRINGS));
 
-	nm_dbus_manager_register_exported_type (nm_dbus_manager_get (),
-	                                        G_TYPE_FROM_CLASS (mclass),
-	                                        &dbus_glib_nm_device_modem_object_info);
+	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (mclass),
+	                                        NMDBUS_TYPE_DEVICE_MODEM_SKELETON,
+	                                        NULL);
 }

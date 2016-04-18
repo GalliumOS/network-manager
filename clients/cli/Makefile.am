@@ -1,10 +1,13 @@
+if BUILD_NMCLI
+
 bin_PROGRAMS = \
 	nmcli
 
 AM_CPPFLAGS = \
 	-I${top_srcdir} \
 	-I${top_builddir} \
-	-I${top_srcdir}/include \
+	-I${top_srcdir}/shared \
+	-I$(top_builddir)/shared \
 	-I${top_srcdir}/libnm-core \
 	-I${top_builddir}/libnm-core \
 	-I${top_srcdir}/libnm \
@@ -12,7 +15,6 @@ AM_CPPFLAGS = \
 	-I${top_srcdir}/clients/common \
 	$(GLIB_CFLAGS) \
 	-DG_LOG_DOMAIN=\""nmcli"\" \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	-DNMCLI_LOCALEDIR=\"$(datadir)/locale\"
 
 nmcli_SOURCES = \
@@ -37,6 +39,8 @@ nmcli_SOURCES = \
 	\
 	$(srcdir)/../common/nm-secret-agent-simple.c \
 	$(srcdir)/../common/nm-secret-agent-simple.h \
+	$(srcdir)/../common/nm-vpn-helpers.c \
+	$(srcdir)/../common/nm-vpn-helpers.h \
 	$(NULL)
 
 nmcli_LDADD = \
@@ -70,3 +74,5 @@ uninstall-hook:
 	rm -f $(DESTDIR)$(completiondir)/nmcli
 
 EXTRA_DIST += nmcli-completion
+
+endif

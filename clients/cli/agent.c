@@ -19,14 +19,11 @@
  * Copyright 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
-#include <glib/gi18n.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -145,7 +142,7 @@ do_agent_secret (NmCli *nmc, int argc, char **argv)
 	nmc->secret_agent = nm_secret_agent_simple_new ("nmcli-agent");
 	if (nmc->secret_agent) {
 		/* We keep running */
-		nmc->should_wait = TRUE;
+		nmc->should_wait++;
 
 		nm_secret_agent_simple_enable (NM_SECRET_AGENT_SIMPLE (nmc->secret_agent), NULL);
 		g_signal_connect (nmc->secret_agent, "request-secrets", G_CALLBACK (secrets_requested), nmc);
@@ -172,7 +169,7 @@ do_agent_polkit (NmCli *nmc, int argc, char **argv)
 		g_error_free (error);
 	} else {
 		/* We keep running */
-		nmc->should_wait = TRUE;
+		nmc->should_wait++;
 
 		g_print (_("nmcli successfully registered as a polkit agent.\n"));
 	}

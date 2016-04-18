@@ -18,14 +18,13 @@
  * Copyright (C) 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <syslog.h>
 
 #include "nm-rdisc.h"
 #include "nm-lndp-rdisc.h"
-#include "nm-logging.h"
 
 #include "nm-linux-platform.h"
 
@@ -40,6 +39,8 @@ main (int argc, char **argv)
 	NMRDisc *rdisc;
 	int ifindex = 1;
 	const char *ifname;
+	NMUtilsIPv6IfaceId iid = { };
+	GError *error = NULL;
 
 	nmtst_init_with_logging (&argc, &argv, NULL, "DEFAULT");
 
@@ -60,12 +61,20 @@ main (int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	rdisc = nm_lndp_rdisc_new (ifindex, ifname);
+	rdisc = nm_lndp_rdisc_new (NM_PLATFORM_GET,
+	                           ifindex,
+	                           ifname,
+	                           "8ce666e8-d34d-4fb1-b858-f15a7al28086",
+	                           NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64,
+	                           &error);
 	if (!rdisc) {
-		g_print ("Failed to create NMRDisc instance\n");
+		g_print ("Failed to create NMRDisc instance: %s\n", error->message);
+		g_error_free (error);
 		return EXIT_FAILURE;
 	}
 
+	iid.id_u8[7] = 1;
+	nm_rdisc_set_iid (rdisc, iid);
 	nm_rdisc_start (rdisc);
 	g_main_loop_run (loop);
 

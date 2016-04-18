@@ -21,10 +21,7 @@
  * Copyright 2007 - 2009 Red Hat, Inc.
  */
 
-#include "config.h"
-
-#include <glib.h>
-#include <glib/gi18n-lib.h>
+#include "nm-default.h"
 
 #include <prinit.h>
 #include <nss.h>

@@ -17,7 +17,7 @@
  * Copyright (C) 2014 Red Hat, Inc.
  * Author: Pavel Šimerda <psimerda@redhat.com>
  */
-#include "config.h"
+#include "nm-default.h"
 
 #include "nm-dns-unbound.h"
 #include "NetworkManagerUtils.h"
@@ -31,6 +31,7 @@ update (NMDnsPlugin *plugin,
         const GSList *vpn_configs,
         const GSList *dev_configs,
         const GSList *other_configs,
+        const NMGlobalDnsConfig *global_config,
         const char *hostname)
 {
 	/* TODO: We currently call a script installed with the dnssec-trigger
@@ -42,7 +43,7 @@ update (NMDnsPlugin *plugin,
 	 * without calling custom scripts. The dnssec-trigger functionality
 	 * may be eventually merged into NetworkManager.
 	 */
-	return nm_spawn_process ("/usr/libexec/dnssec-trigger-script --async --update", NULL) == 0;
+	return nm_spawn_process (DNSSEC_TRIGGER_SCRIPT " --async --update", NULL) == 0;
 }
 
 static gboolean

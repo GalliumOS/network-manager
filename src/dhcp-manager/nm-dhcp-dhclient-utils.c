@@ -17,22 +17,19 @@
  * Copyright (C) 2011 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
-#include <glib/gi18n.h>
+#include "nm-dhcp-dhclient-utils.h"
+
 #include <string.h>
 #include <ctype.h>
 #include <arpa/inet.h>
 
-#include "nm-dhcp-dhclient-utils.h"
 #include "nm-dhcp-utils.h"
 #include "nm-ip4-config.h"
 #include "nm-utils.h"
 #include "nm-platform.h"
 #include "NetworkManagerUtils.h"
-#include "gsystem-local-alloc.h"
-#include "nm-macros-internal.h"
 
 #define CLIENTID_TAG            "send dhcp-client-identifier"
 
@@ -57,24 +54,29 @@ add_also_request (GPtrArray *array, const char *item)
 }
 
 static void
-add_hostname4 (GString *str, const char *format, const char *hostname)
+add_hostname4 (GString *str, const char *hostname, const char *fqdn)
 {
 	char *plain_hostname, *dot;
 
-	if (hostname) {
+	if (fqdn) {
+		g_string_append_printf (str, FQDN_FORMAT "\n", fqdn);
+		g_string_append (str,
+		                 "send fqdn.encoded on;\n"
+		                 "send fqdn.server-update on;\n");
+	} else if (hostname) {
 		plain_hostname = g_strdup (hostname);
 		dot = strchr (plain_hostname, '.');
 		/* get rid of the domain */
 		if (dot)
 			*dot = '\0';
 
-		g_string_append_printf (str, format, plain_hostname);
+		g_string_append_printf (str, HOSTNAME4_FORMAT "\n", plain_hostname);
 		g_free (plain_hostname);
 	}
 }
 
 static void
-add_ip4_config (GString *str, GBytes *client_id, const char *hostname)
+add_ip4_config (GString *str, GBytes *client_id, const char *hostname, const char *fqdn)
 {
 	if (client_id) {
 		const char *p;
@@ -109,7 +111,7 @@ add_ip4_config (GString *str, GBytes *client_id, const char *hostname)
 		g_string_append (str, "; # added by NetworkManager\n");
 	}
 
-	add_hostname4 (str, HOSTNAME4_FORMAT "\n", hostname);
+	add_hostname4 (str, hostname, fqdn);
 
 	g_string_append_c (str, '\n');
 
@@ -145,9 +147,9 @@ read_client_id (const char *str)
 	gs_free char *s = NULL;
 	char *p;
 
-	g_assert (!strncmp (str, CLIENTID_TAG, STRLEN (CLIENTID_TAG)));
+	g_assert (!strncmp (str, CLIENTID_TAG, NM_STRLEN (CLIENTID_TAG)));
 
-	str += STRLEN (CLIENTID_TAG);
+	str += NM_STRLEN (CLIENTID_TAG);
 	while (g_ascii_isspace (*str))
 		str++;
 
@@ -185,7 +187,7 @@ nm_dhcp_dhclient_get_client_id_from_config_file (const char *path)
 
 	lines = g_strsplit_set (contents, "\n\r", 0);
 	for (line = lines; lines && *line; line++) {
-		if (!strncmp (*line, CLIENTID_TAG, STRLEN (CLIENTID_TAG)))
+		if (!strncmp (*line, CLIENTID_TAG, NM_STRLEN (CLIENTID_TAG)))
 			return read_client_id (*line);
 	}
 	return NULL;
@@ -197,6 +199,7 @@ nm_dhcp_dhclient_create_config (const char *interface,
                                 GBytes *client_id,
                                 const char *anycast_addr,
                                 const char *hostname,
+                                const char *fqdn,
                                 const char *orig_path,
                                 const char *orig_contents,
                                 GBytes **out_new_client_id)
@@ -234,7 +237,7 @@ nm_dhcp_dhclient_create_config (const char *interface,
 			}
 
 			/* Override config file hostname and use one from the connection */
-			if (hostname) {
+			if (hostname || fqdn) {
 				if (strncmp (p, HOSTNAME4_TAG, strlen (HOSTNAME4_TAG)) == 0)
 					continue;
 				if (strncmp (p, FQDN_TAG, strlen (FQDN_TAG)) == 0)
@@ -300,7 +303,7 @@ nm_dhcp_dhclient_create_config (const char *interface,
 		add_also_request (alsoreq, "dhcp6.domain-search");
 		add_also_request (alsoreq, "dhcp6.client-id");
 	} else {
-		add_ip4_config (new_contents, client_id, hostname);
+		add_ip4_config (new_contents, client_id, hostname, fqdn);
 		add_also_request (alsoreq, "rfc3442-classless-static-routes");
 		add_also_request (alsoreq, "ms-classless-static-routes");
 		add_also_request (alsoreq, "static-routes");
@@ -576,6 +579,7 @@ lease_validity_span (const char *str_expire, GDateTime *now)
 /**
  * nm_dhcp_dhclient_read_lease_ip_configs:
  * @iface: the interface name to match leases with
+ * @ifindex: interface index of @iface
  * @contents: the contents of a dhclient leasefile
  * @ipv6: whether to read IPv4 or IPv6 leases
  * @now: the current UTC date/time; pass %NULL to automatically use current
@@ -589,6 +593,7 @@ lease_validity_span (const char *str_expire, GDateTime *now)
  */
 GSList *
 nm_dhcp_dhclient_read_lease_ip_configs (const char *iface,
+                                        int ifindex,
                                         const char *contents,
                                         gboolean ipv6,
                                         GDateTime *now)
@@ -675,6 +680,7 @@ nm_dhcp_dhclient_read_lease_ip_configs (const char *iface,
 			continue;
 		if (!inet_pton (AF_INET, value, &address.address))
 			continue;
+		address.peer_address = address.address;
 
 		/* Gateway */
 		value = g_hash_table_lookup (hash, "option routers");
@@ -696,7 +702,7 @@ nm_dhcp_dhclient_read_lease_ip_configs (const char *iface,
 		address.lifetime = address.preferred = expiry;
 		address.source = NM_IP_CONFIG_SOURCE_DHCP;
 
-		ip4 = nm_ip4_config_new ();
+		ip4 = nm_ip4_config_new (ifindex);
 		nm_ip4_config_add_address (ip4, &address);
 		nm_ip4_config_set_gateway (ip4, gw);
 

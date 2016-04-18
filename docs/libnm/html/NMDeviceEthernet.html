@@ -71,6 +71,13 @@
 <a class="link" href="NMDeviceEthernet.html#nm-device-ethernet-get-carrier" title="nm_device_ethernet_get_carrier ()">nm_device_ethernet_get_carrier</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> * const *
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceEthernet.html#nm-device-ethernet-get-s390-subchannels" title="nm_device_ethernet_get_s390_subchannels ()">nm_device_ethernet_get_s390_subchannels</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -98,6 +105,11 @@
 <td class="property_type">
 <span class="type">gchar</span> *</td>
 <td class="property_name"><a class="link" href="NMDeviceEthernet.html#NMDeviceEthernet--perm-hw-address" title="The “perm-hw-address” property">perm-hw-address</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">GStrv</span></td>
+<td class="property_name"><a class="link" href="NMDeviceEthernet.html#NMDeviceEthernet--s390-subchannels" title="The “s390-subchannels” property">s390-subchannels</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
@@ -131,6 +143,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceEthernet.html#NM-DEVICE-ETHERNET-CARRIER:CAPS" title="NM_DEVICE_ETHERNET_CARRIER">NM_DEVICE_ETHERNET_CARRIER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceEthernet.html#NM-DEVICE-ETHERNET-S390-SUBCHANNELS:CAPS" title="NM_DEVICE_ETHERNET_S390_SUBCHANNELS">NM_DEVICE_ETHERNET_S390_SUBCHANNELS</a></td>
 </tr>
 </tbody>
 </table></div>
@@ -254,6 +270,36 @@ nm_device_ethernet_get_carrier (<em class="parameter"><code><a class="link" href
 <p> <code class="literal">TRUE</code> if the device has carrier</p>
 </div>
 </div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-ethernet-get-s390-subchannels"></a><h3>nm_device_ethernet_get_s390_subchannels ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+nm_device_ethernet_get_s390_subchannels
+                               (<em class="parameter"><code><a class="link" href="NMDeviceEthernet.html" title="NMDeviceEthernet"><span class="type">NMDeviceEthernet</span></a> *device</code></em>);</pre>
+<p>Return the list of s390 subchannels if the device supports them.</p>
+<div class="refsect3">
+<a name="id-1.5.7.8.6.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceEthernet.html" title="NMDeviceEthernet"><span class="type">NMDeviceEthernet</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.5.7.8.6.6"></a><h4>Returns</h4>
+<p> array of strings, each specifying
+one subchannel the s390 device uses to communicate to the host. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span></p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMDeviceEthernet.other_details"></a><h2>Types and Values</h2>
@@ -278,6 +324,12 @@ nm_device_ethernet_get_carrier (<em class="parameter"><code><a class="link" href
 <div class="refsect2">
 <a name="NM-DEVICE-ETHERNET-CARRIER:CAPS"></a><h3>NM_DEVICE_ETHERNET_CARRIER</h3>
 <pre class="programlisting">#define NM_DEVICE_ETHERNET_CARRIER     "carrier"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-ETHERNET-S390-SUBCHANNELS:CAPS"></a><h3>NM_DEVICE_ETHERNET_S390_SUBCHANNELS</h3>
+<pre class="programlisting">#define NM_DEVICE_ETHERNET_S390_SUBCHANNELS "s390-subchannels"
 </pre>
 </div>
 </div>
@@ -305,6 +357,15 @@ nm_device_ethernet_get_carrier (<em class="parameter"><code><a class="link" href
 <p>The permanent hardware (MAC) address of the device.</p>
 <p>Flags: Read</p>
 <p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceEthernet--s390-subchannels"></a><h3>The <code class="literal">“s390-subchannels”</code> property</h3>
+<pre class="programlisting">  “s390-subchannels”         <span class="type">GStrv</span></pre>
+<p>Identifies subchannels of this network device used for
+communication with z/VM or s390 host.</p>
+<p>Flags: Read</p>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">

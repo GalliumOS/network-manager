@@ -204,6 +204,43 @@ nm_connection_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-dbus-glib-types</FILE>
+DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH
+DBUS_TYPE_G_ARRAY_OF_STRING
+DBUS_TYPE_G_ARRAY_OF_UINT
+DBUS_TYPE_G_ARRAY_OF_ARRAY_OF_UCHAR
+DBUS_TYPE_G_ARRAY_OF_ARRAY_OF_UINT
+DBUS_TYPE_G_MAP_OF_VARIANT
+DBUS_TYPE_G_MAP_OF_MAP_OF_VARIANT
+DBUS_TYPE_G_MAP_OF_STRING
+DBUS_TYPE_G_LIST_OF_STRING
+DBUS_TYPE_G_IP6_ADDRESS
+DBUS_TYPE_G_ARRAY_OF_IP6_ADDRESS
+DBUS_TYPE_G_IP6_ROUTE
+DBUS_TYPE_G_ARRAY_OF_IP6_ROUTE
+DBUS_TYPE_NM_IP_ADDRESS
+DBUS_TYPE_NM_IP_ADDRESSES
+DBUS_TYPE_NM_IP_ROUTE
+DBUS_TYPE_NM_IP_ROUTES
+</SECTION>
+
+<SECTION>
+<FILE>nm-gvaluearray-compat</FILE>
+g_value_array_get_nth
+g_value_array_new
+g_value_array_free
+g_value_array_copy
+g_value_array_prepend
+g_value_array_append
+g_value_array_insert
+g_value_array_remove
+g_value_array_sort
+g_value_array_sort_with_data
+<SUBSECTION Standard>
+g_value_array_get_type
+</SECTION>
+
+<SECTION>
 <FILE>nm-setting</FILE>
 <TITLE>NMSetting</TITLE>
 NMSettingError
@@ -798,6 +835,7 @@ NM_SETTING_IP4_CONFIG_IGNORE_AUTO_DNS
 NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID
 NM_SETTING_IP4_CONFIG_DHCP_SEND_HOSTNAME
 NM_SETTING_IP4_CONFIG_DHCP_HOSTNAME
+NM_SETTING_IP4_CONFIG_DHCP_TIMEOUT
 NM_SETTING_IP4_CONFIG_NEVER_DEFAULT
 NM_SETTING_IP4_CONFIG_MAY_FAIL
 NM_SETTING_IP4_CONFIG_METHOD_AUTO
@@ -861,6 +899,7 @@ nm_setting_ip4_config_get_ignore_auto_dns
 nm_setting_ip4_config_get_dhcp_client_id
 nm_setting_ip4_config_get_dhcp_send_hostname
 nm_setting_ip4_config_get_dhcp_hostname
+nm_setting_ip4_config_get_dhcp_timeout
 nm_setting_ip4_config_get_never_default
 nm_setting_ip4_config_get_may_fail
 <SUBSECTION Standard>
@@ -1179,6 +1218,7 @@ NM_SETTING_VLAN_INGRESS_PRIORITY_MAP
 NM_SETTING_VLAN_EGRESS_PRIORITY_MAP
 NMVlanPriorityMap
 NMVlanFlags
+NM_VLAN_FLAGS_ALL
 nm_setting_vlan_new
 nm_setting_vlan_get_interface_name
 nm_setting_vlan_get_parent
@@ -1231,6 +1271,7 @@ nm_setting_vpn_add_secret
 nm_setting_vpn_get_secret
 nm_setting_vpn_remove_secret
 nm_setting_vpn_foreach_secret
+NMSettingVpn
 <SUBSECTION Standard>
 NMSettingVPN
 NMSettingVPNClass
@@ -1340,6 +1381,7 @@ NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST
 NM_SETTING_WIRELESS_MTU
 NM_SETTING_WIRELESS_SEEN_BSSIDS
 NM_SETTING_WIRELESS_HIDDEN
+NM_SETTING_WIRELESS_POWERSAVE
 NM_SETTING_WIRELESS_SEC
 NM_SETTING_WIRELESS_MODE_ADHOC
 NM_SETTING_WIRELESS_MODE_AP
@@ -1363,6 +1405,7 @@ nm_setting_wireless_remove_mac_blacklist_item_by_value
 nm_setting_wireless_clear_mac_blacklist_items
 nm_setting_wireless_get_mtu
 nm_setting_wireless_get_hidden
+nm_setting_wireless_get_powersave
 nm_setting_wireless_add_seen_bssid
 nm_setting_wireless_get_num_seen_bssids
 nm_setting_wireless_get_seen_bssid

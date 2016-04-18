@@ -18,6 +18,8 @@
  * Copyright (C) 2015 Red Hat, Inc.
  */
 
+#include "nm-default.h"
+
 #include "nm-platform-utils.h"
 
 #include <string.h>
@@ -29,11 +31,10 @@
 #include <linux/mii.h>
 #include <linux/version.h>
 
-#include "gsystem-local-alloc.h"
 #include "nm-utils.h"
-#include "NetworkManagerUtils.h"
-#include "nm-logging.h"
+#include "nm-setting-wired.h"
 
+#include "nm-core-utils.h"
 
 /******************************************************************
  * ethtool
@@ -48,8 +49,14 @@ ethtool_get (const char *name, gpointer edata)
 	if (!name || !*name)
 		return FALSE;
 
+	if (!nmp_utils_device_exists (name))
+		return FALSE;
+
+	/* nmp_utils_device_exists() already errors out if @name is invalid. */
+	nm_assert (strlen (name) < IFNAMSIZ);
+
 	memset (&ifr, 0, sizeof (ifr));
-	strncpy (ifr.ifr_name, name, IFNAMSIZ);
+	nm_utils_ifname_cpy (ifr.ifr_name, name);
 	ifr.ifr_data = edata;
 
 	fd = socket (PF_INET, SOCK_DGRAM, 0);
@@ -132,21 +139,38 @@ nmp_utils_ethtool_get_permanent_address (const char *ifname,
                                          guint8 *buf,
                                          size_t *length)
 {
-	gs_free struct ethtool_perm_addr *epaddr = NULL;
+	struct {
+		struct ethtool_perm_addr e;
+		guint8 _extra_data[NM_UTILS_HWADDR_LEN_MAX + 1];
+	} edata;
+	static const guint8 zeros[NM_UTILS_HWADDR_LEN_MAX] = { 0 };
+	static guint8 ones[NM_UTILS_HWADDR_LEN_MAX] = { 0 };
 
 	if (!ifname)
 		return FALSE;
 
-	epaddr = g_malloc0 (sizeof (*epaddr) + NM_UTILS_HWADDR_LEN_MAX);
-	epaddr->cmd = ETHTOOL_GPERMADDR;
-	epaddr->size = NM_UTILS_HWADDR_LEN_MAX;
+	memset (&edata, 0, sizeof (edata));
+	edata.e.cmd = ETHTOOL_GPERMADDR;
+	edata.e.size = NM_UTILS_HWADDR_LEN_MAX;
 
-	if (!ethtool_get (ifname, epaddr))
+	if (!ethtool_get (ifname, &edata.e))
 		return FALSE;
 
-	g_assert (epaddr->size <= NM_UTILS_HWADDR_LEN_MAX);
-	memcpy (buf, epaddr->data, epaddr->size);
-	*length = epaddr->size;
+	g_assert (edata.e.size <= NM_UTILS_HWADDR_LEN_MAX);
+
+	/* Some drivers might return a permanent address of all zeros.
+	 * Reject that (rh#1264024) */
+	if (memcmp (edata.e.data, zeros, edata.e.size) == 0)
+		return FALSE;
+
+	/* Some drivers return a permanent address of all ones. Reject that too */
+	if (G_UNLIKELY (ones[0] != 0xFF))
+		memset (ones, 0xFF, sizeof (ones));
+	if (memcmp (edata.e.data, ones, edata.e.size) == 0)
+		return FALSE;
+
+	memcpy (buf, edata.e.data, edata.e.size);
+	*length = edata.e.size;
 	return TRUE;
 }
 
@@ -255,6 +279,46 @@ nmp_utils_ethtool_get_link_speed (const char *ifname, guint32 *out_speed)
 	return TRUE;
 }
 
+gboolean
+nmp_utils_ethtool_set_wake_on_lan (const char *ifname,
+                                   NMSettingWiredWakeOnLan wol,
+                                   const char *wol_password)
+{
+	struct ethtool_wolinfo wol_info = { };
+
+	if (wol == NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE)
+		return TRUE;
+
+	nm_log_dbg (LOGD_PLATFORM, "setting Wake-on-LAN options 0x%x, password '%s'",
+	            (unsigned int) wol, wol_password);
+
+	wol_info.cmd = ETHTOOL_SWOL;
+	wol_info.wolopts = 0;
+
+	if (NM_FLAGS_HAS (wol, NM_SETTING_WIRED_WAKE_ON_LAN_PHY))
+		wol_info.wolopts |= WAKE_PHY;
+	if (NM_FLAGS_HAS (wol, NM_SETTING_WIRED_WAKE_ON_LAN_UNICAST))
+		wol_info.wolopts |= WAKE_UCAST;
+	if (NM_FLAGS_HAS (wol, NM_SETTING_WIRED_WAKE_ON_LAN_MULTICAST))
+		wol_info.wolopts |= WAKE_MCAST;
+	if (NM_FLAGS_HAS (wol, NM_SETTING_WIRED_WAKE_ON_LAN_BROADCAST))
+		wol_info.wolopts |= WAKE_BCAST;
+	if (NM_FLAGS_HAS (wol, NM_SETTING_WIRED_WAKE_ON_LAN_ARP))
+		wol_info.wolopts |= WAKE_ARP;
+	if (NM_FLAGS_HAS (wol, NM_SETTING_WIRED_WAKE_ON_LAN_MAGIC))
+		wol_info.wolopts |= WAKE_MAGIC;
+
+	if (wol_password) {
+		if (!nm_utils_hwaddr_aton (wol_password, wol_info.sopass, ETH_ALEN)) {
+			nm_log_dbg (LOGD_PLATFORM, "couldn't parse Wake-on-LAN password '%s'", wol_password);
+			return FALSE;
+		}
+		wol_info.wolopts |= WAKE_MAGICSECURE;
+	}
+
+	return ethtool_get (ifname, &wol_info);
+}
+
 /******************************************************************
  * mii
  ******************************************************************/
@@ -270,6 +334,9 @@ nmp_utils_mii_supports_carrier_detect (const char *ifname)
 	if (!ifname)
 		return FALSE;
 
+	if (!nmp_utils_device_exists (ifname))
+		return FALSE;
+
 	fd = socket (PF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		nm_log_err (LOGD_PLATFORM, "mii: couldn't open control socket (%s)", ifname);
@@ -277,7 +344,7 @@ nmp_utils_mii_supports_carrier_detect (const char *ifname)
 	}
 
 	memset (&ifr, 0, sizeof (struct ifreq));
-	strncpy (ifr.ifr_name, ifname, IFNAMSIZ);
+	nm_utils_ifname_cpy (ifr.ifr_name, ifname);
 
 	errno = 0;
 	if (ioctl (fd, SIOCGMIIPHY, &ifr) < 0) {
@@ -345,92 +412,18 @@ out:
 	return g_intern_string (driver);
 }
 
-/******************************************************************
- * utils
- ******************************************************************/
-
-/**
- * Takes a pair @timestamp and @duration, and returns the remaining duration based
- * on the new timestamp @now.
- */
-guint32
-nmp_utils_lifetime_rebase_relative_time_on_now (guint32 timestamp,
-                                                guint32 duration,
-                                                guint32 now,
-                                                guint32 padding)
-{
-	gint64 t;
-
-	if (duration == NM_PLATFORM_LIFETIME_PERMANENT)
-		return NM_PLATFORM_LIFETIME_PERMANENT;
-
-	if (timestamp == 0) {
-		/* if the @timestamp is zero, assume it was just left unset and that the relative
-		 * @duration starts counting from @now. This is convenient to construct an address
-		 * and print it in nm_platform_ip4_address_to_string().
-		 *
-		 * In general it does not make sense to set the @duration without anchoring at
-		 * @timestamp because you don't know the absolute expiration time when looking
-		 * at the address at a later moment. */
-		timestamp = now;
-	}
-
-	/* For timestamp > now, just accept it and calculate the expected(?) result. */
-	t = (gint64) timestamp + (gint64) duration - (gint64) now;
-
-	/* Optional padding to avoid potential races. */
-	t += (gint64) padding;
-
-	if (t <= 0)
-		return 0;
-	if (t >= NM_PLATFORM_LIFETIME_PERMANENT)
-		return NM_PLATFORM_LIFETIME_PERMANENT - 1;
-	return t;
-}
-
 gboolean
-nmp_utils_lifetime_get (guint32 timestamp,
-                        guint32 lifetime,
-                        guint32 preferred,
-                        guint32 now,
-                        guint32 padding,
-                        guint32 *out_lifetime,
-                        guint32 *out_preferred)
+nmp_utils_device_exists (const char *name)
 {
-	guint32 t_lifetime, t_preferred;
+#define SYS_CLASS_NET "/sys/class/net/"
+	char sysdir[NM_STRLEN (SYS_CLASS_NET) + IFNAMSIZ];
 
-	if (lifetime == 0) {
-		*out_lifetime = NM_PLATFORM_LIFETIME_PERMANENT;
-		*out_preferred = NM_PLATFORM_LIFETIME_PERMANENT;
+	if (   !name
+	    || strlen (name) >= IFNAMSIZ
+	    || !nm_utils_is_valid_path_component (name))
+		g_return_val_if_reached (FALSE);
 
-		/* We treat lifetime==0 as permanent addresses to allow easy creation of such addresses
-		 * (without requiring to set the lifetime fields to NM_PLATFORM_LIFETIME_PERMANENT).
-		 * In that case we also expect that the other fields (timestamp and preferred) are left unset. */
-		g_return_val_if_fail (timestamp == 0 && preferred == 0, TRUE);
-	} else {
-		if (!now)
-			now = nm_utils_get_monotonic_timestamp_s ();
-		t_lifetime = nmp_utils_lifetime_rebase_relative_time_on_now (timestamp, lifetime, now, padding);
-		if (!t_lifetime) {
-			*out_lifetime = 0;
-			*out_preferred = 0;
-			return FALSE;
-		}
-		t_preferred = nmp_utils_lifetime_rebase_relative_time_on_now (timestamp, preferred, now, padding);
-
-		*out_lifetime = t_lifetime;
-		*out_preferred = MIN (t_preferred, t_lifetime);
-
-		/* Assert that non-permanent addresses have a (positive) @timestamp. nmp_utils_lifetime_rebase_relative_time_on_now()
-		 * treats addresses with timestamp 0 as *now*. Addresses passed to _address_get_lifetime() always
-		 * should have a valid @timestamp, otherwise on every re-sync, their lifetime will be extended anew.
-		 */
-		g_return_val_if_fail (   timestamp != 0
-		                      || (   lifetime  == NM_PLATFORM_LIFETIME_PERMANENT
-		                          && preferred == NM_PLATFORM_LIFETIME_PERMANENT), TRUE);
-		g_return_val_if_fail (t_preferred <= t_lifetime, TRUE);
-	}
-	return TRUE;
+	memcpy (sysdir, SYS_CLASS_NET, NM_STRLEN (SYS_CLASS_NET));
+	nm_utils_ifname_cpy (&sysdir[NM_STRLEN (SYS_CLASS_NET)], name);
+	return g_file_test (sysdir, G_FILE_TEST_EXISTS);
 }
-
-

@@ -18,16 +18,16 @@
  * Copyright 2010 - 2011 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
-#include "nm-glib-compat.h"
 #include "NetworkManager.h"
 #include "nm-secret-agent.h"
 #include "nm-glib-enum-types.h"
 #include "nm-dbus-helpers-private.h"
+#include "nm-setting-private.h"
 
 static void impl_secret_agent_get_secrets (NMSecretAgent *self,
                                            GHashTable *connection_hash,
@@ -65,7 +65,6 @@ typedef struct {
 	NMSecretAgentCapabilities capabilities;
 
 	DBusGConnection *bus;
-	gboolean private_bus;
 	DBusGProxy *dbus_proxy;
 	DBusGProxy *manager_proxy;
 	DBusGProxyCall *reg_call;
@@ -227,12 +226,6 @@ verify_sender (NMSecretAgent *self,
 
 	g_return_val_if_fail (context != NULL, FALSE);
 
-	/* Private bus connection is always to NetworkManager, which is always
-	 * UID 0.
-	 */
-	if (priv->private_bus)
-		return TRUE;
-
 	/* Verify the sender's UID is 0, and that the sender is the same as
 	 * NetworkManager's bus name owner.
 	 */
@@ -310,7 +303,8 @@ verify_request (NMSecretAgent *self,
                 GError **error)
 {
 	NMConnection *connection = NULL;
-	GError *local = NULL;
+
+	g_return_val_if_fail (out_connection, FALSE);
 
 	if (!verify_sender (self, context, error))
 		return FALSE;
@@ -329,22 +323,11 @@ verify_request (NMSecretAgent *self,
 	}
 
 	/* Make sure the given connection is valid */
-	g_assert (out_connection);
-	connection = nm_connection_new_from_hash (connection_hash, &local);
-	if (connection) {
-		nm_connection_set_path (connection, connection_path);
-		*out_connection = connection;
-	} else {
-		g_set_error (error,
-		             NM_SECRET_AGENT_ERROR,
-		             NM_SECRET_AGENT_ERROR_INVALID_CONNECTION,
-		             "Invalid connection: (%d) %s",
-		             local ? local->code : -1,
-		             (local && local->message) ? local->message : "(unknown)");
-		g_clear_error (&local);
-	}
+	connection = _nm_connection_new_from_hash (connection_hash);
+	nm_connection_set_path (connection, connection_path);
+	*out_connection = connection;
 
-	return !!connection;
+	return TRUE;
 }
 
 static void
@@ -626,7 +609,7 @@ nm_secret_agent_register (NMSecretAgent *self)
 	g_return_val_if_fail (class->save_secrets != NULL, FALSE);
 	g_return_val_if_fail (class->delete_secrets != NULL, FALSE);
 
-	if (!priv->nm_owner && !priv->private_bus)
+	if (!priv->nm_owner)
 		return FALSE;
 
 	priv->suppress_auto = FALSE;
@@ -671,7 +654,7 @@ nm_secret_agent_unregister (NMSecretAgent *self)
 	g_return_val_if_fail (priv->bus != NULL, FALSE);
 	g_return_val_if_fail (priv->manager_proxy != NULL, FALSE);
 
-	if (!priv->nm_owner && !priv->private_bus)
+	if (!priv->nm_owner)
 		return FALSE;
 
 	dbus_g_proxy_call_no_reply (priv->manager_proxy, "Unregister", G_TYPE_INVALID);
@@ -853,29 +836,26 @@ nm_secret_agent_init (NMSecretAgent *self)
 		g_error_free (error);
 		return;
 	}
-	priv->private_bus = _nm_dbus_is_connection_private (priv->bus);
 
-	if (priv->private_bus == FALSE) {
-		priv->dbus_proxy = dbus_g_proxy_new_for_name (priv->bus,
-		                                              DBUS_SERVICE_DBUS,
-		                                              DBUS_PATH_DBUS,
-		                                              DBUS_INTERFACE_DBUS);
-		g_assert (priv->dbus_proxy);
+	priv->dbus_proxy = dbus_g_proxy_new_for_name (priv->bus,
+	                                              DBUS_SERVICE_DBUS,
+	                                              DBUS_PATH_DBUS,
+	                                              DBUS_INTERFACE_DBUS);
+	g_assert (priv->dbus_proxy);
 
-		dbus_g_object_register_marshaller (g_cclosure_marshal_generic,
-		                                   G_TYPE_NONE,
-		                                   G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
-		                                   G_TYPE_INVALID);
-		dbus_g_proxy_add_signal (priv->dbus_proxy, "NameOwnerChanged",
-		                         G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
-		                         G_TYPE_INVALID);
-		dbus_g_proxy_connect_signal (priv->dbus_proxy,
-		                             "NameOwnerChanged",
-		                             G_CALLBACK (name_owner_changed),
-		                             self, NULL);
+	dbus_g_object_register_marshaller (g_cclosure_marshal_generic,
+	                                   G_TYPE_NONE,
+	                                   G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+	                                   G_TYPE_INVALID);
+	dbus_g_proxy_add_signal (priv->dbus_proxy, "NameOwnerChanged",
+	                         G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+	                         G_TYPE_INVALID);
+	dbus_g_proxy_connect_signal (priv->dbus_proxy,
+	                             "NameOwnerChanged",
+	                             G_CALLBACK (name_owner_changed),
+	                             self, NULL);
 
-		get_nm_owner (self);
-	}
+	get_nm_owner (self);
 
 	priv->manager_proxy = _nm_dbus_new_proxy_for_connection (priv->bus,
 	                                                         NM_DBUS_PATH_AGENT_MANAGER,
@@ -885,7 +865,7 @@ nm_secret_agent_init (NMSecretAgent *self)
 		return;
 	}
 
-	if (priv->nm_owner || priv->private_bus)
+	if (priv->nm_owner)
 		priv->auto_register_id = g_idle_add (auto_register_cb, self);
 }
 

@@ -19,7 +19,9 @@
  * Copyright 2005 - 2013 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
+
+#include "nm-utils.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -28,19 +30,12 @@
 #include <uuid/uuid.h>
 #include <libintl.h>
 #include <gmodule.h>
-#include <gio/gio.h>
-#include <glib/gi18n-lib.h>
 
-#include "nm-utils.h"
+#include "nm-gvaluearray-compat.h"
 #include "nm-utils-private.h"
-#include "nm-glib-compat.h"
 #include "nm-dbus-glib-types.h"
 #include "nm-setting-private.h"
 #include "crypto.h"
-#include "nm-macros-internal.h"
-
-/* Embed the commit id in the build binary */
-static const char *const __nm_git_sha = STRLEN (NM_GIT_SHA) > 0 ? "NM_GIT_SHA:"NM_GIT_SHA : "";
 
 /**
  * SECTION:nm-utils
@@ -236,8 +231,6 @@ static gboolean initialized = FALSE;
 gboolean
 nm_utils_init (GError **error)
 {
-	(void) __nm_git_sha;
-
 	if (!initialized) {
 		initialized = TRUE;
 
@@ -330,6 +323,21 @@ nm_utils_ssid_to_utf8 (const GByteArray *ssid)
 	if (!converted) {
 		converted = g_convert_with_fallback ((const gchar *) ssid->data, ssid->len,
 		                                     "UTF-8", e1, "?", NULL, NULL, NULL);
+	}
+
+	if (!converted) {
+		/* If there is still no converted string, the SSID probably
+		 * contains characters not valid in the current locale. Convert
+		 * the string to ASCII instead.
+		 */
+
+		/* Use the printable range of 0x20-0x7E */
+		gchar *valid_chars = " !\"#$%&'()*+,-./0123456789:;<=>?@"
+		                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
+		                     "abcdefghijklmnopqrstuvwxyz{|}~";
+
+		converted = g_strndup ((const gchar *)ssid->data, ssid->len);
+		g_strcanon (converted, valid_chars, '?');
 	}
 
 	return converted;
@@ -1501,20 +1509,14 @@ nm_utils_uuid_generate_from_string (const char *s)
 	g_return_val_if_fail (s && *s, NULL);
 
 	if (!nm_utils_init (&error)) {
-		g_warning ("error initializing crypto: (%d) %s",
-		           error ? error->code : 0,
-		           error ? error->message : "unknown");
-		if (error)
-			g_error_free (error);
+		g_warning ("error initializing crypto: %s", error->message);
+		g_error_free (error);
 		return NULL;
 	}
 
 	if (!crypto_md5_hash (NULL, 0, s, strlen (s), (char *) uuid, sizeof (uuid), &error)) {
-		g_warning ("error generating UUID: (%d) %s",
-		           error ? error->code : 0,
-		           error ? error->message : "unknown");
-		if (error)
-			g_error_free (error);
+		g_warning ("error generating UUID: %s", error->message);
+		g_error_free (error);
 		return NULL;
 	}
 

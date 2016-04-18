@@ -20,6 +20,7 @@
  */
 
 #include "config.h"
+#define ___CONFIG_H__
 
 #include <string.h>
 #include <pppd/pppd.h>
@@ -29,12 +30,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <dlfcn.h>
-#include <gio/gio.h>
 
 #define INET6
 #include <pppd/eui64.h>
 #include <pppd/ipv6cp.h>
 
+#include "nm-default.h"
 #include "nm-dbus-interface.h"
 #include "nm-pppd-plugin.h"
 #include "nm-ppp-status.h"
@@ -301,10 +302,9 @@ get_credentials (char *username, char *password)
 	                              G_DBUS_CALL_FLAGS_NONE, -1,
 	                              NULL, &err);
 	if (!ret) {
-		g_warning ("nm-ppp-plugin: (%s): could not get secrets: (%d) %s",
+		g_warning ("nm-ppp-plugin: (%s): could not get secrets: %s",
 		           __func__,
-		           err ? err->code : -1,
-		           err->message ? err->message : "(unknown)");
+		           err->message);
 		g_error_free (err);
 		return -1;
 	}
@@ -372,9 +372,7 @@ plugin_init (void)
 	GDBusConnection *bus;
 	GError *err = NULL;
 
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	g_type_init ();
-#endif
+	nm_g_type_init ();
 
 	g_message ("nm-ppp-plugin: (%s): initializing", __func__);
 

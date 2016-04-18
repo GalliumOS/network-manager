@@ -21,8 +21,6 @@
 #ifndef __NETWORKMANAGER_DEVICE_TEAM_H__
 #define __NETWORKMANAGER_DEVICE_TEAM_H__
 
-#include <glib-object.h>
-
 #include "nm-device.h"
 
 G_BEGIN_DECLS
@@ -34,22 +32,12 @@ G_BEGIN_DECLS
 #define NM_IS_DEVICE_TEAM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_TEAM))
 #define NM_DEVICE_TEAM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_TEAM, NMDeviceTeamClass))
 
-#define NM_DEVICE_TEAM_SLAVES "slaves"
-
-typedef struct {
-	NMDevice parent;
-} NMDeviceTeam;
-
-typedef struct {
-	NMDeviceClass parent;
-
-} NMDeviceTeamClass;
-
+typedef NMDevice NMDeviceTeam;
+typedef NMDeviceClass NMDeviceTeamClass;
 
 GType nm_device_team_get_type (void);
 
-NMDevice *nm_device_team_new (NMPlatformLink *platform_device);
-NMDevice *nm_device_team_new_for_connection (NMConnection *connection, GError **error);
+NMDevice *nm_device_team_new (const char *iface);
 
 G_END_DECLS
 

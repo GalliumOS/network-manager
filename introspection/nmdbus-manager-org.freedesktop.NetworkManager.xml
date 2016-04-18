@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<refentry id="gdbus-org.freedesktop.NetworkManager">
+  <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager.top_of_page">org.freedesktop.NetworkManager</refentrytitle>
+  <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager.top_of_page"><primary sortas="Manager">org.freedesktop.NetworkManager</primary></indexterm>
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager</refname>    <refpurpose></refpurpose>  </refnamediv>  <refsynopsisdiv role="synopsis">
+    <title role="synopsis.title">Methods</title>
+    <synopsis>
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetDevices">GetDevices</link>               (OUT ao        devices);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetAllDevices">GetAllDevices</link>            (OUT ao        devices);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetDeviceByIpIface">GetDeviceByIpIface</link>       (IN  s         iface,
+                          OUT o         device);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.ActivateConnection">ActivateConnection</link>       (IN  o         connection,
+                          IN  o         device,
+                          IN  o         specific_object,
+                          OUT o         active_connection);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection">AddAndActivateConnection</link> (IN  a{sa{sv}} connection,
+                          IN  o         device,
+                          IN  o         specific_object,
+                          OUT o         path,
+                          OUT o         active_connection);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection">DeactivateConnection</link>     (IN  o         active_connection);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.Sleep">Sleep</link>                    (IN  b         sleep);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.Enable">Enable</link>                   (IN  b         enable);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetPermissions">GetPermissions</link>           (OUT a{ss}     permissions);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.SetLogging">SetLogging</link>               (IN  s         level,
+                          IN  s         domains);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetLogging">GetLogging</link>               (OUT s         level,
+                          OUT s         domains);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckConnectivity">CheckConnectivity</link>        (OUT u         connectivity);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.state">state</link>                    (OUT u         state);
+</synopsis>
+  </refsynopsisdiv>
+  <refsect1 role="signal_proto">
+    <title role="signal_proto.title">Signals</title>
+    <synopsis>
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.CheckPermissions">CheckPermissions</link>  ();
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.StateChanged">StateChanged</link>      (u     state);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged">PropertiesChanged</link> (a{sv} properties);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.DeviceAdded">DeviceAdded</link>       (o     device_path);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.DeviceRemoved">DeviceRemoved</link>     (o     device_path);
+</synopsis>
+  </refsect1>
+  <refsect1 role="properties">
+    <title role="properties.title">Properties</title>
+    <synopsis>
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.Devices">Devices</link>                  readable   ao
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.AllDevices">AllDevices</link>               readable   ao
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.NetworkingEnabled">NetworkingEnabled</link>        readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.WirelessEnabled">WirelessEnabled</link>          readwrite  b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.WirelessHardwareEnabled">WirelessHardwareEnabled</link>  readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.WwanEnabled">WwanEnabled</link>              readwrite  b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.WwanHardwareEnabled">WwanHardwareEnabled</link>      readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.WimaxEnabled">WimaxEnabled</link>             readwrite  b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.WimaxHardwareEnabled">WimaxHardwareEnabled</link>     readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.ActiveConnections">ActiveConnections</link>        readable   ao
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.PrimaryConnection">PrimaryConnection</link>        readable   o
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.PrimaryConnectionType">PrimaryConnectionType</link>    readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.Metered">Metered</link>                  readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.ActivatingConnection">ActivatingConnection</link>     readable   o
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.Startup">Startup</link>                  readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.Version">Version</link>                  readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.State">State</link>                    readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.Connectivity">Connectivity</link>             readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.GlobalDnsConfiguration">GlobalDnsConfiguration</link>   readwrite  a{sv}
+</synopsis>
+  </refsect1>
+<refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager">
+  <title role="desc.title">Description</title>
+  <para></para>
+</refsect1>
+<refsect1 role="details" id="gdbus-methods-org.freedesktop.NetworkManager">
+  <title role="details.title">Method Details</title>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.GetDevices">
+  <title>The GetDevices() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.GetDevices"><primary sortas="Manager.GetDevices">org.freedesktop.NetworkManager.GetDevices()</primary></indexterm>
+<programlisting>
+GetDevices (OUT ao devices);
+</programlisting>
+<para>        Get the list of realized network devices.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>OUT ao <parameter>devices</parameter></literal>:</term>
+  <listitem><para>List of object paths of network devices known to the system. This list does not include device placeholders (see GetAllDevices()).</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.GetAllDevices">
+  <title>The GetAllDevices() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.GetAllDevices"><primary sortas="Manager.GetAllDevices">org.freedesktop.NetworkManager.GetAllDevices()</primary></indexterm>
+<programlisting>
+GetAllDevices (OUT ao devices);
+</programlisting>
+<para>        Get the list of all network devices.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>OUT ao <parameter>devices</parameter></literal>:</term>
+  <listitem><para>List of object paths of network devices and device placeholders (eg, devices that do not yet exist but which can be automatically created by NetworkManager if one of their AvailableConnections was activated).</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.GetDeviceByIpIface">
+  <title>The GetDeviceByIpIface() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.GetDeviceByIpIface"><primary sortas="Manager.GetDeviceByIpIface">org.freedesktop.NetworkManager.GetDeviceByIpIface()</primary></indexterm>
+<programlisting>
+GetDeviceByIpIface (IN  s iface,
+                    OUT o device);
+</programlisting>
+<para>        Return the object path of the network device referenced by its IP
+        interface name. Note that some devices (usually modems) only have an IP
+        interface name when they are connected.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN s <parameter>iface</parameter></literal>:</term>
+  <listitem><para>Interface name of the device to find.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT o <parameter>device</parameter></literal>:</term>
+  <listitem><para>Object path of the network device.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.ActivateConnection">
+  <title>The ActivateConnection() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.ActivateConnection"><primary sortas="Manager.ActivateConnection">org.freedesktop.NetworkManager.ActivateConnection()</primary></indexterm>
+<programlisting>
+ActivateConnection (IN  o connection,
+                    IN  o device,
+                    IN  o specific_object,
+                    OUT o active_connection);
+</programlisting>
+<para>        Activate a connection using the supplied device.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN o <parameter>connection</parameter></literal>:</term>
+  <listitem><para>The connection to activate. If "/" is given, a valid device path must be given, and NetworkManager picks the best connection to activate for the given device. VPN connections must always pass a valid connection path.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN o <parameter>device</parameter></literal>:</term>
+  <listitem><para>The object path of device to be activated for physical connections. This parameter is ignored for VPN connections, because the specific_object (if provided) specifies the device to use.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN o <parameter>specific_object</parameter></literal>:</term>
+  <listitem><para>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For WiFi connections, pass the object path of a specific AP from the card's scan list, or "/" to pick an AP automatically. For VPN connections, pass the object path of an ActiveConnection object that should serve as the "base" connection (to which the VPN connections lifetime will be tied), or pass "/" and NM will automatically use the current default device.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT o <parameter>active_connection</parameter></literal>:</term>
+  <listitem><para>The path of the active connection object representing this active connection.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection">
+  <title>The AddAndActivateConnection() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection"><primary sortas="Manager.AddAndActivateConnection">org.freedesktop.NetworkManager.AddAndActivateConnection()</primary></indexterm>
+<programlisting>
+AddAndActivateConnection (IN  a{sa{sv}} connection,
+                          IN  o         device,
+                          IN  o         specific_object,
+                          OUT o         path,
+                          OUT o         active_connection);
+</programlisting>
+<para>        Adds a new connection using the given details (if any) as a template
+        (automatically filling in missing settings with the capabilities of the
+        given device and specific object), then activate the new connection.
+        Cannot be used for VPN connections at this time.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN a{sa{sv}} <parameter>connection</parameter></literal>:</term>
+  <listitem><para>Connection settings and properties; if incomplete missing settings will be automatically completed using the given device and specific object.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN o <parameter>device</parameter></literal>:</term>
+  <listitem><para>The object path of device to be activated using the given connection.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN o <parameter>specific_object</parameter></literal>:</term>
+  <listitem><para>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For WiFi connections, pass the object path of a specific AP from the card's scan list, which will be used to complete the details of the newly added connection.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT o <parameter>path</parameter></literal>:</term>
+  <listitem><para>Object path of the new connection that was just added.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT o <parameter>active_connection</parameter></literal>:</term>
+  <listitem><para>The path of the active connection object representing this active connection.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection">
+  <title>The DeactivateConnection() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection"><primary sortas="Manager.DeactivateConnection">org.freedesktop.NetworkManager.DeactivateConnection()</primary></indexterm>
+<programlisting>
+DeactivateConnection (IN  o active_connection);
+</programlisting>
+<para>        Deactivate an active connection.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN o <parameter>active_connection</parameter></literal>:</term>
+  <listitem><para>The currently active connection to deactivate.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.Sleep">
+  <title>The Sleep() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.Sleep"><primary sortas="Manager.Sleep">org.freedesktop.NetworkManager.Sleep()</primary></indexterm>
+<programlisting>
+Sleep (IN  b sleep);
+</programlisting>
+<para>        Control the NetworkManager daemon's sleep state. When asleep, all
+        interfaces that it manages are deactivated. When awake, devices are
+        available to be activated. This command should not be called directly by
+        users or clients; it is intended for system suspend/resume tracking.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN b <parameter>sleep</parameter></literal>:</term>
+  <listitem><para>Indicates whether the NetworkManager daemon should sleep or wake.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.Enable">
+  <title>The Enable() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.Enable"><primary sortas="Manager.Enable">org.freedesktop.NetworkManager.Enable()</primary></indexterm>
+<programlisting>
+Enable (IN  b enable);
+</programlisting>
+<para>        Control whether overall networking is enabled or disabled. When disabled,
+        all interfaces that NM manages are deactivated. When enabled, all managed
+        interfaces are re-enabled and available to be activated. This command
+        should be used by clients that provide to users the ability to
+        enable/disable all networking.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN b <parameter>enable</parameter></literal>:</term>
+  <listitem><para>If FALSE, indicates that all networking should be disabled. If TRUE, indicates that NetworkManager should begin managing network devices.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.GetPermissions">
+  <title>The GetPermissions() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.GetPermissions"><primary sortas="Manager.GetPermissions">org.freedesktop.NetworkManager.GetPermissions()</primary></indexterm>
+<programlisting>
+GetPermissions (OUT a{ss} permissions);
+</programlisting>
+<para>        Returns the permissions a caller has for various authenticated operations
+        that NetworkManager provides, like Enable/Disable networking, changing
+        WiFi, WWAN, and WiMAX state, etc.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>OUT a{ss} <parameter>permissions</parameter></literal>:</term>
+  <listitem><para>Dictionary of available permissions and results. Each permission is represented by a name (ie "org.freedesktop.NetworkManager.Foobar") and each result is one of the following values: "yes" (the permission is available), "auth" (the permission is available after a successful authentication), or "no" (the permission is denied). Clients may use these values in the UI to indicate the ability to perform certain operations.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.SetLogging">
+  <title>The SetLogging() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.SetLogging"><primary sortas="Manager.SetLogging">org.freedesktop.NetworkManager.SetLogging()</primary></indexterm>
+<programlisting>
+SetLogging (IN  s level,
+            IN  s domains);
+</programlisting>
+<para>        Set logging verbosity and which operations are logged.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN s <parameter>level</parameter></literal>:</term>
+  <listitem><para>One of [ERR, WARN, INFO, DEBUG, TRACE, OFF, KEEP]. This level is applied to the domains as specified in the domains argument. Except for the special level "KEEP", all unmentioned domains are disabled entirely. "KEEP" is special and allows not to change the current setting except for the specified domains. E.g. level=KEEP and domains=PLATFORM:DEBUG will only touch the platform domain.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN s <parameter>domains</parameter></literal>:</term>
+  <listitem><para>A combination of logging domains separated by commas (','), or "NONE" to disable logging. Each domain enables logging for operations related to that domain. Available domains are: [PLATFORM, RFKILL, ETHER, WIFI, BT, MB, DHCP4, DHCP6, PPP, WIFI_SCAN, IP4, IP6, AUTOIP4, DNS, VPN, SHARING, SUPPLICANT, AGENTS, SETTINGS, SUSPEND, CORE, DEVICE, OLPC, WIMAX, INFINIBAND, FIREWALL, ADSL, BOND, VLAN, BRIDGE, DBUS_PROPS, TEAM, CONCHECK, DCB, DISPATCH, AUDIT]. In addition to these domains, the following special domains can be used: [NONE, ALL, DEFAULT, DHCP, IP]. You can also specify that some domains should log at a different level from the default by appending a colon (':') and a log level (eg, 'WIFI:DEBUG'). If an empty string is given, the log level is changed but the current set of log domains remains unchanged.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.GetLogging">
+  <title>The GetLogging() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.GetLogging"><primary sortas="Manager.GetLogging">org.freedesktop.NetworkManager.GetLogging()</primary></indexterm>
+<programlisting>
+GetLogging (OUT s level,
+            OUT s domains);
+</programlisting>
+<para>        Get current logging verbosity level and operations domains.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>OUT s <parameter>level</parameter></literal>:</term>
+  <listitem><para>One of [ERR, WARN, INFO, DEBUG, TRACE].</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT s <parameter>domains</parameter></literal>:</term>
+  <listitem><para>For available domains see SetLogging() call.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.CheckConnectivity">
+  <title>The CheckConnectivity() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.CheckConnectivity"><primary sortas="Manager.CheckConnectivity">org.freedesktop.NetworkManager.CheckConnectivity()</primary></indexterm>
+<programlisting>
+CheckConnectivity (OUT u connectivity);
+</programlisting>
+<para>        Re-check the network connectivity state.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>OUT u <parameter>connectivity</parameter></literal>:</term>
+  <listitem><para>(<link linkend="NMConnectivityState">NMConnectivityState</link>) The current connectivity state.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.state">
+  <title>The state() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.state"><primary sortas="Manager.state">org.freedesktop.NetworkManager.state()</primary></indexterm>
+<programlisting>
+state (OUT u state);
+</programlisting>
+<para>        The overall networking state as determined by the NetworkManager daemon,
+        based on the state of network devices under it's management.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>OUT u <parameter>state</parameter></literal>:</term>
+  <listitem><para><link linkend="NMState">NMState</link></para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+</refsect1>
+<refsect1 role="details" id="gdbus-signals-org.freedesktop.NetworkManager">
+  <title role="details.title">Signal Details</title>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager.CheckPermissions">
+  <title>The "CheckPermissions" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager.CheckPermissions"><primary sortas="Manager::CheckPermissions">org.freedesktop.NetworkManager::CheckPermissions</primary></indexterm>
+<programlisting>
+CheckPermissions ();
+</programlisting>
+<para>        Emitted when system authorization details change, indicating that clients
+        may wish to recheck permissions with GetPermissions.
+</para>
+</refsect2>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager.StateChanged">
+  <title>The "StateChanged" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager.StateChanged"><primary sortas="Manager::StateChanged">org.freedesktop.NetworkManager::StateChanged</primary></indexterm>
+<programlisting>
+StateChanged (u state);
+</programlisting>
+<para>        NetworkManager's state changed.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>u <parameter>state</parameter></literal>:</term>
+  <listitem><para>(<link linkend="NMState">NMState</link>) The new state of NetworkManager.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged">
+  <title>The "PropertiesChanged" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged"><primary sortas="Manager::PropertiesChanged">org.freedesktop.NetworkManager::PropertiesChanged</primary></indexterm>
+<programlisting>
+PropertiesChanged (a{sv} properties);
+</programlisting>
+<para>        NetworkManager's properties changed.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>a{sv} <parameter>properties</parameter></literal>:</term>
+  <listitem><para>The changed properties.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager.DeviceAdded">
+  <title>The "DeviceAdded" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager.DeviceAdded"><primary sortas="Manager::DeviceAdded">org.freedesktop.NetworkManager::DeviceAdded</primary></indexterm>
+<programlisting>
+DeviceAdded (o device_path);
+</programlisting>
+<para>        A device was added to the system
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>o <parameter>device_path</parameter></literal>:</term>
+  <listitem><para>The object path of the newly added device.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager.DeviceRemoved">
+  <title>The "DeviceRemoved" signal</title>
+  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager.DeviceRemoved"><primary sortas="Manager::DeviceRemoved">org.freedesktop.NetworkManager::DeviceRemoved</primary></indexterm>
+<programlisting>
+DeviceRemoved (o device_path);
+</programlisting>
+<para>        A device was removed from the system, and is no longer available.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>o <parameter>device_path</parameter></literal>:</term>
+  <listitem><para>The object path of the device that was just removed.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+</refsect1>
+<refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager">
+  <title role="details.title">Property Details</title>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.Devices">
+  <title>The "Devices" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.Devices"><primary sortas="Manager:Devices">org.freedesktop.NetworkManager:Devices</primary></indexterm>
+<programlisting>
+Devices  readable   ao
+</programlisting>
+<para>        The list of realized network devices. Realized devices are those which
+        have backing resources (eg from the kernel or a management daemon like
+        ModemManager, teamd, etc).
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.AllDevices">
+  <title>The "AllDevices" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.AllDevices"><primary sortas="Manager:AllDevices">org.freedesktop.NetworkManager:AllDevices</primary></indexterm>
+<programlisting>
+AllDevices  readable   ao
+</programlisting>
+<para>        The list of both realized and un-realized network devices. Un-realized
+        devices are software devices which do not yet have backing resources, but
+        for which backing resources can be created if the device is activated.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.NetworkingEnabled">
+  <title>The "NetworkingEnabled" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.NetworkingEnabled"><primary sortas="Manager:NetworkingEnabled">org.freedesktop.NetworkManager:NetworkingEnabled</primary></indexterm>
+<programlisting>
+NetworkingEnabled  readable   b
+</programlisting>
+<para>        Indicates if overall networking is currently enabled or not. See the
+        Enable() method.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.WirelessEnabled">
+  <title>The "WirelessEnabled" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.WirelessEnabled"><primary sortas="Manager:WirelessEnabled">org.freedesktop.NetworkManager:WirelessEnabled</primary></indexterm>
+<programlisting>
+WirelessEnabled  readwrite  b
+</programlisting>
+<para>        Indicates if wireless is currently enabled or not.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.WirelessHardwareEnabled">
+  <title>The "WirelessHardwareEnabled" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.WirelessHardwareEnabled"><primary sortas="Manager:WirelessHardwareEnabled">org.freedesktop.NetworkManager:WirelessHardwareEnabled</primary></indexterm>
+<programlisting>
+WirelessHardwareEnabled  readable   b
+</programlisting>
+<para>        Indicates if the wireless hardware is currently enabled, i.e. the state of
+        the RF kill switch.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.WwanEnabled">
+  <title>The "WwanEnabled" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.WwanEnabled"><primary sortas="Manager:WwanEnabled">org.freedesktop.NetworkManager:WwanEnabled</primary></indexterm>
+<programlisting>
+WwanEnabled  readwrite  b
+</programlisting>
+<para>        Indicates if mobile broadband devices are currently enabled or not.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.WwanHardwareEnabled">
+  <title>The "WwanHardwareEnabled" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.WwanHardwareEnabled"><primary sortas="Manager:WwanHardwareEnabled">org.freedesktop.NetworkManager:WwanHardwareEnabled</primary></indexterm>
+<programlisting>
+WwanHardwareEnabled  readable   b
+</programlisting>
+<para>        Indicates if the mobile broadband hardware is currently enabled, i.e. the
+        state of the RF kill switch.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.WimaxEnabled">
+  <title>The "WimaxEnabled" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.WimaxEnabled"><primary sortas="Manager:WimaxEnabled">org.freedesktop.NetworkManager:WimaxEnabled</primary></indexterm>
+<programlisting>
+WimaxEnabled  readwrite  b
+</programlisting>
+<para>        Indicates if WiMAX devices are currently enabled or not.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.WimaxHardwareEnabled">
+  <title>The "WimaxHardwareEnabled" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.WimaxHardwareEnabled"><primary sortas="Manager:WimaxHardwareEnabled">org.freedesktop.NetworkManager:WimaxHardwareEnabled</primary></indexterm>
+<programlisting>
+WimaxHardwareEnabled  readable   b
+</programlisting>
+<para>        Indicates if the WiMAX hardware is currently enabled, i.e. the state of
+        the RF kill switch.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.ActiveConnections">
+  <title>The "ActiveConnections" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.ActiveConnections"><primary sortas="Manager:ActiveConnections">org.freedesktop.NetworkManager:ActiveConnections</primary></indexterm>
+<programlisting>
+ActiveConnections  readable   ao
+</programlisting>
+<para>        List of active connection object paths.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.PrimaryConnection">
+  <title>The "PrimaryConnection" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.PrimaryConnection"><primary sortas="Manager:PrimaryConnection">org.freedesktop.NetworkManager:PrimaryConnection</primary></indexterm>
+<programlisting>
+PrimaryConnection  readable   o
+</programlisting>
+<para>        The object path of the "primary" active connection being used to access
+        the network. In particular, if there is no VPN active, or the VPN does not
+        have the default route, then this indicates the connection that has the
+        default route. If there is a VPN active with the default route, then this
+        indicates the connection that contains the route to the VPN endpoint.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.PrimaryConnectionType">
+  <title>The "PrimaryConnectionType" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.PrimaryConnectionType"><primary sortas="Manager:PrimaryConnectionType">org.freedesktop.NetworkManager:PrimaryConnectionType</primary></indexterm>
+<programlisting>
+PrimaryConnectionType  readable   s
+</programlisting>
+<para>        The connection type of the "primary" active connection being used to
+        access the network. This is the same as the Type property on the object
+        indicated by PrimaryConnection.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.Metered">
+  <title>The "Metered" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.Metered"><primary sortas="Manager:Metered">org.freedesktop.NetworkManager:Metered</primary></indexterm>
+<programlisting>
+Metered  readable   u
+</programlisting>
+<para>        Indicates whether the connectivity is metered. This is equivalent to the
+        metered property of the device associated with the primary connection.
+</para><para>        Returns: <link linkend="NMMetered">NMMetered</link>
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.ActivatingConnection">
+  <title>The "ActivatingConnection" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.ActivatingConnection"><primary sortas="Manager:ActivatingConnection">org.freedesktop.NetworkManager:ActivatingConnection</primary></indexterm>
+<programlisting>
+ActivatingConnection  readable   o
+</programlisting>
+<para>        The object path of an active connection that is currently being activated
+        and which is expected to become the new PrimaryConnection when it finishes
+        activating.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.Startup">
+  <title>The "Startup" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.Startup"><primary sortas="Manager:Startup">org.freedesktop.NetworkManager:Startup</primary></indexterm>
+<programlisting>
+Startup  readable   b
+</programlisting>
+<para>        Indicates whether NM is still starting up; this becomes FALSE when NM has
+        finished attempting to activate every connection that it might be able to
+        activate at startup.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.Version">
+  <title>The "Version" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.Version"><primary sortas="Manager:Version">org.freedesktop.NetworkManager:Version</primary></indexterm>
+<programlisting>
+Version  readable   s
+</programlisting>
+<para>        NetworkManager version.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.State">
+  <title>The "State" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.State"><primary sortas="Manager:State">org.freedesktop.NetworkManager:State</primary></indexterm>
+<programlisting>
+State  readable   u
+</programlisting>
+<para>        The overall state of the NetworkManager daemon.
+</para><para>        Returns: <link linkend="NMState">NMState</link>
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.Connectivity">
+  <title>The "Connectivity" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.Connectivity"><primary sortas="Manager:Connectivity">org.freedesktop.NetworkManager:Connectivity</primary></indexterm>
+<programlisting>
+Connectivity  readable   u
+</programlisting>
+<para>        The network connectivity state.
+</para><para>        Returns: <link linkend="NMConnectivityState">NMConnectivityState</link>
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.GlobalDnsConfiguration">
+  <title>The "GlobalDnsConfiguration" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.GlobalDnsConfiguration"><primary sortas="Manager:GlobalDnsConfiguration">org.freedesktop.NetworkManager:GlobalDnsConfiguration</primary></indexterm>
+<programlisting>
+GlobalDnsConfiguration  readwrite  a{sv}
+</programlisting>
+<para>        Dictionary of global DNS settings where the key is one of "searches",
+        "options" and "domains". The values for the "searches" and "options" keys
+        are string arrays describing the list of search domains and resolver
+        options, respectively. The value of the "domains" key is a second-level
+        dictionary, where each key is a domain name, and each key's value is a
+        third-level dictionary with the keys "servers" and "options". "servers" is
+        a string array of DNS servers, "options" is a string array of
+        domain-specific options.
+</para>
+</refsect2>
+</refsect1>
+</refentry>
+

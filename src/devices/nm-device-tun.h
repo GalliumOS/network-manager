@@ -21,8 +21,6 @@
 #ifndef __NETWORKMANAGER_DEVICE_TUN_H__
 #define __NETWORKMANAGER_DEVICE_TUN_H__
 
-#include <glib-object.h>
-
 #include "nm-device-generic.h"
 
 G_BEGIN_DECLS
@@ -41,8 +39,8 @@ G_BEGIN_DECLS
 #define NM_DEVICE_TUN_VNET_HDR    "vnet-hdr"
 #define NM_DEVICE_TUN_MULTI_QUEUE "multi-queue"
 
-typedef NMDeviceGeneric NMDeviceTun;
-typedef NMDeviceGenericClass NMDeviceTunClass;
+typedef NMDevice NMDeviceTun;
+typedef NMDeviceClass NMDeviceTunClass;
 
 GType nm_device_tun_get_type (void);
 

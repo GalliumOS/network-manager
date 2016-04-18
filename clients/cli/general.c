@@ -14,47 +14,40 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2010 - 2014 Red Hat, Inc.
+ * Copyright 2010 - 2015 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 #include <stdlib.h>
-
-#include <glib.h>
-#include <glib/gi18n.h>
 
 #include "polkit-agent.h"
 #include "utils.h"
 #include "general.h"
 
+#include "devices.h"
+#include "connections.h"
 
 /* Available fields for 'general status' */
 static NmcOutputField nmc_fields_nm_status[] = {
-	{"RUNNING",      N_("RUNNING"),      15},  /* 0 */
-	{"VERSION",      N_("VERSION"),      10},  /* 1 */
-	{"STATE",        N_("STATE"),        15},  /* 2 */
-	{"STARTUP",      N_("STARTUP"),      10},  /* 3 */
-	{"CONNECTIVITY", N_("CONNECTIVITY"), 15},  /* 4 */
-	{"NETWORKING",   N_("NETWORKING"),   13},  /* 5 */
-	{"WIFI-HW",      N_("WIFI-HW"),      15},  /* 6 */
-	{"WIFI",         N_("WIFI"),         10},  /* 7 */
-	{"WWAN-HW",      N_("WWAN-HW"),      15},  /* 8 */
-	{"WWAN",         N_("WWAN"),         10},  /* 9 */
-	{"WIMAX-HW",     N_("WIMAX-HW"),     15},  /* 10 */
-	{"WIMAX",        N_("WIMAX"),        10},  /* 11 */
-	{NULL,           NULL,                0}
+	{"RUNNING",      N_("RUNNING")},       /* 0 */
+	{"VERSION",      N_("VERSION")},       /* 1 */
+	{"STATE",        N_("STATE")},         /* 2 */
+	{"STARTUP",      N_("STARTUP")},       /* 3 */
+	{"CONNECTIVITY", N_("CONNECTIVITY")},  /* 4 */
+	{"NETWORKING",   N_("NETWORKING")},    /* 5 */
+	{"WIFI-HW",      N_("WIFI-HW")},       /* 6 */
+	{"WIFI",         N_("WIFI")},          /* 7 */
+	{"WWAN-HW",      N_("WWAN-HW")},       /* 8 */
+	{"WWAN",         N_("WWAN")},          /* 9 */
+	{"WIMAX-HW",     N_("WIMAX-HW")},      /* 10 */
+	{"WIMAX",        N_("WIMAX")},         /* 11 */
+	{NULL, NULL}
 };
-#if WITH_WIMAX
-#define NMC_FIELDS_NM_STATUS_ALL     "RUNNING,VERSION,STATE,STARTUP,CONNECTIVITY,NETWORKING,WIFI-HW,WIFI,WWAN-HW,WWAN,WIMAX-HW,WIMAX"
-#define NMC_FIELDS_NM_STATUS_SWITCH  "NETWORKING,WIFI-HW,WIFI,WWAN-HW,WWAN,WIMAX-HW,WIMAX"
-#define NMC_FIELDS_NM_STATUS_RADIO   "WIFI-HW,WIFI,WWAN-HW,WWAN,WIMAX-HW,WIMAX"
-#else
 #define NMC_FIELDS_NM_STATUS_ALL     "RUNNING,VERSION,STATE,STARTUP,CONNECTIVITY,NETWORKING,WIFI-HW,WIFI,WWAN-HW,WWAN"
 #define NMC_FIELDS_NM_STATUS_SWITCH  "NETWORKING,WIFI-HW,WIFI,WWAN-HW,WWAN"
 #define NMC_FIELDS_NM_STATUS_RADIO   "WIFI-HW,WIFI,WWAN-HW,WWAN"
-#endif
 #define NMC_FIELDS_NM_STATUS_COMMON  "STATE,CONNECTIVITY,WIFI-HW,WIFI,WWAN-HW,WWAN"
 #define NMC_FIELDS_NM_NETWORKING     "NETWORKING"
 #define NMC_FIELDS_NM_WIFI           "WIFI"
@@ -65,18 +58,18 @@ static NmcOutputField nmc_fields_nm_status[] = {
 
 /* Available fields for 'general permissions' */
 static NmcOutputField nmc_fields_nm_permissions[] = {
-	{"PERMISSION", N_("PERMISSION"), 57},  /* 0 */
-	{"VALUE",      N_("VALUE"),      10},  /* 1 */
-	{NULL,         NULL,              0}
+	{"PERMISSION", N_("PERMISSION")},  /* 0 */
+	{"VALUE",      N_("VALUE")},       /* 1 */
+	{NULL, NULL}
 };
 #define NMC_FIELDS_NM_PERMISSIONS_ALL     "PERMISSION,VALUE"
 #define NMC_FIELDS_NM_PERMISSIONS_COMMON  "PERMISSION,VALUE"
 
 /* Available fields for 'general logging' */
 static NmcOutputField nmc_fields_nm_logging[] = {
-	{"LEVEL",   N_("LEVEL"),   10},  /* 0 */
-	{"DOMAINS", N_("DOMAINS"), 70},  /* 1 */
-	{NULL,      NULL,           0}
+	{"LEVEL",   N_("LEVEL")},    /* 0 */
+	{"DOMAINS", N_("DOMAINS")},  /* 1 */
+	{NULL, NULL}
 };
 #define NMC_FIELDS_NM_LOGGING_ALL     "LEVEL,DOMAINS"
 #define NMC_FIELDS_NM_LOGGING_COMMON  "LEVEL,DOMAINS"
@@ -181,13 +174,8 @@ static void
 usage_radio (void)
 {
 	g_printerr (_("Usage: nmcli radio { COMMAND | help }\n\n"
-#if WITH_WIMAX
-	              "COMMAND := { all | wifi | wwan | wimax }\n\n"
-	              "  all | wifi | wwan | wimax [ on | off ]\n\n"
-#else
 	              "COMMAND := { all | wifi | wwan }\n\n"
 	              "  all | wifi | wwan [ on | off ]\n\n"
-#endif
 	              ));
 }
 
@@ -221,17 +209,14 @@ usage_radio_wwan (void)
 	              "Get status of mobile broadband radio switch, or turn it on/off.\n\n"));
 }
 
-#if WITH_WIMAX
 static void
-usage_radio_wimax (void)
+usage_monitor (void)
 {
-	g_printerr (_("Usage: nmcli radio wimax { ARGUMENTS | help }\n"
+	g_printerr (_("Usage: nmcli monitor\n"
 	              "\n"
-	              "ARGUMENTS := [on | off]\n"
-	              "\n"
-	              "Get status of WiMAX radio switch, or turn it on/off.\n\n"));
+	              "Monitor NetworkManager changes.\n"
+	              "Prints a line whenever a change occurs in NetworkManager\n\n"));
 }
-#endif
 
 /* quit main loop */
 static void
@@ -264,6 +249,26 @@ nm_state_to_string (NMState state)
 	}
 }
 
+static NmcTermColor
+state_to_color (NMState state)
+{
+	switch (state) {
+	case NM_STATE_CONNECTING:
+		return NMC_TERM_COLOR_YELLOW;
+	case NM_STATE_CONNECTED_LOCAL:
+	case NM_STATE_CONNECTED_SITE:
+	case NM_STATE_CONNECTED_GLOBAL:
+		return NMC_TERM_COLOR_GREEN;
+	case NM_STATE_DISCONNECTING:
+		return NMC_TERM_COLOR_YELLOW;
+	case NM_STATE_ASLEEP:
+	case NM_STATE_DISCONNECTED:
+		return NMC_TERM_COLOR_RED;
+	default:
+		return NMC_TERM_COLOR_NORMAL;
+	}
+}
+
 static const char *
 nm_connectivity_to_string (NMConnectivityState connectivity)
 {
@@ -282,18 +287,31 @@ nm_connectivity_to_string (NMConnectivityState connectivity)
 	}
 }
 
+static NmcTermColor
+connectivity_to_color (NMConnectivityState connectivity)
+{
+	switch (connectivity) {
+	case NM_CONNECTIVITY_NONE:
+		return NMC_TERM_COLOR_RED;
+	case NM_CONNECTIVITY_PORTAL:
+	case NM_CONNECTIVITY_LIMITED:
+		return NMC_TERM_COLOR_YELLOW;
+	case NM_CONNECTIVITY_FULL:
+		return NMC_TERM_COLOR_GREEN;
+	default:
+		return NMC_TERM_COLOR_NORMAL;
+	}
+}
+
 static gboolean
 show_nm_status (NmCli *nmc, const char *pretty_header_name, const char *print_flds)
 {
 	gboolean startup = FALSE;
 	NMState state = NM_STATE_UNKNOWN;
 	NMConnectivityState connectivity = NM_CONNECTIVITY_UNKNOWN;
-	const char *net_enabled_str;
-	const char *wireless_hw_enabled_str, *wireless_enabled_str;
-	const char *wwan_hw_enabled_str, *wwan_enabled_str;
-#if WITH_WIMAX
-	const char *wimax_hw_enabled_str, *wimax_enabled_str;
-#endif
+	gboolean net_enabled;
+	gboolean wireless_hw_enabled, wireless_enabled;
+	gboolean wwan_hw_enabled, wwan_enabled;
 	GError *error = NULL;
 	const char *fields_str;
 	const char *fields_all =    print_flds ? print_flds : NMC_FIELDS_NM_STATUS_ALL;
@@ -333,15 +351,11 @@ show_nm_status (NmCli *nmc, const char *pretty_header_name, const char *print_fl
 	state = nm_client_get_state (nmc->client);
 	startup = nm_client_get_startup (nmc->client);
 	connectivity = nm_client_get_connectivity (nmc->client);
-	net_enabled_str = nm_client_networking_get_enabled (nmc->client) ? _("enabled") : _("disabled");
-	wireless_hw_enabled_str = nm_client_wireless_hardware_get_enabled (nmc->client) ? _("enabled") : _("disabled");
-	wireless_enabled_str = nm_client_wireless_get_enabled (nmc->client) ? _("enabled") : _("disabled");
-	wwan_hw_enabled_str = nm_client_wwan_hardware_get_enabled (nmc->client) ? _("enabled") : _("disabled");
-	wwan_enabled_str = nm_client_wwan_get_enabled (nmc->client) ? _("enabled") : _("disabled");
-#if WITH_WIMAX
-	wimax_hw_enabled_str = nm_client_wimax_hardware_get_enabled (nmc->client) ? _("enabled") : _("disabled");
-	wimax_enabled_str = nm_client_wimax_get_enabled (nmc->client) ? _("enabled") : _("disabled");
-#endif
+	net_enabled = nm_client_networking_get_enabled (nmc->client);
+	wireless_hw_enabled = nm_client_wireless_hardware_get_enabled (nmc->client);
+	wireless_enabled = nm_client_wireless_get_enabled (nmc->client);
+	wwan_hw_enabled = nm_client_wwan_hardware_get_enabled (nmc->client);
+	wwan_enabled = nm_client_wwan_get_enabled (nmc->client);
 
 	nmc->print_fields.header_name = pretty_header_name ? (char *) pretty_header_name : _("NetworkManager status");
 	arr = nmc_dup_fields_array (tmpl, tmpl_len, NMC_OF_FLAG_MAIN_HEADER_ADD | NMC_OF_FLAG_FIELD_NAMES);
@@ -353,15 +367,22 @@ show_nm_status (NmCli *nmc, const char *pretty_header_name, const char *print_fl
 	set_val_strc (arr, 2, nm_state_to_string (state));
 	set_val_strc (arr, 3, startup ? _("starting") : _("started"));
 	set_val_strc (arr, 4, nm_connectivity_to_string (connectivity));
-	set_val_strc (arr, 5, net_enabled_str);
-	set_val_strc (arr, 6, wireless_hw_enabled_str);
-	set_val_strc (arr, 7, wireless_enabled_str);
-	set_val_strc (arr, 8, wwan_hw_enabled_str);
-	set_val_strc (arr, 9, wwan_enabled_str);
-#if WITH_WIMAX
-	set_val_strc (arr, 10, wimax_hw_enabled_str);
-	set_val_strc (arr, 11, wimax_enabled_str);
-#endif
+	set_val_strc (arr, 5, net_enabled ? _("enabled") : _("disabled"));
+	set_val_strc (arr, 6, wireless_hw_enabled ? _("enabled") : _("disabled"));
+	set_val_strc (arr, 7, wireless_enabled ? _("enabled") : _("disabled"));
+	set_val_strc (arr, 8, wwan_hw_enabled ? _("enabled") : _("disabled"));
+	set_val_strc (arr, 9, wwan_enabled ? _("enabled") : _("disabled"));
+
+	/* Set colors */
+	arr[2].color = state_to_color (state);
+	arr[3].color = startup ? NMC_TERM_COLOR_YELLOW : NMC_TERM_COLOR_GREEN;
+	arr[4].color = connectivity_to_color (connectivity);
+	arr[5].color = net_enabled ? NMC_TERM_COLOR_GREEN : NMC_TERM_COLOR_RED;
+	arr[6].color = wireless_hw_enabled ? NMC_TERM_COLOR_GREEN : NMC_TERM_COLOR_RED;
+	arr[7].color = wireless_enabled ? NMC_TERM_COLOR_GREEN : NMC_TERM_COLOR_RED;
+	arr[8].color = wwan_hw_enabled ? NMC_TERM_COLOR_GREEN : NMC_TERM_COLOR_RED;
+	arr[9].color = wwan_enabled ? NMC_TERM_COLOR_GREEN : NMC_TERM_COLOR_RED;
+
 	g_ptr_array_add (nmc->output_data, arr);
 
 	print_data (nmc);  /* Print all data */
@@ -609,7 +630,7 @@ do_general (NmCli *nmc, int argc, char **argv)
 				if (next_arg (&argc, &argv) == 0)
 					g_print ("Warning: ignoring extra garbage after '%s' hostname\n", hostname);
 
-				nmc->should_wait = TRUE;
+				nmc->should_wait++;
 				nmc->get_client (nmc); /* create NMClient */
 				nm_client_save_hostname_async (nmc->client, hostname, NULL, save_hostname_cb, nmc);
 			}
@@ -867,24 +888,6 @@ do_radio (NmCli *nmc, int argc, char **argv)
 				nm_client_wwan_set_enabled (nmc->client, enable_flag);
 			}
 		}
-#if WITH_WIMAX
-		else if (matches (*argv, "wimax") == 0) {
-			if (nmc_arg_is_help (*(argv+1))) {
-				usage_radio_wimax ();
-				goto finish;
-			}
-			if (next_arg (&argc, &argv) != 0) {
-				/* no argument, show current WiMAX state */
-				nmc_switch_show (nmc, NMC_FIELDS_NM_WIMAX, _("WiMAX radio switch"));
-			} else {
-				if (!nmc_switch_parse_on_off (nmc, *(argv-1), *argv, &enable_flag))
-					goto finish;
-
-				nmc->get_client (nmc); /* create NMClient */
-				nm_client_wimax_set_enabled (nmc->client, enable_flag);
-			}
-		}
-#endif
 		else {
 			usage_radio ();
 			g_string_printf (nmc->return_text, _("Error: 'radio' command '%s' is not valid."), *argv);
@@ -897,3 +900,121 @@ finish:
 	return nmc->return_value;
 }
 
+static void
+networkmanager_running (NMClient *client, GParamSpec *param, NmCli *nmc)
+{
+	gboolean running;
+	NmcTermColor color;
+	const char *message;
+	char *str;
+
+	running = nm_client_get_nm_running (client);
+	if (running) {
+		color = NMC_TERM_COLOR_GREEN;
+		message = _("NetworkManager has started");
+	} else {
+		color = NMC_TERM_COLOR_RED;
+		message = _("NetworkManager has stopped");
+	}
+
+	str = nmc_colorize (nmc, color, NMC_TERM_FORMAT_NORMAL, message);
+	g_print ("%s\n", str);
+	g_free (str);
+}
+
+static void
+client_hostname (NMClient *client, GParamSpec *param, NmCli *nmc)
+{
+	const char *hostname;
+
+	g_object_get (client, NM_CLIENT_HOSTNAME, &hostname, NULL);
+	g_print (_("Hostname set to '%s'\n"), hostname);
+}
+
+static void
+client_primary_connection (NMClient *client, GParamSpec *param, NmCli *nmc)
+{
+	NMActiveConnection *primary;
+	const char *id;
+
+	primary = nm_client_get_primary_connection (client);
+	if (primary) {
+		id = nm_active_connection_get_id (primary);
+		if (!id)
+			id = nm_active_connection_get_uuid (primary);
+
+		g_print (_("'%s' is now the primary connection\n"), id);
+	} else {
+		g_print (_("There's no primary connection\n"));
+	}
+}
+
+static void
+client_connectivity (NMClient *client, GParamSpec *param, NmCli *nmc)
+{
+	NMConnectivityState connectivity;
+	char *str;
+
+	g_object_get (client, NM_CLIENT_CONNECTIVITY, &connectivity, NULL);
+	str = nmc_colorize (nmc, connectivity_to_color (connectivity), NMC_TERM_FORMAT_NORMAL,
+	                    _("Connectivity is now '%s'\n"), nm_connectivity_to_string (connectivity));
+	g_print ("%s", str);
+	g_free (str);
+}
+
+static void
+client_state (NMClient *client, GParamSpec *param, NmCli *nmc)
+{
+	NMState state;
+	char *str;
+
+	g_object_get (client, NM_CLIENT_STATE, &state, NULL);
+	str = nmc_colorize (nmc, state_to_color (state), NMC_TERM_FORMAT_NORMAL,
+	                    _("Networkmanager is now in the '%s' state\n"),
+	                    nm_state_to_string (state));
+	g_print ("%s", str);
+	g_free (str);
+}
+
+NMCResultCode
+do_monitor (NmCli *nmc, int argc, char **argv)
+{
+	if (argc > 0) {
+		if (!nmc_arg_is_help (*argv)) {
+			g_string_printf (nmc->return_text, _("Error: 'monitor' command '%s' is not valid."), *argv);
+			nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
+		}
+
+		usage_monitor ();
+		return nmc->return_value;
+	}
+
+	nmc->get_client (nmc); /* create NMClient */
+
+	if (!nm_client_get_nm_running (nmc->client)) {
+		char *str;
+
+		str = nmc_colorize (nmc, NMC_TERM_COLOR_RED, NMC_TERM_FORMAT_NORMAL,
+		                    _("Networkmanager is not running (waiting for it)\n"));
+		g_print ("%s", str);
+		g_free (str);
+	}
+
+	g_signal_connect (nmc->client, "notify::" NM_CLIENT_NM_RUNNING,
+	                  G_CALLBACK (networkmanager_running), nmc);
+	g_signal_connect (nmc->client, "notify::" NM_CLIENT_HOSTNAME,
+	                  G_CALLBACK (client_hostname), nmc);
+	g_signal_connect (nmc->client, "notify::" NM_CLIENT_PRIMARY_CONNECTION,
+	                  G_CALLBACK (client_primary_connection), nmc);
+	g_signal_connect (nmc->client, "notify::" NM_CLIENT_CONNECTIVITY,
+	                  G_CALLBACK (client_connectivity), nmc);
+	g_signal_connect (nmc->client, "notify::" NM_CLIENT_STATE,
+	                  G_CALLBACK (client_state), nmc);
+
+	nmc->should_wait++;
+
+	monitor_devices (nmc);
+	monitor_connections (nmc);
+
+	return NMC_RESULT_SUCCESS;
+}

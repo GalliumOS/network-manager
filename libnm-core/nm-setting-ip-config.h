@@ -130,9 +130,12 @@ void         nm_ip_route_set_attribute       (NMIPRoute   *route,
 #define NM_IS_SETTING_IP_CONFIG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_SETTING_IP_CONFIG))
 #define NM_SETTING_IP_CONFIG_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SETTING_IP_CONFIG, NMSettingIPConfigClass))
 
+#define NM_SETTING_IP_CONFIG_DAD_TIMEOUT_MAX     30000
+
 #define NM_SETTING_IP_CONFIG_METHOD             "method"
 #define NM_SETTING_IP_CONFIG_DNS                "dns"
 #define NM_SETTING_IP_CONFIG_DNS_SEARCH         "dns-search"
+#define NM_SETTING_IP_CONFIG_DNS_OPTIONS        "dns-options"
 #define NM_SETTING_IP_CONFIG_ADDRESSES          "addresses"
 #define NM_SETTING_IP_CONFIG_GATEWAY            "gateway"
 #define NM_SETTING_IP_CONFIG_ROUTES             "routes"
@@ -143,6 +146,24 @@ void         nm_ip_route_set_attribute       (NMIPRoute   *route,
 #define NM_SETTING_IP_CONFIG_DHCP_SEND_HOSTNAME "dhcp-send-hostname"
 #define NM_SETTING_IP_CONFIG_NEVER_DEFAULT      "never-default"
 #define NM_SETTING_IP_CONFIG_MAY_FAIL           "may-fail"
+#define NM_SETTING_IP_CONFIG_DAD_TIMEOUT        "dad-timeout"
+#define NM_SETTING_IP_CONFIG_DHCP_TIMEOUT       "dhcp-timeout"
+
+#define NM_SETTING_DNS_OPTION_DEBUG                     "debug"
+#define NM_SETTING_DNS_OPTION_NDOTS                     "ndots"
+#define NM_SETTING_DNS_OPTION_TIMEOUT                   "timeout"
+#define NM_SETTING_DNS_OPTION_ATTEMPTS                  "attempts"
+#define NM_SETTING_DNS_OPTION_ROTATE                    "rotate"
+#define NM_SETTING_DNS_OPTION_NO_CHECK_NAMES            "no-check-names"
+#define NM_SETTING_DNS_OPTION_INET6                     "inet6"
+#define NM_SETTING_DNS_OPTION_IP6_BYTESTRING            "ip6-bytestring"
+#define NM_SETTING_DNS_OPTION_IP6_DOTINT                "ip6-dotint"
+#define NM_SETTING_DNS_OPTION_NO_IP6_DOTINT             "no-ip6-dotint"
+#define NM_SETTING_DNS_OPTION_EDNS0                     "edns0"
+#define NM_SETTING_DNS_OPTION_SINGLE_REQUEST            "single-request"
+#define NM_SETTING_DNS_OPTION_SINGLE_REQUEST_REOPEN     "single-request-reopen"
+#define NM_SETTING_DNS_OPTION_NO_TLD_QUERY              "no-tld-query"
+#define NM_SETTING_DNS_OPTION_USE_VC                    "use-vc"
 
 struct _NMSettingIPConfig {
 	NMSetting parent;
@@ -161,33 +182,47 @@ const char   *nm_setting_ip_config_get_method                 (NMSettingIPConfig
 
 guint         nm_setting_ip_config_get_num_dns                (NMSettingIPConfig *setting);
 const char   *nm_setting_ip_config_get_dns                    (NMSettingIPConfig *setting,
-                                                               int                i);
+                                                               int                idx);
 gboolean      nm_setting_ip_config_add_dns                    (NMSettingIPConfig *setting,
                                                                const char        *dns);
 void          nm_setting_ip_config_remove_dns                 (NMSettingIPConfig *setting,
-                                                               int                i);
+                                                               int                idx);
 gboolean      nm_setting_ip_config_remove_dns_by_value        (NMSettingIPConfig *setting,
                                                                const char        *dns);
 void          nm_setting_ip_config_clear_dns                  (NMSettingIPConfig *setting);
 
 guint         nm_setting_ip_config_get_num_dns_searches       (NMSettingIPConfig *setting);
 const char   *nm_setting_ip_config_get_dns_search             (NMSettingIPConfig *setting,
-                                                               int                i);
+                                                               int                idx);
 gboolean      nm_setting_ip_config_add_dns_search             (NMSettingIPConfig *setting,
                                                                const char        *dns_search);
 void          nm_setting_ip_config_remove_dns_search          (NMSettingIPConfig *setting,
-                                                               int                i);
+                                                               int                idx);
 gboolean      nm_setting_ip_config_remove_dns_search_by_value (NMSettingIPConfig *setting,
                                                                const char        *dns_search);
 void          nm_setting_ip_config_clear_dns_searches         (NMSettingIPConfig *setting);
 
+guint         nm_setting_ip_config_get_num_dns_options        (NMSettingIPConfig *setting);
+gboolean      nm_setting_ip_config_has_dns_options            (NMSettingIPConfig *setting);
+const char   *nm_setting_ip_config_get_dns_option             (NMSettingIPConfig *setting,
+                                                               guint              idx);
+gint          nm_setting_ip_config_next_valid_dns_option      (NMSettingIPConfig *setting,
+                                                               guint              idx);
+gboolean      nm_setting_ip_config_add_dns_option             (NMSettingIPConfig *setting,
+                                                               const char        *dns_option);
+void          nm_setting_ip_config_remove_dns_option          (NMSettingIPConfig *setting,
+                                                               int                idx);
+gboolean      nm_setting_ip_config_remove_dns_option_by_value (NMSettingIPConfig *setting,
+                                                               const char        *dns_option);
+void          nm_setting_ip_config_clear_dns_options          (NMSettingIPConfig *setting, gboolean is_set);
+
 guint         nm_setting_ip_config_get_num_addresses          (NMSettingIPConfig *setting);
 NMIPAddress  *nm_setting_ip_config_get_address                (NMSettingIPConfig *setting,
-                                                               int                i);
+                                                               int                idx);
 gboolean      nm_setting_ip_config_add_address                (NMSettingIPConfig *setting,
                                                                NMIPAddress       *address);
 void          nm_setting_ip_config_remove_address             (NMSettingIPConfig *setting,
-                                                               int                i);
+                                                               int                idx);
 gboolean      nm_setting_ip_config_remove_address_by_value    (NMSettingIPConfig *setting,
                                                                NMIPAddress       *address);
 void          nm_setting_ip_config_clear_addresses            (NMSettingIPConfig *setting);
@@ -196,11 +231,11 @@ const char   *nm_setting_ip_config_get_gateway                (NMSettingIPConfig
 
 guint         nm_setting_ip_config_get_num_routes             (NMSettingIPConfig *setting);
 NMIPRoute    *nm_setting_ip_config_get_route                  (NMSettingIPConfig *setting,
-                                                               int                i);
+                                                               int                idx);
 gboolean      nm_setting_ip_config_add_route                  (NMSettingIPConfig *setting,
                                                                NMIPRoute         *route);
 void          nm_setting_ip_config_remove_route               (NMSettingIPConfig *setting,
-                                                               int                i);
+                                                               int                idx);
 gboolean      nm_setting_ip_config_remove_route_by_value      (NMSettingIPConfig *setting,
                                                                NMIPRoute         *route);
 void          nm_setting_ip_config_clear_routes               (NMSettingIPConfig *setting);
@@ -215,6 +250,10 @@ gboolean      nm_setting_ip_config_get_dhcp_send_hostname     (NMSettingIPConfig
 
 gboolean      nm_setting_ip_config_get_never_default          (NMSettingIPConfig *setting);
 gboolean      nm_setting_ip_config_get_may_fail               (NMSettingIPConfig *setting);
+NM_AVAILABLE_IN_1_2
+gint          nm_setting_ip_config_get_dad_timeout            (NMSettingIPConfig *setting);
+NM_AVAILABLE_IN_1_2
+gint          nm_setting_ip_config_get_dhcp_timeout           (NMSettingIPConfig *setting);
 
 G_END_DECLS
 

@@ -19,7 +19,7 @@
  * Copyright (C) 2005 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -29,17 +29,12 @@
 #include <sys/stat.h>
 #include <locale.h>
 
-#include <glib.h>
-#include <glib/gi18n.h>
+#include <glib/gstdio.h>
 #include <glib-unix.h>
 #include <gmodule.h>
 
-#include "nm-glib-compat.h"
-
-#include "gsystem-local-alloc.h"
 #include "main-utils.h"
 #include "NetworkManagerUtils.h"
-#include "nm-logging.h"
 
 static gboolean
 sighup_handler (gpointer user_data)
@@ -84,8 +79,11 @@ nm_main_utils_setup_signals (GMainLoop *main_loop)
 	signal (SIGPIPE, SIG_IGN);
 
 	g_unix_signal_add (SIGHUP, sighup_handler, GINT_TO_POINTER (SIGHUP));
-	g_unix_signal_add (SIGUSR1, sighup_handler, GINT_TO_POINTER (SIGUSR1));
-	g_unix_signal_add (SIGUSR2, sighup_handler, GINT_TO_POINTER (SIGUSR2));
+	if (nm_glib_check_version (2, 36, 0)) {
+		g_unix_signal_add (SIGUSR1, sighup_handler, GINT_TO_POINTER (SIGUSR1));
+		g_unix_signal_add (SIGUSR2, sighup_handler, GINT_TO_POINTER (SIGUSR2));
+	} else
+		nm_log_warn (LOGD_CORE, "glib-version: cannot handle SIGUSR1 and SIGUSR2 signals. Consider upgrading glib to 2.36.0 or newer");
 	g_unix_signal_add (SIGINT, sigint_handler, main_loop);
 	g_unix_signal_add (SIGTERM, sigterm_handler, main_loop);
 }
@@ -112,6 +110,31 @@ nm_main_utils_write_pidfile (const char *pidfile)
 		fprintf (stderr, _("Closing %s failed: %s\n"), pidfile, strerror (errno));
 
 	return success;
+}
+
+void
+nm_main_utils_ensure_statedir ()
+{
+	gs_free char *parent = NULL;
+	int errsv;
+
+	parent = g_path_get_dirname (NMSTATEDIR);
+
+	/* Ensure parent state directories exists */
+	if (   parent
+	    && parent[0] == '/'
+	    && parent[1] != '\0'
+	    && g_mkdir_with_parents (parent, 0755) != 0) {
+		errsv = errno;
+		fprintf (stderr, "Cannot create parents for '%s': %s", NMSTATEDIR, g_strerror (errsv));
+		exit (1);
+	}
+	/* Ensure state directory exists */
+	if (g_mkdir_with_parents (NMSTATEDIR, 0700) != 0) {
+		errsv = errno;
+		fprintf (stderr, "Cannot create '%s': %s", NMSTATEDIR, g_strerror (errsv));
+		exit (1);
+	}
 }
 
 void
@@ -181,7 +204,7 @@ void
 nm_main_utils_ensure_root ()
 {
 	if (getuid () != 0) {
-		fprintf (stderr, _("You must be root to run %s!\n"), str_if_set (g_get_prgname (), ""));
+		fprintf (stderr, _("You must be root to run %s!\n"), g_get_prgname () ?: "");
 		exit (1);
 	}
 }

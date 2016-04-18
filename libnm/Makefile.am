@@ -1,20 +1,23 @@
 include $(GLIB_MAKEFILE)
 
+@GNOME_CODE_COVERAGE_RULES@
+
 SUBDIRS = . tests
 
 AM_CPPFLAGS = \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
 	-I$(top_builddir)/introspection \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
 	-I$(top_srcdir)/libnm \
 	-I$(top_builddir)/libnm \
 	-DG_LOG_DOMAIN=\""libnm"\" \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIB \
 	$(GLIB_CFLAGS) \
 	$(GUDEV_CFLAGS) \
-	-DNMRUNDIR=\"$(nmrundir)\"
+	-DNMRUNDIR=\"$(nmrundir)\" \
+	$(CODE_COVERAGE_CFLAGS)
 
 include $(top_srcdir)/libnm-core/Makefile.libnm-core
 
@@ -25,6 +28,7 @@ lib_LTLIBRARIES = libnm.la
 libnmincludedir = $(includedir)/libnm
 
 libnminclude_hfiles =			\
+	$(top_builddir)/shared/nm-version-macros.h \
 	NetworkManager.h		\
 	nm-access-point.h		\
 	nm-active-connection.h		\
@@ -36,10 +40,14 @@ libnminclude_hfiles =			\
 	nm-device-ethernet.h		\
 	nm-device-generic.h		\
 	nm-device-infiniband.h		\
+	nm-device-ip-tunnel.h		\
+	nm-device-macvlan.h		\
 	nm-device-modem.h		\
 	nm-device-olpc-mesh.h		\
 	nm-device-team.h		\
+	nm-device-tun.h			\
 	nm-device-vlan.h		\
+	nm-device-vxlan.h		\
 	nm-device-wifi.h		\
 	nm-device-wimax.h		\
 	nm-device.h			\
@@ -50,12 +58,13 @@ libnminclude_hfiles =			\
 	nm-remote-connection.h		\
 	nm-types.h			\
 	nm-vpn-connection.h		\
-	nm-vpn-editor-plugin.h		\
+	nm-vpn-editor.h		\
 	nm-wimax-nsp.h
 
 libnminclude_nointrospect_hfiles =	\
 	nm-secret-agent-old.h		\
-	nm-vpn-plugin-old.h
+	nm-vpn-plugin-old.h         \
+	nm-vpn-service-plugin.h
 
 libnminclude_HEADERS =			\
 	$(libnminclude_hfiles)		\
@@ -86,10 +95,14 @@ libnm_la_csources =			\
 	nm-device-ethernet.c		\
 	nm-device-generic.c		\
 	nm-device-infiniband.c		\
+	nm-device-ip-tunnel.c		\
+	nm-device-macvlan.c		\
 	nm-device-modem.c		\
 	nm-device-olpc-mesh.c		\
 	nm-device-team.c		\
+	nm-device-tun.c			\
 	nm-device-vlan.c		\
+	nm-device-vxlan.c		\
 	nm-device-wifi.c		\
 	nm-device-wimax.c		\
 	nm-device.c			\
@@ -108,7 +121,8 @@ libnm_la_csources =			\
 	nm-secret-agent-old.c		\
 	nm-vpn-connection.c		\
 	nm-vpn-plugin-old.c		\
-	nm-vpn-editor-plugin.c		\
+	nm-vpn-editor.c		\
+	nm-vpn-service-plugin.c     \
 	nm-wimax-nsp.c
 
 libnm_la_SOURCES =			\
@@ -118,7 +132,7 @@ libnm_la_SOURCES =			\
 GLIB_GENERATED = nm-enum-types.h nm-enum-types.c
 nm_enum_types_sources = $(libnminclude_HEADERS)
 GLIB_MKENUMS_H_FLAGS = --identifier-prefix NM --fhead '\#include <nm-core-enum-types.h>\n'
-GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM
+GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM --fhead '\#include "nm-default.h"\n'
 
 libnm_la_LIBADD = \
 	$(top_builddir)/libnm-core/libnm-core.la \
@@ -127,10 +141,13 @@ libnm_la_LIBADD = \
 	$(UUID_LIBS) \
 	$(GUDEV_LIBS)
 
+libnm_la_LDFLAGS = \
+	$(CODE_COVERAGE_LDFLAGS)
+
 SYMBOL_VIS_FILE=$(srcdir)/libnm.ver
 
 libnm_la_LDFLAGS = -Wl,--version-script=$(SYMBOL_VIS_FILE) \
-	-version-info "0:0:0"
+	-version-info "1:0:1"
 
 ###
 

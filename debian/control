@@ -16,7 +16,7 @@ Build-Depends: debhelper (>= 9),
                libnl-3-dev (>= 3.2.8),
                libnl-route-3-dev (>= 3.2.8),
                libnl-genl-3-dev (>= 3.2.8),
-               ppp-dev (>= 2.4.6),
+               ppp-dev (>= 2.4.7-1+1),
                libpolkit-gobject-1-dev,
                libpolkit-agent-1-dev (>= 0.97),
                libgnutls-dev,
@@ -28,7 +28,7 @@ Build-Depends: debhelper (>= 9),
                libgudev-1.0-dev (>= 165),
                libgirepository1.0-dev (>= 0.10.7-1~),
                gobject-introspection (>= 0.9.12-4~),
-               libsoup2.4-dev (>= 2.26),
+               libsoup2.4-dev (>= 2.40),
                gtk-doc-tools,
                perl,
                libyaml-perl,
@@ -38,13 +38,14 @@ Build-Depends: debhelper (>= 9),
                libreadline-dev,
                libnewt-dev (>= 0.52.15),
                libbluetooth-dev (>= 5),
+               dbus <!nocheck>,
+               python-gi <!nocheck>,
                valac (>= 0.17.1.24),
                dbus-test-runner,
-               python-dbus,
-               python-gi,
-Standards-Version: 3.9.6
+               python-dbus <!nocheck>
+Standards-Version: 3.9.7
 Vcs-Bzr: https://code.launchpad.net/~network-manager/network-manager/ubuntu
-Homepage: http://www.gnome.org/projects/NetworkManager/
+Homepage: https://wiki.gnome.org/Projects/NetworkManager
 XS-Testsuite: autopkgtest
 
 Package: network-manager
@@ -246,24 +247,6 @@ Description: GObject-based client library for NetworkManager (development files)
  services.
  .
  This package contains header and development files.
-
-Package: network-manager-dbg
-Architecture: linux-any
-Section: debug
-Priority: extra
-Depends: ${misc:Depends},
-         network-manager (= ${binary:Version}),
-         libnm-util2 (= ${binary:Version}),
-         libnm-glib4 (= ${binary:Version}),
-         libnm-glib-vpn1 (= ${binary:Version})
-Description: network management framework (debugging symbols)
- NetworkManager is a system network service that manages your network devices
- and connections, attempting to keep active network connectivity when
- available. It manages ethernet, WiFi, mobile broadband (WWAN), and PPPoE
- devices, and provides VPN integration with a variety of different VPN
- services.
- .
- This package contains detached debugging symbols.
 
 Package: gir1.2-networkmanager-1.0
 Section: introspection

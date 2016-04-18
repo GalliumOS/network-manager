@@ -21,7 +21,12 @@
 #ifndef __NM_UTILS_PRIVATE_H__
 #define __NM_UTILS_PRIVATE_H__
 
+#ifdef __NETWORKMANAGER_TYPES_H__
+#error "nm-utils-private.h" must not be used outside of libnm-core/. Do you want "nm-core-internal.h"?
+#endif
+
 #include "nm-setting-private.h"
+#include "nm-setting-ip-config.h"
 
 gboolean    _nm_utils_string_slist_validate (GSList *list,
                                              const char **valid_values);

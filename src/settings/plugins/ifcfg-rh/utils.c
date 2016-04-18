@@ -18,18 +18,15 @@
  * (C) Copyright 2008 - 2012 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
-#include <glib.h>
+#include "utils.h"
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "nm-core-internal.h"
-#include "nm-macros-internal.h"
 #include "NetworkManagerUtils.h"
-#include "gsystem-local-alloc.h"
-
-#include "utils.h"
 #include "shvar.h"
 
 /*
@@ -215,8 +212,8 @@ utils_get_ifcfg_name (const char *file, gboolean only_ifcfg)
 
 #define MATCH_TAG_AND_RETURN(name, TAG) \
 	G_STMT_START { \
-		if (strncmp (name, TAG, STRLEN (TAG)) == 0) { \
-			name += STRLEN (TAG); \
+		if (strncmp (name, TAG, NM_STRLEN (TAG)) == 0) { \
+			name += NM_STRLEN (TAG); \
 			if (name[0] == '\0') \
 				return NULL; \
 			else \
@@ -437,8 +434,8 @@ utils_detect_ifcfg_path (const char *path, gboolean only_ifcfg)
 
 	base = g_path_get_basename (path);
 
-	if (strncmp (base, IFCFG_TAG, STRLEN (IFCFG_TAG)) == 0) {
-		if (base[STRLEN (IFCFG_TAG)] == '\0')
+	if (strncmp (base, IFCFG_TAG, NM_STRLEN (IFCFG_TAG)) == 0) {
+		if (base[NM_STRLEN (IFCFG_TAG)] == '\0')
 			return NULL;
 		if (utils_is_ifcfg_alias_file (base, NULL)) {
 			ifcfg = g_strdup (path);

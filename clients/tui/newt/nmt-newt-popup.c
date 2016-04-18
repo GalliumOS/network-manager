@@ -26,9 +26,7 @@
  * #NmtNewtForm containing an #NmtNewtListbox to select from.
  */
 
-#include "config.h"
-
-#include <glib/gi18n-lib.h>
+#include "nm-default.h"
 
 #include "nmt-newt-popup.h"
 #include "nmt-newt-form.h"

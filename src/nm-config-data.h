@@ -21,10 +21,8 @@
 #ifndef NM_CONFIG_DATA_H
 #define NM_CONFIG_DATA_H
 
-#include <glib.h>
-#include <glib-object.h>
 
-#include "nm-types.h"
+#include "nm-default.h"
 
 G_BEGIN_DECLS
 
@@ -38,7 +36,8 @@ G_BEGIN_DECLS
 
 #define NM_CONFIG_DATA_CONFIG_MAIN_FILE      "config-main-file"
 #define NM_CONFIG_DATA_CONFIG_DESCRIPTION    "config-description"
-#define NM_CONFIG_DATA_KEYFILE               "keyfile"
+#define NM_CONFIG_DATA_KEYFILE_USER          "keyfile-user"
+#define NM_CONFIG_DATA_KEYFILE_INTERN        "keyfile-intern"
 #define NM_CONFIG_DATA_CONNECTIVITY_URI      "connectivity-uri"
 #define NM_CONFIG_DATA_CONNECTIVITY_INTERVAL "connectivity-interval"
 #define NM_CONFIG_DATA_CONNECTIVITY_RESPONSE "connectivity-response"
@@ -71,9 +70,13 @@ typedef enum { /*< flags >*/
 
 	NM_CONFIG_CHANGE_CONFIG_FILES              = (1L << 3),
 	NM_CONFIG_CHANGE_VALUES                    = (1L << 4),
-	NM_CONFIG_CHANGE_CONNECTIVITY              = (1L << 5),
-	NM_CONFIG_CHANGE_NO_AUTO_DEFAULT           = (1L << 6),
-	NM_CONFIG_CHANGE_DNS_MODE                  = (1L << 7),
+	NM_CONFIG_CHANGE_VALUES_USER               = (1L << 5),
+	NM_CONFIG_CHANGE_VALUES_INTERN             = (1L << 6),
+	NM_CONFIG_CHANGE_CONNECTIVITY              = (1L << 7),
+	NM_CONFIG_CHANGE_NO_AUTO_DEFAULT           = (1L << 8),
+	NM_CONFIG_CHANGE_DNS_MODE                  = (1L << 9),
+	NM_CONFIG_CHANGE_RC_MANAGER                = (1L << 10),
+	NM_CONFIG_CHANGE_GLOBAL_DNS_CONFIG         = (1L << 11),
 
 	_NM_CONFIG_CHANGE_LAST,
 	NM_CONFIG_CHANGE_ALL                       = ((_NM_CONFIG_CHANGE_LAST - 1) << 1) - 1,
@@ -87,17 +90,25 @@ typedef struct {
 	GObjectClass parent;
 } NMConfigDataClass;
 
+typedef struct _NMGlobalDnsConfig NMGlobalDnsConfig;
+typedef struct _NMGlobalDnsDomain NMGlobalDnsDomain;
+
 GType nm_config_data_get_type (void);
 
 NMConfigData *nm_config_data_new (const char *config_main_file,
                                   const char *config_description,
                                   const char *const*no_auto_default,
-                                  GKeyFile *keyfile);
+                                  GKeyFile *keyfile_user,
+                                  GKeyFile *keyfile_intern);
+NMConfigData *nm_config_data_new_update_keyfile_intern (const NMConfigData *base, GKeyFile *keyfile_intern);
 NMConfigData *nm_config_data_new_update_no_auto_default (const NMConfigData *base, const char *const*no_auto_default);
 
 NMConfigChangeFlags nm_config_data_diff (NMConfigData *old_data, NMConfigData *new_data);
 
-void nm_config_data_log (const NMConfigData *config_data, const char *prefix);
+void nm_config_data_log (const NMConfigData *self,
+                               const char *prefix,
+                               const char *key_prefix,
+                               /* FILE* */ gpointer print_stream);
 
 const char *nm_config_data_get_config_main_file (const NMConfigData *config_data);
 const char *nm_config_data_get_config_description (const NMConfigData *config_data);
@@ -105,6 +116,7 @@ const char *nm_config_data_get_config_description (const NMConfigData *config_da
 gboolean nm_config_data_has_group (const NMConfigData *self, const char *group);
 gboolean nm_config_data_has_value (const NMConfigData *self, const char *group, const char *key, NMConfigGetValueFlags flags);
 char *nm_config_data_get_value (const NMConfigData *config_data, const char *group, const char *key, NMConfigGetValueFlags flags);
+const char *nm_config_data_get_value_cached (const NMConfigData *config_data, const char *group, const char *key, NMConfigGetValueFlags flags);
 gint nm_config_data_get_value_boolean (const NMConfigData *self, const char *group, const char *key, gint default_value);
 
 const char *nm_config_data_get_connectivity_uri (const NMConfigData *config_data);
@@ -115,9 +127,11 @@ const char *const*nm_config_data_get_no_auto_default (const NMConfigData *config
 gboolean          nm_config_data_get_no_auto_default_for_device (const NMConfigData *self, NMDevice *device);
 
 const char *nm_config_data_get_dns_mode (const NMConfigData *self);
+const char *nm_config_data_get_rc_manager (const NMConfigData *self);
 
 gboolean nm_config_data_get_ignore_carrier (const NMConfigData *self, NMDevice *device);
 gboolean nm_config_data_get_assume_ipv6ll_only (const NMConfigData *self, NMDevice *device);
+NMGlobalDnsConfig *nm_config_data_get_global_dns_config (const NMConfigData *self);
 
 char *nm_config_data_get_connection_default (const NMConfigData *self,
                                              const char *property,
@@ -125,6 +139,30 @@ char *nm_config_data_get_connection_default (const NMConfigData *self,
 
 char **nm_config_data_get_groups (const NMConfigData *self);
 char **nm_config_data_get_keys (const NMConfigData *self, const char *group);
+gboolean nm_config_data_is_intern_atomic_group (const NMConfigData *self, const char *group);
+
+GKeyFile *nm_config_data_clone_keyfile_intern (const NMConfigData *self);
+
+const char *const *nm_global_dns_config_get_searches (const NMGlobalDnsConfig *dns);
+const char *const *nm_global_dns_config_get_options (const NMGlobalDnsConfig *dns);
+guint nm_global_dns_config_get_num_domains (const NMGlobalDnsConfig *dns);
+NMGlobalDnsDomain *nm_global_dns_config_get_domain (const NMGlobalDnsConfig *dns, guint i);
+NMGlobalDnsDomain *nm_global_dns_config_lookup_domain (const NMGlobalDnsConfig *dns, const char *name);
+const char *nm_global_dns_domain_get_name (const NMGlobalDnsDomain *domain);
+const char *const *nm_global_dns_domain_get_servers (const NMGlobalDnsDomain *domain);
+const char *const *nm_global_dns_domain_get_options (const NMGlobalDnsDomain *domain);
+gboolean nm_global_dns_config_is_internal (const NMGlobalDnsConfig *dns);
+gboolean nm_global_dns_config_is_empty (const NMGlobalDnsConfig *dns);
+void nm_global_dns_config_update_checksum (const NMGlobalDnsConfig *dns, GChecksum *sum);
+void nm_global_dns_config_free (NMGlobalDnsConfig *conf);
+
+NMGlobalDnsConfig *nm_global_dns_config_from_dbus (const GValue *value, GError **error);
+void nm_global_dns_config_to_dbus (const NMGlobalDnsConfig *dns_config, GValue *value);
+
+/* private accessors */
+GKeyFile *_nm_config_data_get_keyfile (const NMConfigData *self);
+GKeyFile *_nm_config_data_get_keyfile_user (const NMConfigData *self);
+GKeyFile *_nm_config_data_get_keyfile_intern (const NMConfigData *self);
 
 G_END_DECLS
 

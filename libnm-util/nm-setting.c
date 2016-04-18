@@ -20,10 +20,9 @@
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
-#include <glib/gi18n-lib.h>
 
 #include "nm-setting.h"
 #include "nm-setting-private.h"
@@ -103,9 +102,7 @@ static void
 _ensure_registered (void)
 {
 	if (G_UNLIKELY (registered_settings == NULL)) {
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-		g_type_init ();
-#endif
+		nm_g_type_init ();
 		_nm_value_transforms_register ();
 		registered_settings = g_hash_table_new (g_str_hash, g_str_equal);
 		registered_settings_by_type = g_hash_table_new (_nm_gtype_hash, _nm_gtype_equal);
@@ -382,9 +379,6 @@ nm_setting_new_from_hash (GType setting_type, GHashTable *hash)
 	const char *prop_name;
 	GValue *src_value;
 	GObjectClass *class;
-	guint n_params = 0;
-	GParameter *params;
-	int i;
 
 	g_return_val_if_fail (G_TYPE_IS_INSTANTIATABLE (setting_type), NULL);
 	g_return_val_if_fail (hash != NULL, NULL);
@@ -393,11 +387,11 @@ nm_setting_new_from_hash (GType setting_type, GHashTable *hash)
 	 * already been used.
 	 */
 	class = g_type_class_ref (setting_type);
-	params = g_new0 (GParameter, g_hash_table_size (hash));
+
+	setting = (NMSetting *) g_object_new (setting_type, NULL);
 
 	g_hash_table_iter_init (&iter, hash);
 	while (g_hash_table_iter_next (&iter, (gpointer) &prop_name, (gpointer) &src_value)) {
-		GValue *dst_value = &params[n_params].value;
 		GParamSpec *param_spec;
 
 		param_spec = g_object_class_find_property (class, prop_name);
@@ -405,21 +399,12 @@ nm_setting_new_from_hash (GType setting_type, GHashTable *hash)
 			/* Assume that any unrecognized property either can be ignored, or
 			 * else has a backward-compatibility equivalent.
 			 */
-			g_debug ("Ignoring unrecognized property '%s'", prop_name);
 			continue;
 		}
 
-		g_value_init (dst_value, G_VALUE_TYPE (src_value));
-		g_value_copy (src_value, dst_value);
-		params[n_params++].name = prop_name;
+		nm_g_object_set_property ((GObject *) setting, prop_name, src_value, NULL);
 	}
 
-	setting = (NMSetting *) g_object_newv (setting_type, n_params, params);
-
-	for (i = 0; i < n_params; i++)
-		g_value_unset (&params[i].value);
-
-	g_free (params);
 	g_type_class_unref (class);
 
 	return setting;

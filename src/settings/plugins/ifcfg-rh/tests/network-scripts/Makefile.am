@@ -12,8 +12,11 @@ EXTRA_DIST = \
 	ifcfg-test-wired-shared-plus-ip \
 	ifcfg-test-wired-dhcp-send-hostname \
 	ifcfg-test-wired-dhcp6-only \
+	ifcfg-test-wired-autoip \
 	ifcfg-test-wired-global-gateway \
 	network-test-wired-global-gateway \
+	ifcfg-test-wired-global-gateway-ignore \
+	network-test-wired-global-gateway-ignore \
 	ifcfg-test-wired-obsolete-gateway-n \
 	ifcfg-test-wired-never-default \
 	network-test-wired-never-default \
@@ -65,11 +68,16 @@ EXTRA_DIST = \
 	ifcfg-test-wifi-band-a \
 	ifcfg-test-wifi-band-a-channel-mismatch \
 	ifcfg-test-wifi-band-bg-channel-mismatch \
+	ifcfg-test-wifi-mac-random-always \
+	ifcfg-test-wifi-mac-random-never \
+	ifcfg-test-wifi-mac-random-default \
+	ifcfg-test-wifi-mac-random-missing \
 	test_ca_cert.pem \
 	test1_key_and_cert.pem \
 	ifcfg-test-ibft \
 	ifcfg-test-static-routes-legacy \
 	route-test-static-routes-legacy \
+	ifcfg-test-sit-ignore \
 	ifcfg-test-wired-static-routes \
 	route-test-wired-static-routes \
 	ifcfg-test-wired-static-routes-legacy \
@@ -99,6 +107,10 @@ EXTRA_DIST = \
 	ifcfg-test-vlan-only-vlanid \
 	ifcfg-test-vlan-only-device \
 	ifcfg-test-vlan-physdev \
+	ifcfg-test-vlan-reorder-hdr-1 \
+	ifcfg-test-vlan-reorder-hdr-2 \
+	ifcfg-test-vlan-flags-1 \
+	ifcfg-test-vlan-flags-2 \
 	ifcfg-test-wifi-wep-no-keys \
 	ifcfg-test-permissions \
 	ifcfg-test-wifi-wep-agent-keys \
@@ -123,7 +135,10 @@ EXTRA_DIST = \
 	ifcfg-test-team-master \
 	ifcfg-test-team-port \
 	ifcfg-test-team-port-empty-config \
-	ifcfg-test-vlan-trailing-spaces
+	ifcfg-test-vlan-trailing-spaces \
+	ifcfg-test-dns-options \
+	ifcfg-test-wired-wake-on-lan \
+	ifcfg-test-wired-ipv6-only-1
 
 # make target dependencies can't have colons in their names, which ends up
 # meaning that we can't add the alias files to EXTRA_DIST

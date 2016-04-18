@@ -35,6 +35,8 @@ bridge&apos;s interface name."/>
 </setting>
 <setting name="">
 </setting>
+<setting name="ip-tunnel">
+</setting>
 <setting name="ipv4">
 <property name="dns" variable="dns" format="array of uint32" values="" default="" example="" description="Array of IP addresses of DNS servers (as network-byte-order
 integers)"/>
@@ -102,6 +104,8 @@ will be used as the metric for the route (otherwise NM will pick a
 default value appropriate to the device). Additional attributes may
 also exist on some routes."/>
 </setting>
+<setting name="macvlan">
+</setting>
 <setting name="802-11-olpc-mesh">
 </setting>
 <setting name="ppp">
@@ -119,12 +123,16 @@ also exist on some routes."/>
 be used for backward-compatibility with older daemons, to set the
 team&apos;s interface name."/>
 </setting>
+<setting name="tun">
+</setting>
 <setting name="vlan">
 <property name="interface-name" variable="interface-name" format="string" values="" default="" example="" description="Deprecated in favor of connection.interface-name, but can
 be used for backward-compatibility with older daemons, to set the
 vlan&apos;s interface name."/>
 </setting>
 <setting name="vpn">
+</setting>
+<setting name="vxlan">
 </setting>
 <setting name="wimax">
 </setting>

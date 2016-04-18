@@ -29,7 +29,6 @@
 
 #include <nm-setting.h>
 #include <nm-setting-wireless-security.h>
-#include <nm-dbus-interface.h>
 
 G_BEGIN_DECLS
 
@@ -55,6 +54,8 @@ G_BEGIN_DECLS
 #define NM_SETTING_WIRELESS_MTU         "mtu"
 #define NM_SETTING_WIRELESS_SEEN_BSSIDS "seen-bssids"
 #define NM_SETTING_WIRELESS_HIDDEN      "hidden"
+#define NM_SETTING_WIRELESS_POWERSAVE   "powersave"
+#define NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION   "mac-address-randomization"
 
 /**
  * NM_SETTING_WIRELESS_MODE_ADHOC:
@@ -78,6 +79,25 @@ G_BEGIN_DECLS
  * for this connection.
  */
 #define NM_SETTING_WIRELESS_MODE_INFRA  "infrastructure"
+
+/**
+ * NMSettingWirelessPowersave:
+ * @NM_SETTING_WIRELESS_POWERSAVE_DEFAULT: use the default value
+ * @NM_SETTING_WIRELESS_POWERSAVE_IGNORE: don't touch existing setting
+ * @NM_SETTING_WIRELESS_POWERSAVE_DISABLE: disable powersave
+ * @NM_SETTING_WIRELESS_POWERSAVE_ENABLE: enable powersave
+ *
+ * These flags indicate whether wireless powersave must be enabled.
+ **/
+typedef enum {
+	NM_SETTING_WIRELESS_POWERSAVE_DEFAULT       = 0,
+	NM_SETTING_WIRELESS_POWERSAVE_IGNORE        = 1,
+	NM_SETTING_WIRELESS_POWERSAVE_DISABLE       = 2,
+	NM_SETTING_WIRELESS_POWERSAVE_ENABLE        = 3,
+	_NM_SETTING_WIRELESS_POWERSAVE_NUM, /*< skip >*/
+	NM_SETTING_WIRELESS_POWERSAVE_LAST          =  _NM_SETTING_WIRELESS_POWERSAVE_NUM - 1, /*< skip >*/
+} NMSettingWirelessPowersave;
+
 
 struct _NMSettingWireless {
 	NMSetting parent;
@@ -118,6 +138,11 @@ void              nm_setting_wireless_clear_mac_blacklist_items   (NMSettingWire
 
 guint32           nm_setting_wireless_get_mtu                (NMSettingWireless *setting);
 gboolean          nm_setting_wireless_get_hidden             (NMSettingWireless *setting);
+NM_AVAILABLE_IN_1_2
+guint32           nm_setting_wireless_get_powersave          (NMSettingWireless *setting);
+
+NM_AVAILABLE_IN_1_2
+NMSettingMacRandomization nm_setting_wireless_get_mac_address_randomization (NMSettingWireless *setting);
 
 gboolean          nm_setting_wireless_add_seen_bssid         (NMSettingWireless *setting,
                                                               const char *bssid);

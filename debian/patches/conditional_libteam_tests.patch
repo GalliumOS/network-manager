@@ -13,7 +13,7 @@ Index: b/src/platform/tests/test-link.c
 ===================================================================
 --- a/src/platform/tests/test-link.c
 +++ b/src/platform/tests/test-link.c
-@@ -547,7 +547,9 @@ setup_tests (void)
+@@ -1841,7 +1841,9 @@ setup_tests (void)
  	g_test_add_func ("/link/internal", test_internal);
  	g_test_add_func ("/link/software/bridge", test_bridge);
  	g_test_add_func ("/link/software/bond", test_bond);
@@ -21,5 +21,5 @@ Index: b/src/platform/tests/test-link.c
  	g_test_add_func ("/link/software/team", test_team);
 +#endif
  	g_test_add_func ("/link/software/vlan", test_vlan);
+ 	g_test_add_func ("/link/software/bridge/addr", test_bridge_addr);
  
- 	if (strcmp (g_type_name (G_TYPE_FROM_INSTANCE (nm_platform_get ())), "NMFakePlatform"))

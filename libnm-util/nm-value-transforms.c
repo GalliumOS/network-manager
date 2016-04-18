@@ -19,14 +19,14 @@
  * Copyright 2005 - 2014 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 
+#include "nm-gvaluearray-compat.h"
 #include "nm-utils.h"
 #include "nm-utils-private.h"
 #include "nm-dbus-glib-types.h"
-#include "nm-glib-compat.h"
 
 static void
 _nm_utils_convert_op_to_string (const GValue *src_value, GValue *dest_value)

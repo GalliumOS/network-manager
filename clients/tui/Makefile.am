@@ -4,7 +4,8 @@ SUBDIRS = newt .
 
 AM_CPPFLAGS= \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
 	-I$(top_srcdir)/libnm \
@@ -15,7 +16,6 @@ AM_CPPFLAGS= \
 	$(NEWT_CFLAGS) \
 	$(GUDEV_CFLAGS) \
 	-DG_LOG_DOMAIN=\""nmtui"\" \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
 	-DLOCALEDIR=\""$(localedir)"\" \
 	$(NULL)
 
@@ -24,12 +24,12 @@ links = nmtui-edit nmtui-connect nmtui-hostname
 
 install-exec-hook:
 	for link in $(links); do \
-		ln -f $(DESTDIR)$(bindir)/nmtui $(DESTDIR)$(bindir)/$$link; \
+		$(LN_S) -f nmtui "$(DESTDIR)$(bindir)/$$link"; \
 	done
 
 uninstall-hook:
 	for link in $(links); do \
-		rm -f $(DESTDIR)$(bindir)/$$link; \
+		rm -f "$(DESTDIR)$(bindir)/$$link"; \
 	done
 
 nmtui_SOURCES = \
@@ -115,6 +115,8 @@ nmtui_SOURCES = \
 	nmt-widget-list.h \
 	$(srcdir)/../common/nm-secret-agent-simple.c \
 	$(srcdir)/../common/nm-secret-agent-simple.h \
+	$(srcdir)/../common/nm-vpn-helpers.c \
+	$(srcdir)/../common/nm-vpn-helpers.h \
 	$(NULL)
 
 nmtui_LDADD = \

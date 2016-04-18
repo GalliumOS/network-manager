@@ -276,9 +276,13 @@
 <a name="nm-device-wimax-error-quark"></a><h3>nm_device_wimax_error_quark ()</h3>
 <pre class="programlisting"><span class="returnvalue">GQuark</span>
 nm_device_wimax_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_error_quark</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Registers an error quark for <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> if necessary.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.2.5"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.2.6"></a><h4>Returns</h4>
 <p> the error quark used for <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> errors.</p>
 </div>
 </div>
@@ -288,9 +292,13 @@ nm_device_wimax_error_quark (<em class="parameter"><code><span class="type">void
 <pre class="programlisting"><span class="returnvalue">GObject</span> *
 nm_device_wimax_new (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *connection</code></em>,
                      <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_new</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Creates a new <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.3.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.3.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -312,7 +320,7 @@ nm_device_wimax_new (<em class="parameter"><code><a href="/usr/share/gtk-doc/htm
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.3.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.3.7"></a><h4>Returns</h4>
 <p> a new WiMAX device. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -322,9 +330,13 @@ nm_device_wimax_new (<em class="parameter"><code><a href="/usr/share/gtk-doc/htm
 <a name="nm-device-wimax-get-hw-address"></a><h3>nm_device_wimax_get_hw_address ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_device_wimax_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_hw_address</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a></p>
 <div class="refsect3">
-<a name="id-1.3.9.9.4.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.4.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -339,7 +351,7 @@ nm_device_wimax_get_hw_address (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.4.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.4.7"></a><h4>Returns</h4>
 <p> the hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -349,9 +361,13 @@ device, and must not be modified.</p>
 <a name="nm-device-wimax-get-active-nsp"></a><h3>nm_device_wimax_get_active_nsp ()</h3>
 <pre class="programlisting"><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="returnvalue">NMWimaxNsp</span></a> *
 nm_device_wimax_get_active_nsp (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_active_nsp</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Gets the active <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.5.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.5.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -366,7 +382,7 @@ nm_device_wimax_get_active_nsp (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.5.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.5.7"></a><h4>Returns</h4>
 <p> the access point or <code class="literal">NULL</code> if none is active. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -377,9 +393,13 @@ nm_device_wimax_get_active_nsp (<em class="parameter"><code><a class="link" href
 <pre class="programlisting"><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="returnvalue">NMWimaxNsp</span></a> *
 nm_device_wimax_get_nsp_by_path (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>,
                                  <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_nsp_by_path</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Gets a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> by path.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.6.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.6.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -401,7 +421,7 @@ nm_device_wimax_get_nsp_by_path (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.6.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.6.7"></a><h4>Returns</h4>
 <p> the access point or <code class="literal">NULL</code> if none is found. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -411,9 +431,13 @@ nm_device_wimax_get_nsp_by_path (<em class="parameter"><code><a class="link" hre
 <a name="nm-device-wimax-get-nsps"></a><h3>nm_device_wimax_get_nsps ()</h3>
 <pre class="programlisting">const <span class="returnvalue">GPtrArray</span> *
 nm_device_wimax_get_nsps (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *wimax</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_nsps</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Gets all the scanned NSPs of the <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.7.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.7.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -428,7 +452,7 @@ nm_device_wimax_get_nsps (<em class="parameter"><code><a class="link" href="NMDe
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.7.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.7.7"></a><h4>Returns</h4>
 <p> a <span class="type">GPtrArray</span> containing
 all the scanned <a href="NMWimaxNsp.html"><span class="type">NMWimaxNsps</span></a>.
 The returned array is owned by the client and should not be modified. </p>
@@ -440,11 +464,15 @@ The returned array is owned by the client and should not be modified. </p>
 <a name="nm-device-wimax-get-center-frequency"></a><h3>nm_device_wimax_get_center_frequency ()</h3>
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_wimax_get_center_frequency (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_center_frequency</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Gets the center frequency (in KHz) of the radio channel the device is using
 to communicate with the network when connected.  Has no meaning when the
 device is not connected.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.8.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.8.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -459,7 +487,7 @@ device is not connected.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.8.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.8.7"></a><h4>Returns</h4>
 <p> the center frequency in KHz, or 0</p>
 </div>
 </div>
@@ -468,12 +496,16 @@ device is not connected.</p>
 <a name="nm-device-wimax-get-rssi"></a><h3>nm_device_wimax_get_rssi ()</h3>
 <pre class="programlisting"><span class="returnvalue">gint</span>
 nm_device_wimax_get_rssi (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_rssi</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Gets the RSSI of the current radio link in dBm.  This value indicates how
 strong the raw received RF signal from the base station is, but does not
 indicate the overall quality of the radio link.  Has no meaning when the
 device is not connected.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.9.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.9.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -488,7 +520,7 @@ device is not connected.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.9.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.9.7"></a><h4>Returns</h4>
 <p> the RSSI in dBm, or 0</p>
 </div>
 </div>
@@ -497,11 +529,15 @@ device is not connected.</p>
 <a name="nm-device-wimax-get-cinr"></a><h3>nm_device_wimax_get_cinr ()</h3>
 <pre class="programlisting"><span class="returnvalue">gint</span>
 nm_device_wimax_get_cinr (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_cinr</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Gets the CINR (Carrier to Interference + Noise Ratio) of the current radio
 link in dB.  CINR is a more accurate measure of radio link quality.  Has no
 meaning when the device is not connected.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.10.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.10.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -516,7 +552,7 @@ meaning when the device is not connected.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.10.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.10.7"></a><h4>Returns</h4>
 <p> the CINR in dB, or 0</p>
 </div>
 </div>
@@ -525,11 +561,15 @@ meaning when the device is not connected.</p>
 <a name="nm-device-wimax-get-tx-power"></a><h3>nm_device_wimax_get_tx_power ()</h3>
 <pre class="programlisting"><span class="returnvalue">gint</span>
 nm_device_wimax_get_tx_power (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_tx_power</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Average power of the last burst transmitted by the device, in units of
 0.5 dBm.  i.e. a TxPower of -11 represents an actual device TX power of
 -5.5 dBm.  Has no meaning when the device is not connected.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.11.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.11.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -544,7 +584,7 @@ nm_device_wimax_get_tx_power (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.11.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.11.7"></a><h4>Returns</h4>
 <p> the TX power in dBm, or 0</p>
 </div>
 </div>
@@ -553,9 +593,13 @@ nm_device_wimax_get_tx_power (<em class="parameter"><code><a class="link" href="
 <a name="nm-device-wimax-get-bsid"></a><h3>nm_device_wimax_get_bsid ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_device_wimax_get_bsid (<em class="parameter"><code><a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><span class="type">NMDeviceWimax</span></a> *self</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_device_wimax_get_bsid</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Gets the ID of the serving Base Station when the device is connected.</p>
 <div class="refsect3">
-<a name="id-1.3.9.9.12.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.9.12.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -570,7 +614,7 @@ nm_device_wimax_get_bsid (<em class="parameter"><code><a class="link" href="NMDe
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.9.12.6"></a><h4>Returns</h4>
+<a name="id-1.3.9.9.12.7"></a><h4>Returns</h4>
 <p> the ID of the serving Base Station, or <code class="literal">NULL</code></p>
 </div>
 </div>
@@ -688,6 +732,10 @@ nm_device_wimax_get_bsid (<em class="parameter"><code><a class="link" href="NMDe
 <a name="NMDeviceWimax--active-nsp"></a><h3>The <code class="literal">“active-nsp”</code> property</h3>
 <pre class="programlisting">  “active-nsp”               <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *</pre>
 <p>The active <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> of the device.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax:active-nsp</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read</p>
 </div>
 <hr>
@@ -696,6 +744,10 @@ nm_device_wimax_get_bsid (<em class="parameter"><code><a class="link" href="NMDe
 <pre class="programlisting">  “bsid”                     <span class="type">gchar</span> *</pre>
 <p>The ID of the serving base station as received from the network.  Has
 no meaning when the device is not connected.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax:bsid</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read</p>
 <p>Default value: NULL</p>
 </div>
@@ -706,6 +758,10 @@ no meaning when the device is not connected.</p>
 <p>The center frequency (in KHz) of the radio channel the device is using to
 communicate with the network when connected.  Has no meaning when the
 device is not connected.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax:center-frequency</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read</p>
 <p>Default value: 0</p>
 </div>
@@ -716,6 +772,10 @@ device is not connected.</p>
 <p>CINR (Carrier to Interference + Noise Ratio) of the current radio link
 in dB.  CINR is a more accurate measure of radio link quality.  Has no
 meaning when the device is not connected.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax:cinr</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read</p>
 <p>Default value: 0</p>
 </div>
@@ -724,6 +784,10 @@ meaning when the device is not connected.</p>
 <a name="NMDeviceWimax--hw-address"></a><h3>The <code class="literal">“hw-address”</code> property</h3>
 <pre class="programlisting">  “hw-address”               <span class="type">gchar</span> *</pre>
 <p>The hardware (MAC) address of the device.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax:hw-address</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read</p>
 <p>Default value: NULL</p>
 </div>
@@ -732,6 +796,10 @@ meaning when the device is not connected.</p>
 <a name="NMDeviceWimax--nsps"></a><h3>The <code class="literal">“nsps”</code> property</h3>
 <pre class="programlisting">  “nsps”                     <span class="type">NMObjectArray</span> *</pre>
 <p>List of all WiMAX Network Service Providers the device can see.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax:nsps</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read</p>
 <p class="since">Since: 0.9.10</p>
 </div>
@@ -743,6 +811,10 @@ meaning when the device is not connected.</p>
 the raw received RF signal from the base station is, but does not
 indicate the overall quality of the radio link.  Has no meaning when the
 device is not connected.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax:rssi</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read</p>
 <p>Default value: 0</p>
 </div>
@@ -753,6 +825,10 @@ device is not connected.</p>
 <p>Average power of the last burst transmitted by the device, in units of
 0.5 dBm.  i.e. a TxPower of -11 represents an actual device TX power of
 -5.5 dBm.  Has no meaning when the device is not connected.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax:tx-power</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <p>Flags: Read</p>
 <p>Default value: 0</p>
 </div>
@@ -766,8 +842,12 @@ user_function (<a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><
                <span class="type">GObject</span>       *nsp,
                <span class="type">gpointer</span>       user_data)</pre>
 <p>Notifies that a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> is added to the wimax device.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax::nsp-added</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <div class="refsect3">
-<a name="id-1.3.9.12.2.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.12.2.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -803,8 +883,12 @@ user_function (<a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax"><
                <span class="type">GObject</span>       *nsp,
                <span class="type">gpointer</span>       user_data)</pre>
 <p>Notifies that a <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> is removed from the wimax device.</p>
+<div class="warning">
+<p><code class="literal">NMDeviceWimax::nsp-removed</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported.</p>
+</div>
 <div class="refsect3">
-<a name="id-1.3.9.12.3.5"></a><h4>Parameters</h4>
+<a name="id-1.3.9.12.3.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">

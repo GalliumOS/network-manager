@@ -18,16 +18,16 @@
  * Copyright 2010 - 2011 Red Hat, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 
-#include "nm-glib-compat.h"
 #include "nm-dbus-interface.h"
 #include "nm-secret-agent-old.h"
 #include "nm-enum-types.h"
 #include "nm-dbus-helpers.h"
 #include "nm-simple-connection.h"
+#include "nm-core-internal.h"
 
 #include "nmdbus-secret-agent.h"
 #include "nmdbus-agent-manager.h"
@@ -274,7 +274,7 @@ verify_request (NMSecretAgentOld *self,
 
 	/* Make sure the given connection is valid */
 	g_assert (out_connection);
-	connection = nm_simple_connection_new_from_dbus (connection_dict, &local);
+	connection = _nm_simple_connection_new_from_dbus (connection_dict, NM_SETTING_PARSE_FLAGS_BEST_EFFORT, &local);
 	if (connection) {
 		nm_connection_set_path (connection, connection_path);
 		*out_connection = connection;
@@ -746,9 +746,6 @@ nm_secret_agent_old_register_finish (NMSecretAgentOld *self,
  * indicating to NetworkManager that the agent will no longer provide or
  * store secrets on behalf of this user.
  *
- * It is a programmer error to attempt to unregister an agent that is not
- * registered.
- *
  * Returns: %TRUE if unregistration was successful, %FALSE on error
  **/
 gboolean
@@ -763,7 +760,6 @@ nm_secret_agent_old_unregister (NMSecretAgentOld *self,
 
 	priv = NM_SECRET_AGENT_OLD_GET_PRIVATE (self);
 
-	g_return_val_if_fail (priv->registered == TRUE, FALSE);
 	g_return_val_if_fail (priv->bus != NULL, FALSE);
 	g_return_val_if_fail (priv->manager_proxy != NULL, FALSE);
 
@@ -811,9 +807,6 @@ unregister_cb (GObject *proxy, GAsyncResult *result, gpointer user_data)
  * Asynchronously unregisters the #NMSecretAgentOld with the NetworkManager secret
  * manager, indicating to NetworkManager that the agent will no longer provide
  * or store secrets on behalf of this user.
- *
- * It is a programmer error to attempt to unregister an agent that is not
- * registered.
  **/
 void
 nm_secret_agent_old_unregister_async (NMSecretAgentOld *self,
@@ -829,7 +822,6 @@ nm_secret_agent_old_unregister_async (NMSecretAgentOld *self,
 
 	priv = NM_SECRET_AGENT_OLD_GET_PRIVATE (self);
 
-	g_return_if_fail (priv->registered == TRUE);
 	g_return_if_fail (priv->bus != NULL);
 	g_return_if_fail (priv->manager_proxy != NULL);
 

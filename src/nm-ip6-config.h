@@ -21,10 +21,9 @@
 #ifndef __NETWORKMANAGER_IP6_CONFIG_H__
 #define __NETWORKMANAGER_IP6_CONFIG_H__
 
-#include <glib-object.h>
 #include <netinet/in.h>
 
-#include "nm-types.h"
+#include "nm-exported-object.h"
 #include "nm-setting-ip6-config.h"
 
 #define NM_TYPE_IP6_CONFIG (nm_ip6_config_get_type ())
@@ -34,20 +33,30 @@
 #define NM_IS_IP6_CONFIG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_IP6_CONFIG))
 #define NM_IP6_CONFIG_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_IP6_CONFIG, NMIP6ConfigClass))
 
+struct _NMIP6ConfigPrivate;
+
 struct _NMIP6Config {
-	GObject parent;
+	NMExportedObject parent;
+
+	/* private */
+	struct _NMIP6ConfigPrivate *priv;
 };
 
 typedef struct {
-	GObjectClass parent;
+	NMExportedObjectClass parent;
 } NMIP6ConfigClass;
 
+/* internal */
+#define NM_IP6_CONFIG_IFINDEX "ifindex"
+
+/* public */
 #define NM_IP6_CONFIG_ADDRESS_DATA "address-data"
 #define NM_IP6_CONFIG_ROUTE_DATA "route-data"
 #define NM_IP6_CONFIG_GATEWAY "gateway"
 #define NM_IP6_CONFIG_NAMESERVERS "nameservers"
 #define NM_IP6_CONFIG_DOMAINS "domains"
 #define NM_IP6_CONFIG_SEARCHES "searches"
+#define NM_IP6_CONFIG_DNS_OPTIONS "dns-options"
 
 /* deprecated */
 #define NM_IP6_CONFIG_ADDRESSES "addresses"
@@ -56,11 +65,10 @@ typedef struct {
 GType nm_ip6_config_get_type (void);
 
 
-NMIP6Config * nm_ip6_config_new (void);
+NMIP6Config * nm_ip6_config_new (int ifindex);
+NMIP6Config * nm_ip6_config_new_cloned (const NMIP6Config *src);
 
-/* D-Bus integration */
-void nm_ip6_config_export (NMIP6Config *config);
-const char * nm_ip6_config_get_dbus_path (const NMIP6Config *config);
+int nm_ip6_config_get_ifindex (const NMIP6Config *config);
 
 /* Integration with nm-platform and nm-setting */
 NMIP6Config *nm_ip6_config_capture (int ifindex, gboolean capture_resolv_conf, NMSettingIP6ConfigPrivacy use_temporary);
@@ -69,7 +77,7 @@ void nm_ip6_config_merge_setting (NMIP6Config *config, NMSettingIPConfig *settin
 NMSetting *nm_ip6_config_create_setting (const NMIP6Config *config);
 
 /* Utility functions */
-void nm_ip6_config_merge (NMIP6Config *dst, const NMIP6Config *src);
+void nm_ip6_config_merge (NMIP6Config *dst, const NMIP6Config *src, NMIPConfigMergeFlags merge_flags);
 void nm_ip6_config_subtract (NMIP6Config *dst, const NMIP6Config *src);
 void nm_ip6_config_intersect (NMIP6Config *dst, const NMIP6Config *src);
 gboolean nm_ip6_config_replace (NMIP6Config *dst, const NMIP6Config *src, gboolean *relevant_changes);
@@ -81,6 +89,7 @@ void nm_ip6_config_set_never_default (NMIP6Config *config, gboolean never_defaul
 gboolean nm_ip6_config_get_never_default (const NMIP6Config *config);
 void nm_ip6_config_set_gateway (NMIP6Config *config, const struct in6_addr *);
 const struct in6_addr *nm_ip6_config_get_gateway (const NMIP6Config *config);
+gint64 nm_ip6_config_get_route_metric (const NMIP6Config *config);
 
 /* Addresses */
 void nm_ip6_config_reset_addresses (NMIP6Config *config);
@@ -88,9 +97,9 @@ void nm_ip6_config_add_address (NMIP6Config *config, const NMPlatformIP6Address 
 void nm_ip6_config_del_address (NMIP6Config *config, guint i);
 guint nm_ip6_config_get_num_addresses (const NMIP6Config *config);
 const NMPlatformIP6Address *nm_ip6_config_get_address (const NMIP6Config *config, guint i);
+const NMPlatformIP6Address *nm_ip6_config_get_address_first_nontentative (const NMIP6Config *config, gboolean linklocal);
 gboolean nm_ip6_config_address_exists (const NMIP6Config *config, const NMPlatformIP6Address *address);
 gboolean nm_ip6_config_addresses_sort (NMIP6Config *config, NMSettingIP6ConfigPrivacy use_temporary);
-
 
 /* Routes */
 void nm_ip6_config_reset_routes (NMIP6Config *config);
@@ -123,6 +132,13 @@ void nm_ip6_config_del_search (NMIP6Config *config, guint i);
 guint32 nm_ip6_config_get_num_searches (const NMIP6Config *config);
 const char * nm_ip6_config_get_search (const NMIP6Config *config, guint i);
 
+/* DNS options */
+void nm_ip6_config_reset_dns_options (NMIP6Config *config);
+void nm_ip6_config_add_dns_option (NMIP6Config *config, const char *option);
+void nm_ip6_config_del_dns_option (NMIP6Config *config, guint i);
+guint32 nm_ip6_config_get_num_dns_options (const NMIP6Config *config);
+const char * nm_ip6_config_get_dns_option (const NMIP6Config *config, guint i);
+
 /* MSS */
 void nm_ip6_config_set_mss (NMIP6Config *config, guint32 mss);
 guint32 nm_ip6_config_get_mss (const NMIP6Config *config);
@@ -134,6 +150,7 @@ gboolean nm_ip6_config_equal (const NMIP6Config *a, const NMIP6Config *b);
 /* Testing-only functions */
 
 gboolean nm_ip6_config_capture_resolv_conf (GArray *nameservers,
+                                            GPtrArray *dns_options,
                                             const char *rc_contents);
 
 #endif /* __NETWORKMANAGER_IP6_CONFIG_H__ */

@@ -22,11 +22,8 @@
 #ifndef __NETWORKMANAGER_MANAGER_H__
 #define __NETWORKMANAGER_MANAGER_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
-#include "nm-types.h"
-#include "nm-connection.h"
+#include "nm-exported-object.h"
+#include "nm-settings-connection.h"
 
 #define NM_TYPE_MANAGER            (nm_manager_get_type ())
 #define NM_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_MANAGER, NMManager))
@@ -51,23 +48,36 @@
 #define NM_MANAGER_PRIMARY_CONNECTION_TYPE "primary-connection-type"
 #define NM_MANAGER_ACTIVATING_CONNECTION "activating-connection"
 #define NM_MANAGER_DEVICES "devices"
+#define NM_MANAGER_METERED "metered"
+#define NM_MANAGER_GLOBAL_DNS_CONFIGURATION "global-dns-configuration"
+#define NM_MANAGER_ALL_DEVICES "all-devices"
 
 /* Not exported */
 #define NM_MANAGER_HOSTNAME "hostname"
 #define NM_MANAGER_SLEEPING "sleeping"
+#define NM_MANAGER_STATE_FILE "state-file"
+
+/* signals */
+#define NM_MANAGER_CHECK_PERMISSIONS         "check-permissions"
+#define NM_MANAGER_DEVICE_ADDED              "device-added"
+#define NM_MANAGER_DEVICE_REMOVED            "device-removed"
+#define NM_MANAGER_STATE_CHANGED             "state-changed"
+#define NM_MANAGER_USER_PERMISSIONS_CHANGED  "user-permissions-changed"
 
 /* Internal signals */
 #define NM_MANAGER_ACTIVE_CONNECTION_ADDED   "active-connection-added"
 #define NM_MANAGER_ACTIVE_CONNECTION_REMOVED "active-connection-removed"
 #define NM_MANAGER_CONFIGURE_QUIT            "configure-quit"
+#define NM_MANAGER_INTERNAL_DEVICE_ADDED     "internal-device-added"
+#define NM_MANAGER_INTERNAL_DEVICE_REMOVED   "internal-device-removed"
 
 
 struct _NMManager {
-	GObject parent;
+	NMExportedObject parent;
 };
 
 typedef struct {
-	GObjectClass parent;
+	NMExportedObjectClass parent;
 
 	/* Signals */
 	void (*device_added) (NMManager *manager, NMDevice *device);
@@ -77,18 +87,16 @@ typedef struct {
 
 GType nm_manager_get_type (void);
 
-/* nm_manager_new() should only be used by main.c */
-NMManager *   nm_manager_new                           (NMSettings *settings,
-                                                        const char *state_file,
+/* nm_manager_setup() should only be used by main.c */
+NMManager *   nm_manager_setup                         (const char *state_file,
                                                         gboolean initial_net_enabled,
                                                         gboolean initial_wifi_enabled,
-                                                        gboolean initial_wwan_enabled,
-                                                        gboolean initial_wimax_enabled,
-                                                        GError **error);
+                                                        gboolean initial_wwan_enabled);
 
 NMManager *   nm_manager_get                           (void);
 
-void          nm_manager_start                         (NMManager *manager);
+gboolean      nm_manager_start                         (NMManager *manager,
+                                                        GError **error);
 void          nm_manager_stop                          (NMManager *manager);
 NMState       nm_manager_get_state                     (NMManager *manager);
 const GSList *nm_manager_get_active_connections        (NMManager *manager);
@@ -101,8 +109,13 @@ const GSList *      nm_manager_get_devices             (NMManager *manager);
 NMDevice *          nm_manager_get_device_by_ifindex   (NMManager *manager,
                                                         int ifindex);
 
+char *              nm_manager_get_connection_iface (NMManager *self,
+                                                     NMConnection *connection,
+                                                     NMDevice **out_parent,
+                                                     GError **error);
+
 NMActiveConnection *nm_manager_activate_connection     (NMManager *manager,
-                                                        NMConnection *connection,
+                                                        NMSettingsConnection *connection,
                                                         const char *specific_object,
                                                         NMDevice *device,
                                                         NMAuthSubject *subject,
@@ -112,5 +125,6 @@ gboolean            nm_manager_deactivate_connection   (NMManager *manager,
                                                         const char *connection_path,
                                                         NMDeviceStateReason reason,
                                                         GError **error);
+
 
 #endif /* __NETWORKMANAGER_MANAGER_H__ */

@@ -19,7 +19,7 @@
  * Copyright 2008 Novell, Inc.
  */
 
-#include "config.h"
+#include "nm-default.h"
 
 #include <string.h>
 
@@ -31,7 +31,6 @@
 #include "nm-device-private.h"
 #include "nm-connection.h"
 #include "nm-vpn-connection.h"
-#include "nm-glib-compat.h"
 #include "nm-dbus-helpers.h"
 #include "nm-dhcp4-config.h"
 #include "nm-dhcp6-config.h"

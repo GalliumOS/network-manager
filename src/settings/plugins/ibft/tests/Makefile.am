@@ -5,7 +5,8 @@ if ENABLE_TESTS
 AM_CPPFLAGS = \
 	$(GLIB_CFLAGS) \
 	$(CODE_COVERAGE_CFLAGS) \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/shared \
+	-I$(top_builddir)/shared \
 	-I$(top_srcdir)/libnm-core \
 	-I$(top_builddir)/libnm-core \
 	-I$(top_srcdir)/src/ \
@@ -13,14 +14,12 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/settings \
 	-I$(srcdir)/../ \
 	-DG_LOG_DOMAIN=\""NetworkManager-ibft"\" \
-	-DNETWORKMANAGER_COMPILATION \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_INSIDE_DAEMON \
 	-DTEST_IBFT_DIR=\"$(abs_srcdir)\" \
 	-DTEST_SCRATCH_DIR=\"$(abs_builddir)/\"
 
 AM_LDFLAGS = \
 	$(GLIB_LIBS) \
-	$(DBUS_LIBS) \
 	$(CODE_COVERAGE_LDFLAGS)
 
 noinst_PROGRAMS = test-ibft
