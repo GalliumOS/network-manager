@@ -2,12 +2,12 @@
 .\"     Title: nmcli-examples
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 04/05/2016
+.\"      Date: 04/20/2016
 .\"    Manual: Examples
-.\"    Source: NetworkManager 1.1.93
+.\"    Source: NetworkManager 1.2.0
 .\"  Language: English
 .\"
-.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.1\&.93" "Examples"
+.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.2\&.0" "Examples"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -30,8 +30,8 @@
 .SH "NAME"
 nmcli-examples \- usage examples of nmcli
 .SH "SYNOPSIS"
-.HP \w'\fBnmcli\ \fR\fB[OPTIONS...]\fR\ 'u
-\fBnmcli \fR\fB[OPTIONS...]\fR
+.HP \w'\fBnmcli\fR\ 'u
+\fBnmcli\fR [OPTIONS...]
 .SH "DESCRIPTION"
 .PP
 \fInmcli\fR
@@ -41,8 +41,6 @@ manual page\&.
 .PP
 The purpose of this manual page is to provide you with various examples and usage scenarios of
 \fInmcli\fR\&.
-.PP
-Note: this page has "work\-in\-progress" status\&.
 .SH "EXAMPLES"
 .PP
 \fBExample\ \&1.\ \&Listing available Wi-Fi APs\fR
@@ -51,7 +49,7 @@ Note: this page has "work\-in\-progress" status\&.
 .RS 4
 .\}
 .nf
-\fB$ nmcli device wifi list\fR
+$ \fBnmcli device wifi list\fR
 *  SSID               MODE    CHAN  RATE       SIGNAL  BARS  SECURITY
    netdatacomm_local  Infra   6     54 Mbit/s  37      ▂▄__  WEP
 *  F1                 Infra   11    54 Mbit/s  98      ▂▄▆█  WPA1
@@ -81,7 +79,7 @@ will show all of them\&.
 .RS 4
 .\}
 .nf
-\fB$ nmcli \-p \-f general,wifi\-properties device show wlan0\fR
+$ \fBnmcli \-p \-f general,wifi\-properties device show wlan0\fR
 ===========================================================================
                         Device details (wlan0)
 ===========================================================================
@@ -128,7 +126,7 @@ This command shows information about a Wi\-Fi device\&.
 .RS 4
 .\}
 .nf
-\fB$ nmcli general permissions\fR
+$ \fBnmcli general permissions\fR
 PERMISSION                                                VALUE
 org\&.freedesktop\&.NetworkManager\&.enable\-disable\-network     yes
 org\&.freedesktop\&.NetworkManager\&.enable\-disable\-wifi        yes
@@ -170,7 +168,7 @@ More information about polkit can be found at http://www\&.freedesktop\&.org/wik
 .RS 4
 .\}
 .nf
-\fB$ nmcli general logging\fR
+$ \fBnmcli general logging\fR
 LEVEL  DOMAINS
 INFO   PLATFORM,RFKILL,ETHER,WIFI,BT,MB,DHCP4,DHCP6,PPP,WIFI_SCAN,IP4,IP6,A
 UTOIP4,DNS,VPN,SHARING,SUPPLICANT,AGENTS,SETTINGS,SUSPEND,CORE,DEVICE,OLPC,
@@ -189,8 +187,8 @@ This command shows current NetworkManager logging status\&.
 .RS 4
 .\}
 .nf
-\fB$ nmcli g log level DEBUG domains CORE,ETHER,IP\fR
-\fB$ nmcli g log level INFO domains DEFAULT\fR
+$ \fBnmcli g log level DEBUG domains CORE,ETHER,IP\fR
+$ \fBnmcli g log level INFO domains DEFAULT\fR
 .fi
 .if n \{\
 .RE
@@ -206,9 +204,9 @@ manual page for available logging levels and domains\&.
 .RS 4
 .\}
 .nf
-\fB$ nmcli con add type bond ifname mybond0 mode active\-backup\fR
-\fB$ nmcli con add type ethernet ifname eth1 master mybond0\fR
-\fB$ nmcli con add type ethernet ifname eth2 master mybond0\fR
+$ \fBnmcli con add type bond ifname mybond0 mode active\-backup\fR
+$ \fBnmcli con add type ethernet ifname eth1 master mybond0\fR
+$ \fBnmcli con add type ethernet ifname eth2 master mybond0\fR
 .fi
 .if n \{\
 .RE
@@ -230,9 +228,9 @@ interface, the second to
 .RS 4
 .\}
 .nf
-\fB$ nmcli con add type team con\-name Team1 ifname Team1 config team1\-master\-json\&.conf\fR
-\fB$ nmcli con add type ethernet con\-name Team1\-slave1 ifname em1 master Team1\fR
-\fB$ nmcli con add type ethernet con\-name Team1\-slave2 ifname em2 master Team1\fR
+$ \fBnmcli con add type team con\-name Team1 ifname Team1 config team1\-master\-json\&.conf\fR
+$ \fBnmcli con add type ethernet con\-name Team1\-slave1 ifname em1 master Team1\fR
+$ \fBnmcli con add type ethernet con\-name Team1\-slave2 ifname em2 master Team1\fR
 .fi
 .if n \{\
 .RE
@@ -257,8 +255,8 @@ will use its default configuration\&. You will activate the whole setup by activ
 .RS 4
 .\}
 .nf
-  \fB$ nmcli con up Team1\-slave1\fR
-  \fB$ nmcli con up Team1\-slave2\fR
+  $ \fBnmcli con up Team1\-slave1\fR
+  $ \fBnmcli con up Team1\-slave2\fR
 .fi
 .if n \{\
 .RE
@@ -272,10 +270,10 @@ By default, the created profiles are marked for auto\-activation\&. But if anoth
 .RS 4
 .\}
 .nf
-\fB$ nmcli con add type bridge con\-name TowerBridge ifname TowerBridge\fR
-\fB$ nmcli con add type ethernet con\-name br\-slave\-1 ifname ens3 master TowerBridge\fR
-\fB$ nmcli con add type ethernet con\-name br\-slave\-2 ifname ens4 master TowerBridge\fR
-\fB$ nmcli con modify TowerBridge bridge\&.stp no\fR
+$ \fBnmcli con add type bridge con\-name TowerBridge ifname TowerBridge\fR
+$ \fBnmcli con add type ethernet con\-name br\-slave\-1 ifname ens3 master TowerBridge\fR
+$ \fBnmcli con add type ethernet con\-name br\-slave\-2 ifname ens4 master TowerBridge\fR
+$ \fBnmcli con modify TowerBridge bridge\&.stp no\fR
 .fi
 .if n \{\
 .RE
@@ -294,12 +292,12 @@ interface, the second to
 .RS 4
 .\}
 .nf
-\fB$ nmcli con add con\-name my\-con\-em1 ifname em1 type ethernet \e
+$ \fBnmcli con add con\-name my\-con\-em1 ifname em1 type ethernet \e
   ip4 192\&.168\&.100\&.100/24 gw4 192\&.168\&.100\&.1 ip4 1\&.2\&.3\&.4 ip6 abbe::cafe\fR
-\fB$ nmcli con mod my\-con\-em1 ipv4\&.dns "8\&.8\&.8\&.8 8\&.8\&.4\&.4"\fR
-\fB$ nmcli con mod my\-con\-em1 +ipv4\&.dns 1\&.2\&.3\&.4\fR
-\fB$ nmcli con mod my\-con\-em1 ipv6\&.dns "2001:4860:4860::8888 2001:4860:4860::8844"\fR
-\fB$ nmcli \-p con show my\-con\-em1\fR
+$ \fBnmcli con mod my\-con\-em1 ipv4\&.dns "8\&.8\&.8\&.8 8\&.8\&.4\&.4"\fR
+$ \fBnmcli con mod my\-con\-em1 +ipv4\&.dns 1\&.2\&.3\&.4\fR
+$ \fBnmcli con mod my\-con\-em1 ipv6\&.dns "2001:4860:4860::8888 2001:4860:4860::8844"\fR
+$ \fBnmcli \-p con show my\-con\-em1\fR
 .fi
 .if n \{\
 .RE
@@ -318,7 +316,7 @@ command displays the profile so that all parameters can be reviewed\&.
 .RS 4
 .\}
 .nf
-\fB$ nmcli \-t \-f general \-e yes \-m tab dev show eth0\fR
+$ \fBnmcli \-t \-f general \-e yes \-m tab dev show eth0\fR
 GENERAL:eth0:ethernet:Intel Corporation:82567LM Gigabit Network Connection:
 e1000e:2\&.1\&.4\-k:1\&.8\-3:00\e:22\e:68\e:15\e:29\e:21:1500:100 (connected):0 (No reas
 on given):/sys/devices/pci0000\e:00/0000\e:00\e:19\&.0/net/eth0:eth0:yes:yes:no:
@@ -375,7 +373,7 @@ manual page for more information about NetworkManager dispatcher scripts\&.
 .RS 4
 .\}
 .nf
-\fB$ nmcli connection edit type ethernet\fR
+$ \fBnmcli connection edit type ethernet\fR
 
 ===| nmcli interactive connection editor |===
 

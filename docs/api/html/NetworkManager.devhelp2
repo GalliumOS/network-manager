@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<book xmlns="http://www.devhelp.net/book" title="NetworkManager D-Bus API Reference Manual" link="index.html" author="" name="NetworkManager" version="2" language="c">
+<book xmlns="http://www.devhelp.net/book" title="NetworkManager Reference Manual" link="index.html" author="" name="NetworkManager" version="2" language="c">
   <chapters>
+    <sub name="Manual Pages" link="manpages.html">
+      <sub name="nmcli" link="nmcli.html"/>
+      <sub name="nmtui" link="nmtui.html"/>
+      <sub name="nm-online" link="nm-online.html"/>
+      <sub name="NetworkManager.conf" link="NetworkManager.conf.html"/>
+      <sub name="nm-settings" link="nm-settings.html"/>
+      <sub name="nm-settings-keyfile" link="nm-settings-keyfile.html"/>
+      <sub name="nm-settings-ifcfg-rh" link="nm-settings-ifcfg-rh.html"/>
+      <sub name="nmcli-examples" link="nmcli-examples.html"/>
+      <sub name="NetworkManager" link="NetworkManager.html"/>
+    </sub>
     <sub name="D-Bus API Reference" link="spec.html">
       <sub name="Interfaces" link="spec.html#dbus-interfaces">
         <sub name="org.freedesktop.NetworkManager" link="gdbus-org.freedesktop.NetworkManager.html"/>
@@ -39,19 +50,8 @@
       </sub>
     </sub>
     <sub name="Network Configuration Setting Specification" link="ref-settings.html">
-      <sub name="Configuration Settings" link="ref-settings.html#id-1.3.3"/>
+      <sub name="Configuration Settings" link="ref-settings.html#id-1.4.3"/>
       <sub name="Secret flag types" link="secrets-flags.html"/>
-    </sub>
-    <sub name="UNIX Manual Pages" link="manpages.html">
-      <sub name="nmcli" link="nmcli.html"/>
-      <sub name="nmtui" link="nmtui.html"/>
-      <sub name="nm-online" link="nm-online.html"/>
-      <sub name="NetworkManager" link="NetworkManager.html"/>
-      <sub name="NetworkManager.conf" link="NetworkManager.conf.html"/>
-      <sub name="nmcli-examples" link="nmcli-examples.html"/>
-      <sub name="nm-settings" link="nm-settings.html"/>
-      <sub name="nm-settings-keyfile" link="nm-settings-keyfile.html"/>
-      <sub name="nm-settings-ifcfg-rh" link="nm-settings-ifcfg-rh.html"/>
     </sub>
     <sub name="Index" link="ix01.html"/>
     <sub name="License" link="license.html"/>

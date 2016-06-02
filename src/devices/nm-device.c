@@ -280,11 +280,11 @@ typedef struct _NMDevicePrivate {
 	NMIP4Config *   wwan_ip4_config; /* WWAN configuration */
 	GSList *        vpn4_configs;   /* VPNs which use this device */
 	struct {
-		gboolean v4_has;
-		gboolean v4_is_assumed;
+		bool v4_has;
+		bool v4_is_assumed;
+		bool v6_has;
+		bool v6_is_assumed;
 		NMPlatformIP4Route v4;
-		gboolean v6_has;
-		gboolean v6_is_assumed;
 		NMPlatformIP6Route v6;
 	} default_route;
 
@@ -876,6 +876,34 @@ guint32
 nm_device_get_ip6_route_metric (NMDevice *self)
 {
 	return _get_ipx_route_metric (self, FALSE);
+}
+
+static void
+_update_default_route (NMDevice *self, int addr_family, gboolean has, gboolean is_assumed)
+{
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+	bool *p_has, *p_is_assumed;
+
+	nm_assert (NM_IN_SET (addr_family, 0, AF_INET, AF_INET6));
+
+	if (addr_family == AF_INET) {
+		p_has = &priv->default_route.v4_has;
+		p_is_assumed = &priv->default_route.v4_is_assumed;
+	} else {
+		p_has = &priv->default_route.v6_has;
+		p_is_assumed = &priv->default_route.v6_is_assumed;
+	}
+
+	if (*p_has == has && *p_is_assumed == is_assumed)
+		return;
+
+	*p_has = has;
+	*p_is_assumed = is_assumed;
+
+	if (addr_family == AF_INET)
+		nm_default_route_manager_ip4_update_default_route (nm_default_route_manager_get (), self);
+	else
+		nm_default_route_manager_ip6_update_default_route (nm_default_route_manager_get (), self);
 }
 
 const NMPlatformIP4Route *
@@ -2067,8 +2095,12 @@ nm_device_unrealize (NMDevice *self, gboolean remove_resources, GError **error)
 	_LOGD (LOGD_DEVICE, "unrealize (ifindex %d)", ifindex > 0 ? ifindex : 0);
 
 	if (remove_resources) {
-		if (ifindex > 0)
+		if (NM_DEVICE_GET_CLASS (self)->unrealize) {
+			if (!NM_DEVICE_GET_CLASS (self)->unrealize (self, error))
+				return FALSE;
+		} else if (ifindex > 0) {
 			nm_platform_link_delete (NM_PLATFORM_GET, ifindex);
+		}
 	}
 
 	NM_DEVICE_GET_CLASS (self)->unrealize_notify (self);
@@ -2568,12 +2600,14 @@ nm_device_get_enslaved (NMDevice *self)
 /**
  * nm_device_removed:
  * @self: the #NMDevice
+ * @unconfigure_ip_config: whether to clear the IP config objects
+ *   of the device (provided, it is still not cleared at this point).
  *
  * Called by the manager when the device was removed. Releases the device from
  * the master in case it's enslaved.
  */
 void
-nm_device_removed (NMDevice *self)
+nm_device_removed (NMDevice *self, gboolean unconfigure_ip_config)
 {
 	NMDevicePrivate *priv;
 
@@ -2586,16 +2620,19 @@ nm_device_removed (NMDevice *self)
 		nm_device_master_release_one_slave (priv->master, self, FALSE, NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED);
 	}
 
+	if (!unconfigure_ip_config)
+		return;
+
 	/* Clean up IP configs; this does not actually deconfigure the
 	 * interface, it just clears the configuration to which policy
 	 * is reacting via NM_DEVICE_IP4_CONFIG_CHANGED/NM_DEVICE_IP6_CONFIG_CHANGED
 	 * signal. As NMPolicy registered the NMIPxConfig instances in NMDnsManager,
 	 * these would be leaked otherwise. */
-	priv->default_route.v4_has = FALSE;
-	priv->default_route.v4_is_assumed = TRUE;
+	_update_default_route (self, AF_INET,  priv->default_route.v4_has, TRUE);
+	_update_default_route (self, AF_INET6, priv->default_route.v6_has, TRUE);
+	_update_default_route (self, AF_INET,  FALSE, TRUE);
+	_update_default_route (self, AF_INET6, FALSE, TRUE);
 	nm_device_set_ip4_config (self, NULL, 0, FALSE, FALSE, NULL);
-	priv->default_route.v6_has = FALSE;
-	priv->default_route.v6_is_assumed = TRUE;
 	nm_device_set_ip6_config (self, NULL, FALSE, FALSE, NULL);
 }
 
@@ -5725,6 +5762,7 @@ rdisc_config_changed (NMRDisc *rdisc, NMRDiscConfigMap changed, NMDevice *self)
 			if (discovered_route->plen > 0) {
 				memset (&route, 0, sizeof (route));
 				route.network = discovered_route->network;
+				nm_assert (discovered_route->plen <= 128);
 				route.plen = discovered_route->plen;
 				route.gateway = discovered_route->gateway;
 				route.source = NM_IP_CONFIG_SOURCE_RDISC;
@@ -9993,20 +10031,15 @@ _cleanup_generic_post (NMDevice *self, CleanupType cleanup_type)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 
-	priv->default_route.v4_has = FALSE;
-	priv->default_route.v6_has = FALSE;
-
 	if (cleanup_type == CLEANUP_TYPE_DECONFIGURE) {
-		priv->default_route.v4_is_assumed = FALSE;
-		priv->default_route.v6_is_assumed = FALSE;
-		nm_default_route_manager_ip4_update_default_route (nm_default_route_manager_get (), self);
-		nm_default_route_manager_ip6_update_default_route (nm_default_route_manager_get (), self);
+		_update_default_route (self, AF_INET,  FALSE, FALSE);
+		_update_default_route (self, AF_INET6, FALSE, FALSE);
+	} else {
+		_update_default_route (self, AF_INET,  priv->default_route.v4_has, TRUE);
+		_update_default_route (self, AF_INET6, priv->default_route.v6_has, TRUE);
 	}
-
-	priv->default_route.v4_is_assumed = TRUE;
-	priv->default_route.v6_is_assumed = TRUE;
-	nm_default_route_manager_ip4_update_default_route (nm_default_route_manager_get (), self);
-	nm_default_route_manager_ip6_update_default_route (nm_default_route_manager_get (), self);
+	_update_default_route (self, AF_INET,  FALSE, TRUE);
+	_update_default_route (self, AF_INET6, FALSE, TRUE);
 
 	priv->v4_commit_first_time = TRUE;
 	priv->v6_commit_first_time = TRUE;

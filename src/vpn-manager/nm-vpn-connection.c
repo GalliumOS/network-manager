@@ -1210,7 +1210,7 @@ process_generic_config (NMVpnConnection *self, GVariant *dict)
 	const char *str;
 	GVariant *v;
 	guint32 u32;
-	gboolean b, success = FALSE;
+	gboolean b;
 
 	if (g_variant_lookup (dict, NM_VPN_PLUGIN_CAN_PERSIST, "b", &b) && b) {
 		/* Defaults to FALSE, so only let service indicate TRUE */
@@ -1246,17 +1246,15 @@ process_generic_config (NMVpnConnection *self, GVariant *dict)
 
 	if (g_variant_lookup (dict, NM_VPN_PLUGIN_CONFIG_EXT_GATEWAY, "u", &u32)) {
 		priv->ip4_external_gw = u32;
-		success = TRUE;
 	} else if (g_variant_lookup (dict, NM_VPN_PLUGIN_CONFIG_EXT_GATEWAY, "@ay", &v)) {
 		priv->ip6_external_gw = ip6_addr_dup_from_variant (v);
-		success = !!priv->ip6_external_gw;
 		g_variant_unref (v);
-	}
 
-	if (!success) {
-		_LOGE ("VPN gateway is neither IPv4 nor IPv6");
-		nm_vpn_connection_config_maybe_complete (self, FALSE);
-		return FALSE;
+		if (!priv->ip6_external_gw) {
+			_LOGE ("Invalid IPv6 VPN gateway address received");
+			nm_vpn_connection_config_maybe_complete (self, FALSE);
+			return FALSE;
+		}
 	}
 
 	priv->mtu = 0;
@@ -1387,11 +1385,11 @@ nm_vpn_connection_ip4_config_get (NMVpnConnection *self, GVariant *dict)
 	if (g_variant_lookup (dict, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, "u", &u32))
 		address.plen = u32;
 
-	if (address.address && address.plen) {
+	if (address.address && address.plen && address.plen <= 32) {
 		address.source = NM_IP_CONFIG_SOURCE_VPN;
 		nm_ip4_config_add_address (config, &address);
 	} else {
-		_LOGE ("invalid IP4 config received!");
+		_LOGW ("invalid IP4 config received!");
 		g_object_unref (config);
 		nm_vpn_connection_config_maybe_complete (self, FALSE);
 		return;
@@ -1439,6 +1437,9 @@ nm_vpn_connection_ip4_config_get (NMVpnConnection *self, GVariant *dict)
 				route.metric = route_metric;
 				route.source = NM_IP_CONFIG_SOURCE_VPN;
 
+				if (route.plen > 32)
+					break;
+
 				/* Ignore host routes to the VPN gateway since NM adds one itself
 				 * below.  Since NM knows more about the routing situation than
 				 * the VPN server, we want to use the NM created route instead of
@@ -1448,7 +1449,7 @@ nm_vpn_connection_ip4_config_get (NMVpnConnection *self, GVariant *dict)
 					nm_ip4_config_add_route (config, &route);
 				break;
 			default:
-				_LOGW ("VPN connection: received invalid IPv4 route");
+				break;
 			}
 			g_variant_unref (v);
 		}
@@ -1521,11 +1522,11 @@ nm_vpn_connection_ip6_config_get (NMVpnConnection *self, GVariant *dict)
 	if (g_variant_lookup (dict, NM_VPN_PLUGIN_IP6_CONFIG_PREFIX, "u", &u32))
 		address.plen = u32;
 
-	if (!IN6_IS_ADDR_UNSPECIFIED (&address.address) && address.plen) {
+	if (!IN6_IS_ADDR_UNSPECIFIED (&address.address) && address.plen && address.plen <= 128) {
 		address.source = NM_IP_CONFIG_SOURCE_VPN;
 		nm_ip6_config_add_address (config, &address);
 	} else {
-		_LOGE ("invalid IP6 config received!");
+		_LOGW ("invalid IP6 config received!");
 		g_object_unref (config);
 		nm_vpn_connection_config_maybe_complete (self, FALSE);
 		return;
@@ -1565,10 +1566,11 @@ nm_vpn_connection_ip6_config_get (NMVpnConnection *self, GVariant *dict)
 
 			memset (&route, 0, sizeof (route));
 
-			if (!ip6_addr_from_variant (dest, &route.network)) {
-				_LOGW ("VPN connection: received invalid IPv6 dest address");
+			if (!ip6_addr_from_variant (dest, &route.network))
 				goto next;
-			}
+
+			if (prefix > 128)
+				goto next;
 
 			route.plen = prefix;
 			ip6_addr_from_variant (next_hop, &route.gateway);
@@ -2017,7 +2019,10 @@ nm_vpn_connection_activate (NMVpnConnection *self,
 	s_vpn = nm_connection_get_setting_vpn (_get_applied_connection (self));
 	g_return_if_fail (s_vpn);
 
-	service = nm_setting_vpn_get_service_type (s_vpn);
+	service = nm_vpn_plugin_info_lookup_property (plugin_info,
+	                                              NM_VPN_PLUGIN_INFO_KF_GROUP_CONNECTION,
+	                                              "service");
+	g_return_if_fail (service);
 
 	if (nm_vpn_plugin_info_supports_multiple (plugin_info)) {
 		const char *path;

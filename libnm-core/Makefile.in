@@ -592,6 +592,7 @@ SUBDIRS = . tests
 AM_CPPFLAGS = -I${top_srcdir}/shared -I${top_builddir}/shared \
 	-DG_LOG_DOMAIN=\""libnm"\" -DLOCALEDIR=\"$(datadir)/locale\" \
 	-DNMCONFDIR=\"$(nmconfdir)\" -DNMLIBDIR=\"$(nmlibdir)\" \
+	-DNMPLUGINDIR=\"$(pkglibdir)\" \
 	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIB \
 	$(GLIB_CFLAGS) $(CODE_COVERAGE_CFLAGS) $(am__append_1) \
 	$(am__append_4)

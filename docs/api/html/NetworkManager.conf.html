@@ -2,12 +2,12 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>NetworkManager.conf: NetworkManager D-Bus API Reference Manual</title>
+<title>NetworkManager.conf: NetworkManager Reference Manual</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
-<link rel="home" href="index.html" title="NetworkManager D-Bus API Reference Manual">
-<link rel="up" href="manpages.html" title="UNIX Manual Pages">
-<link rel="prev" href="NetworkManager.html" title="NetworkManager">
-<link rel="next" href="nmcli-examples.html" title="nmcli-examples">
+<link rel="home" href="index.html" title="NetworkManager Reference Manual">
+<link rel="up" href="manpages.html" title="Manual Pages">
+<link rel="prev" href="nm-online.html" title="nm-online">
+<link rel="next" href="nm-settings.html" title="nm-settings">
 <meta name="generator" content="GTK-Doc V1.24 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -16,8 +16,8 @@
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="NetworkManager.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="nmcli-examples.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="p" href="nm-online.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="nm-settings.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NetworkManager.conf"></a><div class="titlepage"></div>
@@ -37,7 +37,7 @@
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.5"></a><h2>Description</h2>
+<a name="id-1.2.5.5"></a><h2>Description</h2>
 <p><code class="literal">NetworkManager.conf</code> is the configuration file for NetworkManager. It is used
     to set up various aspects of NetworkManager's behavior. The
     location of the main file and configuration directories may be changed
@@ -66,7 +66,7 @@
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.6"></a><h2>File Format</h2>
+<a name="id-1.2.5.6"></a><h2>File Format</h2>
 <p>
       The configuration file format is so-called key file (sort of
       ini-style format).  It consists of sections (groups) of
@@ -103,7 +103,7 @@ plugins-=remove-me
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.7"></a><h2>
+<a name="id-1.2.5.7"></a><h2>
 <code class="literal">main</code> section</h2>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -340,7 +340,7 @@ no-auto-default=*
 </table></div>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.8"></a><h2>
+<a name="id-1.2.5.8"></a><h2>
 <code class="literal">keyfile</code> section</h2>
 <p>This section contains keyfile-plugin-specific options, and
     is normally only used when you are not using any other
@@ -363,7 +363,7 @@ no-auto-default=*
 <tr>
 <td><p><span class="term"><code class="varname">path</code></span></p></td>
 <td><p>The location where keyfiles are read and stored.
-            This defaults to "<code class="literal">/usr/local/etc/NetworkManager/conf.d</code>".
+            This defaults to "<code class="filename">${prefix}/etc/NetworkManager/conf.d</code>".
             </p></td>
 </tr>
 <tr>
@@ -392,7 +392,7 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.9"></a><h2>
+<a name="id-1.2.5.9"></a><h2>
 <code class="literal">ifupdown</code> section</h2>
 <p>This section contains ifupdown-specific options and thus only
     has effect when using the <code class="literal">ifupdown</code> plugin.</p>
@@ -426,7 +426,7 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.10"></a><h2>
+<a name="id-1.2.5.10"></a><h2>
 <code class="literal">logging</code> section</h2>
 <p>This section controls NetworkManager's logging.  Any
     settings here are overridden by the <code class="option">--log-level</code>
@@ -499,7 +499,7 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.11"></a><h2>
+<a name="id-1.2.5.11"></a><h2>
 <code class="literal">connection</code> section</h2>
 <p>Specify default values for connections.
     </p>
@@ -513,7 +513,7 @@ ipv6.ip6-privacy=0
 <p>
     </p>
 <div class="refsect2">
-<a name="id-1.4.6.11.4"></a><h3>Supported Properties</h3>
+<a name="id-1.2.5.11.4"></a><h3>Supported Properties</h3>
 <p>
       Not all properties can be overwritten, only the following
       properties are supported to have their default values configured
@@ -582,7 +582,7 @@ ipv6.ip6-privacy=0
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.4.6.11.5"></a><h3>Sections</h3>
+<a name="id-1.2.5.11.5"></a><h3>Sections</h3>
 <p>
         You can configure multiple <code class="literal">connection</code>
         sections, by having different sections with a name that all start
@@ -660,7 +660,7 @@ ipv6.ip6-privacy=1
 </div>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.12"></a><h2>
+<a name="id-1.2.5.12"></a><h2>
 <code class="literal">connectivity</code> section</h2>
 <p>This section controls NetworkManager's optional connectivity
     checking functionality.  This allows NetworkManager to detect
@@ -706,7 +706,7 @@ ipv6.ip6-privacy=1
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.13"></a><h2>
+<a name="id-1.2.5.13"></a><h2>
 <code class="literal">global-dns</code> section</h2>
 <p>This section specifies global DNS settings that override
     connection-specific configuration.</p>
@@ -736,7 +736,7 @@ ipv6.ip6-privacy=1
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.14"></a><h2>
+<a name="id-1.2.5.14"></a><h2>
 <code class="literal">global-dns-domain</code> sections</h2>
 <p>Sections with a name starting with the "global-dns-domain-"
     prefix allow to define global DNS configuration for specific
@@ -772,7 +772,7 @@ ipv6.ip6-privacy=1
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.15"></a><h2>
+<a name="id-1.2.5.15"></a><h2>
 <code class="literal">.config</code> sections</h2>
 <p>This is a special section that contains options which apply
       to the configuration file that contains the option.
@@ -875,7 +875,7 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.16"></a><h2>Plugins</h2>
+<a name="id-1.2.5.16"></a><h2>Plugins</h2>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -959,7 +959,7 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
 </table></div>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.17"></a><h2>Appendix</h2>
+<a name="id-1.2.5.17"></a><h2>Appendix</h2>
 <div class="refsect2">
 <a name="device-spec"></a><h3>Device List Format</h3>
 <p>
@@ -1048,7 +1048,7 @@ interface-name:vboxnet*,except:interface-name:vboxnet2
 </div>
 </div>
 <div class="refsect1">
-<a name="id-1.4.6.18"></a><h2>See Also</h2>
+<a name="id-1.2.5.18"></a><h2>See Also</h2>
 <p>
       <span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">nmcli</span>(1)</span>,

@@ -2,12 +2,12 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>nm-settings-ifcfg-rh: NetworkManager D-Bus API Reference Manual</title>
+<title>nm-settings-ifcfg-rh: NetworkManager Reference Manual</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
-<link rel="home" href="index.html" title="NetworkManager D-Bus API Reference Manual">
-<link rel="up" href="manpages.html" title="UNIX Manual Pages">
+<link rel="home" href="index.html" title="NetworkManager Reference Manual">
+<link rel="up" href="manpages.html" title="Manual Pages">
 <link rel="prev" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
-<link rel="next" href="ix01.html" title="Index">
+<link rel="next" href="nmcli-examples.html" title="nmcli-examples">
 <meta name="generator" content="GTK-Doc V1.24 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -17,7 +17,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="nm-settings-keyfile.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="ix01.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="nmcli-examples.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="nm-settings-ifcfg-rh"></a><div class="titlepage"></div>
@@ -249,7 +249,7 @@ DEVICETYPE=TeamPort
           are NetworkManager specific extensions not understood by traditional initscripts.
         </p>
 <div class="table">
-<a name="id-1.4.10.7.3"></a><p class="title"><b>Table 69. 802-1x setting</b></p>
+<a name="id-1.2.8.7.3"></a><p class="title"><b>Table 39. 802-1x setting</b></p>
 <div class="table-contents"><table summary="802-1x setting" border="1">
 <colgroup>
 <col>
@@ -444,7 +444,7 @@ Example: </strong></span>IEEE_8021X_INNER_CLIENT_CERT=/home/joe/mycert.crt</td>
 <td align="left">IEEE_8021X_PASSWORD_FLAGS<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">Password flags for IEEE_8021X_PASSWORD password. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for _FLAGS values)</td>
+<td align="left">Password flags for IEEE_8021X_PASSWORD password. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
 </tr>
 <tr>
 <td align="left">password-raw</td>
@@ -479,7 +479,7 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 <td align="left">IEEE_8021X_PRIVATE_KEY_PASSWORD_FLAGS<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">Password flags for IEEE_8021X_PRIVATE_KEY_PASSWORD password. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for _FLAGS values)</td>
+<td align="left">Password flags for IEEE_8021X_PRIVATE_KEY_PASSWORD password. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
 </tr>
 <tr>
 <td align="left">phase2-private-key</td>
@@ -500,7 +500,7 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 <td align="left">IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD_FLAGS<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">Password flags for IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD password. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for _FLAGS values)</td>
+<td align="left">Password flags for IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD password. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
 </tr>
 <tr>
 <td align="left">pin</td>
@@ -524,7 +524,7 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.4"></a><p class="title"><b>Table 70. bond setting</b></p>
+<a name="id-1.2.8.7.4"></a><p class="title"><b>Table 40. bond setting</b></p>
 <div class="table-contents"><table summary="bond setting" border="1">
 <colgroup>
 <col>
@@ -549,7 +549,7 @@ Example: </strong></span>BONDING_OPTS="miimon=100 mode=broadcast"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.5"></a><p class="title"><b>Table 71. bridge-port setting</b></p>
+<a name="id-1.2.8.7.5"></a><p class="title"><b>Table 41. bridge-port setting</b></p>
 <div class="table-contents"><table summary="bridge-port setting" border="1">
 <colgroup>
 <col>
@@ -590,7 +590,7 @@ Allowed values: </strong></span>1 - 65535</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.6"></a><p class="title"><b>Table 72. bridge setting</b></p>
+<a name="id-1.2.8.7.6"></a><p class="title"><b>Table 42. bridge setting</b></p>
 <div class="table-contents"><table summary="bridge setting" border="1">
 <colgroup>
 <col>
@@ -670,7 +670,7 @@ Allowed values: </strong></span>0 or 1</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.7"></a><p class="title"><b>Table 73. connection setting</b></p>
+<a name="id-1.2.8.7.7"></a><p class="title"><b>Table 43. connection setting</b></p>
 <div class="table-contents"><table summary="connection setting" border="1">
 <colgroup>
 <col>
@@ -809,7 +809,7 @@ Allowed values: </strong></span>boolean value or 'rx'</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.8"></a><p class="title"><b>Table 74. dcb setting</b></p>
+<a name="id-1.2.8.7.8"></a><p class="title"><b>Table 44. dcb setting</b></p>
 <div class="table-contents"><table summary="dcb setting" border="1">
 <colgroup>
 <col>
@@ -944,7 +944,7 @@ Example: </strong></span>DCB_PG_UP2TC=01623701</td>
           used explicitly to enable DCB so that the rest of the DCB_* variables can apply.
         </p>
 <div class="table">
-<a name="id-1.4.10.7.10"></a><p class="title"><b>Table 75. infiniband setting</b></p>
+<a name="id-1.2.8.7.10"></a><p class="title"><b>Table 45. infiniband setting</b></p>
 <div class="table-contents"><table summary="infiniband setting" border="1">
 <colgroup>
 <col>
@@ -999,7 +999,7 @@ Example: </strong></span>PHYSDEV=ib0</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.11"></a><p class="title"><b>Table 76. ip-tunnel setting</b></p>
+<a name="id-1.2.8.7.11"></a><p class="title"><b>Table 46. ip-tunnel setting</b></p>
 <div class="table-contents"><table summary="ip-tunnel setting" border="1">
 <colgroup>
 <col>
@@ -1017,7 +1017,7 @@ Example: </strong></span>PHYSDEV=ib0</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.12"></a><p class="title"><b>Table 77. ipv4 setting</b></p>
+<a name="id-1.2.8.7.12"></a><p class="title"><b>Table 47. ipv4 setting</b></p>
 <div class="table-contents"><table summary="ipv4 setting" border="1">
 <colgroup>
 <col>
@@ -1160,7 +1160,7 @@ Example: </strong></span>DHCP_FQDN=foo.bar.com</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.13"></a><p class="title"><b>Table 78. ipv6 setting</b></p>
+<a name="id-1.2.8.7.13"></a><p class="title"><b>Table 48. ipv6 setting</b></p>
 <div class="table-contents"><table summary="ipv6 setting" border="1">
 <colgroup>
 <col>
@@ -1280,7 +1280,7 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.14"></a><p class="title"><b>Table 79. macvlan setting</b></p>
+<a name="id-1.2.8.7.14"></a><p class="title"><b>Table 49. macvlan setting</b></p>
 <div class="table-contents"><table summary="macvlan setting" border="1">
 <colgroup>
 <col>
@@ -1298,7 +1298,7 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.15"></a><p class="title"><b>Table 80. team-port setting</b></p>
+<a name="id-1.2.8.7.15"></a><p class="title"><b>Table 50. team-port setting</b></p>
 <div class="table-contents"><table summary="team-port setting" border="1">
 <colgroup>
 <col>
@@ -1321,7 +1321,7 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.16"></a><p class="title"><b>Table 81. team setting</b></p>
+<a name="id-1.2.8.7.16"></a><p class="title"><b>Table 51. team setting</b></p>
 <div class="table-contents"><table summary="team setting" border="1">
 <colgroup>
 <col>
@@ -1344,7 +1344,7 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.17"></a><p class="title"><b>Table 82. tun setting</b></p>
+<a name="id-1.2.8.7.17"></a><p class="title"><b>Table 52. tun setting</b></p>
 <div class="table-contents"><table summary="tun setting" border="1">
 <colgroup>
 <col>
@@ -1362,7 +1362,7 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.18"></a><p class="title"><b>Table 83. vlan setting</b></p>
+<a name="id-1.2.8.7.18"></a><p class="title"><b>Table 53. vlan setting</b></p>
 <div class="table-contents"><table summary="vlan setting" border="1">
 <colgroup>
 <col>
@@ -1425,7 +1425,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.19"></a><p class="title"><b>Table 84. vxlan setting</b></p>
+<a name="id-1.2.8.7.19"></a><p class="title"><b>Table 54. vxlan setting</b></p>
 <div class="table-contents"><table summary="vxlan setting" border="1">
 <colgroup>
 <col>
@@ -1443,7 +1443,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.20"></a><p class="title"><b>Table 85. 802-3-ethernet setting</b></p>
+<a name="id-1.2.8.7.20"></a><p class="title"><b>Table 55. 802-3-ethernet setting</b></p>
 <div class="table-contents"><table summary="802-3-ethernet setting" border="1">
 <colgroup>
 <col>
@@ -1537,7 +1537,7 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.21"></a><p class="title"><b>Table 86. 802-11-wireless-security setting</b></p>
+<a name="id-1.2.8.7.21"></a><p class="title"><b>Table 56. 802-11-wireless-security setting</b></p>
 <div class="table-contents"><table summary="802-11-wireless-security setting" border="1">
 <colgroup>
 <col>
@@ -1645,7 +1645,7 @@ Allowed values: </strong></span>CCMP, TKIP, WEP40, WEP104</td>
 <td align="left">WEP_KEY_FLAGS<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">Password flags for KEY&lt;i&gt;, KEY_PASSPHRASE&lt;i&gt; password. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for _FLAGS values)</td>
+<td align="left">Password flags for KEY&lt;i&gt;, KEY_PASSPHRASE&lt;i&gt; password. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
 </tr>
 <tr>
 <td align="left">psk</td>
@@ -1658,7 +1658,7 @@ Allowed values: </strong></span>CCMP, TKIP, WEP40, WEP104</td>
 <td align="left">WPA_PSK_FLAGS<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">Password flags for WPA_PSK_FLAGS. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for _FLAGS values)<span class="bold"><strong>
+<td align="left">Password flags for WPA_PSK_FLAGS. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)<span class="bold"><strong>
 
 Example: </strong></span>WPA_PSK_FLAGS=user</td>
 </tr>
@@ -1674,7 +1674,7 @@ Example: </strong></span>WPA_PSK_FLAGS=user</td>
 <td align="left">IEEE_8021X_PASSWORD_FLAGS<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">Password flags for IEEE_8021X_PASSWORD_FLAGS. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for _FLAGS values)</td>
+<td align="left">Password flags for IEEE_8021X_PASSWORD_FLAGS. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for _FLAGS values)</td>
 </tr>
 <tr>
 <td align="left">wep-key-type</td>
@@ -1689,7 +1689,7 @@ Example: </strong></span>KEY1=s:ahoj, KEY1=0a1c45bc02, KEY_PASSPHRASE1=mysuperse
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.10.7.22"></a><p class="title"><b>Table 87. 802-11-wireless setting</b></p>
+<a name="id-1.2.8.7.22"></a><p class="title"><b>Table 57. 802-11-wireless setting</b></p>
 <div class="table-contents"><table summary="802-11-wireless setting" border="1">
 <colgroup>
 <col>

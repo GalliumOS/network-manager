@@ -2,11 +2,11 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>nm-settings: NetworkManager D-Bus API Reference Manual</title>
+<title>nm-settings: NetworkManager Reference Manual</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
-<link rel="home" href="index.html" title="NetworkManager D-Bus API Reference Manual">
-<link rel="up" href="manpages.html" title="UNIX Manual Pages">
-<link rel="prev" href="nmcli-examples.html" title="nmcli-examples">
+<link rel="home" href="index.html" title="NetworkManager Reference Manual">
+<link rel="up" href="manpages.html" title="Manual Pages">
+<link rel="prev" href="NetworkManager.conf.html" title="NetworkManager.conf">
 <link rel="next" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
 <meta name="generator" content="GTK-Doc V1.24 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -16,7 +16,7 @@
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="nmcli-examples.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NetworkManager.conf.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="nm-settings-keyfile.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -94,7 +94,7 @@
 </table>
 </div>
 <div class="table">
-<a name="id-1.4.8.4.3"></a><p class="title"><b>Table 31. 802-1x setting</b></p>
+<a name="id-1.2.6.4.3"></a><p class="title"><b>Table 1. 802-1x setting</b></p>
 <div class="table-contents"><table summary="802-1x setting" border="1">
 <colgroup>
 <col>
@@ -179,7 +179,7 @@
 <td align="left">password-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">password-raw</td>
@@ -191,7 +191,7 @@
 <td align="left">password-raw-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "password-raw" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "password-raw" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">phase1-fast-provisioning</td>
@@ -269,7 +269,7 @@
 <td align="left">phase2-private-key-password-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "phase2-private-key-password" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "phase2-private-key-password" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">phase2-subject-match</td>
@@ -287,7 +287,7 @@
 <td align="left">pin-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "pin" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "pin" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">private-key</td>
@@ -305,7 +305,7 @@
 <td align="left">private-key-password-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "private-key-password" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "private-key-password" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">subject-match</td>
@@ -323,7 +323,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.4"></a><p class="title"><b>Table 32. adsl setting</b></p>
+<a name="id-1.2.6.4.4"></a><p class="title"><b>Table 2. adsl setting</b></p>
 <div class="table-contents"><table summary="adsl setting" border="1">
 <colgroup>
 <col>
@@ -360,7 +360,7 @@
 <td align="left">password-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">protocol</td>
@@ -390,7 +390,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.5"></a><p class="title"><b>Table 33. bluetooth setting</b></p>
+<a name="id-1.2.6.4.5"></a><p class="title"><b>Table 3. bluetooth setting</b></p>
 <div class="table-contents"><table summary="bluetooth setting" border="1">
 <colgroup>
 <col>
@@ -427,7 +427,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.6"></a><p class="title"><b>Table 34. bond setting</b></p>
+<a name="id-1.2.6.4.6"></a><p class="title"><b>Table 4. bond setting</b></p>
 <div class="table-contents"><table summary="bond setting" border="1">
 <colgroup>
 <col>
@@ -464,7 +464,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.7"></a><p class="title"><b>Table 35. bridge setting</b></p>
+<a name="id-1.2.6.4.7"></a><p class="title"><b>Table 5. bridge setting</b></p>
 <div class="table-contents"><table summary="bridge setting" border="1">
 <colgroup>
 <col>
@@ -543,7 +543,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.8"></a><p class="title"><b>Table 36. bridge-port setting</b></p>
+<a name="id-1.2.6.4.8"></a><p class="title"><b>Table 6. bridge-port setting</b></p>
 <div class="table-contents"><table summary="bridge-port setting" border="1">
 <colgroup>
 <col>
@@ -586,7 +586,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.9"></a><p class="title"><b>Table 37. cdma setting</b></p>
+<a name="id-1.2.6.4.9"></a><p class="title"><b>Table 7. cdma setting</b></p>
 <div class="table-contents"><table summary="cdma setting" border="1">
 <colgroup>
 <col>
@@ -623,7 +623,7 @@
 <td align="left">password-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">username</td>
@@ -635,7 +635,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.10"></a><p class="title"><b>Table 38. connection setting</b></p>
+<a name="id-1.2.6.4.10"></a><p class="title"><b>Table 8. connection setting</b></p>
 <div class="table-contents"><table summary="connection setting" border="1">
 <colgroup>
 <col>
@@ -762,7 +762,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.11"></a><p class="title"><b>Table 39. dcb setting</b></p>
+<a name="id-1.2.6.4.11"></a><p class="title"><b>Table 9. dcb setting</b></p>
 <div class="table-contents"><table summary="dcb setting" border="1">
 <colgroup>
 <col>
@@ -877,7 +877,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.12"></a><p class="title"><b>Table 40. generic setting</b></p>
+<a name="id-1.2.6.4.12"></a><p class="title"><b>Table 10. generic setting</b></p>
 <div class="table-contents"><table summary="generic setting" border="1">
 <colgroup>
 <col>
@@ -900,7 +900,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.13"></a><p class="title"><b>Table 41. gsm setting</b></p>
+<a name="id-1.2.6.4.13"></a><p class="title"><b>Table 11. gsm setting</b></p>
 <div class="table-contents"><table summary="gsm setting" border="1">
 <colgroup>
 <col>
@@ -961,7 +961,7 @@
 <td align="left">password-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">pin</td>
@@ -973,7 +973,7 @@
 <td align="left">pin-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "pin" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "pin" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">sim-id</td>
@@ -997,7 +997,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.14"></a><p class="title"><b>Table 42. infiniband setting</b></p>
+<a name="id-1.2.6.4.14"></a><p class="title"><b>Table 12. infiniband setting</b></p>
 <div class="table-contents"><table summary="infiniband setting" border="1">
 <colgroup>
 <col>
@@ -1052,7 +1052,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.15"></a><p class="title"><b>Table 43. ipv4 setting</b></p>
+<a name="id-1.2.6.4.15"></a><p class="title"><b>Table 13. ipv4 setting</b></p>
 <div class="table-contents"><table summary="ipv4 setting" border="1">
 <colgroup>
 <col>
@@ -1197,7 +1197,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.16"></a><p class="title"><b>Table 44. ipv6 setting</b></p>
+<a name="id-1.2.6.4.16"></a><p class="title"><b>Table 14. ipv6 setting</b></p>
 <div class="table-contents"><table summary="ipv6 setting" border="1">
 <colgroup>
 <col>
@@ -1342,7 +1342,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.17"></a><p class="title"><b>Table 45. ip-tunnel setting</b></p>
+<a name="id-1.2.6.4.17"></a><p class="title"><b>Table 15. ip-tunnel setting</b></p>
 <div class="table-contents"><table summary="ip-tunnel setting" border="1">
 <colgroup>
 <col>
@@ -1439,7 +1439,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.18"></a><p class="title"><b>Table 46. macvlan setting</b></p>
+<a name="id-1.2.6.4.18"></a><p class="title"><b>Table 16. macvlan setting</b></p>
 <div class="table-contents"><table summary="macvlan setting" border="1">
 <colgroup>
 <col>
@@ -1488,7 +1488,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.19"></a><p class="title"><b>Table 47. 802-11-olpc-mesh setting</b></p>
+<a name="id-1.2.6.4.19"></a><p class="title"><b>Table 17. 802-11-olpc-mesh setting</b></p>
 <div class="table-contents"><table summary="802-11-olpc-mesh setting" border="1">
 <colgroup>
 <col>
@@ -1531,7 +1531,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.20"></a><p class="title"><b>Table 48. ppp setting</b></p>
+<a name="id-1.2.6.4.20"></a><p class="title"><b>Table 18. ppp setting</b></p>
 <div class="table-contents"><table summary="ppp setting" border="1">
 <colgroup>
 <col>
@@ -1664,7 +1664,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.21"></a><p class="title"><b>Table 49. pppoe setting</b></p>
+<a name="id-1.2.6.4.21"></a><p class="title"><b>Table 19. pppoe setting</b></p>
 <div class="table-contents"><table summary="pppoe setting" border="1">
 <colgroup>
 <col>
@@ -1695,7 +1695,7 @@
 <td align="left">password-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "password" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">service</td>
@@ -1713,7 +1713,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.22"></a><p class="title"><b>Table 50. serial setting</b></p>
+<a name="id-1.2.6.4.22"></a><p class="title"><b>Table 20. serial setting</b></p>
 <div class="table-contents"><table summary="serial setting" border="1">
 <colgroup>
 <col>
@@ -1768,7 +1768,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.23"></a><p class="title"><b>Table 51. team setting</b></p>
+<a name="id-1.2.6.4.23"></a><p class="title"><b>Table 21. team setting</b></p>
 <div class="table-contents"><table summary="team setting" border="1">
 <colgroup>
 <col>
@@ -1805,7 +1805,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.24"></a><p class="title"><b>Table 52. team-port setting</b></p>
+<a name="id-1.2.6.4.24"></a><p class="title"><b>Table 22. team-port setting</b></p>
 <div class="table-contents"><table summary="team-port setting" border="1">
 <colgroup>
 <col>
@@ -1836,7 +1836,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.25"></a><p class="title"><b>Table 53. tun setting</b></p>
+<a name="id-1.2.6.4.25"></a><p class="title"><b>Table 23. tun setting</b></p>
 <div class="table-contents"><table summary="tun setting" border="1">
 <colgroup>
 <col>
@@ -1897,7 +1897,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.26"></a><p class="title"><b>Table 54. vlan setting</b></p>
+<a name="id-1.2.6.4.26"></a><p class="title"><b>Table 24. vlan setting</b></p>
 <div class="table-contents"><table summary="vlan setting" border="1">
 <colgroup>
 <col>
@@ -1958,7 +1958,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.27"></a><p class="title"><b>Table 55. vpn setting</b></p>
+<a name="id-1.2.6.4.27"></a><p class="title"><b>Table 25. vpn setting</b></p>
 <div class="table-contents"><table summary="vpn setting" border="1">
 <colgroup>
 <col>
@@ -2019,7 +2019,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.28"></a><p class="title"><b>Table 56. vxlan setting</b></p>
+<a name="id-1.2.6.4.28"></a><p class="title"><b>Table 26. vxlan setting</b></p>
 <div class="table-contents"><table summary="vxlan setting" border="1">
 <colgroup>
 <col>
@@ -2140,7 +2140,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.29"></a><p class="title"><b>Table 57. wimax setting</b></p>
+<a name="id-1.2.6.4.29"></a><p class="title"><b>Table 27. wimax setting</b></p>
 <div class="table-contents"><table summary="wimax setting" border="1">
 <colgroup>
 <col>
@@ -2177,7 +2177,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.30"></a><p class="title"><b>Table 58. 802-3-ethernet setting</b></p>
+<a name="id-1.2.6.4.30"></a><p class="title"><b>Table 28. 802-3-ethernet setting</b></p>
 <div class="table-contents"><table summary="802-3-ethernet setting" border="1">
 <colgroup>
 <col>
@@ -2280,7 +2280,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.31"></a><p class="title"><b>Table 59. 802-11-wireless setting</b></p>
+<a name="id-1.2.6.4.31"></a><p class="title"><b>Table 29. 802-11-wireless setting</b></p>
 <div class="table-contents"><table summary="802-11-wireless setting" border="1">
 <colgroup>
 <col>
@@ -2401,7 +2401,7 @@
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.4.8.4.32"></a><p class="title"><b>Table 60. 802-11-wireless-security setting</b></p>
+<a name="id-1.2.6.4.32"></a><p class="title"><b>Table 30. 802-11-wireless-security setting</b></p>
 <div class="table-contents"><table summary="802-11-wireless-security setting" border="1">
 <colgroup>
 <col>
@@ -2444,7 +2444,7 @@
 <td align="left">leap-password-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "leap-password" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "leap-password" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">leap-username</td>
@@ -2480,13 +2480,13 @@
 <td align="left">psk-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "psk" property. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "psk" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">wep-key-flags</td>
 <td align="left">NMSettingSecretFlags (uint32)</td>
 <td align="left"> </td>
-<td>Flags indicating how to handle the "wep-key0", "wep-key1", "wep-key2", and "wep-key3" properties. (see <a class="xref" href="secrets-flags.html" title="Secret flag types">the section called “Secret flag types”</a> for flag values)</td>
+<td>Flags indicating how to handle the "wep-key0", "wep-key1", "wep-key2", and "wep-key3" properties. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
 </tr>
 <tr>
 <td align="left">wep-key-type</td>

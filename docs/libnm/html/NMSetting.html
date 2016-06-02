@@ -263,7 +263,7 @@
 <p>Each <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> contains properties that describe configuration that applies
 to a specific network layer (like IPv4 or IPv6 configuration) or device type
 (like Ethernet, or Wi-Fi).  A collection of individual settings together
-make up an <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a>. Each property is strongly typed and usually has
+make up an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>. Each property is strongly typed and usually has
 a number of allowed values.  See each <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass for a description
 of properties and allowed values.</p>
 </div>
@@ -467,7 +467,7 @@ like 'ppp' or 'wireless' or 'wired'.</p>
 <a name="nm-setting-verify"></a><h3>nm_setting_verify ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_setting_verify (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
-                   <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                   <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
                    <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Validates the setting.  Each setting's properties have allowed values, and
 some are dependent on other values (hence the need for <em class="parameter"><code>connection</code></em>
@@ -490,7 +490,7 @@ failed validation, and in what way that property failed validation.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p> the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
+<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
 came from, or
 <code class="literal">NULL</code> if <em class="parameter"><code>setting</code></em>
 is being verified in isolation. </p></td>
@@ -514,7 +514,7 @@ is being verified in isolation. </p></td>
 <a name="nm-setting-verify-secrets"></a><h3>nm_setting_verify_secrets ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_setting_verify_secrets (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
-                           <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                           <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
                            <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Verifies the secrets in the setting.
 The returned <span class="type">GError</span> contains information about which secret of the setting
@@ -537,7 +537,7 @@ in some cases connection failure is not desired just for the secrets.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p> the <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
+<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
 came from, or
 <code class="literal">NULL</code> if <em class="parameter"><code>setting</code></em>
 is being verified in isolation. </p></td>

@@ -154,40 +154,6 @@ _nm_singleton_instance_register_destruction (GObject *instance)
 
 /*****************************************************************************/
 
-gint
-nm_utils_ascii_str_to_bool (const char *str,
-                            gint default_value)
-{
-	gsize len;
-	char *s = NULL;
-
-	if (!str)
-		return default_value;
-
-	while (str[0] && g_ascii_isspace (str[0]))
-		str++;
-
-	if (!str[0])
-		return default_value;
-
-	len = strlen (str);
-	if (g_ascii_isspace (str[len - 1])) {
-		s = g_strdup (str);
-		g_strchomp (s);
-		str = s;
-	}
-
-	if (!g_ascii_strcasecmp (str, "true") || !g_ascii_strcasecmp (str, "yes") || !g_ascii_strcasecmp (str, "on") || !g_ascii_strcasecmp (str, "1"))
-		default_value = TRUE;
-	else if (!g_ascii_strcasecmp (str, "false") || !g_ascii_strcasecmp (str, "no") || !g_ascii_strcasecmp (str, "off") || !g_ascii_strcasecmp (str, "0"))
-		default_value = FALSE;
-	if (s)
-		g_free (s);
-	return default_value;
-}
-
-/*****************************************************************************/
-
 /*
  * nm_ethernet_address_is_valid:
  * @addr: pointer to a binary or ASCII Ethernet address
@@ -233,7 +199,6 @@ nm_ethernet_address_is_valid (gconstpointer addr, gssize len)
 	return TRUE;
 }
 
-
 /* nm_utils_ip4_address_clear_host_address:
  * @addr: source ip6 address
  * @plen: prefix length of network
@@ -278,6 +243,32 @@ nm_utils_ip6_address_clear_host_address (struct in6_addr *dst, const struct in6_
 
 	return dst;
 }
+
+gboolean
+nm_utils_ip6_address_same_prefix (const struct in6_addr *addr_a, const struct in6_addr *addr_b, guint8 plen)
+{
+	int nbytes;
+	guint8 t, m;
+
+	if (plen >= 128)
+		return memcmp (addr_a, addr_b, sizeof (struct in6_addr)) == 0;
+
+	nbytes = plen / 8;
+	if (nbytes) {
+		if (memcmp (addr_a, addr_b, nbytes) != 0)
+			return FALSE;
+	}
+
+	plen = plen % 8;
+	if (plen == 0)
+		return TRUE;
+
+	m = ~((1 << (8 - plen)) - 1);
+	t = ((((const guint8 *) addr_a))[nbytes]) ^ ((((const guint8 *) addr_b))[nbytes]);
+	return (t & m) == 0;
+}
+
+/*****************************************************************************/
 
 void
 nm_utils_array_remove_at_indexes (GArray *array, const guint *indexes_to_delete, gsize len)

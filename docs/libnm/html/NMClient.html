@@ -2018,7 +2018,7 @@ any. </p>
 <a name="nm-client-activate-connection-async"></a><h3>nm_client_activate_connection_async ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_client_activate_connection_async (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
-                                     <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                     <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
                                      <em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
                                      <em class="parameter"><code>const <span class="type">char</span> *specific_object</code></em>,
                                      <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
@@ -2058,7 +2058,7 @@ track the activation to its completion.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p> an <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a>. </p></td>
+<td class="parameter_description"><p> an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -2147,7 +2147,7 @@ will be set. </p>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_client_add_and_activate_connection_async
                                (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
-                                <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *partial</code></em>,
+                                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *partial</code></em>,
                                 <em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> *specific_object</code></em>,
                                 <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
@@ -2178,7 +2178,7 @@ track the activation to its completion.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>partial</p></td>
-<td class="parameter_description"><p> an <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> to add; the connection may be
+<td class="parameter_description"><p> an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> to add; the connection may be
 partially filled (or even <code class="literal">NULL</code>) and will be completed by NetworkManager
 using the given <em class="parameter"><code>device</code></em>
 and <em class="parameter"><code>specific_object</code></em>
@@ -2232,7 +2232,7 @@ nm_client_add_and_activate_connection_finish
                                 <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMClient.html#nm-client-add-and-activate-connection-async" title="nm_client_add_and_activate_connection_async ()"><code class="function">nm_client_add_and_activate_connection_async()</code></a>.</p>
 <p>You can call <a class="link" href="NMActiveConnection.html#nm-active-connection-get-connection" title="nm_active_connection_get_connection ()"><code class="function">nm_active_connection_get_connection()</code></a> on the returned
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> to find the path of the created <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a>.</p>
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> to find the path of the created <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>.</p>
 <div class="refsect3">
 <a name="id-1.3.2.9.41.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -2556,7 +2556,7 @@ to <a class="link" href="libnm-NMConnection.html#nm-connection-verify" title="nm
 <a name="nm-client-add-connection-async"></a><h3>nm_client_add_connection_async ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_client_add_connection_async (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
-                                <em class="parameter"><code><a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
                                 <em class="parameter"><code><span class="type">gboolean</span> save_to_disk</code></em>,
                                 <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
                                 <em class="parameter"><code><span class="type">GAsyncReadyCallback</span> callback</code></em>,
@@ -3609,7 +3609,7 @@ regular devices and placeholder devices.</p>
 user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>           *client,
                <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection,
                <span class="type">gpointer</span>            user_data)</pre>
-<p>Notifies that a <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> has been added.</p>
+<p>Notifies that a <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> has been added.</p>
 <div class="refsect3">
 <a name="id-1.3.2.12.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
@@ -3646,7 +3646,7 @@ user_function (<a class="link" href="NMClient.html" title="NMClient"><span class
 user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>           *client,
                <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection,
                <span class="type">gpointer</span>            user_data)</pre>
-<p>Notifies that a <a href="https://developer.gnome.org/libnm-util/0.9/NMConnection.html"><span class="type">NMConnection</span></a> has been removed.</p>
+<p>Notifies that a <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> has been removed.</p>
 <div class="refsect3">
 <a name="id-1.3.2.12.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">

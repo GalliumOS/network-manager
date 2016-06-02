@@ -42,6 +42,7 @@ G_DEFINE_TYPE (NMDeviceInfiniband, nm_device_infiniband, NM_TYPE_DEVICE)
 
 typedef struct {
 	gboolean is_partition;
+	int parent_ifindex, p_key;
 } NMDeviceInfinibandPrivate;
 
 enum {
@@ -235,36 +236,43 @@ create_and_realize (NMDevice *device,
                     const NMPlatformLink **out_plink,
                     GError **error)
 {
+	NMDeviceInfinibandPrivate *priv = NM_DEVICE_INFINIBAND_GET_PRIVATE (device);
 	NMSettingInfiniband *s_infiniband;
-	int parent_ifindex, p_key;
 	NMPlatformError plerr;
 
+	s_infiniband = nm_connection_get_setting_infiniband (connection);
+	g_assert (s_infiniband);
+
+	/* Can only create partitions at this time */
+	priv->p_key = nm_setting_infiniband_get_p_key (s_infiniband);
+	if (priv->p_key < 0) {
+		g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
+		                     "only InfiniBand partitions can be created");
+		return FALSE;
+	}
+
+	if (!parent) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
+		             "InfiniBand partitions can not be created without a parent interface");
+		return FALSE;
+	}
+
 	if (!NM_IS_DEVICE_INFINIBAND (parent)) {
-		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
 		             "Parent interface %s must be an InfiniBand interface",
 		             nm_device_get_iface (parent));
 		return FALSE;
 	}
 
-	s_infiniband = nm_connection_get_setting_infiniband (connection);
-
-	/* Can only create partitions at this time */
-	p_key = nm_setting_infiniband_get_p_key (s_infiniband);
-	if (p_key < 0) {
-		g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
-		                     "only InfiniBand partitions can be created");
-		return FALSE;
-	}
-
-	parent_ifindex = nm_device_get_ifindex (parent);
-	if (parent_ifindex <= 0) {
-		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+	priv->parent_ifindex = nm_device_get_ifindex (parent);
+	if (priv->parent_ifindex <= 0) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
 		             "failed to get InfiniBand parent %s ifindex",
 		             nm_device_get_iface (parent));
 		return FALSE;
 	}
 
-	plerr = nm_platform_link_infiniband_add (NM_PLATFORM_GET, parent_ifindex, p_key, out_plink);
+	plerr = nm_platform_link_infiniband_add (NM_PLATFORM_GET, priv->parent_ifindex, priv->p_key, out_plink);
 	if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
 		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
 		             "Failed to create InfiniBand P_Key interface '%s' for '%s': %s",
@@ -274,7 +282,33 @@ create_and_realize (NMDevice *device,
 		return FALSE;
 	}
 
-	NM_DEVICE_INFINIBAND_GET_PRIVATE (device)->is_partition = TRUE;
+	priv->is_partition = TRUE;
+	return TRUE;
+}
+
+static gboolean
+unrealize (NMDevice *device, GError **error)
+{
+	NMDeviceInfinibandPrivate *priv = NM_DEVICE_INFINIBAND_GET_PRIVATE (device);
+	NMPlatformError plerr;
+
+	g_return_val_if_fail (NM_IS_DEVICE_INFINIBAND (device), FALSE);
+
+	if (priv->p_key < 0) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
+		             "Only InfiniBand partitions can be removed");
+		return FALSE;
+	}
+
+	plerr = nm_platform_link_infiniband_delete (NM_PLATFORM_GET, priv->parent_ifindex, priv->p_key);
+	if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
+		             "Failed to remove InfiniBand P_Key interface '%s': %s",
+		             nm_device_get_iface (device),
+		             nm_platform_error_to_string (plerr));
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -328,6 +362,7 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *klass)
 	object_class->set_property = set_property;
 
 	parent_class->create_and_realize = create_and_realize;
+	parent_class->unrealize = unrealize;
 	parent_class->get_generic_capabilities = get_generic_capabilities;
 	parent_class->check_connection_compatible = check_connection_compatible;
 	parent_class->complete_connection = complete_connection;

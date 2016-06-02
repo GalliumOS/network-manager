@@ -1,10 +1,15 @@
-network-manager (1.1.93-0ubuntu4-galliumos1) xenon; urgency=medium
+network-manager (1.2.0-0ubuntu0.16.04.2) xenial; urgency=medium
 
-  * Re-apply GalliumOS patches:
-    - disable default_powersave_on.patch
-    - add galliumos-increase_scan_frequency.diff
+  * debian/patches: lp1574347-re-read-link-type-if-the-name-changed.diff
+    - Fix Wi-Fi network list disappearing problem (LP: #1574347)
 
- -- reynhout <reynhout@galliumos.org>  Mon, 18 Apr 2016 23:16:40 +0000
+ -- Aron Xu <happyaron@ubuntu.com>  Thu, 12 May 2016 14:48:57 +0800
+
+network-manager (1.2.0-0ubuntu0.16.04.1) xenial; urgency=medium
+
+  * Rebase to upstream stable release. (lp: #1576726)
+
+ -- Aron Xu <happyaron@ubuntu.com>  Fri, 29 Apr 2016 20:41:19 +0800
 
 network-manager (1.1.93-0ubuntu4) xenial; urgency=medium
 
