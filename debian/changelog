@@ -2,7 +2,8 @@ network-manager (1.2.0-0ubuntu0.16.04.2-galliumos1) xenon; urgency=medium
 
   * Re-apply GalliumOS patches:
     - disable default_powersave_on.patch
-    - add galliumos-increase_scan_frequency.diff 
+    - add galliumos-increase_scan_frequency.diff
+    - update debian/galliumos/upstream
 
  -- reynhout <reynhout@galliumos.org>  Thu, 02 Jun 2016 22:08:26 +0000
 
