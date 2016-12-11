@@ -48,3 +48,6 @@ libnm-Check-self-still-NMManager-or-not.patch
 libnm-don-t-require-initialized-out_encrypted-argume.patch
 cli-initialize-connection-list-in-do_device_connect.patch
 dns-manager-don-t-merge-split-DNS-search-domains.patch
+
+# galliumos patches
+galliumos-increase_scan_frequency.diff
