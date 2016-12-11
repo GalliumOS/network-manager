@@ -1,0 +1,31 @@
+From: "Shih-Yuan Lee (FourDollars)" <sylee@canonical.com>
+Date: Tue, 17 May 2016 17:26:06 +0800
+Subject: libnm: Check self still NMManager or not
+
+Return if self is not NMManager or it will crash.
+---
+ libnm/nm-manager.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/libnm/nm-manager.c b/libnm/nm-manager.c
+index a6c1f3f..774c8c1 100644
+--- a/libnm/nm-manager.c
++++ b/libnm/nm-manager.c
+@@ -810,12 +810,16 @@ find_active_connection_by_path (NMManager *self, const char *ac_path)
+ static void
+ recheck_pending_activations (NMManager *self)
+ {
+-	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
++	NMManagerPrivate *priv;
+ 	GSList *iter, *next;
+ 	NMActiveConnection *candidate;
+ 	const GPtrArray *devices;
+ 	NMDevice *device;
+ 
++	g_return_if_fail (NM_IS_MANAGER (self));
++
++	priv = NM_MANAGER_GET_PRIVATE (self);
++
+ 	/* For each pending activation, look for an active connection that has the
+ 	 * pending activation's object path, where the active connection and its
+ 	 * device have both updated their properties to point to each other, and

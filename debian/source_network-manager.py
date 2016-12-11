@@ -68,7 +68,7 @@ def add_info(report, ui=None):
         report['Tags'] += ' ' + ' '.join(tags)
 
     #add output of nmcli
-    report['nmcli-nm'] = command_output(['nmcli', '-f', 'all', 'nm'])
+    report['nmcli-nm'] = command_output(['nmcli', '-f', 'all', 'gen'])
     report['nmcli-dev'] = command_output(['nmcli', '-f', 'all', 'dev'])
     report['nmcli-con'] = command_output(['nmcli', '-f', 'all', 'con'])
 

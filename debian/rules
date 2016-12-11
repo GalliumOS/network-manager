@@ -60,6 +60,10 @@ override_dh_install:
 	mkdir -p debian/network-manager/etc/dnsmasq.d
 	cp debian/network-manager.dnsmasq debian/network-manager/etc/dnsmasq.d/network-manager
 
+	# copy powersave configuration
+	mkdir -p debian/network-manager/etc/NetworkManager/conf.d
+	cp debian/default-wifi-powersave-on.conf debian/network-manager/etc/NetworkManager/conf.d/
+
 override_dh_installinit:
 	dh_installinit --noscripts
 

@@ -9,13 +9,13 @@ when connected to 3G or other systems that are potentially billable.
  src/org.freedesktop.NetworkManager.conf |   18 ++++++++++++++++++
  1 file changed, 18 insertions(+)
 
-Index: b/src/org.freedesktop.NetworkManager.conf
+Index: ubuntu/src/org.freedesktop.NetworkManager.conf
 ===================================================================
---- a/src/org.freedesktop.NetworkManager.conf
-+++ b/src/org.freedesktop.NetworkManager.conf
-@@ -27,6 +27,24 @@
-                 <allow send_destination="org.freedesktop.NetworkManager.strongswan"/>
-                 <allow send_interface="org.freedesktop.NetworkManager.VPN.Plugin"/>
+--- ubuntu.orig/src/org.freedesktop.NetworkManager.conf
++++ ubuntu/src/org.freedesktop.NetworkManager.conf
+@@ -34,6 +34,24 @@
+                 <allow own="org.freedesktop.NetworkManager.dnsmasq"/>
+                 <allow send_destination="org.freedesktop.NetworkManager.dnsmasq"/>
          </policy>
 +        <policy user="whoopsie">
 +                <allow send_destination="org.freedesktop.NetworkManager"/>

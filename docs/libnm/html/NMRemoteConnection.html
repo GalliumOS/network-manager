@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMRemoteConnection.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMRemoteConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMRemoteConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMRemoteConnection.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMRemoteConnection.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -202,6 +203,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMRemoteConnection.html#NM-REMOTE-CONNECTION-VISIBLE:CAPS" title="NM_REMOTE_CONNECTION_VISIBLE">NM_REMOTE_CONNECTION_VISIBLE</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection-struct" title="NMRemoteConnection">NMRemoteConnection</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -211,6 +216,12 @@
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> NMRemoteConnection
 </pre>
+</div>
+<div class="refsect1">
+<a name="NMRemoteConnection.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMRemoteConnection implements
+ GInitable,  GAsyncInitable and  <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMRemoteConnection.description"></a><h2>Description</h2>
@@ -230,7 +241,7 @@ NetworkManager. If <em class="parameter"><code>save_to_disk</code></em>
  is <code class="literal">TRUE</code>, the updated connection will be saved to
 disk; if <code class="literal">FALSE</code>, then only the in-memory representation will be changed.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -262,7 +273,7 @@ disk; if <code class="literal">FALSE</code>, then only the in-memory representat
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.2.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be set.</p>
 </div>
@@ -284,7 +295,7 @@ nm_remote_connection_commit_changes_async
 be saved to disk; if <code class="literal">FALSE</code>, then only the in-memory representation will be
 changed.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -332,7 +343,7 @@ nm_remote_connection_commit_changes_finish
                                 <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMRemoteConnection.html#nm-remote-connection-commit-changes-async" title="nm_remote_connection_commit_changes_async ()"><code class="function">nm_remote_connection_commit_changes_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -359,7 +370,7 @@ nm_remote_connection_commit_changes_finish
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.4.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be set.</p>
 </div>
@@ -374,7 +385,7 @@ nm_remote_connection_save (<em class="parameter"><code><a class="link" href="NMR
 <p>Saves the connection to disk if the connection has changes that have not yet
 been written to disk, or if the connection has never been saved.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.5.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -401,7 +412,7 @@ been written to disk, or if the connection has never been saved.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.5.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.5.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be set.</p>
 </div>
@@ -417,7 +428,7 @@ nm_remote_connection_save_async (<em class="parameter"><code><a class="link" hre
 <p>Saves the connection to disk if the connection has changes that have not yet
 been written to disk, or if the connection has never been saved.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.6.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.6.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -459,7 +470,7 @@ nm_remote_connection_save_finish (<em class="parameter"><code><a class="link" hr
                                   <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMRemoteConnection.html#nm-remote-connection-save-async" title="nm_remote_connection_save_async ()"><code class="function">nm_remote_connection_save_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.7.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.7.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -486,7 +497,7 @@ nm_remote_connection_save_finish (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.7.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.7.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be set.</p>
 </div>
@@ -500,7 +511,7 @@ nm_remote_connection_delete (<em class="parameter"><code><a class="link" href="N
                              <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Deletes the connection.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.8.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.8.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -527,7 +538,7 @@ nm_remote_connection_delete (<em class="parameter"><code><a class="link" href="N
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.8.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.8.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be set.</p>
 </div>
@@ -542,7 +553,7 @@ nm_remote_connection_delete_async (<em class="parameter"><code><a class="link" h
                                    <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>Asynchronously deletes the connection.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.9.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.9.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -584,7 +595,7 @@ nm_remote_connection_delete_finish (<em class="parameter"><code><a class="link" 
                                     <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMRemoteConnection.html#nm-remote-connection-delete-async" title="nm_remote_connection_delete_async ()"><code class="function">nm_remote_connection_delete_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.10.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.10.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -611,7 +622,7 @@ nm_remote_connection_delete_finish (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.10.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.10.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be set.</p>
 </div>
@@ -627,7 +638,7 @@ nm_remote_connection_get_secrets (<em class="parameter"><code><a class="link" hr
 <p>Request the connection's secrets. Note that this is a blocking D-Bus call,
 not a simple property accessor.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.11.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.11.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -659,7 +670,7 @@ not a simple property accessor.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.11.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.11.6"></a><h4>Returns</h4>
 <p> a <span class="type">GVariant</span> of type <code class="literal">NM_VARIANT_TYPE_CONNECTION</code> containing
 <em class="parameter"><code>connection</code></em>
 's secrets, or <code class="literal">NULL</code> on error.</p>
@@ -677,7 +688,7 @@ nm_remote_connection_get_secrets_async
                                 <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>Asynchronously requests the connection's secrets.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.12.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.12.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -725,7 +736,7 @@ nm_remote_connection_get_secrets_finish
                                 <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMRemoteConnection.html#nm-remote-connection-get-secrets-async" title="nm_remote_connection_get_secrets_async ()"><code class="function">nm_remote_connection_get_secrets_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.13.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.13.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -752,7 +763,7 @@ nm_remote_connection_get_secrets_finish
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.13.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.13.6"></a><h4>Returns</h4>
 <p> a <span class="type">GVariant</span> of type <code class="literal">NM_VARIANT_TYPE_CONNECTION</code>
 containing <em class="parameter"><code>connection</code></em>
 's secrets, or <code class="literal">NULL</code> on error. </p>
@@ -765,7 +776,7 @@ containing <em class="parameter"><code>connection</code></em>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_remote_connection_get_unsaved (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.22.8.14.4"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.14.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -780,7 +791,7 @@ nm_remote_connection_get_unsaved (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.14.5"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.14.5"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the remote connection contains changes that have not
 been saved to disk, <code class="literal">FALSE</code> if the connection is the same as its on-disk
 representation.</p>
@@ -800,7 +811,7 @@ non-visible connections to callers, but it is possible for a
 connection's visibility to change after you already have a
 reference to it.)</p>
 <div class="refsect3">
-<a name="id-1.5.22.8.15.5"></a><h4>Parameters</h4>
+<a name="id-1.5.22.9.15.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -815,7 +826,7 @@ reference to it.)</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.22.8.15.6"></a><h4>Returns</h4>
+<a name="id-1.5.22.9.15.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the remote connection is visible to the current
 user, <code class="literal">FALSE</code> if not.</p>
 </div>
@@ -845,6 +856,11 @@ user, <code class="literal">FALSE</code> if not.</p>
 <a name="NM-REMOTE-CONNECTION-VISIBLE:CAPS"></a><h3>NM_REMOTE_CONNECTION_VISIBLE</h3>
 <pre class="programlisting">#define NM_REMOTE_CONNECTION_VISIBLE         "visible"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMRemoteConnection-struct"></a><h3>NMRemoteConnection</h3>
+<pre class="programlisting">typedef struct _NMRemoteConnection NMRemoteConnection;</pre>
 </div>
 </div>
 <div class="refsect1">

@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDhcpConfig.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDhcpConfig.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDhcpConfig.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDhcpConfig.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDhcpConfig.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -99,6 +100,10 @@
 </colgroup>
 <tbody>
 <tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDhcpConfig.html#NMDhcpConfig-struct" title="NMDhcpConfig">NMDhcpConfig</a></td>
+</tr>
+<tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDhcpConfig.html#NM-DHCP-CONFIG-FAMILY:CAPS" title="NM_DHCP_CONFIG_FAMILY">NM_DHCP_CONFIG_FAMILY</a></td>
 </tr>
@@ -117,6 +122,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMDhcpConfig.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDhcpConfig implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMDhcpConfig.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -127,7 +138,7 @@
 nm_dhcp_config_get_family (<em class="parameter"><code><a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> *config</code></em>);</pre>
 <p>Gets the IP address family of the configuration</p>
 <div class="refsect3">
-<a name="id-1.5.26.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.26.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -142,7 +153,7 @@ nm_dhcp_config_get_family (<em class="parameter"><code><a class="link" href="NMD
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.26.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.26.9.2.6"></a><h4>Returns</h4>
 <p> the IP address family; either <code class="literal">AF_INET</code> or
 <code class="literal">AF_INET6</code></p>
 </div>
@@ -154,7 +165,7 @@ nm_dhcp_config_get_family (<em class="parameter"><code><a class="link" href="NMD
 nm_dhcp_config_get_options (<em class="parameter"><code><a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> *config</code></em>);</pre>
 <p>Gets all the options contained in the configuration.</p>
 <div class="refsect3">
-<a name="id-1.5.26.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.26.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -169,7 +180,7 @@ nm_dhcp_config_get_options (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.26.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.26.9.3.6"></a><h4>Returns</h4>
 <p> the <span class="type">GHashTable</span> containing
 strings for keys and values.  This is the internal copy used by the
 configuration, and must not be modified. </p>
@@ -184,7 +195,7 @@ nm_dhcp_config_get_one_option (<em class="parameter"><code><a class="link" href=
                                <em class="parameter"><code>const <span class="type">char</span> *option</code></em>);</pre>
 <p>Gets one option by option name.</p>
 <div class="refsect3">
-<a name="id-1.5.26.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.26.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -206,7 +217,7 @@ nm_dhcp_config_get_one_option (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.26.8.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.26.9.4.6"></a><h4>Returns</h4>
 <p> the configuration option's value. This is the internal string used by the
 configuration, and must not be modified.</p>
 </div>
@@ -214,6 +225,11 @@ configuration, and must not be modified.</p>
 </div>
 <div class="refsect1">
 <a name="NMDhcpConfig.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NMDhcpConfig-struct"></a><h3>NMDhcpConfig</h3>
+<pre class="programlisting">typedef struct _NMDhcpConfig NMDhcpConfig;</pre>
+</div>
+<hr>
 <div class="refsect2">
 <a name="NM-DHCP-CONFIG-FAMILY:CAPS"></a><h3>NM_DHCP_CONFIG_FAMILY</h3>
 <pre class="programlisting">#define NM_DHCP_CONFIG_FAMILY  "family"

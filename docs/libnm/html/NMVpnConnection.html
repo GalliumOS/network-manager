@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMVpnConnection.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMVpnConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMVpnConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMVpnConnection.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMVpnConnection.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
                   <a href="#NMVpnConnection.signals" class="shortcut">Signals</a></span>
 </td>
@@ -114,6 +115,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMVpnConnection.html#NM-VPN-CONNECTION-BANNER:CAPS" title="NM_VPN_CONNECTION_BANNER">NM_VPN_CONNECTION_BANNER</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMVpnConnection.html#NMVpnConnection-struct" title="NMVpnConnection">NMVpnConnection</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -126,6 +131,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMVpnConnection.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMVpnConnection implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMVpnConnection.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -136,7 +147,7 @@
 nm_vpn_connection_get_vpn_state (<em class="parameter"><code><a class="link" href="NMVpnConnection.html" title="NMVpnConnection"><span class="type">NMVpnConnection</span></a> *vpn</code></em>);</pre>
 <p>Gets the current <a class="link" href="NMVpnConnection.html" title="NMVpnConnection"><span class="type">NMVpnConnection</span></a> state.</p>
 <div class="refsect3">
-<a name="id-1.5.21.9.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.21.10.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -151,7 +162,7 @@ nm_vpn_connection_get_vpn_state (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.21.9.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.21.10.2.6"></a><h4>Returns</h4>
 <p> the VPN state of the active VPN connection.</p>
 </div>
 </div>
@@ -162,7 +173,7 @@ nm_vpn_connection_get_vpn_state (<em class="parameter"><code><a class="link" hre
 nm_vpn_connection_get_banner (<em class="parameter"><code><a class="link" href="NMVpnConnection.html" title="NMVpnConnection"><span class="type">NMVpnConnection</span></a> *vpn</code></em>);</pre>
 <p>Gets the VPN login banner of the active <a class="link" href="NMVpnConnection.html" title="NMVpnConnection"><span class="type">NMVpnConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.21.9.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.21.10.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -177,7 +188,7 @@ nm_vpn_connection_get_banner (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.21.9.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.21.10.3.6"></a><h4>Returns</h4>
 <p> the VPN login banner of the VPN connection. This is the internal
 string used by the connection, and must not be modified.</p>
 </div>
@@ -195,6 +206,11 @@ string used by the connection, and must not be modified.</p>
 <a name="NM-VPN-CONNECTION-BANNER:CAPS"></a><h3>NM_VPN_CONNECTION_BANNER</h3>
 <pre class="programlisting">#define NM_VPN_CONNECTION_BANNER "banner"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMVpnConnection-struct"></a><h3>NMVpnConnection</h3>
+<pre class="programlisting">typedef struct _NMVpnConnection NMVpnConnection;</pre>
 </div>
 </div>
 <div class="refsect1">

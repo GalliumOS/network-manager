@@ -1,0 +1,109 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Date: Wed, 15 Jun 2016 16:07:27 +0300
+Subject: dns-manager: don't merge split-DNS search domains
+
+Signed-off-by: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1592721
+---
+ src/dns-manager/nm-dns-manager.c | 44 ++++++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 20 deletions(-)
+
+diff --git a/src/dns-manager/nm-dns-manager.c b/src/dns-manager/nm-dns-manager.c
+index 9b7092c..50e65c3 100644
+--- a/src/dns-manager/nm-dns-manager.c
++++ b/src/dns-manager/nm-dns-manager.c
+@@ -201,7 +201,7 @@ add_dns_option_item (GPtrArray *array, const char *str, gboolean ipv6)
+ }
+ 
+ static void
+-merge_one_ip4_config (NMResolvConfData *rc, NMIP4Config *src)
++merge_one_ip4_config (NMResolvConfData *rc, NMIP4Config *src, gboolean never_default)
+ {
+ 	guint32 num, num_domains, num_searches, i;
+ 
+@@ -214,13 +214,15 @@ merge_one_ip4_config (NMResolvConfData *rc, NMIP4Config *src)
+ 	num_domains = nm_ip4_config_get_num_domains (src);
+ 	num_searches = nm_ip4_config_get_num_searches (src);
+ 
+-	for (i = 0; i < num_searches; i++) {
+-		const char *search;
++	if (!never_default) {
++		for (i = 0; i < num_searches; i++) {
++			const char *search;
+ 
+-		search = nm_ip4_config_get_search (src, i);
+-		if (!DOMAIN_IS_VALID (search))
+-			continue;
+-		add_string_item (rc->searches, search);
++			search = nm_ip4_config_get_search (src, i);
++			if (!DOMAIN_IS_VALID (search))
++				continue;
++			add_string_item (rc->searches, search);
++		}
+ 	}
+ 
+ 	if (num_domains > 1 || !num_searches) {
+@@ -257,7 +259,7 @@ merge_one_ip4_config (NMResolvConfData *rc, NMIP4Config *src)
+ }
+ 
+ static void
+-merge_one_ip6_config (NMResolvConfData *rc, NMIP6Config *src)
++merge_one_ip6_config (NMResolvConfData *rc, NMIP6Config *src, gboolean never_default)
+ {
+ 	guint32 num, num_domains, num_searches, i;
+ 	const char *iface;
+@@ -287,13 +289,15 @@ merge_one_ip6_config (NMResolvConfData *rc, NMIP6Config *src)
+ 	num_domains = nm_ip6_config_get_num_domains (src);
+ 	num_searches = nm_ip6_config_get_num_searches (src);
+ 
+-	for (i = 0; i < num_searches; i++) {
+-		const char *search;
++	if (!never_default) {
++		for (i = 0; i < num_searches; i++) {
++			const char *search;
+ 
+-		search = nm_ip6_config_get_search (src, i);
+-		if (!DOMAIN_IS_VALID (search))
+-			continue;
+-		add_string_item (rc->searches, search);
++			search = nm_ip6_config_get_search (src, i);
++			if (!DOMAIN_IS_VALID (search))
++				continue;
++			add_string_item (rc->searches, search);
++		}
+ 	}
+ 
+ 	if (num_domains > 1 || !num_searches) {
+@@ -881,14 +885,14 @@ update_dns (NMDnsManager *self,
+ 		merge_global_dns_config (&rc, global_config);
+ 	else {
+ 		if (priv->ip4_vpn_config)
+-			merge_one_ip4_config (&rc, priv->ip4_vpn_config);
++			merge_one_ip4_config (&rc, priv->ip4_vpn_config, nm_ip4_config_get_never_default (priv->ip4_vpn_config));
+ 		if (priv->ip4_device_config)
+-			merge_one_ip4_config (&rc, priv->ip4_device_config);
++			merge_one_ip4_config (&rc, priv->ip4_device_config, FALSE);
+ 
+ 		if (priv->ip6_vpn_config)
+-			merge_one_ip6_config (&rc, priv->ip6_vpn_config);
++			merge_one_ip6_config (&rc, priv->ip6_vpn_config, nm_ip6_config_get_never_default (priv->ip6_vpn_config));
+ 		if (priv->ip6_device_config)
+-			merge_one_ip6_config (&rc, priv->ip6_device_config);
++			merge_one_ip6_config (&rc, priv->ip6_device_config, FALSE);
+ 
+ 		for (iter = priv->configs; iter; iter = g_slist_next (iter)) {
+ 			if (NM_IN_SET (iter->data, priv->ip4_vpn_config,
+@@ -900,11 +904,11 @@ update_dns (NMDnsManager *self,
+ 			if (NM_IS_IP4_CONFIG (iter->data)) {
+ 				NMIP4Config *config = NM_IP4_CONFIG (iter->data);
+ 
+-				merge_one_ip4_config (&rc, config);
++				merge_one_ip4_config (&rc, config, FALSE);
+ 			} else if (NM_IS_IP6_CONFIG (iter->data)) {
+ 				NMIP6Config *config = NM_IP6_CONFIG (iter->data);
+ 
+-				merge_one_ip6_config (&rc, config);
++				merge_one_ip6_config (&rc, config, FALSE);
+ 			} else
+ 				g_assert_not_reached ();
+ 		}

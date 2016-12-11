@@ -1,11 +1,49 @@
-network-manager (1.2.0-0ubuntu0.16.04.2-galliumos1) xenon; urgency=medium
+network-manager (1.2.2-0ubuntu0.16.04.3) xenial; urgency=medium
 
-  * Re-apply GalliumOS patches:
-    - disable default_powersave_on.patch
-    - add galliumos-increase_scan_frequency.diff
-    - update debian/galliumos/upstream
+  * debian/tests/wpa-dhclient: Don't assume that the IPv6 prefix length from
+    the DHCP server is /64. (LP: #1609898)
 
- -- reynhout <reynhout@galliumos.org>  Thu, 02 Jun 2016 22:08:26 +0000
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 27 Sep 2016 16:29:22 +0200
+
+network-manager (1.2.2-0ubuntu0.16.04.2) xenial; urgency=medium
+
+  [ Martin Pitt ]
+  * Read config and system connections from /run/NetworkManager/ to support
+    netplan (LP: #1627641)
+  * debian/gbp.conf: Set debian-branch to xenial
+
+  [ Mathieu Trudel-Lapierre ]
+  * Add dns-manager-don-t-merge-split-DNS-search-domains.patch: do not add
+    split DNS search domains to resolv.conf; doing so would risk leaking names
+    to non-VPN DNS nameservers when attempting to resolve non- FQDN names.
+    (LP: #1592721)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 27 Sep 2016 10:33:54 +0200
+
+network-manager (1.2.2-0ubuntu0.16.04.1) xenial; urgency=medium
+
+  * Rebase to upstream 1.2.2 release, patches: (LP: #1589557)
+    - dnsmasq-vpn-dns-filtering.patch: updated
+    - nm-change-dnsmasq-parameters.diff: updated
+    - 0001-dns-use-DBus-to-make-dnsmasq-nameserver-changes.patch: dropped
+    - lp1574347-re-read-link-type-if-the-name-changed.diff: dropped
+    - libnm-Check-self-still-NMManager-or-not.patch: (LP: #1582301)
+    - libnm-don-t-require-initialized-out_encrypted-argume.patch:
+      (LP: #1575614)
+
+ -- Aron Xu <happyaron@ubuntu.com>  Sat, 04 Jun 2016 18:27:47 +0800
+
+network-manager (1.2.0-0ubuntu0.16.04.3) xenial; urgency=medium
+
+  * cli-initialize-connection-list-in-do_device_connect.patch:
+    Make sure connection list available for nmc_secrets_requested().
+    (LP: #1595707).
+  * Removing default_powersave_on.patch, and instead install config
+    file that accomplishes the same (LP: #1557026)
+  * Fix invalid nmcli option in bug report script
+    debian/source_network-manager.py (LP: #1582803)
+
+ -- Aron Xu <happyaron@ubuntu.com>  Tue, 05 Jul 2016 16:01:03 +0800
 
 network-manager (1.2.0-0ubuntu0.16.04.2) xenial; urgency=medium
 

@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="up" href="index.html" title="NetworkManager Reference Manual">
-<link rel="prev" href="gdbus-org.freedesktop.NetworkManager.SecretAgent.html" title="org.freedesktop.NetworkManager.SecretAgent">
+<link rel="prev" href="nm-vpn-dbus-types.html" title="VPN Plugin D-Bus API Types">
 <link rel="next" href="secrets-flags.html" title="Secret flag types">
 <meta name="generator" content="GTK-Doc V1.24 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -16,7 +16,7 @@
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><img src="up-insensitive.png" width="16" height="16" border="0"></td>
-<td><a accesskey="p" href="gdbus-org.freedesktop.NetworkManager.SecretAgent.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="nm-vpn-dbus-types.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="secrets-flags.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="chapter">
@@ -1172,7 +1172,7 @@
 <td><pre class="screen">addr-gen-mode</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">1</pre></td>
-<td>Configure method for creating the address for use with RFC4862 IPv6 Stateless Address Autoconfiguration. The permitted values are: "eui64", "stable-privacy" or unset. If the property is set to "eui64", the addresses will be generated using the interface tokens derived from  hardware address. This makes the host part of the address to stay constant, making it possible to track host's presence when it changes networks. The address changes when the interface hardware is replaced. The value of "stable-privacy" enables use of cryptographically secure hash of a secret host-specific key along with the connection identification and the network address as specified by RFC7217. This makes it impossible to use the address track host's presence, and makes the address stable when the network interface hardware is replaced. Leaving this unset causes a default that could be subject to change in future versions to be used. Note that this setting is distinct from the Privacy Extensions as configured by "ip6-privacy" property and it does not affect the temporary addresses configured with this option.</td>
+<td>Configure method for creating the address for use with RFC4862 IPv6 Stateless Address Autoconfiguration. The permitted values are: "eui64", or "stable-privacy". If the property is set to "eui64", the addresses will be generated using the interface tokens derived from  hardware address. This makes the host part of the address to stay constant, making it possible to track host's presence when it changes networks. The address changes when the interface hardware is replaced. The value of "stable-privacy" enables use of cryptographically secure hash of a secret host-specific key along with the connection identification and the network address as specified by RFC7217. This makes it impossible to use the address track host's presence, and makes the address stable when the network interface hardware is replaced. On D-Bus, the absence of an addr-gen-mode setting equals enabling "stable-privacy". For keyfile plugin, the absence of the setting on disk means "eui64" so that the property doesn't change on upgrade from older versions. Note that this setting is distinct from the Privacy Extensions as configured by "ip6-privacy" property and it does not affect the temporary addresses configured with this option.</td>
 </tr>
 <tr>
 <td><pre class="screen">address-data</pre></td>

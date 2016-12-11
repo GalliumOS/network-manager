@@ -225,7 +225,7 @@ group=CCMP''' % SSID,
         else:
             if not ipv6_mode:
                 # has global address from our DHCP server
-                self.assertRegex(out, 'inet6 2600::[0-9a-z]+/64')
+                self.assertRegex(out, 'inet6 2600::[0-9a-z]+/\d')
             else:
                 # has address with our prefix and MAC
                 self.assertRegex(out, 'inet6 2600::ff:fe00:[0-9a-z]+/64 scope global (?:tentative )?(?:mngtmpaddr )?dynamic')

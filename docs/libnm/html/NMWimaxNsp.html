@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMWimaxNsp.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMWimaxNsp.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMWimaxNsp.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMWimaxNsp.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMWimaxNsp.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -131,6 +132,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMWimaxNsp.html#NM-WIMAX-NSP-NETWORK-TYPE:CAPS" title="NM_WIMAX_NSP_NETWORK_TYPE">NM_WIMAX_NSP_NETWORK_TYPE</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMWimaxNsp.html#NMWimaxNsp-struct" title="NMWimaxNsp">NMWimaxNsp</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -140,6 +145,12 @@
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> NMWimaxNsp
 </pre>
+</div>
+<div class="refsect1">
+<a name="NMWimaxNsp.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMWimaxNsp implements
+ GInitable and  GAsyncInitable.</p>
 </div>
 <div class="refsect1">
 <a name="NMWimaxNsp.description"></a><h2>Description</h2>
@@ -152,7 +163,7 @@
 nm_wimax_nsp_get_name (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
 <p>Gets the name of the wimax NSP</p>
 <div class="refsect3">
-<a name="id-1.5.24.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.24.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -167,7 +178,7 @@ nm_wimax_nsp_get_name (<em class="parameter"><code><a class="link" href="NMWimax
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.24.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.24.9.2.6"></a><h4>Returns</h4>
 <p> the name</p>
 </div>
 </div>
@@ -178,7 +189,7 @@ nm_wimax_nsp_get_name (<em class="parameter"><code><a class="link" href="NMWimax
 nm_wimax_nsp_get_signal_quality (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
 <p>Gets the WPA signal quality of the wimax NSP.</p>
 <div class="refsect3">
-<a name="id-1.5.24.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.24.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -193,7 +204,7 @@ nm_wimax_nsp_get_signal_quality (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.24.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.24.9.3.6"></a><h4>Returns</h4>
 <p> the signal quality</p>
 </div>
 </div>
@@ -204,7 +215,7 @@ nm_wimax_nsp_get_signal_quality (<em class="parameter"><code><a class="link" hre
 nm_wimax_nsp_get_network_type (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
 <p>Gets the network type of the wimax NSP.</p>
 <div class="refsect3">
-<a name="id-1.5.24.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.24.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -219,7 +230,7 @@ nm_wimax_nsp_get_network_type (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.24.8.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.24.9.4.6"></a><h4>Returns</h4>
 <p> the network type</p>
 </div>
 </div>
@@ -234,7 +245,7 @@ return connections which may be activated with the NSP.  Any returned
 connections will match the <em class="parameter"><code>nsp</code></em>
 's network name and other attributes.</p>
 <div class="refsect3">
-<a name="id-1.5.24.8.5.5"></a><h4>Parameters</h4>
+<a name="id-1.5.24.9.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -249,7 +260,7 @@ connections will match the <em class="parameter"><code>nsp</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>connections</p></td>
-<td class="parameter_description"><p> an array of <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnections</span></a> to
+<td class="parameter_description"><p> an array of <a href="NMConnection.html"><span class="type">NMConnections</span></a> to
 filter. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></td>
 </tr>
@@ -257,9 +268,9 @@ filter. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.24.8.5.6"></a><h4>Returns</h4>
+<a name="id-1.5.24.9.5.6"></a><h4>Returns</h4>
 <p> an array of
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>nsp</code></em>
+<a href="NMConnection.html"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>nsp</code></em>
 .  The array should
 be freed with <code class="function">g_ptr_array_unref()</code> when it is no longer required. </p>
 <p><span class="annotation">[<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
@@ -270,13 +281,13 @@ be freed with <code class="function">g_ptr_array_unref()</code> when it is no lo
 <a name="nm-wimax-nsp-connection-valid"></a><h3>nm_wimax_nsp_connection_valid ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_wimax_nsp_connection_valid (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
-                               <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+                               <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <p>Validates a given connection against a given WiMAX NSP to ensure that the
 connection may be activated with that NSP.  The connection must match the
 <em class="parameter"><code>nsp</code></em>
 's network name and other attributes.</p>
 <div class="refsect3">
-<a name="id-1.5.24.8.6.5"></a><h4>Parameters</h4>
+<a name="id-1.5.24.9.6.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -292,7 +303,7 @@ against</p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>nsp</code></em>
+<td class="parameter_description"><p>an <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> to validate against <em class="parameter"><code>nsp</code></em>
 </p></td>
 <td class="parameter_annotations"> </td>
 </tr>
@@ -300,7 +311,7 @@ against</p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.24.8.6.6"></a><h4>Returns</h4>
+<a name="id-1.5.24.9.6.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the connection may be activated with this WiMAX NSP,
 <code class="literal">FALSE</code> if it cannot be.</p>
 </div>
@@ -324,6 +335,11 @@ against</p></td>
 <a name="NM-WIMAX-NSP-NETWORK-TYPE:CAPS"></a><h3>NM_WIMAX_NSP_NETWORK_TYPE</h3>
 <pre class="programlisting">#define NM_WIMAX_NSP_NETWORK_TYPE   "network-type"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMWimaxNsp-struct"></a><h3>NMWimaxNsp</h3>
+<pre class="programlisting">typedef struct _NMWimaxNsp NMWimaxNsp;</pre>
 </div>
 </div>
 <div class="refsect1">

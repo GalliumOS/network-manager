@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDeviceOlpcMesh.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceOlpcMesh.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceOlpcMesh.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDeviceOlpcMesh.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDeviceOlpcMesh.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -116,6 +117,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-ACTIVE-CHANNEL:CAPS" title="NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL">NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh-struct" title="NMDeviceOlpcMesh">NMDeviceOlpcMesh</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -128,6 +133,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMDeviceOlpcMesh.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceOlpcMesh implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMDeviceOlpcMesh.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -138,7 +149,7 @@
 nm_device_olpc_mesh_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);</pre>
 <p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.13.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.13.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -153,7 +164,7 @@ nm_device_olpc_mesh_get_hw_address (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.13.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.13.9.2.6"></a><h4>Returns</h4>
 <p> the hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -165,7 +176,7 @@ device, and must not be modified.</p>
 nm_device_olpc_mesh_get_companion (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);</pre>
 <p>Gets the companion device of the <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.13.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.13.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -180,7 +191,7 @@ nm_device_olpc_mesh_get_companion (<em class="parameter"><code><a class="link" h
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.13.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.13.9.3.6"></a><h4>Returns</h4>
 <p> the companion of the device of <code class="literal">NULL</code>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -193,7 +204,7 @@ nm_device_olpc_mesh_get_active_channel
                                (<em class="parameter"><code><a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> *device</code></em>);</pre>
 <p>Returns the active channel of the <a class="link" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh"><span class="type">NMDeviceOlpcMesh</span></a> device.</p>
 <div class="refsect3">
-<a name="id-1.5.13.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.13.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -208,7 +219,7 @@ nm_device_olpc_mesh_get_active_channel
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.13.8.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.13.9.4.6"></a><h4>Returns</h4>
 <p> active channel of the device</p>
 </div>
 </div>
@@ -231,6 +242,11 @@ nm_device_olpc_mesh_get_active_channel
 <a name="NM-DEVICE-OLPC-MESH-ACTIVE-CHANNEL:CAPS"></a><h3>NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL</h3>
 <pre class="programlisting">#define NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL "active-channel"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceOlpcMesh-struct"></a><h3>NMDeviceOlpcMesh</h3>
+<pre class="programlisting">typedef struct _NMDeviceOlpcMesh NMDeviceOlpcMesh;</pre>
 </div>
 </div>
 <div class="refsect1">

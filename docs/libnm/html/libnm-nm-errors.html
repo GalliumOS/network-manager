@@ -184,7 +184,7 @@
 </div>
 <div class="refsect1">
 <a name="libnm-nm-errors.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+<pre class="screen">    GEnum
     <span class="lineart">├──</span> NMAgentManagerError
     <span class="lineart">├──</span> NMConnectionError
     <span class="lineart">├──</span> NMCryptoError
@@ -349,9 +349,9 @@ errors in the "org.freedesktop.NetworkManager.AgentManager" namespace.</p>
 <hr>
 <div class="refsect2">
 <a name="NMConnectionError"></a><h3>enum NMConnectionError</h3>
-<p>Describes errors that may result from operations involving a <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>
+<p>Describes errors that may result from operations involving a <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>
 or its <a href="NMSetting.html"><span class="type">NMSettings</span></a>.</p>
-<p>These errors may be returned directly from <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> and <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
+<p>These errors may be returned directly from <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> and <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>
 methods, or may be returned from D-Bus operations (eg on <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> or
 <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a>), where they correspond to errors in the
 "org.freedesktop.NetworkManager.Settings.Connection" namespace.</p>
@@ -374,7 +374,7 @@ methods, or may be returned from D-Bus operations (eg on <a class="link" href="N
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-SETTING-NOT-FOUND:CAPS"></a>NM_CONNECTION_ERROR_SETTING_NOT_FOUND</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> object
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object
   did not contain the specified <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object</p>
 </td>
 <td class="enum_member_annotations"> </td>
@@ -382,7 +382,7 @@ methods, or may be returned from D-Bus operations (eg on <a class="link" href="N
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-PROPERTY-NOT-FOUND:CAPS"></a>NM_CONNECTION_ERROR_PROPERTY_NOT_FOUND</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> did not contain the
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> did not contain the
   requested <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> property</p>
 </td>
 <td class="enum_member_annotations"> </td>
@@ -398,7 +398,7 @@ methods, or may be returned from D-Bus operations (eg on <a class="link" href="N
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-MISSING-SETTING:CAPS"></a>NM_CONNECTION_ERROR_MISSING_SETTING</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> object is missing an
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is missing an
   <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> which is required for its configuration. The error message will
   always be prefixed with "&lt;setting-name&gt;: ", where "&lt;setting-name&gt;" is the
   name of the setting that is missing.</p>
@@ -408,7 +408,7 @@ methods, or may be returned from D-Bus operations (eg on <a class="link" href="N
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-INVALID-SETTING:CAPS"></a>NM_CONNECTION_ERROR_INVALID_SETTING</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> object contains an
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object contains an
   invalid or inappropriate <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>. The error message will always be
   prefixed with "&lt;setting-name&gt;: ", where "&lt;setting-name&gt;" is the name of the
   setting that is invalid.</p>
@@ -418,7 +418,7 @@ methods, or may be returned from D-Bus operations (eg on <a class="link" href="N
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-MISSING-PROPERTY:CAPS"></a>NM_CONNECTION_ERROR_MISSING_PROPERTY</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> object is invalid
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is invalid
   because it is missing a required property. The error message will always be
   prefixed with "&lt;setting-name&gt;.&lt;property-name&gt;: ", where "&lt;setting-name&gt;" is
   the name of the setting with the missing property, and "&lt;property-name&gt;" is
@@ -429,7 +429,7 @@ methods, or may be returned from D-Bus operations (eg on <a class="link" href="N
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-INVALID-PROPERTY:CAPS"></a>NM_CONNECTION_ERROR_INVALID_PROPERTY</p></td>
 <td class="enum_member_description">
-<p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> object is invalid
+<p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is invalid
   because a property has an invalid value. The error message will always be
   prefixed with "&lt;setting-name&gt;.&lt;property-name&gt;: ", where "&lt;setting-name&gt;" is
   the name of the setting with the invalid property, and "&lt;property-name&gt;" is

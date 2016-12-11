@@ -145,6 +145,10 @@
 <td class="function_name"><a class="link" href="NMSettingMacvlan.html#NM-SETTING-MACVLAN-TAP:CAPS" title="NM_SETTING_MACVLAN_TAP">NM_SETTING_MACVLAN_TAP</a></td>
 </tr>
 <tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSettingMacvlan.html#NMSettingMacvlan-struct" title="NMSettingMacvlan">NMSettingMacvlan</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMSettingMacvlan.html#NMSettingMacvlanMode" title="enum NMSettingMacvlanMode">NMSettingMacvlanMode</a></td>
 </tr>
@@ -153,7 +157,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingMacvlan.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+<pre class="screen">    GEnum
     <span class="lineart">╰──</span> NMSettingMacvlanMode
     GObject
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
@@ -317,9 +321,14 @@ nm_setting_macvlan_get_tap (<em class="parameter"><code><a class="link" href="NM
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingMacvlan-struct"></a><h3>NMSettingMacvlan</h3>
+<pre class="programlisting">typedef struct _NMSettingMacvlan NMSettingMacvlan;</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingMacvlanMode"></a><h3>enum NMSettingMacvlanMode</h3>
 <div class="refsect3">
-<a name="id-1.4.21.9.7.3"></a><h4>Members</h4>
+<a name="id-1.4.21.9.8.3"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

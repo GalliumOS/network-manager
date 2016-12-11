@@ -8,15 +8,15 @@ See also: https://blueprints.launchpad.net/ubuntu/+spec/foundations-p-dns-resolv
 
 === modified file 'src/dns-manager/nm-dns-dnsmasq.c'
 ---
- src/dns-manager/nm-dns-dnsmasq.c |    6 +++---
- src/dns-manager/nm-dns-manager.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ src/dns-manager/nm-dns-dnsmasq.c | 4 ++--
+ src/dns-manager/nm-dns-manager.c | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-Index: b/src/dns-manager/nm-dns-dnsmasq.c
-===================================================================
+diff --git a/src/dns-manager/nm-dns-dnsmasq.c b/src/dns-manager/nm-dns-dnsmasq.c
+index 4cee160..951572c 100644
 --- a/src/dns-manager/nm-dns-dnsmasq.c
 +++ b/src/dns-manager/nm-dns-dnsmasq.c
-@@ -392,8 +392,8 @@ start_dnsmasq (NMDnsDnsmasq *self)
+@@ -391,8 +391,8 @@ start_dnsmasq (NMDnsDnsmasq *self)
  	argv[idx++] = "--no-hosts"; /* don't use /etc/hosts to resolve */
  	argv[idx++] = "--bind-interfaces";
  	argv[idx++] = "--pid-file=" PIDFILE;
@@ -24,26 +24,17 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
 -	argv[idx++] = "--cache-size=400";
 +	argv[idx++] = "--listen-address=127.0.1.1"; /* Should work for both 4 and 6 */
 +	argv[idx++] = "--cache-size=0";
+ 	argv[idx++] = "--conf-file=/dev/null"; /* avoid loading /etc/dnsmasq.conf */
  	argv[idx++] = "--proxy-dnssec"; /* Allow DNSSEC to pass through */
  	argv[idx++] = "--enable-dbus=" DNSMASQ_DBUS_SERVICE;
- 
-@@ -488,7 +488,7 @@ update (NMDnsPlugin *plugin,
- 
- 	/* If all the configs lists are empty, there is just nothing to be caching --
- 	 * we cleared up the dnsmasq cache; but we should also fail the update, so
--	 * that we don't write 127.0.0.1 to resolv.conf.
-+	 * that we don't write 127.0.1.1 to resolv.conf.
- 	 */
- 	if (((vpn_configs && g_slist_length ((GSList *) vpn_configs) < 1) || !vpn_configs) &&
- 	    ((dev_configs && g_slist_length ((GSList *) dev_configs) < 1) || !dev_configs) &&
-Index: b/src/dns-manager/nm-dns-manager.c
-===================================================================
+diff --git a/src/dns-manager/nm-dns-manager.c b/src/dns-manager/nm-dns-manager.c
+index b42af16..77e9221 100644
 --- a/src/dns-manager/nm-dns-manager.c
 +++ b/src/dns-manager/nm-dns-manager.c
 @@ -1006,7 +1006,7 @@ update_dns (NMDnsManager *self,
  		;
  	}
- 
+
 -	/* If caching was successful, we only send 127.0.0.1 to /etc/resolv.conf
 +	/* If caching was successful, we only send 127.0.1.1 to /etc/resolv.conf
  	 * to ensure that the glibc resolver doesn't try to round-robin nameservers,
@@ -56,11 +47,11 @@ Index: b/src/dns-manager/nm-dns-manager.c
 -		nameservers[0] = g_strdup ("127.0.0.1");
 +		nameservers[0] = g_strdup ("127.0.1.1");
  	}
- 
+
  	if (update) {
-@@ -1574,7 +1574,7 @@ dispose (GObject *object)
+@@ -1555,7 +1555,7 @@ dispose (GObject *object)
  	g_clear_pointer (&priv->last_mode, g_free);
- 
+
  	/* If we're quitting, leave a valid resolv.conf in place, not one
 -	 * pointing to 127.0.0.1 if any plugins were active.  Thus update
 +	 * pointing to 127.0.1.1 if any plugins were active.  Thus update

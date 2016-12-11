@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDeviceMacvlan.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceMacvlan.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceMacvlan.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDeviceMacvlan.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDeviceMacvlan.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -150,6 +151,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceMacvlan.html#NM-DEVICE-MACVLAN-HW-ADDRESS:CAPS" title="NM_DEVICE_MACVLAN_HW_ADDRESS">NM_DEVICE_MACVLAN_HW_ADDRESS</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceMacvlan.html#NMDeviceMacvlan-struct" title="NMDeviceMacvlan">NMDeviceMacvlan</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -162,6 +167,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMDeviceMacvlan.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceMacvlan implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMDeviceMacvlan.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -171,7 +182,7 @@
 <pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
 nm_device_macvlan_get_parent (<em class="parameter"><code><a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan"><span class="type">NMDeviceMacvlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.11.8.2.4"></a><h4>Parameters</h4>
+<a name="id-1.5.11.9.2.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -186,7 +197,7 @@ nm_device_macvlan_get_parent (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.11.8.2.5"></a><h4>Returns</h4>
+<a name="id-1.5.11.9.2.5"></a><h4>Returns</h4>
 <p> the device's parent device. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -199,7 +210,7 @@ nm_device_macvlan_get_parent (<em class="parameter"><code><a class="link" href="
 nm_device_macvlan_get_mode (<em class="parameter"><code><a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan"><span class="type">NMDeviceMacvlan</span></a> *device</code></em>);</pre>
 <p>Gets the MACVLAN mode of the device.</p>
 <div class="refsect3">
-<a name="id-1.5.11.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.11.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -214,7 +225,7 @@ nm_device_macvlan_get_mode (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.11.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.11.9.3.6"></a><h4>Returns</h4>
 <p> the MACVLAN mode. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -227,7 +238,7 @@ device, and must not be modified.</p>
 nm_device_macvlan_get_no_promisc (<em class="parameter"><code><a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan"><span class="type">NMDeviceMacvlan</span></a> *device</code></em>);</pre>
 <p>Gets the no-promiscuous flag of the device.</p>
 <div class="refsect3">
-<a name="id-1.5.11.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.11.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -242,7 +253,7 @@ nm_device_macvlan_get_no_promisc (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.11.8.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.11.9.4.6"></a><h4>Returns</h4>
 <p> the no-promiscuous flag of the device.</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -254,7 +265,7 @@ nm_device_macvlan_get_no_promisc (<em class="parameter"><code><a class="link" hr
 nm_device_macvlan_get_tap (<em class="parameter"><code><a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan"><span class="type">NMDeviceMacvlan</span></a> *device</code></em>);</pre>
 <p>Gets the device type (MACVLAN or MACVTAP).</p>
 <div class="refsect3">
-<a name="id-1.5.11.8.5.5"></a><h4>Parameters</h4>
+<a name="id-1.5.11.9.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -269,7 +280,7 @@ nm_device_macvlan_get_tap (<em class="parameter"><code><a class="link" href="NMD
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.11.8.5.6"></a><h4>Returns</h4>
+<a name="id-1.5.11.9.5.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the device is a MACVTAP, <code class="literal">FALSE</code> if it is a MACVLAN.</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -281,7 +292,7 @@ nm_device_macvlan_get_tap (<em class="parameter"><code><a class="link" href="NMD
 nm_device_macvlan_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan"><span class="type">NMDeviceMacvlan</span></a> *device</code></em>);</pre>
 <p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan"><span class="type">NMDeviceMacvlan</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.11.8.6.5"></a><h4>Parameters</h4>
+<a name="id-1.5.11.9.6.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -296,7 +307,7 @@ nm_device_macvlan_get_hw_address (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.11.8.6.6"></a><h4>Returns</h4>
+<a name="id-1.5.11.9.6.6"></a><h4>Returns</h4>
 <p> the hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -333,6 +344,11 @@ device, and must not be modified.</p>
 <a name="NM-DEVICE-MACVLAN-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_MACVLAN_HW_ADDRESS</h3>
 <pre class="programlisting">#define NM_DEVICE_MACVLAN_HW_ADDRESS  "hw-address"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceMacvlan-struct"></a><h3>NMDeviceMacvlan</h3>
+<pre class="programlisting">typedef struct _NMDeviceMacvlan NMDeviceMacvlan;</pre>
 </div>
 </div>
 <div class="refsect1">

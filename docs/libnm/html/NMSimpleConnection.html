@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
-<link rel="prev" href="libnm-NMConnection.html" title="NMConnection">
+<link rel="prev" href="NMConnection.html" title="NMConnection">
 <link rel="next" href="NMSetting.html" title="NMSetting">
 <meta name="generator" content="GTK-Doc V1.24 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -16,11 +16,12 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMSimpleConnection.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSimpleConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+                  <a href="#NMSimpleConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMSimpleConnection.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="libnm-NMConnection.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NMConnection.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="NMSetting.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -42,7 +43,7 @@
 <tbody>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="returnvalue">NMConnection</span></a> *
+<a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMSimpleConnection.html#nm-simple-connection-new" title="nm_simple_connection_new ()">nm_simple_connection_new</a> <span class="c_punctuation">()</span>
@@ -50,7 +51,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="returnvalue">NMConnection</span></a> *
+<a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMSimpleConnection.html#nm-simple-connection-new-from-dbus" title="nm_simple_connection_new_from_dbus ()">nm_simple_connection_new_from_dbus</a> <span class="c_punctuation">()</span>
@@ -58,7 +59,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="returnvalue">NMConnection</span></a> *
+<a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMSimpleConnection.html#nm-simple-connection-new-clone" title="nm_simple_connection_new_clone ()">nm_simple_connection_new_clone</a> <span class="c_punctuation">()</span>
@@ -68,10 +69,29 @@
 </table></div>
 </div>
 <div class="refsect1">
+<a name="NMSimpleConnection.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSimpleConnection.html#NMSimpleConnection-struct" title="NMSimpleConnection">NMSimpleConnection</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="NMSimpleConnection.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="screen">    GObject
     <span class="lineart">╰──</span> NMSimpleConnection
 </pre>
+</div>
+<div class="refsect1">
+<a name="NMSimpleConnection.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMSimpleConnection implements
+ <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMSimpleConnection.description"></a><h2>Description</h2>
@@ -80,28 +100,28 @@
 <a name="NMSimpleConnection.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="nm-simple-connection-new"></a><h3>nm_simple_connection_new ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="returnvalue">NMConnection</span></a> *
+<pre class="programlisting"><a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
 nm_simple_connection_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a> object with no <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> objects. An
 <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a> does not directly represent a D-Bus-exported connection,
 but might be used in the process of creating a new one.</p>
 <div class="refsect3">
-<a name="id-1.4.3.6.2.5"></a><h4>Returns</h4>
-<p> the new empty <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> object. </p>
+<a name="id-1.4.3.8.2.5"></a><h4>Returns</h4>
+<p> the new empty <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-simple-connection-new-from-dbus"></a><h3>nm_simple_connection_new_from_dbus ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="returnvalue">NMConnection</span></a> *
+<pre class="programlisting"><a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
 nm_simple_connection_new_from_dbus (<em class="parameter"><code><span class="type">GVariant</span> *dict</code></em>,
                                     <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a> from a hash table describing the
-connection and normalize the connection.  See <a class="link" href="libnm-NMConnection.html#nm-connection-to-dbus" title="nm_connection_to_dbus ()"><code class="function">nm_connection_to_dbus()</code></a> for a
+connection and normalize the connection.  See <a class="link" href="NMConnection.html#nm-connection-to-dbus" title="nm_connection_to_dbus ()"><code class="function">nm_connection_to_dbus()</code></a> for a
 description of the expected hash table.</p>
 <div class="refsect3">
-<a name="id-1.4.3.6.3.5"></a><h4>Parameters</h4>
+<a name="id-1.4.3.8.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -123,7 +143,7 @@ description of the expected hash table.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.3.6.3.6"></a><h4>Returns</h4>
+<a name="id-1.4.3.8.3.6"></a><h4>Returns</h4>
 <p> the new <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a> object, populated with
 settings created from the values in the hash table, or <code class="literal">NULL</code> if the
 connection failed to normalize. </p>
@@ -133,11 +153,11 @@ connection failed to normalize. </p>
 <hr>
 <div class="refsect2">
 <a name="nm-simple-connection-new-clone"></a><h3>nm_simple_connection_new_clone ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="returnvalue">NMConnection</span></a> *
-nm_simple_connection_new_clone (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
-<p>Clones an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> as an <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a>.</p>
+<pre class="programlisting"><a class="link" href="NMConnection.html" title="NMConnection"><span class="returnvalue">NMConnection</span></a> *
+nm_simple_connection_new_clone (<em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<p>Clones an <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> as an <a class="link" href="NMSimpleConnection.html" title="NMSimpleConnection"><span class="type">NMSimpleConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.3.6.4.5"></a><h4>Parameters</h4>
+<a name="id-1.4.3.8.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -146,21 +166,25 @@ nm_simple_connection_new_clone (<em class="parameter"><code><a href="/usr/share/
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> to clone</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> to clone</p></td>
 <td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.3.6.4.6"></a><h4>Returns</h4>
-<p> a new <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> containing the same settings
-and properties as the source <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>. </p>
+<a name="id-1.4.3.8.4.6"></a><h4>Returns</h4>
+<p> a new <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> containing the same settings
+and properties as the source <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 </div>
 <div class="refsect1">
 <a name="NMSimpleConnection.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NMSimpleConnection-struct"></a><h3>NMSimpleConnection</h3>
+<pre class="programlisting">typedef struct _NMSimpleConnection NMSimpleConnection;</pre>
+</div>
 </div>
 </div>
 <div class="footer">

@@ -214,6 +214,10 @@
 <td class="function_name"><a class="link" href="NMSettingVlan.html#NM-SETTING-VLAN-EGRESS-PRIORITY-MAP:CAPS" title="NM_SETTING_VLAN_EGRESS_PRIORITY_MAP">NM_SETTING_VLAN_EGRESS_PRIORITY_MAP</a></td>
 </tr>
 <tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSettingVlan.html#NMSettingVlan-struct" title="NMSettingVlan">NMSettingVlan</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMSettingVlan.html#NMVlanPriorityMap" title="enum NMVlanPriorityMap">NMVlanPriorityMap</a></td>
 </tr>
@@ -226,9 +230,9 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingVlan.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+<pre class="screen">    GEnum
     <span class="lineart">╰──</span> NMVlanPriorityMap
-    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
+    GFlags
     <span class="lineart">╰──</span> NMVlanFlags
     GObject
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
@@ -738,11 +742,16 @@ overwrote the old value, <code class="literal">FALSE</code> if error</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingVlan-struct"></a><h3>NMSettingVlan</h3>
+<pre class="programlisting">typedef struct _NMSettingVlan NMSettingVlan;</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMVlanPriorityMap"></a><h3>enum NMVlanPriorityMap</h3>
 <p>A selector for traffic priority maps; these map Linux SKB priorities
 to 802.1p priorities used in VLANs.</p>
 <div class="refsect3">
-<a name="id-1.4.29.9.8.4"></a><h4>Members</h4>
+<a name="id-1.4.29.9.9.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -773,7 +782,7 @@ to 802.1p priorities used in VLANs.</p>
 <a name="NMVlanFlags"></a><h3>enum NMVlanFlags</h3>
 <p><a class="link" href="NMSettingVlan.html#NMVlanFlags" title="enum NMVlanFlags"><span class="type">NMVlanFlags</span></a> values control the behavior of the VLAN interface.</p>
 <div class="refsect3">
-<a name="id-1.4.29.9.9.4"></a><h4>Members</h4>
+<a name="id-1.4.29.9.10.4"></a><h4>Members</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

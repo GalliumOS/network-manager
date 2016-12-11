@@ -261,9 +261,6 @@ typedef struct {
 } TabCompletionInfo;
 static TabCompletionInfo nmc_tab_completion = {NULL, NULL, NULL, NULL};
 
-/* Global variable defined in nmcli.c - used for TAB completion */
-extern NmCli nm_cli;
-
 static char *gen_connection_types (const char *text, int state);
 
 static void
@@ -1970,11 +1967,18 @@ device_state_cb (NMDevice *device, GParamSpec *pspec, gpointer user_data)
 		         nm_object_get_path (NM_OBJECT (active)));
 		quit ();
 	} else if (   ac_state == NM_ACTIVE_CONNECTION_STATE_ACTIVATING
-	           && state >= NM_DEVICE_STATE_IP_CONFIG) {
+	           && state >= NM_DEVICE_STATE_IP_CONFIG
+	           && state <= NM_DEVICE_STATE_ACTIVATED) {
 		if (nmc->print_output == NMC_PRINT_PRETTY)
 			nmc_terminal_erase_line ();
 		g_print (_("Connection successfully activated (master waiting for slaves) (D-Bus active path: %s)\n"),
 		         nm_object_get_path (NM_OBJECT (active)));
+		quit ();
+	} else if (   ac_state == NM_ACTIVE_CONNECTION_STATE_ACTIVATING
+	           && state == NM_DEVICE_STATE_FAILED) {
+		if (nmc->print_output == NMC_PRINT_PRETTY)
+			nmc_terminal_erase_line ();
+		g_print (_("Error: Connection activation failed."));
 		quit ();
 	} else if (active && ac_state != NM_ACTIVE_CONNECTION_STATE_ACTIVATING) {
 		g_string_printf (nmc->return_text, _("Error: Connection activation failed."));
@@ -11051,9 +11055,6 @@ do_connections (NmCli *nmc, int argc, char **argv)
 		nmc->return_value = NMC_RESULT_ERROR_NM_NOT_RUNNING;
 		return nmc->return_value;
 	}
-	/* Compare NM and nmcli versions */
-	if (!nmc_versions_match (nmc))
-		return nmc->return_value;
 
 	/* Get the connection list */
 	nmc->connections = nm_client_get_connections (nmc->client);

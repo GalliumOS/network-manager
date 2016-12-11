@@ -465,15 +465,15 @@
 <td class="function_name"><a class="link" href="NMSettingConnection.html#NMSettingConnectionLldp" title="enum NMSettingConnectionLldp">NMSettingConnectionLldp</a></td>
 </tr>
 <tr>
-<td class="datatype_keyword">struct</td>
-<td class="function_name"><a class="link" href="NMSettingConnection.html#NMSettingConnection-struct" title="struct NMSettingConnection">NMSettingConnection</a></td>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSettingConnection.html#NMSettingConnection-struct" title="NMSettingConnection">NMSettingConnection</a></td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect1">
 <a name="NMSettingConnection.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+<pre class="screen">    GEnum
     <span class="lineart">├──</span> NMSettingConnectionAutoconnectSlaves
     <span class="lineart">╰──</span> NMSettingConnectionLldp
     GObject
@@ -484,8 +484,8 @@
 <div class="refsect1">
 <a name="NMSettingConnection.description"></a><h2>Description</h2>
 <p>The <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes
-properties that apply to all <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> objects, regardless of what type
-of network connection they describe.  Each <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> object must contain
+properties that apply to all <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> objects, regardless of what type
+of network connection they describe.  Each <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object must contain
 a <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> setting.</p>
 </div>
 <div class="refsect1">
@@ -1566,8 +1566,8 @@ should be activated when master is activated.</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="NMSettingConnection-struct"></a><h3>struct NMSettingConnection</h3>
-<pre class="programlisting">struct NMSettingConnection;</pre>
+<a name="NMSettingConnection-struct"></a><h3>NMSettingConnection</h3>
+<pre class="programlisting">typedef struct _NMSettingConnection NMSettingConnection;</pre>
 <p>The NMSettingConnection struct contains only private data.
 It should only be accessed through the functions described below.</p>
 </div>

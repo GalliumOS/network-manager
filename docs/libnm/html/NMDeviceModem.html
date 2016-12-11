@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDeviceModem.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceModem.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceModem.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDeviceModem.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDeviceModem.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -98,6 +99,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-CURRENT-CAPABILITIES:CAPS" title="NM_DEVICE_MODEM_CURRENT_CAPABILITIES">NM_DEVICE_MODEM_CURRENT_CAPABILITIES</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceModem.html#NMDeviceModem-struct" title="NMDeviceModem">NMDeviceModem</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -108,6 +113,12 @@
         <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
             <span class="lineart">╰──</span> NMDeviceModem
 </pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceModem.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceModem implements
+ GInitable and  GAsyncInitable.</p>
 </div>
 <div class="refsect1">
 <a name="NMDeviceModem.description"></a><h2>Description</h2>
@@ -123,7 +134,7 @@ nm_device_modem_get_modem_capabilities
 supports.  Not all capabilities are available concurrently however; some
 may require a firmware reload or reinitialization.</p>
 <div class="refsect3">
-<a name="id-1.5.12.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.12.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -138,7 +149,7 @@ may require a firmware reload or reinitialization.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.12.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.12.9.2.6"></a><h4>Returns</h4>
 <p> the generic access technology families the modem supports</p>
 </div>
 </div>
@@ -152,7 +163,7 @@ nm_device_modem_get_current_capabilities
 supports without a firmware reload or reinitialization.  This value
 represents the network types the modem can immediately connect to.</p>
 <div class="refsect3">
-<a name="id-1.5.12.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.12.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -167,7 +178,7 @@ represents the network types the modem can immediately connect to.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.12.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.12.9.3.6"></a><h4>Returns</h4>
 <p> the generic access technology families the modem supports without
 a firmware reload or other reinitialization</p>
 </div>
@@ -185,6 +196,11 @@ a firmware reload or other reinitialization</p>
 <a name="NM-DEVICE-MODEM-CURRENT-CAPABILITIES:CAPS"></a><h3>NM_DEVICE_MODEM_CURRENT_CAPABILITIES</h3>
 <pre class="programlisting">#define NM_DEVICE_MODEM_CURRENT_CAPABILITIES "current-capabilities"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceModem-struct"></a><h3>NMDeviceModem</h3>
+<pre class="programlisting">typedef struct _NMDeviceModem NMDeviceModem;</pre>
 </div>
 </div>
 <div class="refsect1">

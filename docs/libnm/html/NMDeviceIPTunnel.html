@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDeviceIPTunnel.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceIPTunnel.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceIPTunnel.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDeviceIPTunnel.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDeviceIPTunnel.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -252,6 +253,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-FLOW-LABEL:CAPS" title="NM_DEVICE_IP_TUNNEL_FLOW_LABEL">NM_DEVICE_IP_TUNNEL_FLOW_LABEL</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceIPTunnel.html#NMDeviceIPTunnel-struct" title="NMDeviceIPTunnel">NMDeviceIPTunnel</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -264,6 +269,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMDeviceIPTunnel.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceIPTunnel implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMDeviceIPTunnel.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -273,7 +284,7 @@
 <pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
 nm_device_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.2.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.2.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -288,7 +299,7 @@ nm_device_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.2.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.2.5"></a><h4>Returns</h4>
 <p> the device's parent device. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -300,7 +311,7 @@ nm_device_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" href
 <pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMIPTunnelMode" title="enum NMIPTunnelMode"><span class="returnvalue">NMIPTunnelMode</span></a>
 nm_device_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.3.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.3.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -315,7 +326,7 @@ nm_device_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.3.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.3.5"></a><h4>Returns</h4>
 <p> the tunneling mode</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -326,7 +337,7 @@ nm_device_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href="
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_device_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.4.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.4.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -341,7 +352,7 @@ nm_device_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.4.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.4.5"></a><h4>Returns</h4>
 <p> the local endpoint of the tunnel</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -352,7 +363,7 @@ nm_device_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href=
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_device_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.5.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.5.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -367,7 +378,7 @@ nm_device_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.5.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.5.5"></a><h4>Returns</h4>
 <p> the remote endpoint of the tunnel</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -378,7 +389,7 @@ nm_device_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" href
 <pre class="programlisting"><span class="returnvalue">guint8</span>
 nm_device_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.6.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.6.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -393,7 +404,7 @@ nm_device_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="N
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.6.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.6.5"></a><h4>Returns</h4>
 <p> the TTL assigned to tunneled packets</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -404,7 +415,7 @@ nm_device_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="N
 <pre class="programlisting"><span class="returnvalue">guint8</span>
 nm_device_ip_tunnel_get_tos (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.7.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.7.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -419,7 +430,7 @@ nm_device_ip_tunnel_get_tos (<em class="parameter"><code><a class="link" href="N
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.7.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.7.5"></a><h4>Returns</h4>
 <p> type of service (IPv4) or traffic class (IPv6) assigned
 to tunneled packets.</p>
 </div>
@@ -432,7 +443,7 @@ to tunneled packets.</p>
 nm_device_ip_tunnel_get_path_mtu_discovery
                                (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.8.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.8.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -447,7 +458,7 @@ nm_device_ip_tunnel_get_path_mtu_discovery
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.8.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.8.5"></a><h4>Returns</h4>
 <p> whether path MTU discovery is enabled</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -458,7 +469,7 @@ nm_device_ip_tunnel_get_path_mtu_discovery
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_device_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.9.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.9.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -473,7 +484,7 @@ nm_device_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" h
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.9.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.9.5"></a><h4>Returns</h4>
 <p> the key used for incoming packets</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -484,7 +495,7 @@ nm_device_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" h
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_device_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.10.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.10.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -499,7 +510,7 @@ nm_device_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.10.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.10.5"></a><h4>Returns</h4>
 <p> the key used for outgoing packets</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -511,7 +522,7 @@ nm_device_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link" 
 nm_device_ip_tunnel_get_encapsulation_limit
                                (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.11.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.11.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -526,7 +537,7 @@ nm_device_ip_tunnel_get_encapsulation_limit
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.11.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.11.5"></a><h4>Returns</h4>
 <p> the maximum permitted encapsulation level</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -537,7 +548,7 @@ nm_device_ip_tunnel_get_encapsulation_limit
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel"><span class="type">NMDeviceIPTunnel</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.10.8.12.4"></a><h4>Parameters</h4>
+<a name="id-1.5.10.9.12.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -552,7 +563,7 @@ nm_device_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.10.8.12.5"></a><h4>Returns</h4>
+<a name="id-1.5.10.9.12.5"></a><h4>Returns</h4>
 <p> the flow label assigned to tunnel packets</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -624,6 +635,11 @@ nm_device_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link" 
 <a name="NM-DEVICE-IP-TUNNEL-FLOW-LABEL:CAPS"></a><h3>NM_DEVICE_IP_TUNNEL_FLOW_LABEL</h3>
 <pre class="programlisting">#define NM_DEVICE_IP_TUNNEL_FLOW_LABEL          "flow-label"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceIPTunnel-struct"></a><h3>NMDeviceIPTunnel</h3>
+<pre class="programlisting">typedef struct _NMDeviceIPTunnel NMDeviceIPTunnel;</pre>
 </div>
 </div>
 <div class="refsect1">

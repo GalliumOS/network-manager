@@ -10,7 +10,7 @@
       <sub name="nm-dbus-interface" link="libnm-nm-dbus-interface.html"/>
     </sub>
     <sub name="Connection and Setting API Reference" link="ch03.html">
-      <sub name="NMConnection" link="libnm-NMConnection.html"/>
+      <sub name="NMConnection" link="NMConnection.html"/>
       <sub name="NMSimpleConnection" link="NMSimpleConnection.html"/>
       <sub name="NMSetting" link="NMSetting.html"/>
       <sub name="NMSettingConnection" link="NMSettingConnection.html"/>
@@ -172,6 +172,7 @@
     <keyword type="enum" name="enum NMClientPermissionResult" link="NMClient.html#NMClientPermissionResult"/>
     <keyword type="enum" name="enum NMClientError" link="NMClient.html#NMClientError"/>
     <keyword type="macro" name="NM_CLIENT_ERROR" link="NMClient.html#NM-CLIENT-ERROR:CAPS"/>
+    <keyword type="struct" name="NMClient" link="NMClient.html#NMClient-struct"/>
     <keyword type="property" name="The “activating-connection” property" link="NMClient.html#NMClient--activating-connection"/>
     <keyword type="property" name="The “active-connections” property" link="NMClient.html#NMClient--active-connections"/>
     <keyword type="property" name="The “all-devices” property" link="NMClient.html#NMClient--all-devices"/>
@@ -217,6 +218,7 @@
     <keyword type="macro" name="NM_SECRET_AGENT_OLD_AUTO_REGISTER" link="NMSecretAgentOld.html#NM-SECRET-AGENT-OLD-AUTO-REGISTER:CAPS"/>
     <keyword type="macro" name="NM_SECRET_AGENT_OLD_REGISTERED" link="NMSecretAgentOld.html#NM-SECRET-AGENT-OLD-REGISTERED:CAPS"/>
     <keyword type="macro" name="NM_SECRET_AGENT_OLD_CAPABILITIES" link="NMSecretAgentOld.html#NM-SECRET-AGENT-OLD-CAPABILITIES:CAPS"/>
+    <keyword type="struct" name="NMSecretAgentOld" link="NMSecretAgentOld.html#NMSecretAgentOld-struct"/>
     <keyword type="property" name="The “auto-register” property" link="NMSecretAgentOld.html#NMSecretAgentOld--auto-register"/>
     <keyword type="property" name="The “capabilities” property" link="NMSecretAgentOld.html#NMSecretAgentOld--capabilities"/>
     <keyword type="property" name="The “identifier” property" link="NMSecretAgentOld.html#NMSecretAgentOld--identifier"/>
@@ -224,6 +226,7 @@
     <keyword type="function" name="nm_object_get_path ()" link="NMObject.html#nm-object-get-path"/>
     <keyword type="macro" name="NM_OBJECT_PATH" link="NMObject.html#NM-OBJECT-PATH:CAPS"/>
     <keyword type="macro" name="NM_OBJECT_DBUS_CONNECTION" link="NMObject.html#NM-OBJECT-DBUS-CONNECTION:CAPS"/>
+    <keyword type="struct" name="NMObject" link="NMObject.html#NMObject-struct"/>
     <keyword type="property" name="The “dbus-connection” property" link="NMObject.html#NMObject--dbus-connection"/>
     <keyword type="property" name="The “nm-running-internal” property" link="NMObject.html#NMObject--nm-running-internal"/>
     <keyword type="property" name="The “path” property" link="NMObject.html#NMObject--path"/>
@@ -328,74 +331,75 @@
     <keyword type="macro" name="NM_LLDP_DEST_NEAREST_NON_TPMR_BRIDGE" link="libnm-nm-dbus-interface.html#NM-LLDP-DEST-NEAREST-NON-TPMR-BRIDGE:CAPS"/>
     <keyword type="macro" name="NM_LLDP_DEST_NEAREST_CUSTOMER_BRIDGE" link="libnm-nm-dbus-interface.html#NM-LLDP-DEST-NEAREST-CUSTOMER-BRIDGE:CAPS"/>
     <keyword type="enum" name="enum NMIPTunnelMode" link="libnm-nm-dbus-interface.html#NMIPTunnelMode" since="1.2"/>
-    <keyword type="function" name="nm_connection_add_setting ()" link="libnm-NMConnection.html#nm-connection-add-setting"/>
-    <keyword type="function" name="nm_connection_remove_setting ()" link="libnm-NMConnection.html#nm-connection-remove-setting"/>
-    <keyword type="function" name="nm_connection_get_setting ()" link="libnm-NMConnection.html#nm-connection-get-setting"/>
-    <keyword type="function" name="nm_connection_get_setting_by_name ()" link="libnm-NMConnection.html#nm-connection-get-setting-by-name"/>
-    <keyword type="function" name="nm_connection_to_dbus ()" link="libnm-NMConnection.html#nm-connection-to-dbus"/>
-    <keyword type="function" name="nm_connection_replace_settings ()" link="libnm-NMConnection.html#nm-connection-replace-settings"/>
-    <keyword type="function" name="nm_connection_replace_settings_from_connection ()" link="libnm-NMConnection.html#nm-connection-replace-settings-from-connection"/>
-    <keyword type="function" name="nm_connection_clear_settings ()" link="libnm-NMConnection.html#nm-connection-clear-settings"/>
-    <keyword type="function" name="nm_connection_compare ()" link="libnm-NMConnection.html#nm-connection-compare"/>
-    <keyword type="function" name="nm_connection_diff ()" link="libnm-NMConnection.html#nm-connection-diff"/>
-    <keyword type="function" name="nm_connection_verify ()" link="libnm-NMConnection.html#nm-connection-verify"/>
-    <keyword type="function" name="nm_connection_verify_secrets ()" link="libnm-NMConnection.html#nm-connection-verify-secrets" since="1.2"/>
-    <keyword type="function" name="nm_connection_normalize ()" link="libnm-NMConnection.html#nm-connection-normalize"/>
-    <keyword type="function" name="nm_connection_need_secrets ()" link="libnm-NMConnection.html#nm-connection-need-secrets"/>
-    <keyword type="function" name="nm_connection_clear_secrets ()" link="libnm-NMConnection.html#nm-connection-clear-secrets"/>
-    <keyword type="function" name="nm_connection_clear_secrets_with_flags ()" link="libnm-NMConnection.html#nm-connection-clear-secrets-with-flags"/>
-    <keyword type="function" name="nm_connection_update_secrets ()" link="libnm-NMConnection.html#nm-connection-update-secrets"/>
-    <keyword type="function" name="nm_connection_set_path ()" link="libnm-NMConnection.html#nm-connection-set-path"/>
-    <keyword type="function" name="nm_connection_get_path ()" link="libnm-NMConnection.html#nm-connection-get-path"/>
-    <keyword type="function" name="nm_connection_get_interface_name ()" link="libnm-NMConnection.html#nm-connection-get-interface-name"/>
-    <keyword type="function" name="nm_connection_is_type ()" link="libnm-NMConnection.html#nm-connection-is-type"/>
-    <keyword type="function" name="nm_connection_for_each_setting_value ()" link="libnm-NMConnection.html#nm-connection-for-each-setting-value"/>
-    <keyword type="function" name="nm_connection_dump ()" link="libnm-NMConnection.html#nm-connection-dump"/>
-    <keyword type="function" name="nm_connection_get_uuid ()" link="libnm-NMConnection.html#nm-connection-get-uuid"/>
-    <keyword type="function" name="nm_connection_get_id ()" link="libnm-NMConnection.html#nm-connection-get-id"/>
-    <keyword type="function" name="nm_connection_get_connection_type ()" link="libnm-NMConnection.html#nm-connection-get-connection-type"/>
-    <keyword type="function" name="nm_connection_is_virtual ()" link="libnm-NMConnection.html#nm-connection-is-virtual"/>
-    <keyword type="function" name="nm_connection_get_virtual_device_description ()" link="libnm-NMConnection.html#nm-connection-get-virtual-device-description"/>
-    <keyword type="function" name="nm_connection_get_setting_802_1x ()" link="libnm-NMConnection.html#nm-connection-get-setting-802-1x"/>
-    <keyword type="function" name="nm_connection_get_setting_bluetooth ()" link="libnm-NMConnection.html#nm-connection-get-setting-bluetooth"/>
-    <keyword type="function" name="nm_connection_get_setting_bond ()" link="libnm-NMConnection.html#nm-connection-get-setting-bond"/>
-    <keyword type="function" name="nm_connection_get_setting_team ()" link="libnm-NMConnection.html#nm-connection-get-setting-team"/>
-    <keyword type="function" name="nm_connection_get_setting_team_port ()" link="libnm-NMConnection.html#nm-connection-get-setting-team-port"/>
-    <keyword type="function" name="nm_connection_get_setting_bridge ()" link="libnm-NMConnection.html#nm-connection-get-setting-bridge"/>
-    <keyword type="function" name="nm_connection_get_setting_bridge_port ()" link="libnm-NMConnection.html#nm-connection-get-setting-bridge-port"/>
-    <keyword type="function" name="nm_connection_get_setting_cdma ()" link="libnm-NMConnection.html#nm-connection-get-setting-cdma"/>
-    <keyword type="function" name="nm_connection_get_setting_connection ()" link="libnm-NMConnection.html#nm-connection-get-setting-connection"/>
-    <keyword type="function" name="nm_connection_get_setting_dcb ()" link="libnm-NMConnection.html#nm-connection-get-setting-dcb"/>
-    <keyword type="function" name="nm_connection_get_setting_generic ()" link="libnm-NMConnection.html#nm-connection-get-setting-generic"/>
-    <keyword type="function" name="nm_connection_get_setting_gsm ()" link="libnm-NMConnection.html#nm-connection-get-setting-gsm"/>
-    <keyword type="function" name="nm_connection_get_setting_infiniband ()" link="libnm-NMConnection.html#nm-connection-get-setting-infiniband"/>
-    <keyword type="function" name="nm_connection_get_setting_ip_tunnel ()" link="libnm-NMConnection.html#nm-connection-get-setting-ip-tunnel" since="1.2"/>
-    <keyword type="function" name="nm_connection_get_setting_ip4_config ()" link="libnm-NMConnection.html#nm-connection-get-setting-ip4-config"/>
-    <keyword type="function" name="nm_connection_get_setting_ip6_config ()" link="libnm-NMConnection.html#nm-connection-get-setting-ip6-config"/>
-    <keyword type="function" name="nm_connection_get_setting_macvlan ()" link="libnm-NMConnection.html#nm-connection-get-setting-macvlan" since="1.2"/>
-    <keyword type="function" name="nm_connection_get_setting_olpc_mesh ()" link="libnm-NMConnection.html#nm-connection-get-setting-olpc-mesh"/>
-    <keyword type="function" name="nm_connection_get_setting_ppp ()" link="libnm-NMConnection.html#nm-connection-get-setting-ppp"/>
-    <keyword type="function" name="nm_connection_get_setting_pppoe ()" link="libnm-NMConnection.html#nm-connection-get-setting-pppoe"/>
-    <keyword type="function" name="nm_connection_get_setting_serial ()" link="libnm-NMConnection.html#nm-connection-get-setting-serial"/>
-    <keyword type="function" name="nm_connection_get_setting_tun ()" link="libnm-NMConnection.html#nm-connection-get-setting-tun" since="1.2"/>
-    <keyword type="function" name="nm_connection_get_setting_vpn ()" link="libnm-NMConnection.html#nm-connection-get-setting-vpn"/>
-    <keyword type="function" name="nm_connection_get_setting_wimax ()" link="libnm-NMConnection.html#nm-connection-get-setting-wimax"/>
-    <keyword type="function" name="nm_connection_get_setting_adsl ()" link="libnm-NMConnection.html#nm-connection-get-setting-adsl"/>
-    <keyword type="function" name="nm_connection_get_setting_wired ()" link="libnm-NMConnection.html#nm-connection-get-setting-wired"/>
-    <keyword type="function" name="nm_connection_get_setting_wireless ()" link="libnm-NMConnection.html#nm-connection-get-setting-wireless"/>
-    <keyword type="function" name="nm_connection_get_setting_wireless_security ()" link="libnm-NMConnection.html#nm-connection-get-setting-wireless-security"/>
-    <keyword type="function" name="nm_connection_get_setting_vlan ()" link="libnm-NMConnection.html#nm-connection-get-setting-vlan"/>
-    <keyword type="function" name="nm_connection_get_setting_vxlan ()" link="libnm-NMConnection.html#nm-connection-get-setting-vxlan" since="1.2"/>
-    <keyword type="macro" name="NM_CONNECTION_SECRETS_UPDATED" link="libnm-NMConnection.html#NM-CONNECTION-SECRETS-UPDATED:CAPS"/>
-    <keyword type="macro" name="NM_CONNECTION_SECRETS_CLEARED" link="libnm-NMConnection.html#NM-CONNECTION-SECRETS-CLEARED:CAPS"/>
-    <keyword type="macro" name="NM_CONNECTION_CHANGED" link="libnm-NMConnection.html#NM-CONNECTION-CHANGED:CAPS"/>
-    <keyword type="macro" name="NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD" link="libnm-NMConnection.html#NM-CONNECTION-NORMALIZE-PARAM-IP6-CONFIG-METHOD:CAPS"/>
-    <keyword type="struct" name="NMConnectionInterface" link="libnm-NMConnection.html#NMConnectionInterface"/>
-    <keyword type="macro" name="NM_VARIANT_TYPE_SETTING" link="libnm-NMConnection.html#NM-VARIANT-TYPE-SETTING:CAPS"/>
-    <keyword type="enum" name="enum NMConnectionSerializationFlags" link="libnm-NMConnection.html#NMConnectionSerializationFlags"/>
+    <keyword type="function" name="nm_connection_add_setting ()" link="NMConnection.html#nm-connection-add-setting"/>
+    <keyword type="function" name="nm_connection_remove_setting ()" link="NMConnection.html#nm-connection-remove-setting"/>
+    <keyword type="function" name="nm_connection_get_setting ()" link="NMConnection.html#nm-connection-get-setting"/>
+    <keyword type="function" name="nm_connection_get_setting_by_name ()" link="NMConnection.html#nm-connection-get-setting-by-name"/>
+    <keyword type="function" name="nm_connection_to_dbus ()" link="NMConnection.html#nm-connection-to-dbus"/>
+    <keyword type="function" name="nm_connection_replace_settings ()" link="NMConnection.html#nm-connection-replace-settings"/>
+    <keyword type="function" name="nm_connection_replace_settings_from_connection ()" link="NMConnection.html#nm-connection-replace-settings-from-connection"/>
+    <keyword type="function" name="nm_connection_clear_settings ()" link="NMConnection.html#nm-connection-clear-settings"/>
+    <keyword type="function" name="nm_connection_compare ()" link="NMConnection.html#nm-connection-compare"/>
+    <keyword type="function" name="nm_connection_diff ()" link="NMConnection.html#nm-connection-diff"/>
+    <keyword type="function" name="nm_connection_verify ()" link="NMConnection.html#nm-connection-verify"/>
+    <keyword type="function" name="nm_connection_verify_secrets ()" link="NMConnection.html#nm-connection-verify-secrets" since="1.2"/>
+    <keyword type="function" name="nm_connection_normalize ()" link="NMConnection.html#nm-connection-normalize"/>
+    <keyword type="function" name="nm_connection_need_secrets ()" link="NMConnection.html#nm-connection-need-secrets"/>
+    <keyword type="function" name="nm_connection_clear_secrets ()" link="NMConnection.html#nm-connection-clear-secrets"/>
+    <keyword type="function" name="nm_connection_clear_secrets_with_flags ()" link="NMConnection.html#nm-connection-clear-secrets-with-flags"/>
+    <keyword type="function" name="nm_connection_update_secrets ()" link="NMConnection.html#nm-connection-update-secrets"/>
+    <keyword type="function" name="nm_connection_set_path ()" link="NMConnection.html#nm-connection-set-path"/>
+    <keyword type="function" name="nm_connection_get_path ()" link="NMConnection.html#nm-connection-get-path"/>
+    <keyword type="function" name="nm_connection_get_interface_name ()" link="NMConnection.html#nm-connection-get-interface-name"/>
+    <keyword type="function" name="nm_connection_is_type ()" link="NMConnection.html#nm-connection-is-type"/>
+    <keyword type="function" name="nm_connection_for_each_setting_value ()" link="NMConnection.html#nm-connection-for-each-setting-value"/>
+    <keyword type="function" name="nm_connection_dump ()" link="NMConnection.html#nm-connection-dump"/>
+    <keyword type="function" name="nm_connection_get_uuid ()" link="NMConnection.html#nm-connection-get-uuid"/>
+    <keyword type="function" name="nm_connection_get_id ()" link="NMConnection.html#nm-connection-get-id"/>
+    <keyword type="function" name="nm_connection_get_connection_type ()" link="NMConnection.html#nm-connection-get-connection-type"/>
+    <keyword type="function" name="nm_connection_is_virtual ()" link="NMConnection.html#nm-connection-is-virtual"/>
+    <keyword type="function" name="nm_connection_get_virtual_device_description ()" link="NMConnection.html#nm-connection-get-virtual-device-description"/>
+    <keyword type="function" name="nm_connection_get_setting_802_1x ()" link="NMConnection.html#nm-connection-get-setting-802-1x"/>
+    <keyword type="function" name="nm_connection_get_setting_bluetooth ()" link="NMConnection.html#nm-connection-get-setting-bluetooth"/>
+    <keyword type="function" name="nm_connection_get_setting_bond ()" link="NMConnection.html#nm-connection-get-setting-bond"/>
+    <keyword type="function" name="nm_connection_get_setting_team ()" link="NMConnection.html#nm-connection-get-setting-team"/>
+    <keyword type="function" name="nm_connection_get_setting_team_port ()" link="NMConnection.html#nm-connection-get-setting-team-port"/>
+    <keyword type="function" name="nm_connection_get_setting_bridge ()" link="NMConnection.html#nm-connection-get-setting-bridge"/>
+    <keyword type="function" name="nm_connection_get_setting_bridge_port ()" link="NMConnection.html#nm-connection-get-setting-bridge-port"/>
+    <keyword type="function" name="nm_connection_get_setting_cdma ()" link="NMConnection.html#nm-connection-get-setting-cdma"/>
+    <keyword type="function" name="nm_connection_get_setting_connection ()" link="NMConnection.html#nm-connection-get-setting-connection"/>
+    <keyword type="function" name="nm_connection_get_setting_dcb ()" link="NMConnection.html#nm-connection-get-setting-dcb"/>
+    <keyword type="function" name="nm_connection_get_setting_generic ()" link="NMConnection.html#nm-connection-get-setting-generic"/>
+    <keyword type="function" name="nm_connection_get_setting_gsm ()" link="NMConnection.html#nm-connection-get-setting-gsm"/>
+    <keyword type="function" name="nm_connection_get_setting_infiniband ()" link="NMConnection.html#nm-connection-get-setting-infiniband"/>
+    <keyword type="function" name="nm_connection_get_setting_ip_tunnel ()" link="NMConnection.html#nm-connection-get-setting-ip-tunnel" since="1.2"/>
+    <keyword type="function" name="nm_connection_get_setting_ip4_config ()" link="NMConnection.html#nm-connection-get-setting-ip4-config"/>
+    <keyword type="function" name="nm_connection_get_setting_ip6_config ()" link="NMConnection.html#nm-connection-get-setting-ip6-config"/>
+    <keyword type="function" name="nm_connection_get_setting_macvlan ()" link="NMConnection.html#nm-connection-get-setting-macvlan" since="1.2"/>
+    <keyword type="function" name="nm_connection_get_setting_olpc_mesh ()" link="NMConnection.html#nm-connection-get-setting-olpc-mesh"/>
+    <keyword type="function" name="nm_connection_get_setting_ppp ()" link="NMConnection.html#nm-connection-get-setting-ppp"/>
+    <keyword type="function" name="nm_connection_get_setting_pppoe ()" link="NMConnection.html#nm-connection-get-setting-pppoe"/>
+    <keyword type="function" name="nm_connection_get_setting_serial ()" link="NMConnection.html#nm-connection-get-setting-serial"/>
+    <keyword type="function" name="nm_connection_get_setting_tun ()" link="NMConnection.html#nm-connection-get-setting-tun" since="1.2"/>
+    <keyword type="function" name="nm_connection_get_setting_vpn ()" link="NMConnection.html#nm-connection-get-setting-vpn"/>
+    <keyword type="function" name="nm_connection_get_setting_wimax ()" link="NMConnection.html#nm-connection-get-setting-wimax"/>
+    <keyword type="function" name="nm_connection_get_setting_adsl ()" link="NMConnection.html#nm-connection-get-setting-adsl"/>
+    <keyword type="function" name="nm_connection_get_setting_wired ()" link="NMConnection.html#nm-connection-get-setting-wired"/>
+    <keyword type="function" name="nm_connection_get_setting_wireless ()" link="NMConnection.html#nm-connection-get-setting-wireless"/>
+    <keyword type="function" name="nm_connection_get_setting_wireless_security ()" link="NMConnection.html#nm-connection-get-setting-wireless-security"/>
+    <keyword type="function" name="nm_connection_get_setting_vlan ()" link="NMConnection.html#nm-connection-get-setting-vlan"/>
+    <keyword type="function" name="nm_connection_get_setting_vxlan ()" link="NMConnection.html#nm-connection-get-setting-vxlan" since="1.2"/>
+    <keyword type="macro" name="NM_CONNECTION_SECRETS_UPDATED" link="NMConnection.html#NM-CONNECTION-SECRETS-UPDATED:CAPS"/>
+    <keyword type="macro" name="NM_CONNECTION_SECRETS_CLEARED" link="NMConnection.html#NM-CONNECTION-SECRETS-CLEARED:CAPS"/>
+    <keyword type="macro" name="NM_CONNECTION_CHANGED" link="NMConnection.html#NM-CONNECTION-CHANGED:CAPS"/>
+    <keyword type="macro" name="NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD" link="NMConnection.html#NM-CONNECTION-NORMALIZE-PARAM-IP6-CONFIG-METHOD:CAPS"/>
+    <keyword type="struct" name="NMConnectionInterface" link="NMConnection.html#NMConnectionInterface"/>
+    <keyword type="macro" name="NM_VARIANT_TYPE_SETTING" link="NMConnection.html#NM-VARIANT-TYPE-SETTING:CAPS"/>
+    <keyword type="enum" name="enum NMConnectionSerializationFlags" link="NMConnection.html#NMConnectionSerializationFlags"/>
     <keyword type="function" name="nm_simple_connection_new ()" link="NMSimpleConnection.html#nm-simple-connection-new"/>
     <keyword type="function" name="nm_simple_connection_new_from_dbus ()" link="NMSimpleConnection.html#nm-simple-connection-new-from-dbus"/>
     <keyword type="function" name="nm_simple_connection_new_clone ()" link="NMSimpleConnection.html#nm-simple-connection-new-clone"/>
+    <keyword type="struct" name="NMSimpleConnection" link="NMSimpleConnection.html#NMSimpleConnection-struct"/>
     <keyword type="macro" name="NM_SETTING_PARAM_REQUIRED" link="NMSetting.html#NM-SETTING-PARAM-REQUIRED:CAPS"/>
     <keyword type="macro" name="NM_SETTING_PARAM_SECRET" link="NMSetting.html#NM-SETTING-PARAM-SECRET:CAPS"/>
     <keyword type="macro" name="NM_SETTING_PARAM_FUZZY_IGNORE" link="NMSetting.html#NM-SETTING-PARAM-FUZZY-IGNORE:CAPS"/>
@@ -417,7 +421,7 @@
     <keyword type="enum" name="enum NMSettingSecretFlags" link="NMSetting.html#NMSettingSecretFlags"/>
     <keyword type="enum" name="enum NMSettingCompareFlags" link="NMSetting.html#NMSettingCompareFlags"/>
     <keyword type="enum" name="enum NMSettingMacRandomization" link="NMSetting.html#NMSettingMacRandomization"/>
-    <keyword type="struct" name="struct NMSetting" link="NMSetting.html#NMSetting-struct"/>
+    <keyword type="struct" name="NMSetting" link="NMSetting.html#NMSetting-struct"/>
     <keyword type="enum" name="enum NMSettingDiffResult" link="NMSetting.html#NMSettingDiffResult"/>
     <keyword type="property" name="The “name” property" link="NMSetting.html#NMSetting--name"/>
     <keyword type="function" name="nm_setting_connection_new ()" link="NMSettingConnection.html#nm-setting-connection-new"/>
@@ -471,7 +475,7 @@
     <keyword type="macro" name="NM_SETTING_CONNECTION_LLDP" link="NMSettingConnection.html#NM-SETTING-CONNECTION-LLDP:CAPS"/>
     <keyword type="enum" name="enum NMSettingConnectionAutoconnectSlaves" link="NMSettingConnection.html#NMSettingConnectionAutoconnectSlaves"/>
     <keyword type="enum" name="enum NMSettingConnectionLldp" link="NMSettingConnection.html#NMSettingConnectionLldp"/>
-    <keyword type="struct" name="struct NMSettingConnection" link="NMSettingConnection.html#NMSettingConnection-struct"/>
+    <keyword type="struct" name="NMSettingConnection" link="NMSettingConnection.html#NMSettingConnection-struct"/>
     <keyword type="property" name="The “autoconnect” property" link="NMSettingConnection.html#NMSettingConnection--autoconnect"/>
     <keyword type="property" name="The “autoconnect-priority” property" link="NMSettingConnection.html#NMSettingConnection--autoconnect-priority"/>
     <keyword type="property" name="The “autoconnect-slaves” property" link="NMSettingConnection.html#NMSettingConnection--autoconnect-slaves"/>
@@ -598,6 +602,7 @@
     <keyword type="macro" name="NM_SETTING_802_1X_PIN" link="NMSetting8021x.html#NM-SETTING-802-1X-PIN:CAPS"/>
     <keyword type="macro" name="NM_SETTING_802_1X_PIN_FLAGS" link="NMSetting8021x.html#NM-SETTING-802-1X-PIN-FLAGS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_802_1X_SYSTEM_CA_CERTS" link="NMSetting8021x.html#NM-SETTING-802-1X-SYSTEM-CA-CERTS:CAPS"/>
+    <keyword type="struct" name="NMSetting8021x" link="NMSetting8021x.html#NMSetting8021x-struct"/>
     <keyword type="property" name="The “altsubject-matches” property" link="NMSetting8021x.html#NMSetting8021x--altsubject-matches"/>
     <keyword type="property" name="The “anonymous-identity” property" link="NMSetting8021x.html#NMSetting8021x--anonymous-identity"/>
     <keyword type="property" name="The “ca-cert” property" link="NMSetting8021x.html#NMSetting8021x--ca-cert"/>
@@ -653,6 +658,7 @@
     <keyword type="macro" name="NM_SETTING_ADSL_PROTOCOL_IPOATM" link="NMSettingAdsl.html#NM-SETTING-ADSL-PROTOCOL-IPOATM:CAPS"/>
     <keyword type="macro" name="NM_SETTING_ADSL_ENCAPSULATION_VCMUX" link="NMSettingAdsl.html#NM-SETTING-ADSL-ENCAPSULATION-VCMUX:CAPS"/>
     <keyword type="macro" name="NM_SETTING_ADSL_ENCAPSULATION_LLC" link="NMSettingAdsl.html#NM-SETTING-ADSL-ENCAPSULATION-LLC:CAPS"/>
+    <keyword type="struct" name="NMSettingAdsl" link="NMSettingAdsl.html#NMSettingAdsl-struct"/>
     <keyword type="property" name="The “encapsulation” property" link="NMSettingAdsl.html#NMSettingAdsl--encapsulation"/>
     <keyword type="property" name="The “password” property" link="NMSettingAdsl.html#NMSettingAdsl--password"/>
     <keyword type="property" name="The “password-flags” property" link="NMSettingAdsl.html#NMSettingAdsl--password-flags"/>
@@ -668,6 +674,7 @@
     <keyword type="macro" name="NM_SETTING_BLUETOOTH_TYPE" link="NMSettingBluetooth.html#NM-SETTING-BLUETOOTH-TYPE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BLUETOOTH_TYPE_DUN" link="NMSettingBluetooth.html#NM-SETTING-BLUETOOTH-TYPE-DUN:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BLUETOOTH_TYPE_PANU" link="NMSettingBluetooth.html#NM-SETTING-BLUETOOTH-TYPE-PANU:CAPS"/>
+    <keyword type="struct" name="NMSettingBluetooth" link="NMSettingBluetooth.html#NMSettingBluetooth-struct"/>
     <keyword type="property" name="The “bdaddr” property" link="NMSettingBluetooth.html#NMSettingBluetooth--bdaddr"/>
     <keyword type="property" name="The “type” property" link="NMSettingBluetooth.html#NMSettingBluetooth--type"/>
     <keyword type="function" name="nm_setting_bond_new ()" link="NMSettingBond.html#nm-setting-bond-new"/>
@@ -708,6 +715,7 @@
     <keyword type="macro" name="NM_SETTING_BOND_OPTION_PACKETS_PER_SLAVE" link="NMSettingBond.html#NM-SETTING-BOND-OPTION-PACKETS-PER-SLAVE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BOND_OPTION_TLB_DYNAMIC_LB" link="NMSettingBond.html#NM-SETTING-BOND-OPTION-TLB-DYNAMIC-LB:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BOND_OPTION_LP_INTERVAL" link="NMSettingBond.html#NM-SETTING-BOND-OPTION-LP-INTERVAL:CAPS"/>
+    <keyword type="struct" name="NMSettingBond" link="NMSettingBond.html#NMSettingBond-struct"/>
     <keyword type="property" name="The “options” property" link="NMSettingBond.html#NMSettingBond--options"/>
     <keyword type="function" name="nm_setting_bridge_new ()" link="NMSettingBridge.html#nm-setting-bridge-new"/>
     <keyword type="function" name="nm_setting_bridge_get_mac_address ()" link="NMSettingBridge.html#nm-setting-bridge-get-mac-address"/>
@@ -727,6 +735,7 @@
     <keyword type="macro" name="NM_SETTING_BRIDGE_MAX_AGE" link="NMSettingBridge.html#NM-SETTING-BRIDGE-MAX-AGE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_AGEING_TIME" link="NMSettingBridge.html#NM-SETTING-BRIDGE-AGEING-TIME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_MULTICAST_SNOOPING" link="NMSettingBridge.html#NM-SETTING-BRIDGE-MULTICAST-SNOOPING:CAPS"/>
+    <keyword type="struct" name="NMSettingBridge" link="NMSettingBridge.html#NMSettingBridge-struct"/>
     <keyword type="property" name="The “ageing-time” property" link="NMSettingBridge.html#NMSettingBridge--ageing-time"/>
     <keyword type="property" name="The “forward-delay” property" link="NMSettingBridge.html#NMSettingBridge--forward-delay"/>
     <keyword type="property" name="The “hello-time” property" link="NMSettingBridge.html#NMSettingBridge--hello-time"/>
@@ -743,6 +752,7 @@
     <keyword type="macro" name="NM_SETTING_BRIDGE_PORT_PRIORITY" link="NMSettingBridgePort.html#NM-SETTING-BRIDGE-PORT-PRIORITY:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_PORT_PATH_COST" link="NMSettingBridgePort.html#NM-SETTING-BRIDGE-PORT-PATH-COST:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE" link="NMSettingBridgePort.html#NM-SETTING-BRIDGE-PORT-HAIRPIN-MODE:CAPS"/>
+    <keyword type="struct" name="NMSettingBridgePort" link="NMSettingBridgePort.html#NMSettingBridgePort-struct"/>
     <keyword type="property" name="The “hairpin-mode” property" link="NMSettingBridgePort.html#NMSettingBridgePort--hairpin-mode"/>
     <keyword type="property" name="The “path-cost” property" link="NMSettingBridgePort.html#NMSettingBridgePort--path-cost"/>
     <keyword type="property" name="The “priority” property" link="NMSettingBridgePort.html#NMSettingBridgePort--priority"/>
@@ -756,6 +766,7 @@
     <keyword type="macro" name="NM_SETTING_CDMA_USERNAME" link="NMSettingCdma.html#NM-SETTING-CDMA-USERNAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CDMA_PASSWORD" link="NMSettingCdma.html#NM-SETTING-CDMA-PASSWORD:CAPS"/>
     <keyword type="macro" name="NM_SETTING_CDMA_PASSWORD_FLAGS" link="NMSettingCdma.html#NM-SETTING-CDMA-PASSWORD-FLAGS:CAPS"/>
+    <keyword type="struct" name="NMSettingCdma" link="NMSettingCdma.html#NMSettingCdma-struct"/>
     <keyword type="property" name="The “number” property" link="NMSettingCdma.html#NMSettingCdma--number"/>
     <keyword type="property" name="The “password” property" link="NMSettingCdma.html#NMSettingCdma--password"/>
     <keyword type="property" name="The “password-flags” property" link="NMSettingCdma.html#NMSettingCdma--password-flags"/>
@@ -801,6 +812,7 @@
     <keyword type="macro" name="NM_SETTING_DCB_PRIORITY_BANDWIDTH" link="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-BANDWIDTH:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DCB_PRIORITY_STRICT_BANDWIDTH" link="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-STRICT-BANDWIDTH:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DCB_PRIORITY_TRAFFIC_CLASS" link="NMSettingDcb.html#NM-SETTING-DCB-PRIORITY-TRAFFIC-CLASS:CAPS"/>
+    <keyword type="struct" name="NMSettingDcb" link="NMSettingDcb.html#NMSettingDcb-struct"/>
     <keyword type="property" name="The “app-fcoe-flags” property" link="NMSettingDcb.html#NMSettingDcb--app-fcoe-flags"/>
     <keyword type="property" name="The “app-fcoe-mode” property" link="NMSettingDcb.html#NMSettingDcb--app-fcoe-mode"/>
     <keyword type="property" name="The “app-fcoe-priority” property" link="NMSettingDcb.html#NMSettingDcb--app-fcoe-priority"/>
@@ -818,6 +830,7 @@
     <keyword type="property" name="The “priority-traffic-class” property" link="NMSettingDcb.html#NMSettingDcb--priority-traffic-class"/>
     <keyword type="function" name="nm_setting_generic_new ()" link="NMSettingGeneric.html#nm-setting-generic-new"/>
     <keyword type="macro" name="NM_SETTING_GENERIC_SETTING_NAME" link="NMSettingGeneric.html#NM-SETTING-GENERIC-SETTING-NAME:CAPS"/>
+    <keyword type="struct" name="NMSettingGeneric" link="NMSettingGeneric.html#NMSettingGeneric-struct"/>
     <keyword type="function" name="nm_setting_gsm_new ()" link="NMSettingGsm.html#nm-setting-gsm-new"/>
     <keyword type="function" name="nm_setting_gsm_get_number ()" link="NMSettingGsm.html#nm-setting-gsm-get-number"/>
     <keyword type="function" name="nm_setting_gsm_get_username ()" link="NMSettingGsm.html#nm-setting-gsm-get-username"/>
@@ -844,6 +857,7 @@
     <keyword type="macro" name="NM_SETTING_GSM_DEVICE_ID" link="NMSettingGsm.html#NM-SETTING-GSM-DEVICE-ID:CAPS"/>
     <keyword type="macro" name="NM_SETTING_GSM_SIM_ID" link="NMSettingGsm.html#NM-SETTING-GSM-SIM-ID:CAPS"/>
     <keyword type="macro" name="NM_SETTING_GSM_SIM_OPERATOR_ID" link="NMSettingGsm.html#NM-SETTING-GSM-SIM-OPERATOR-ID:CAPS"/>
+    <keyword type="struct" name="NMSettingGsm" link="NMSettingGsm.html#NMSettingGsm-struct"/>
     <keyword type="property" name="The “apn” property" link="NMSettingGsm.html#NMSettingGsm--apn"/>
     <keyword type="property" name="The “device-id” property" link="NMSettingGsm.html#NMSettingGsm--device-id"/>
     <keyword type="property" name="The “home-only” property" link="NMSettingGsm.html#NMSettingGsm--home-only"/>
@@ -869,6 +883,7 @@
     <keyword type="macro" name="NM_SETTING_INFINIBAND_TRANSPORT_MODE" link="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-TRANSPORT-MODE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_INFINIBAND_P_KEY" link="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-P-KEY:CAPS"/>
     <keyword type="macro" name="NM_SETTING_INFINIBAND_PARENT" link="NMSettingInfiniband.html#NM-SETTING-INFINIBAND-PARENT:CAPS"/>
+    <keyword type="struct" name="NMSettingInfiniband" link="NMSettingInfiniband.html#NMSettingInfiniband-struct"/>
     <keyword type="property" name="The “mac-address” property" link="NMSettingInfiniband.html#NMSettingInfiniband--mac-address"/>
     <keyword type="property" name="The “mtu” property" link="NMSettingInfiniband.html#NMSettingInfiniband--mtu"/>
     <keyword type="property" name="The “p-key” property" link="NMSettingInfiniband.html#NMSettingInfiniband--p-key"/>
@@ -885,6 +900,7 @@
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_METHOD_MANUAL" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-MANUAL:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_METHOD_SHARED" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-SHARED:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_METHOD_DISABLED" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-DISABLED:CAPS"/>
+    <keyword type="struct" name="NMSettingIP4Config" link="NMSettingIP4Config.html#NMSettingIP4Config-struct"/>
     <keyword type="property" name="The “dhcp-client-id” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-client-id"/>
     <keyword type="property" name="The “dhcp-fqdn” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-fqdn"/>
     <keyword type="function" name="nm_setting_ip6_config_new ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-new"/>
@@ -901,6 +917,7 @@
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_METHOD_SHARED" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-METHOD-SHARED:CAPS"/>
     <keyword type="enum" name="enum NMSettingIP6ConfigPrivacy" link="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy"/>
     <keyword type="enum" name="enum NMSettingIP6ConfigAddrGenMode" link="NMSettingIP6Config.html#NMSettingIP6ConfigAddrGenMode" since="1.2"/>
+    <keyword type="struct" name="NMSettingIP6Config" link="NMSettingIP6Config.html#NMSettingIP6Config-struct"/>
     <keyword type="property" name="The “addr-gen-mode” property" link="NMSettingIP6Config.html#NMSettingIP6Config--addr-gen-mode"/>
     <keyword type="property" name="The “ip6-privacy” property" link="NMSettingIP6Config.html#NMSettingIP6Config--ip6-privacy"/>
     <keyword type="function" name="nm_ip_address_new ()" link="NMSettingIPConfig.html#nm-ip-address-new"/>
@@ -1016,6 +1033,7 @@
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_SINGLE_REQUEST_REOPEN" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-SINGLE-REQUEST-REOPEN:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_NO_TLD_QUERY" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NO-TLD-QUERY:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_USE_VC" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-USE-VC:CAPS"/>
+    <keyword type="struct" name="NMSettingIPConfig" link="NMSettingIPConfig.html#NMSettingIPConfig-struct"/>
     <keyword type="property" name="The “addresses” property" link="NMSettingIPConfig.html#NMSettingIPConfig--addresses"/>
     <keyword type="property" name="The “dad-timeout” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dad-timeout"/>
     <keyword type="property" name="The “dhcp-hostname” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname"/>
@@ -1058,6 +1076,7 @@
     <keyword type="macro" name="NM_SETTING_IP_TUNNEL_ENCAPSULATION_LIMIT" link="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-ENCAPSULATION-LIMIT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_TUNNEL_FLOW_LABEL" link="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-FLOW-LABEL:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_TUNNEL_MTU" link="NMSettingIPTunnel.html#NM-SETTING-IP-TUNNEL-MTU:CAPS"/>
+    <keyword type="struct" name="NMSettingIPTunnel" link="NMSettingIPTunnel.html#NMSettingIPTunnel-struct"/>
     <keyword type="property" name="The “encapsulation-limit” property" link="NMSettingIPTunnel.html#NMSettingIPTunnel--encapsulation-limit"/>
     <keyword type="property" name="The “flow-label” property" link="NMSettingIPTunnel.html#NMSettingIPTunnel--flow-label"/>
     <keyword type="property" name="The “input-key” property" link="NMSettingIPTunnel.html#NMSettingIPTunnel--input-key"/>
@@ -1080,6 +1099,7 @@
     <keyword type="macro" name="NM_SETTING_MACVLAN_MODE" link="NMSettingMacvlan.html#NM-SETTING-MACVLAN-MODE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_MACVLAN_PROMISCUOUS" link="NMSettingMacvlan.html#NM-SETTING-MACVLAN-PROMISCUOUS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_MACVLAN_TAP" link="NMSettingMacvlan.html#NM-SETTING-MACVLAN-TAP:CAPS"/>
+    <keyword type="struct" name="NMSettingMacvlan" link="NMSettingMacvlan.html#NMSettingMacvlan-struct"/>
     <keyword type="enum" name="enum NMSettingMacvlanMode" link="NMSettingMacvlan.html#NMSettingMacvlanMode"/>
     <keyword type="property" name="The “mode” property" link="NMSettingMacvlan.html#NMSettingMacvlan--mode"/>
     <keyword type="property" name="The “parent” property" link="NMSettingMacvlan.html#NMSettingMacvlan--parent"/>
@@ -1093,6 +1113,7 @@
     <keyword type="macro" name="NM_SETTING_OLPC_MESH_SSID" link="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-SSID:CAPS"/>
     <keyword type="macro" name="NM_SETTING_OLPC_MESH_CHANNEL" link="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-CHANNEL:CAPS"/>
     <keyword type="macro" name="NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS" link="NMSettingOlpcMesh.html#NM-SETTING-OLPC-MESH-DHCP-ANYCAST-ADDRESS:CAPS"/>
+    <keyword type="struct" name="NMSettingOlpcMesh" link="NMSettingOlpcMesh.html#NMSettingOlpcMesh-struct"/>
     <keyword type="property" name="The “channel” property" link="NMSettingOlpcMesh.html#NMSettingOlpcMesh--channel"/>
     <keyword type="property" name="The “dhcp-anycast-address” property" link="NMSettingOlpcMesh.html#NMSettingOlpcMesh--dhcp-anycast-address"/>
     <keyword type="property" name="The “ssid” property" link="NMSettingOlpcMesh.html#NMSettingOlpcMesh--ssid"/>
@@ -1134,6 +1155,7 @@
     <keyword type="macro" name="NM_SETTING_PPP_MTU" link="NMSettingPpp.html#NM-SETTING-PPP-MTU:CAPS"/>
     <keyword type="macro" name="NM_SETTING_PPP_LCP_ECHO_FAILURE" link="NMSettingPpp.html#NM-SETTING-PPP-LCP-ECHO-FAILURE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_PPP_LCP_ECHO_INTERVAL" link="NMSettingPpp.html#NM-SETTING-PPP-LCP-ECHO-INTERVAL:CAPS"/>
+    <keyword type="struct" name="NMSettingPpp" link="NMSettingPpp.html#NMSettingPpp-struct"/>
     <keyword type="property" name="The “baud” property" link="NMSettingPpp.html#NMSettingPpp--baud"/>
     <keyword type="property" name="The “crtscts” property" link="NMSettingPpp.html#NMSettingPpp--crtscts"/>
     <keyword type="property" name="The “lcp-echo-failure” property" link="NMSettingPpp.html#NMSettingPpp--lcp-echo-failure"/>
@@ -1162,6 +1184,7 @@
     <keyword type="macro" name="NM_SETTING_PPPOE_USERNAME" link="NMSettingPppoe.html#NM-SETTING-PPPOE-USERNAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_PPPOE_PASSWORD" link="NMSettingPppoe.html#NM-SETTING-PPPOE-PASSWORD:CAPS"/>
     <keyword type="macro" name="NM_SETTING_PPPOE_PASSWORD_FLAGS" link="NMSettingPppoe.html#NM-SETTING-PPPOE-PASSWORD-FLAGS:CAPS"/>
+    <keyword type="struct" name="NMSettingPppoe" link="NMSettingPppoe.html#NMSettingPppoe-struct"/>
     <keyword type="property" name="The “password” property" link="NMSettingPppoe.html#NMSettingPppoe--password"/>
     <keyword type="property" name="The “password-flags” property" link="NMSettingPppoe.html#NMSettingPppoe--password-flags"/>
     <keyword type="property" name="The “service” property" link="NMSettingPppoe.html#NMSettingPppoe--service"/>
@@ -1179,6 +1202,7 @@
     <keyword type="macro" name="NM_SETTING_SERIAL_PARITY" link="NMSettingSerial.html#NM-SETTING-SERIAL-PARITY:CAPS"/>
     <keyword type="macro" name="NM_SETTING_SERIAL_STOPBITS" link="NMSettingSerial.html#NM-SETTING-SERIAL-STOPBITS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_SERIAL_SEND_DELAY" link="NMSettingSerial.html#NM-SETTING-SERIAL-SEND-DELAY:CAPS"/>
+    <keyword type="struct" name="NMSettingSerial" link="NMSettingSerial.html#NMSettingSerial-struct"/>
     <keyword type="property" name="The “baud” property" link="NMSettingSerial.html#NMSettingSerial--baud"/>
     <keyword type="property" name="The “bits” property" link="NMSettingSerial.html#NMSettingSerial--bits"/>
     <keyword type="property" name="The “parity” property" link="NMSettingSerial.html#NMSettingSerial--parity"/>
@@ -1188,11 +1212,13 @@
     <keyword type="function" name="nm_setting_team_get_config ()" link="NMSettingTeam.html#nm-setting-team-get-config"/>
     <keyword type="macro" name="NM_SETTING_TEAM_SETTING_NAME" link="NMSettingTeam.html#NM-SETTING-TEAM-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_TEAM_CONFIG" link="NMSettingTeam.html#NM-SETTING-TEAM-CONFIG:CAPS"/>
+    <keyword type="struct" name="NMSettingTeam" link="NMSettingTeam.html#NMSettingTeam-struct"/>
     <keyword type="property" name="The “config” property" link="NMSettingTeam.html#NMSettingTeam--config"/>
     <keyword type="function" name="nm_setting_team_port_new ()" link="NMSettingTeamPort.html#nm-setting-team-port-new"/>
     <keyword type="function" name="nm_setting_team_port_get_config ()" link="NMSettingTeamPort.html#nm-setting-team-port-get-config"/>
     <keyword type="macro" name="NM_SETTING_TEAM_PORT_SETTING_NAME" link="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_TEAM_PORT_CONFIG" link="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-CONFIG:CAPS"/>
+    <keyword type="struct" name="NMSettingTeamPort" link="NMSettingTeamPort.html#NMSettingTeamPort-struct"/>
     <keyword type="property" name="The “config” property" link="NMSettingTeamPort.html#NMSettingTeamPort--config"/>
     <keyword type="function" name="nm_setting_tun_new ()" link="NMSettingTun.html#nm-setting-tun-new" since="1.2"/>
     <keyword type="function" name="nm_setting_tun_get_mode ()" link="NMSettingTun.html#nm-setting-tun-get-mode" since="1.2"/>
@@ -1209,6 +1235,7 @@
     <keyword type="macro" name="NM_SETTING_TUN_VNET_HDR" link="NMSettingTun.html#NM-SETTING-TUN-VNET-HDR:CAPS"/>
     <keyword type="macro" name="NM_SETTING_TUN_MULTI_QUEUE" link="NMSettingTun.html#NM-SETTING-TUN-MULTI-QUEUE:CAPS"/>
     <keyword type="enum" name="enum NMSettingTunMode" link="NMSettingTun.html#NMSettingTunMode"/>
+    <keyword type="struct" name="NMSettingTun" link="NMSettingTun.html#NMSettingTun-struct"/>
     <keyword type="property" name="The “group” property" link="NMSettingTun.html#NMSettingTun--group"/>
     <keyword type="property" name="The “mode” property" link="NMSettingTun.html#NMSettingTun--mode"/>
     <keyword type="property" name="The “multi-queue” property" link="NMSettingTun.html#NMSettingTun--multi-queue"/>
@@ -1234,6 +1261,7 @@
     <keyword type="macro" name="NM_SETTING_VLAN_FLAGS" link="NMSettingVlan.html#NM-SETTING-VLAN-FLAGS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VLAN_INGRESS_PRIORITY_MAP" link="NMSettingVlan.html#NM-SETTING-VLAN-INGRESS-PRIORITY-MAP:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VLAN_EGRESS_PRIORITY_MAP" link="NMSettingVlan.html#NM-SETTING-VLAN-EGRESS-PRIORITY-MAP:CAPS"/>
+    <keyword type="struct" name="NMSettingVlan" link="NMSettingVlan.html#NMSettingVlan-struct"/>
     <keyword type="enum" name="enum NMVlanPriorityMap" link="NMSettingVlan.html#NMVlanPriorityMap"/>
     <keyword type="enum" name="enum NMVlanFlags" link="NMSettingVlan.html#NMVlanFlags"/>
     <keyword type="property" name="The “egress-priority-map” property" link="NMSettingVlan.html#NMSettingVlan--egress-priority-map"/>
@@ -1264,6 +1292,7 @@
     <keyword type="macro" name="NM_SETTING_VPN_DATA" link="NMSettingVpn.html#NM-SETTING-VPN-DATA:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VPN_SECRETS" link="NMSettingVpn.html#NM-SETTING-VPN-SECRETS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VPN_TIMEOUT" link="NMSettingVpn.html#NM-SETTING-VPN-TIMEOUT:CAPS"/>
+    <keyword type="struct" name="NMSettingVpn" link="NMSettingVpn.html#NMSettingVpn-struct"/>
     <keyword type="property" name="The “data” property" link="NMSettingVpn.html#NMSettingVpn--data"/>
     <keyword type="property" name="The “persistent” property" link="NMSettingVpn.html#NMSettingVpn--persistent"/>
     <keyword type="property" name="The “secrets” property" link="NMSettingVpn.html#NMSettingVpn--secrets"/>
@@ -1304,6 +1333,7 @@
     <keyword type="macro" name="NM_SETTING_VXLAN_RSC" link="NMSettingVxlan.html#NM-SETTING-VXLAN-RSC:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VXLAN_L2_MISS" link="NMSettingVxlan.html#NM-SETTING-VXLAN-L2-MISS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VXLAN_L3_MISS" link="NMSettingVxlan.html#NM-SETTING-VXLAN-L3-MISS:CAPS"/>
+    <keyword type="struct" name="NMSettingVxlan" link="NMSettingVxlan.html#NMSettingVxlan-struct"/>
     <keyword type="property" name="The “ageing” property" link="NMSettingVxlan.html#NMSettingVxlan--ageing"/>
     <keyword type="property" name="The “destination-port” property" link="NMSettingVxlan.html#NMSettingVxlan--destination-port"/>
     <keyword type="property" name="The “id” property" link="NMSettingVxlan.html#NMSettingVxlan--id"/>
@@ -1326,6 +1356,7 @@
     <keyword type="macro" name="NM_SETTING_WIMAX_SETTING_NAME" link="NMSettingWimax.html#NM-SETTING-WIMAX-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIMAX_NETWORK_NAME" link="NMSettingWimax.html#NM-SETTING-WIMAX-NETWORK-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIMAX_MAC_ADDRESS" link="NMSettingWimax.html#NM-SETTING-WIMAX-MAC-ADDRESS:CAPS"/>
+    <keyword type="struct" name="NMSettingWimax" link="NMSettingWimax.html#NMSettingWimax-struct"/>
     <keyword type="property" name="The “mac-address” property" link="NMSettingWimax.html#NMSettingWimax--mac-address"/>
     <keyword type="property" name="The “network-name” property" link="NMSettingWimax.html#NMSettingWimax--network-name"/>
     <keyword type="function" name="nm_setting_wired_new ()" link="NMSettingWired.html#nm-setting-wired-new"/>
@@ -1368,6 +1399,7 @@
     <keyword type="macro" name="NM_SETTING_WIRED_S390_OPTIONS" link="NMSettingWired.html#NM-SETTING-WIRED-S390-OPTIONS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRED_WAKE_ON_LAN" link="NMSettingWired.html#NM-SETTING-WIRED-WAKE-ON-LAN:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRED_WAKE_ON_LAN_PASSWORD" link="NMSettingWired.html#NM-SETTING-WIRED-WAKE-ON-LAN-PASSWORD:CAPS"/>
+    <keyword type="struct" name="NMSettingWired" link="NMSettingWired.html#NMSettingWired-struct"/>
     <keyword type="property" name="The “auto-negotiate” property" link="NMSettingWired.html#NMSettingWired--auto-negotiate"/>
     <keyword type="property" name="The “cloned-mac-address” property" link="NMSettingWired.html#NMSettingWired--cloned-mac-address"/>
     <keyword type="property" name="The “duplex” property" link="NMSettingWired.html#NMSettingWired--duplex"/>
@@ -1426,6 +1458,7 @@
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_AP" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-AP:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_INFRA" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-INFRA:CAPS"/>
     <keyword type="enum" name="enum NMSettingWirelessPowersave" link="NMSettingWireless.html#NMSettingWirelessPowersave"/>
+    <keyword type="struct" name="NMSettingWireless" link="NMSettingWireless.html#NMSettingWireless-struct"/>
     <keyword type="property" name="The “band” property" link="NMSettingWireless.html#NMSettingWireless--band"/>
     <keyword type="property" name="The “bssid” property" link="NMSettingWireless.html#NMSettingWireless--bssid"/>
     <keyword type="property" name="The “channel” property" link="NMSettingWireless.html#NMSettingWireless--channel"/>
@@ -1491,6 +1524,7 @@
     <keyword type="macro" name="NM_SETTING_WIRELESS_SECURITY_PSK_FLAGS" link="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-PSK-FLAGS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD" link="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-LEAP-PASSWORD:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS" link="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-LEAP-PASSWORD-FLAGS:CAPS"/>
+    <keyword type="struct" name="NMSettingWirelessSecurity" link="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity-struct"/>
     <keyword type="property" name="The “auth-alg” property" link="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--auth-alg"/>
     <keyword type="property" name="The “group” property" link="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--group"/>
     <keyword type="property" name="The “key-mgmt” property" link="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--key-mgmt"/>
@@ -1592,6 +1626,7 @@
     <keyword type="macro" name="NM_DEVICE_MTU" link="NMDevice.html#NM-DEVICE-MTU:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_METERED" link="NMDevice.html#NM-DEVICE-METERED:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_LLDP_NEIGHBORS" link="NMDevice.html#NM-DEVICE-LLDP-NEIGHBORS:CAPS"/>
+    <keyword type="struct" name="NMDevice" link="NMDevice.html#NMDevice-struct"/>
     <keyword type="property" name="The “active-connection” property" link="NMDevice.html#NMDevice--active-connection"/>
     <keyword type="property" name="The “autoconnect” property" link="NMDevice.html#NMDevice--autoconnect"/>
     <keyword type="property" name="The “available-connections” property" link="NMDevice.html#NMDevice--available-connections"/>
@@ -1622,6 +1657,7 @@
     <keyword type="signal" name="The “state-changed” signal" link="NMDevice.html#NMDevice-state-changed"/>
     <keyword type="function" name="nm_device_adsl_get_carrier ()" link="NMDeviceAdsl.html#nm-device-adsl-get-carrier"/>
     <keyword type="macro" name="NM_DEVICE_ADSL_CARRIER" link="NMDeviceAdsl.html#NM-DEVICE-ADSL-CARRIER:CAPS"/>
+    <keyword type="struct" name="NMDeviceAdsl" link="NMDeviceAdsl.html#NMDeviceAdsl-struct"/>
     <keyword type="property" name="The “carrier” property" link="NMDeviceAdsl.html#NMDeviceAdsl--carrier"/>
     <keyword type="function" name="nm_device_bond_get_hw_address ()" link="NMDeviceBond.html#nm-device-bond-get-hw-address"/>
     <keyword type="function" name="nm_device_bond_get_carrier ()" link="NMDeviceBond.html#nm-device-bond-get-carrier"/>
@@ -1629,6 +1665,7 @@
     <keyword type="macro" name="NM_DEVICE_BOND_HW_ADDRESS" link="NMDeviceBond.html#NM-DEVICE-BOND-HW-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_BOND_CARRIER" link="NMDeviceBond.html#NM-DEVICE-BOND-CARRIER:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_BOND_SLAVES" link="NMDeviceBond.html#NM-DEVICE-BOND-SLAVES:CAPS"/>
+    <keyword type="struct" name="NMDeviceBond" link="NMDeviceBond.html#NMDeviceBond-struct"/>
     <keyword type="property" name="The “carrier” property" link="NMDeviceBond.html#NMDeviceBond--carrier"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceBond.html#NMDeviceBond--hw-address"/>
     <keyword type="property" name="The “slaves” property" link="NMDeviceBond.html#NMDeviceBond--slaves"/>
@@ -1638,6 +1675,7 @@
     <keyword type="macro" name="NM_DEVICE_BRIDGE_HW_ADDRESS" link="NMDeviceBridge.html#NM-DEVICE-BRIDGE-HW-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_BRIDGE_CARRIER" link="NMDeviceBridge.html#NM-DEVICE-BRIDGE-CARRIER:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_BRIDGE_SLAVES" link="NMDeviceBridge.html#NM-DEVICE-BRIDGE-SLAVES:CAPS"/>
+    <keyword type="struct" name="NMDeviceBridge" link="NMDeviceBridge.html#NMDeviceBridge-struct"/>
     <keyword type="property" name="The “carrier” property" link="NMDeviceBridge.html#NMDeviceBridge--carrier"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceBridge.html#NMDeviceBridge--hw-address"/>
     <keyword type="property" name="The “slaves” property" link="NMDeviceBridge.html#NMDeviceBridge--slaves"/>
@@ -1647,6 +1685,7 @@
     <keyword type="macro" name="NM_DEVICE_BT_HW_ADDRESS" link="NMDeviceBt.html#NM-DEVICE-BT-HW-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_BT_NAME" link="NMDeviceBt.html#NM-DEVICE-BT-NAME:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_BT_CAPABILITIES" link="NMDeviceBt.html#NM-DEVICE-BT-CAPABILITIES:CAPS"/>
+    <keyword type="struct" name="NMDeviceBt" link="NMDeviceBt.html#NMDeviceBt-struct"/>
     <keyword type="property" name="The “bt-capabilities” property" link="NMDeviceBt.html#NMDeviceBt--bt-capabilities"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceBt.html#NMDeviceBt--hw-address"/>
     <keyword type="property" name="The “name” property" link="NMDeviceBt.html#NMDeviceBt--name"/>
@@ -1660,6 +1699,7 @@
     <keyword type="macro" name="NM_DEVICE_ETHERNET_SPEED" link="NMDeviceEthernet.html#NM-DEVICE-ETHERNET-SPEED:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_ETHERNET_CARRIER" link="NMDeviceEthernet.html#NM-DEVICE-ETHERNET-CARRIER:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_ETHERNET_S390_SUBCHANNELS" link="NMDeviceEthernet.html#NM-DEVICE-ETHERNET-S390-SUBCHANNELS:CAPS"/>
+    <keyword type="struct" name="NMDeviceEthernet" link="NMDeviceEthernet.html#NMDeviceEthernet-struct"/>
     <keyword type="property" name="The “carrier” property" link="NMDeviceEthernet.html#NMDeviceEthernet--carrier"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceEthernet.html#NMDeviceEthernet--hw-address"/>
     <keyword type="property" name="The “perm-hw-address” property" link="NMDeviceEthernet.html#NMDeviceEthernet--perm-hw-address"/>
@@ -1668,12 +1708,14 @@
     <keyword type="function" name="nm_device_generic_get_hw_address ()" link="NMDeviceGeneric.html#nm-device-generic-get-hw-address"/>
     <keyword type="macro" name="NM_DEVICE_GENERIC_HW_ADDRESS" link="NMDeviceGeneric.html#NM-DEVICE-GENERIC-HW-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_GENERIC_TYPE_DESCRIPTION" link="NMDeviceGeneric.html#NM-DEVICE-GENERIC-TYPE-DESCRIPTION:CAPS"/>
+    <keyword type="struct" name="NMDeviceGeneric" link="NMDeviceGeneric.html#NMDeviceGeneric-struct"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceGeneric.html#NMDeviceGeneric--hw-address"/>
     <keyword type="property" name="The “type-description” property" link="NMDeviceGeneric.html#NMDeviceGeneric--type-description"/>
     <keyword type="function" name="nm_device_infiniband_get_hw_address ()" link="NMDeviceInfiniband.html#nm-device-infiniband-get-hw-address"/>
     <keyword type="function" name="nm_device_infiniband_get_carrier ()" link="NMDeviceInfiniband.html#nm-device-infiniband-get-carrier"/>
     <keyword type="macro" name="NM_DEVICE_INFINIBAND_HW_ADDRESS" link="NMDeviceInfiniband.html#NM-DEVICE-INFINIBAND-HW-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_INFINIBAND_CARRIER" link="NMDeviceInfiniband.html#NM-DEVICE-INFINIBAND-CARRIER:CAPS"/>
+    <keyword type="struct" name="NMDeviceInfiniband" link="NMDeviceInfiniband.html#NMDeviceInfiniband-struct"/>
     <keyword type="property" name="The “carrier” property" link="NMDeviceInfiniband.html#NMDeviceInfiniband--carrier"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceInfiniband.html#NMDeviceInfiniband--hw-address"/>
     <keyword type="function" name="nm_device_ip_tunnel_get_parent ()" link="NMDeviceIPTunnel.html#nm-device-ip-tunnel-get-parent" since="1.2"/>
@@ -1698,6 +1740,7 @@
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_OUTPUT_KEY" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-OUTPUT-KEY:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_ENCAPSULATION_LIMIT" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-ENCAPSULATION-LIMIT:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_IP_TUNNEL_FLOW_LABEL" link="NMDeviceIPTunnel.html#NM-DEVICE-IP-TUNNEL-FLOW-LABEL:CAPS"/>
+    <keyword type="struct" name="NMDeviceIPTunnel" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel-struct"/>
     <keyword type="property" name="The “encapsulation-limit” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--encapsulation-limit"/>
     <keyword type="property" name="The “flow-label” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--flow-label"/>
     <keyword type="property" name="The “input-key” property" link="NMDeviceIPTunnel.html#NMDeviceIPTunnel--input-key"/>
@@ -1719,6 +1762,7 @@
     <keyword type="macro" name="NM_DEVICE_MACVLAN_NO_PROMISC" link="NMDeviceMacvlan.html#NM-DEVICE-MACVLAN-NO-PROMISC:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_MACVLAN_TAP" link="NMDeviceMacvlan.html#NM-DEVICE-MACVLAN-TAP:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_MACVLAN_HW_ADDRESS" link="NMDeviceMacvlan.html#NM-DEVICE-MACVLAN-HW-ADDRESS:CAPS"/>
+    <keyword type="struct" name="NMDeviceMacvlan" link="NMDeviceMacvlan.html#NMDeviceMacvlan-struct"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceMacvlan.html#NMDeviceMacvlan--hw-address"/>
     <keyword type="property" name="The “mode” property" link="NMDeviceMacvlan.html#NMDeviceMacvlan--mode"/>
     <keyword type="property" name="The “no-promisc” property" link="NMDeviceMacvlan.html#NMDeviceMacvlan--no-promisc"/>
@@ -1728,6 +1772,7 @@
     <keyword type="function" name="nm_device_modem_get_current_capabilities ()" link="NMDeviceModem.html#nm-device-modem-get-current-capabilities"/>
     <keyword type="macro" name="NM_DEVICE_MODEM_MODEM_CAPABILITIES" link="NMDeviceModem.html#NM-DEVICE-MODEM-MODEM-CAPABILITIES:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_MODEM_CURRENT_CAPABILITIES" link="NMDeviceModem.html#NM-DEVICE-MODEM-CURRENT-CAPABILITIES:CAPS"/>
+    <keyword type="struct" name="NMDeviceModem" link="NMDeviceModem.html#NMDeviceModem-struct"/>
     <keyword type="property" name="The “current-capabilities” property" link="NMDeviceModem.html#NMDeviceModem--current-capabilities"/>
     <keyword type="property" name="The “modem-capabilities” property" link="NMDeviceModem.html#NMDeviceModem--modem-capabilities"/>
     <keyword type="function" name="nm_device_olpc_mesh_get_hw_address ()" link="NMDeviceOlpcMesh.html#nm-device-olpc-mesh-get-hw-address"/>
@@ -1736,6 +1781,7 @@
     <keyword type="macro" name="NM_DEVICE_OLPC_MESH_HW_ADDRESS" link="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-HW-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_OLPC_MESH_COMPANION" link="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-COMPANION:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL" link="NMDeviceOlpcMesh.html#NM-DEVICE-OLPC-MESH-ACTIVE-CHANNEL:CAPS"/>
+    <keyword type="struct" name="NMDeviceOlpcMesh" link="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh-struct"/>
     <keyword type="property" name="The “active-channel” property" link="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--active-channel"/>
     <keyword type="property" name="The “companion” property" link="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--companion"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--hw-address"/>
@@ -1745,6 +1791,7 @@
     <keyword type="macro" name="NM_DEVICE_TEAM_HW_ADDRESS" link="NMDeviceTeam.html#NM-DEVICE-TEAM-HW-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_TEAM_CARRIER" link="NMDeviceTeam.html#NM-DEVICE-TEAM-CARRIER:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_TEAM_SLAVES" link="NMDeviceTeam.html#NM-DEVICE-TEAM-SLAVES:CAPS"/>
+    <keyword type="struct" name="NMDeviceTeam" link="NMDeviceTeam.html#NMDeviceTeam-struct"/>
     <keyword type="property" name="The “carrier” property" link="NMDeviceTeam.html#NMDeviceTeam--carrier"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceTeam.html#NMDeviceTeam--hw-address"/>
     <keyword type="property" name="The “slaves” property" link="NMDeviceTeam.html#NMDeviceTeam--slaves"/>
@@ -1762,6 +1809,7 @@
     <keyword type="macro" name="NM_DEVICE_TUN_NO_PI" link="NMDeviceTun.html#NM-DEVICE-TUN-NO-PI:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_TUN_VNET_HDR" link="NMDeviceTun.html#NM-DEVICE-TUN-VNET-HDR:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_TUN_MULTI_QUEUE" link="NMDeviceTun.html#NM-DEVICE-TUN-MULTI-QUEUE:CAPS"/>
+    <keyword type="struct" name="NMDeviceTun" link="NMDeviceTun.html#NMDeviceTun-struct"/>
     <keyword type="property" name="The “group” property" link="NMDeviceTun.html#NMDeviceTun--group"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceTun.html#NMDeviceTun--hw-address"/>
     <keyword type="property" name="The “mode” property" link="NMDeviceTun.html#NMDeviceTun--mode"/>
@@ -1777,6 +1825,7 @@
     <keyword type="macro" name="NM_DEVICE_VLAN_CARRIER" link="NMDeviceVlan.html#NM-DEVICE-VLAN-CARRIER:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_VLAN_PARENT" link="NMDeviceVlan.html#NM-DEVICE-VLAN-PARENT:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_VLAN_VLAN_ID" link="NMDeviceVlan.html#NM-DEVICE-VLAN-VLAN-ID:CAPS"/>
+    <keyword type="struct" name="NMDeviceVlan" link="NMDeviceVlan.html#NMDeviceVlan-struct"/>
     <keyword type="property" name="The “carrier” property" link="NMDeviceVlan.html#NMDeviceVlan--carrier"/>
     <keyword type="property" name="The “hw-address” property" link="NMDeviceVlan.html#NMDeviceVlan--hw-address"/>
     <keyword type="property" name="The “parent” property" link="NMDeviceVlan.html#NMDeviceVlan--parent"/>
@@ -1817,6 +1866,7 @@
     <keyword type="macro" name="NM_DEVICE_VXLAN_L2MISS" link="NMDeviceVxlan.html#NM-DEVICE-VXLAN-L2MISS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_VXLAN_L3MISS" link="NMDeviceVxlan.html#NM-DEVICE-VXLAN-L3MISS:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_VXLAN_DST_PORT" link="NMDeviceVxlan.html#NM-DEVICE-VXLAN-DST-PORT:CAPS"/>
+    <keyword type="struct" name="NMDeviceVxlan" link="NMDeviceVxlan.html#NMDeviceVxlan-struct"/>
     <keyword type="property" name="The “ageing” property" link="NMDeviceVxlan.html#NMDeviceVxlan--ageing"/>
     <keyword type="property" name="The “carrier” property" link="NMDeviceVxlan.html#NMDeviceVxlan--carrier"/>
     <keyword type="property" name="The “dst-port” property" link="NMDeviceVxlan.html#NMDeviceVxlan--dst-port"/>
@@ -1855,6 +1905,7 @@
     <keyword type="macro" name="NM_DEVICE_WIFI_ACTIVE_ACCESS_POINT" link="NMDeviceWifi.html#NM-DEVICE-WIFI-ACTIVE-ACCESS-POINT:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_WIFI_CAPABILITIES" link="NMDeviceWifi.html#NM-DEVICE-WIFI-CAPABILITIES:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_WIFI_ACCESS_POINTS" link="NMDeviceWifi.html#NM-DEVICE-WIFI-ACCESS-POINTS:CAPS"/>
+    <keyword type="struct" name="NMDeviceWifi" link="NMDeviceWifi.html#NMDeviceWifi-struct"/>
     <keyword type="property" name="The “access-points” property" link="NMDeviceWifi.html#NMDeviceWifi--access-points"/>
     <keyword type="property" name="The “active-access-point” property" link="NMDeviceWifi.html#NMDeviceWifi--active-access-point"/>
     <keyword type="property" name="The “bitrate” property" link="NMDeviceWifi.html#NMDeviceWifi--bitrate"/>
@@ -1881,6 +1932,7 @@
     <keyword type="macro" name="NM_DEVICE_WIMAX_TX_POWER" link="NMDeviceWimax.html#NM-DEVICE-WIMAX-TX-POWER:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_WIMAX_BSID" link="NMDeviceWimax.html#NM-DEVICE-WIMAX-BSID:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_WIMAX_NSPS" link="NMDeviceWimax.html#NM-DEVICE-WIMAX-NSPS:CAPS"/>
+    <keyword type="struct" name="NMDeviceWimax" link="NMDeviceWimax.html#NMDeviceWimax-struct"/>
     <keyword type="property" name="The “active-nsp” property" link="NMDeviceWimax.html#NMDeviceWimax--active-nsp"/>
     <keyword type="property" name="The “bsid” property" link="NMDeviceWimax.html#NMDeviceWimax--bsid"/>
     <keyword type="property" name="The “center-frequency” property" link="NMDeviceWimax.html#NMDeviceWimax--center-frequency"/>
@@ -1921,6 +1973,7 @@
     <keyword type="macro" name="NM_ACTIVE_CONNECTION_DHCP6_CONFIG" link="NMActiveConnection.html#NM-ACTIVE-CONNECTION-DHCP6-CONFIG:CAPS"/>
     <keyword type="macro" name="NM_ACTIVE_CONNECTION_VPN" link="NMActiveConnection.html#NM-ACTIVE-CONNECTION-VPN:CAPS"/>
     <keyword type="macro" name="NM_ACTIVE_CONNECTION_MASTER" link="NMActiveConnection.html#NM-ACTIVE-CONNECTION-MASTER:CAPS"/>
+    <keyword type="struct" name="NMActiveConnection" link="NMActiveConnection.html#NMActiveConnection-struct"/>
     <keyword type="property" name="The “connection” property" link="NMActiveConnection.html#NMActiveConnection--connection"/>
     <keyword type="property" name="The “default” property" link="NMActiveConnection.html#NMActiveConnection--default"/>
     <keyword type="property" name="The “default6” property" link="NMActiveConnection.html#NMActiveConnection--default6"/>
@@ -1940,6 +1993,7 @@
     <keyword type="function" name="nm_vpn_connection_get_banner ()" link="NMVpnConnection.html#nm-vpn-connection-get-banner"/>
     <keyword type="macro" name="NM_VPN_CONNECTION_VPN_STATE" link="NMVpnConnection.html#NM-VPN-CONNECTION-VPN-STATE:CAPS"/>
     <keyword type="macro" name="NM_VPN_CONNECTION_BANNER" link="NMVpnConnection.html#NM-VPN-CONNECTION-BANNER:CAPS"/>
+    <keyword type="struct" name="NMVpnConnection" link="NMVpnConnection.html#NMVpnConnection-struct"/>
     <keyword type="property" name="The “banner” property" link="NMVpnConnection.html#NMVpnConnection--banner"/>
     <keyword type="property" name="The “vpn-state” property" link="NMVpnConnection.html#NMVpnConnection--vpn-state"/>
     <keyword type="signal" name="The “vpn-state-changed” signal" link="NMVpnConnection.html#NMVpnConnection-vpn-state-changed"/>
@@ -1961,6 +2015,7 @@
     <keyword type="macro" name="NM_REMOTE_CONNECTION_PATH" link="NMRemoteConnection.html#NM-REMOTE-CONNECTION-PATH:CAPS"/>
     <keyword type="macro" name="NM_REMOTE_CONNECTION_UNSAVED" link="NMRemoteConnection.html#NM-REMOTE-CONNECTION-UNSAVED:CAPS"/>
     <keyword type="macro" name="NM_REMOTE_CONNECTION_VISIBLE" link="NMRemoteConnection.html#NM-REMOTE-CONNECTION-VISIBLE:CAPS"/>
+    <keyword type="struct" name="NMRemoteConnection" link="NMRemoteConnection.html#NMRemoteConnection-struct"/>
     <keyword type="property" name="The “unsaved” property" link="NMRemoteConnection.html#NMRemoteConnection--unsaved"/>
     <keyword type="property" name="The “visible” property" link="NMRemoteConnection.html#NMRemoteConnection--visible"/>
     <keyword type="function" name="nm_access_point_get_flags ()" link="NMAccessPoint.html#nm-access-point-get-flags"/>
@@ -1986,6 +2041,7 @@
     <keyword type="macro" name="NM_ACCESS_POINT_STRENGTH" link="NMAccessPoint.html#NM-ACCESS-POINT-STRENGTH:CAPS"/>
     <keyword type="macro" name="NM_ACCESS_POINT_LAST_SEEN" link="NMAccessPoint.html#NM-ACCESS-POINT-LAST-SEEN:CAPS"/>
     <keyword type="macro" name="NM_ACCESS_POINT_HW_ADDRESS" link="NMAccessPoint.html#NM-ACCESS-POINT-HW-ADDRESS:CAPS"/>
+    <keyword type="struct" name="NMAccessPoint" link="NMAccessPoint.html#NMAccessPoint-struct"/>
     <keyword type="property" name="The “bssid” property" link="NMAccessPoint.html#NMAccessPoint--bssid"/>
     <keyword type="property" name="The “flags” property" link="NMAccessPoint.html#NMAccessPoint--flags"/>
     <keyword type="property" name="The “frequency” property" link="NMAccessPoint.html#NMAccessPoint--frequency"/>
@@ -2005,6 +2061,7 @@
     <keyword type="macro" name="NM_WIMAX_NSP_NAME" link="NMWimaxNsp.html#NM-WIMAX-NSP-NAME:CAPS"/>
     <keyword type="macro" name="NM_WIMAX_NSP_SIGNAL_QUALITY" link="NMWimaxNsp.html#NM-WIMAX-NSP-SIGNAL-QUALITY:CAPS"/>
     <keyword type="macro" name="NM_WIMAX_NSP_NETWORK_TYPE" link="NMWimaxNsp.html#NM-WIMAX-NSP-NETWORK-TYPE:CAPS"/>
+    <keyword type="struct" name="NMWimaxNsp" link="NMWimaxNsp.html#NMWimaxNsp-struct"/>
     <keyword type="property" name="The “name” property" link="NMWimaxNsp.html#NMWimaxNsp--name"/>
     <keyword type="property" name="The “network-type” property" link="NMWimaxNsp.html#NMWimaxNsp--network-type"/>
     <keyword type="property" name="The “signal-quality” property" link="NMWimaxNsp.html#NMWimaxNsp--signal-quality"/>
@@ -2016,6 +2073,7 @@
     <keyword type="function" name="nm_ip_config_get_domains ()" link="NMIPConfig.html#nm-ip-config-get-domains"/>
     <keyword type="function" name="nm_ip_config_get_searches ()" link="NMIPConfig.html#nm-ip-config-get-searches"/>
     <keyword type="function" name="nm_ip_config_get_wins_servers ()" link="NMIPConfig.html#nm-ip-config-get-wins-servers"/>
+    <keyword type="struct" name="NMIPConfig" link="NMIPConfig.html#NMIPConfig-struct"/>
     <keyword type="macro" name="NM_IP_CONFIG_FAMILY" link="NMIPConfig.html#NM-IP-CONFIG-FAMILY:CAPS"/>
     <keyword type="macro" name="NM_IP_CONFIG_GATEWAY" link="NMIPConfig.html#NM-IP-CONFIG-GATEWAY:CAPS"/>
     <keyword type="macro" name="NM_IP_CONFIG_ADDRESSES" link="NMIPConfig.html#NM-IP-CONFIG-ADDRESSES:CAPS"/>
@@ -2035,6 +2093,7 @@
     <keyword type="function" name="nm_dhcp_config_get_family ()" link="NMDhcpConfig.html#nm-dhcp-config-get-family"/>
     <keyword type="function" name="nm_dhcp_config_get_options ()" link="NMDhcpConfig.html#nm-dhcp-config-get-options"/>
     <keyword type="function" name="nm_dhcp_config_get_one_option ()" link="NMDhcpConfig.html#nm-dhcp-config-get-one-option"/>
+    <keyword type="struct" name="NMDhcpConfig" link="NMDhcpConfig.html#NMDhcpConfig-struct"/>
     <keyword type="macro" name="NM_DHCP_CONFIG_FAMILY" link="NMDhcpConfig.html#NM-DHCP-CONFIG-FAMILY:CAPS"/>
     <keyword type="macro" name="NM_DHCP_CONFIG_OPTIONS" link="NMDhcpConfig.html#NM-DHCP-CONFIG-OPTIONS:CAPS"/>
     <keyword type="property" name="The “family” property" link="NMDhcpConfig.html#NMDhcpConfig--family"/>
@@ -2466,9 +2525,9 @@
     <keyword type="constant" name="NM_IP_TUNNEL_MODE_IPIP6" link="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-IPIP6:CAPS"/>
     <keyword type="constant" name="NM_IP_TUNNEL_MODE_IP6GRE" link="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-IP6GRE:CAPS"/>
     <keyword type="constant" name="NM_IP_TUNNEL_MODE_VTI6" link="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-VTI6:CAPS"/>
-    <keyword type="constant" name="NM_CONNECTION_SERIALIZE_ALL" link="libnm-NMConnection.html#NM-CONNECTION-SERIALIZE-ALL:CAPS"/>
-    <keyword type="constant" name="NM_CONNECTION_SERIALIZE_NO_SECRETS" link="libnm-NMConnection.html#NM-CONNECTION-SERIALIZE-NO-SECRETS:CAPS"/>
-    <keyword type="constant" name="NM_CONNECTION_SERIALIZE_ONLY_SECRETS" link="libnm-NMConnection.html#NM-CONNECTION-SERIALIZE-ONLY-SECRETS:CAPS"/>
+    <keyword type="constant" name="NM_CONNECTION_SERIALIZE_ALL" link="NMConnection.html#NM-CONNECTION-SERIALIZE-ALL:CAPS"/>
+    <keyword type="constant" name="NM_CONNECTION_SERIALIZE_NO_SECRETS" link="NMConnection.html#NM-CONNECTION-SERIALIZE-NO-SECRETS:CAPS"/>
+    <keyword type="constant" name="NM_CONNECTION_SERIALIZE_ONLY_SECRETS" link="NMConnection.html#NM-CONNECTION-SERIALIZE-ONLY-SECRETS:CAPS"/>
     <keyword type="constant" name="NM_SETTING_SECRET_FLAG_NONE" link="NMSetting.html#NM-SETTING-SECRET-FLAG-NONE:CAPS"/>
     <keyword type="constant" name="NM_SETTING_SECRET_FLAG_AGENT_OWNED" link="NMSetting.html#NM-SETTING-SECRET-FLAG-AGENT-OWNED:CAPS"/>
     <keyword type="constant" name="NM_SETTING_SECRET_FLAG_NOT_SAVED" link="NMSetting.html#NM-SETTING-SECRET-FLAG-NOT-SAVED:CAPS"/>

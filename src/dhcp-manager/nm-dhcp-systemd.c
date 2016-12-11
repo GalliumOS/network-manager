@@ -279,8 +279,9 @@ lease_to_ip4_config (const char *iface,
 	/* Domain Name */
 	r = sd_dhcp_lease_get_domainname (lease, &str);
 	if (r == 0) {
-		/* Multiple domains sometimes stuffed into the option */
-		char **domains = g_strsplit (str, " ", 0);
+		/* Multiple domains sometimes stuffed into option 15 "Domain Name".
+		 * As systemd escapes such characters, split them at \\032. */
+		char **domains = g_strsplit (str, "\\032", 0);
 		char **s;
 
 		for (s = domains; *s; s++) {
@@ -857,6 +858,7 @@ dhcp6_event_cb (sd_dhcp6_client *client, int event, gpointer user_data)
 		nm_dhcp_client_set_state (NM_DHCP_CLIENT (user_data), NM_DHCP_STATE_FAIL, NULL, NULL);
 		break;
 	case SD_DHCP6_CLIENT_EVENT_IP_ACQUIRE:
+	case SD_DHCP6_CLIENT_EVENT_INFORMATION_REQUEST:
 		bound6_handle (self);
 		break;
 	default:
@@ -892,6 +894,9 @@ ip6_start (NMDhcpClient *client,
 		_LOGW ("failed to create client (%d)", r);
 		return FALSE;
 	}
+
+	if (info_only)
+	    sd_dhcp6_client_set_information_request (priv->client6, 1);
 
 	/* NM stores the entire DUID which includes the uint16 "type", while systemd
 	 * wants the type passed separately from the following data.

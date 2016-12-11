@@ -56,10 +56,16 @@
 <col width="150px" class="name">
 <col class="description">
 </colgroup>
-<tbody><tr>
+<tbody>
+<tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingGeneric.html#NM-SETTING-GENERIC-SETTING-NAME:CAPS" title="NM_SETTING_GENERIC_SETTING_NAME">NM_SETTING_GENERIC_SETTING_NAME</a></td>
-</tr></tbody>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSettingGeneric.html#NMSettingGeneric-struct" title="NMSettingGeneric">NMSettingGeneric</a></td>
+</tr>
+</tbody>
 </table></div>
 </div>
 <div class="refsect1">
@@ -75,7 +81,7 @@
 optional properties that apply to "generic" devices (ie, devices that
 NetworkManager does not specifically recognize).</p>
 <p>There are currently no properties on this object; it exists only to be
-the "connection type" setting on <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnections</span></a> for generic devices.</p>
+the "connection type" setting on <a href="NMConnection.html"><span class="type">NMConnections</span></a> for generic devices.</p>
 </div>
 <div class="refsect1">
 <a name="NMSettingGeneric.functions_details"></a><h2>Functions</h2>
@@ -97,6 +103,11 @@ nm_setting_generic_new (<em class="parameter"><code><span class="type">void</spa
 <a name="NM-SETTING-GENERIC-SETTING-NAME:CAPS"></a><h3>NM_SETTING_GENERIC_SETTING_NAME</h3>
 <pre class="programlisting">#define NM_SETTING_GENERIC_SETTING_NAME "generic"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingGeneric-struct"></a><h3>NMSettingGeneric</h3>
+<pre class="programlisting">typedef struct _NMSettingGeneric NMSettingGeneric;</pre>
 </div>
 </div>
 </div>

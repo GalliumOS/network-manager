@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDeviceVlan.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceVlan.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceVlan.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDeviceVlan.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDeviceVlan.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -133,6 +134,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceVlan.html#NM-DEVICE-VLAN-VLAN-ID:CAPS" title="NM_DEVICE_VLAN_VLAN_ID">NM_DEVICE_VLAN_VLAN_ID</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceVlan.html#NMDeviceVlan-struct" title="NMDeviceVlan">NMDeviceVlan</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -145,6 +150,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMDeviceVlan.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceVlan implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMDeviceVlan.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -155,7 +166,7 @@
 nm_device_vlan_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceVlan.html" title="NMDeviceVlan"><span class="type">NMDeviceVlan</span></a> *device</code></em>);</pre>
 <p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceVlan.html" title="NMDeviceVlan"><span class="type">NMDeviceVlan</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.16.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.16.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -170,7 +181,7 @@ nm_device_vlan_get_hw_address (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.16.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.16.9.2.6"></a><h4>Returns</h4>
 <p> the hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -182,7 +193,7 @@ device, and must not be modified.</p>
 nm_device_vlan_get_carrier (<em class="parameter"><code><a class="link" href="NMDeviceVlan.html" title="NMDeviceVlan"><span class="type">NMDeviceVlan</span></a> *device</code></em>);</pre>
 <p>Whether the device has carrier.</p>
 <div class="refsect3">
-<a name="id-1.5.16.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.16.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -197,7 +208,7 @@ nm_device_vlan_get_carrier (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.16.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.16.9.3.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the device has carrier</p>
 </div>
 </div>
@@ -207,7 +218,7 @@ nm_device_vlan_get_carrier (<em class="parameter"><code><a class="link" href="NM
 <pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
 nm_device_vlan_get_parent (<em class="parameter"><code><a class="link" href="NMDeviceVlan.html" title="NMDeviceVlan"><span class="type">NMDeviceVlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.16.8.4.4"></a><h4>Parameters</h4>
+<a name="id-1.5.16.9.4.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -222,7 +233,7 @@ nm_device_vlan_get_parent (<em class="parameter"><code><a class="link" href="NMD
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.16.8.4.5"></a><h4>Returns</h4>
+<a name="id-1.5.16.9.4.5"></a><h4>Returns</h4>
 <p> the device's parent device. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -233,7 +244,7 @@ nm_device_vlan_get_parent (<em class="parameter"><code><a class="link" href="NMD
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vlan_get_vlan_id (<em class="parameter"><code><a class="link" href="NMDeviceVlan.html" title="NMDeviceVlan"><span class="type">NMDeviceVlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.16.8.5.4"></a><h4>Parameters</h4>
+<a name="id-1.5.16.9.5.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -248,7 +259,7 @@ nm_device_vlan_get_vlan_id (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.16.8.5.5"></a><h4>Returns</h4>
+<a name="id-1.5.16.9.5.5"></a><h4>Returns</h4>
 <p> the device's VLAN ID</p>
 </div>
 </div>
@@ -277,6 +288,11 @@ nm_device_vlan_get_vlan_id (<em class="parameter"><code><a class="link" href="NM
 <a name="NM-DEVICE-VLAN-VLAN-ID:CAPS"></a><h3>NM_DEVICE_VLAN_VLAN_ID</h3>
 <pre class="programlisting">#define NM_DEVICE_VLAN_VLAN_ID     "vlan-id"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceVlan-struct"></a><h3>NMDeviceVlan</h3>
+<pre class="programlisting">typedef struct _NMDeviceVlan NMDeviceVlan;</pre>
 </div>
 </div>
 <div class="refsect1">

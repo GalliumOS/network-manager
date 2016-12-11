@@ -3,28 +3,28 @@ Subject: Filter DNS servers to add to dnsmasq based on availability and VPN stat
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/898224
 
 ---
- src/dns-manager/nm-dns-dnsmasq.c |   47 ++++++++++++++++++++++++++++++++-------
+ src/dns-manager/nm-dns-dnsmasq.c | 47 +++++++++++++++++++++++++++++++++-------
  1 file changed, 39 insertions(+), 8 deletions(-)
 
-Index: b/src/dns-manager/nm-dns-dnsmasq.c
-===================================================================
+diff --git a/src/dns-manager/nm-dns-dnsmasq.c b/src/dns-manager/nm-dns-dnsmasq.c
+index 951572c..b10ffb3 100644
 --- a/src/dns-manager/nm-dns-dnsmasq.c
 +++ b/src/dns-manager/nm-dns-dnsmasq.c
-@@ -434,6 +434,8 @@ update (NMDnsPlugin *plugin,
- 	GSList *iter;
- 	gboolean ret = FALSE;
+@@ -439,6 +439,8 @@ update (NMDnsPlugin *plugin,
+ 	NMDnsDnsmasqPrivate *priv = NM_DNS_DNSMASQ_GET_PRIVATE (self);
+ 	const GSList *iter;
  	GVariantBuilder servers;
 +	GSList *vpn_configs_copy;
 +	gboolean might_default = FALSE;
- 
- 	if (!priv->running)
- 		start_dnsmasq (self);
-@@ -443,20 +445,49 @@ update (NMDnsPlugin *plugin,
+
+ 	start_dnsmasq (self);
+
+@@ -447,22 +449,51 @@ update (NMDnsPlugin *plugin,
  	if (global_config)
  		add_global_config (self, &servers, global_config);
  	else {
 -		/* Use split DNS for VPN configs */
--		for (iter = (GSList *) vpn_configs; iter; iter = g_slist_next (iter)) {
+-		for (iter = vpn_configs; iter; iter = g_slist_next (iter)) {
 +		/* Work on a copy of the vpn_configs list because we might want to remove
 +		 * some items from it, yet not affect other DNS plugins that might run
 +		 */
@@ -49,9 +49,9 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
 +				break;
 +			}
  		}
- 
+
 -		/* Now add interface configs without split DNS */
--		for (iter = (GSList *) dev_configs; iter; iter = g_slist_next (iter)) {
+-		for (iter = dev_configs; iter; iter = g_slist_next (iter)) {
 +		/* Use split DNS for remaining VPN configs */
 +		for (iter = (GSList *) vpn_configs_copy; iter; iter = g_slist_next (iter)) {
  			if (NM_IS_IP4_CONFIG (iter->data))
@@ -60,8 +60,8 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
  			else if (NM_IS_IP6_CONFIG (iter->data))
 -				add_ip6_config (self, &servers, iter->data, FALSE);
 +				add_ip6_config (self, &servers, iter->data, TRUE);
-+		}
-+
+ 		}
+
 +		/* Now add interface configs without split DNS, unless some VPN
 +		 * grabs the default route (in which case we should not install them
 +		 * at all, since even split DNS may fail, if the local subnet defines
@@ -73,7 +73,9 @@ Index: b/src/dns-manager/nm-dns-dnsmasq.c
 +					add_ip4_config (self, &servers, iter->data, FALSE);
 +				else if (NM_IS_IP6_CONFIG (iter->data))
 +					add_ip6_config (self, &servers, iter->data, FALSE);
-+			}
- 		}
- 
++                        }
++                }
++
  		/* And any other random configs */
+ 		for (iter = other_configs; iter; iter = g_slist_next (iter)) {
+ 			if (NM_IS_IP4_CONFIG (iter->data))

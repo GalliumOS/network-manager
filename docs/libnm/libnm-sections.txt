@@ -12,6 +12,7 @@ NM_ACCESS_POINT_MAX_BITRATE
 NM_ACCESS_POINT_STRENGTH
 NM_ACCESS_POINT_LAST_SEEN
 NM_ACCESS_POINT_HW_ADDRESS
+NMAccessPoint
 nm_access_point_get_flags
 nm_access_point_get_wpa_flags
 nm_access_point_get_rsn_flags
@@ -25,7 +26,6 @@ nm_access_point_get_last_seen
 nm_access_point_filter_connections
 nm_access_point_connection_valid
 <SUBSECTION Standard>
-NMAccessPoint
 NMAccessPointClass
 NM_ACCESS_POINT
 NM_ACCESS_POINT_CLASS
@@ -54,6 +54,7 @@ NM_ACTIVE_CONNECTION_IP6_CONFIG
 NM_ACTIVE_CONNECTION_DHCP6_CONFIG
 NM_ACTIVE_CONNECTION_VPN
 NM_ACTIVE_CONNECTION_MASTER
+NMActiveConnection
 nm_active_connection_get_connection
 nm_active_connection_get_id
 nm_active_connection_get_uuid
@@ -70,7 +71,6 @@ nm_active_connection_get_ip6_config
 nm_active_connection_get_dhcp6_config
 nm_active_connection_get_vpn
 <SUBSECTION Standard>
-NMActiveConnection
 NMActiveConnectionClass
 NM_ACTIVE_CONNECTION
 NM_ACTIVE_CONNECTION_CLASS
@@ -117,6 +117,7 @@ NMClientPermissionResult
 NMClientError
 NM_CLIENT_ERROR
 nm_client_error_quark
+NMClient
 nm_client_new
 nm_client_new_async
 nm_client_new_finish
@@ -172,7 +173,6 @@ nm_client_reload_connections
 nm_client_reload_connections_async
 nm_client_reload_connections_finish
 <SUBSECTION Standard>
-NMClient
 NMClientClass
 NM_CLIENT
 NM_CLIENT_CLASS
@@ -370,6 +370,44 @@ nm_wimax_nsp_network_type_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-core-types</FILE>
+NMConnection
+NMSetting
+NMSetting8021x
+NMSettingAdsl
+NMSettingBluetooth
+NMSettingBond
+NMSettingBridge
+NMSettingBridgePort
+NMSettingCdma
+NMSettingConnection
+NMSettingDcb
+NMSettingGeneric
+NMSettingGsm
+NMSettingIP4Config
+NMSettingIP6Config
+NMSettingIPConfig
+NMSettingIPTunnel
+NMSettingInfiniband
+NMSettingMacvlan
+NMSettingOlpcMesh
+NMSettingPpp
+NMSettingPppoe
+NMSettingSerial
+NMSettingTeam
+NMSettingTeamPort
+NMSettingTun
+NMSettingVlan
+NMSettingVpn
+NMSettingVxlan
+NMSettingWimax
+NMSettingWired
+NMSettingWireless
+NMSettingWirelessSecurity
+NMSimpleConnection
+</SECTION>
+
+<SECTION>
 <FILE>nm-dbus-interface</FILE>
 NM_AVAILABLE_IN_1_2
 NM_DBUS_SERVICE
@@ -480,6 +518,7 @@ NM_DEVICE_PHYSICAL_PORT_ID
 NM_DEVICE_MTU
 NM_DEVICE_METERED
 NM_DEVICE_LLDP_NEIGHBORS
+NMDevice
 nm_device_get_iface
 nm_device_get_ip_iface
 nm_device_get_device_type
@@ -538,7 +577,6 @@ nm_lldp_neighbor_get_attr_string_value
 nm_lldp_neighbor_get_attr_uint_value
 nm_lldp_neighbor_get_attr_type
 <SUBSECTION Standard>
-NMDevice
 NMDeviceClass
 NMLldpNeighbor
 NM_DEVICE
@@ -555,9 +593,9 @@ nm_lldp_neighbor_get_type
 <FILE>nm-device-adsl</FILE>
 <TITLE>NMDeviceAdsl</TITLE>
 NM_DEVICE_ADSL_CARRIER
+NMDeviceAdsl
 nm_device_adsl_get_carrier
 <SUBSECTION Standard>
-NMDeviceAdsl
 NMDeviceAdslClass
 NM_DEVICE_ADSL
 NM_DEVICE_ADSL_CLASS
@@ -574,11 +612,11 @@ nm_device_adsl_get_type
 NM_DEVICE_BOND_HW_ADDRESS
 NM_DEVICE_BOND_CARRIER
 NM_DEVICE_BOND_SLAVES
+NMDeviceBond
 nm_device_bond_get_hw_address
 nm_device_bond_get_carrier
 nm_device_bond_get_slaves
 <SUBSECTION Standard>
-NMDeviceBond
 NMDeviceBondClass
 NM_DEVICE_BOND
 NM_DEVICE_BOND_CLASS
@@ -595,11 +633,11 @@ nm_device_bond_get_type
 NM_DEVICE_BRIDGE_HW_ADDRESS
 NM_DEVICE_BRIDGE_CARRIER
 NM_DEVICE_BRIDGE_SLAVES
+NMDeviceBridge
 nm_device_bridge_get_hw_address
 nm_device_bridge_get_carrier
 nm_device_bridge_get_slaves
 <SUBSECTION Standard>
-NMDeviceBridge
 NMDeviceBridgeClass
 NM_DEVICE_BRIDGE
 NM_DEVICE_BRIDGE_CLASS
@@ -616,11 +654,11 @@ nm_device_bridge_get_type
 NM_DEVICE_BT_HW_ADDRESS
 NM_DEVICE_BT_NAME
 NM_DEVICE_BT_CAPABILITIES
+NMDeviceBt
 nm_device_bt_get_hw_address
 nm_device_bt_get_name
 nm_device_bt_get_capabilities
 <SUBSECTION Standard>
-NMDeviceBt
 NMDeviceBtClass
 NM_DEVICE_BT
 NM_DEVICE_BT_CLASS
@@ -639,13 +677,13 @@ NM_DEVICE_ETHERNET_PERMANENT_HW_ADDRESS
 NM_DEVICE_ETHERNET_SPEED
 NM_DEVICE_ETHERNET_CARRIER
 NM_DEVICE_ETHERNET_S390_SUBCHANNELS
+NMDeviceEthernet
 nm_device_ethernet_get_hw_address
 nm_device_ethernet_get_permanent_hw_address
 nm_device_ethernet_get_speed
 nm_device_ethernet_get_carrier
 nm_device_ethernet_get_s390_subchannels
 <SUBSECTION Standard>
-NMDeviceEthernet
 NMDeviceEthernetClass
 NM_DEVICE_ETHERNET
 NM_DEVICE_ETHERNET_CLASS
@@ -661,9 +699,9 @@ nm_device_ethernet_get_type
 <TITLE>NMDeviceGeneric</TITLE>
 NM_DEVICE_GENERIC_HW_ADDRESS
 NM_DEVICE_GENERIC_TYPE_DESCRIPTION
+NMDeviceGeneric
 nm_device_generic_get_hw_address
 <SUBSECTION Standard>
-NMDeviceGeneric
 NMDeviceGenericClass
 NM_DEVICE_GENERIC
 NM_DEVICE_GENERIC_CLASS
@@ -679,10 +717,10 @@ nm_device_generic_get_type
 <TITLE>NMDeviceInfiniband</TITLE>
 NM_DEVICE_INFINIBAND_HW_ADDRESS
 NM_DEVICE_INFINIBAND_CARRIER
+NMDeviceInfiniband
 nm_device_infiniband_get_hw_address
 nm_device_infiniband_get_carrier
 <SUBSECTION Standard>
-NMDeviceInfiniband
 NMDeviceInfinibandClass
 NM_DEVICE_INFINIBAND
 NM_DEVICE_INFINIBAND_CLASS
@@ -707,6 +745,7 @@ NM_DEVICE_IP_TUNNEL_INPUT_KEY
 NM_DEVICE_IP_TUNNEL_OUTPUT_KEY
 NM_DEVICE_IP_TUNNEL_ENCAPSULATION_LIMIT
 NM_DEVICE_IP_TUNNEL_FLOW_LABEL
+NMDeviceIPTunnel
 nm_device_ip_tunnel_get_parent
 nm_device_ip_tunnel_get_mode
 nm_device_ip_tunnel_get_local
@@ -719,7 +758,6 @@ nm_device_ip_tunnel_get_output_key
 nm_device_ip_tunnel_get_encapsulation_limit
 nm_device_ip_tunnel_get_flow_label
 <SUBSECTION Standard>
-NMDeviceIPTunnel
 NMDeviceIPTunnelClass
 NM_DEVICE_IP_TUNNEL
 NM_DEVICE_IP_TUNNEL_CLASS
@@ -738,13 +776,13 @@ NM_DEVICE_MACVLAN_MODE
 NM_DEVICE_MACVLAN_NO_PROMISC
 NM_DEVICE_MACVLAN_TAP
 NM_DEVICE_MACVLAN_HW_ADDRESS
+NMDeviceMacvlan
 nm_device_macvlan_get_parent
 nm_device_macvlan_get_mode
 nm_device_macvlan_get_no_promisc
 nm_device_macvlan_get_tap
 nm_device_macvlan_get_hw_address
 <SUBSECTION Standard>
-NMDeviceMacvlan
 NMDeviceMacvlanClass
 NM_DEVICE_MACVLAN
 NM_DEVICE_MACVLAN_CLASS
@@ -760,10 +798,10 @@ nm_device_macvlan_get_type
 <TITLE>NMDeviceModem</TITLE>
 NM_DEVICE_MODEM_MODEM_CAPABILITIES
 NM_DEVICE_MODEM_CURRENT_CAPABILITIES
+NMDeviceModem
 nm_device_modem_get_modem_capabilities
 nm_device_modem_get_current_capabilities
 <SUBSECTION Standard>
-NMDeviceModem
 NMDeviceModemClass
 NM_DEVICE_MODEM
 NM_DEVICE_MODEM_CLASS
@@ -780,11 +818,11 @@ nm_device_modem_get_type
 NM_DEVICE_OLPC_MESH_HW_ADDRESS
 NM_DEVICE_OLPC_MESH_COMPANION
 NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL
+NMDeviceOlpcMesh
 nm_device_olpc_mesh_get_hw_address
 nm_device_olpc_mesh_get_companion
 nm_device_olpc_mesh_get_active_channel
 <SUBSECTION Standard>
-NMDeviceOlpcMesh
 NMDeviceOlpcMeshClass
 NM_DEVICE_OLPC_MESH
 NM_DEVICE_OLPC_MESH_CLASS
@@ -801,11 +839,11 @@ nm_device_olpc_mesh_get_type
 NM_DEVICE_TEAM_HW_ADDRESS
 NM_DEVICE_TEAM_CARRIER
 NM_DEVICE_TEAM_SLAVES
+NMDeviceTeam
 nm_device_team_get_hw_address
 nm_device_team_get_carrier
 nm_device_team_get_slaves
 <SUBSECTION Standard>
-NMDeviceTeam
 NMDeviceTeamClass
 NM_DEVICE_TEAM
 NM_DEVICE_TEAM_CLASS
@@ -826,6 +864,7 @@ NM_DEVICE_TUN_MODE
 NM_DEVICE_TUN_NO_PI
 NM_DEVICE_TUN_VNET_HDR
 NM_DEVICE_TUN_MULTI_QUEUE
+NMDeviceTun
 nm_device_tun_get_hw_address
 nm_device_tun_get_mode
 nm_device_tun_get_owner
@@ -834,7 +873,6 @@ nm_device_tun_get_no_pi
 nm_device_tun_get_vnet_hdr
 nm_device_tun_get_multi_queue
 <SUBSECTION Standard>
-NMDeviceTun
 NMDeviceTunClass
 NM_DEVICE_TUN
 NM_DEVICE_TUN_CLASS
@@ -852,12 +890,12 @@ NM_DEVICE_VLAN_HW_ADDRESS
 NM_DEVICE_VLAN_CARRIER
 NM_DEVICE_VLAN_PARENT
 NM_DEVICE_VLAN_VLAN_ID
+NMDeviceVlan
 nm_device_vlan_get_hw_address
 nm_device_vlan_get_carrier
 nm_device_vlan_get_parent
 nm_device_vlan_get_vlan_id
 <SUBSECTION Standard>
-NMDeviceVlan
 NMDeviceVlanClass
 NM_DEVICE_VLAN
 NM_DEVICE_VLAN_CLASS
@@ -889,6 +927,7 @@ NM_DEVICE_VXLAN_RSC
 NM_DEVICE_VXLAN_L2MISS
 NM_DEVICE_VXLAN_L3MISS
 NM_DEVICE_VXLAN_DST_PORT
+NMDeviceVxlan
 nm_device_vxlan_get_hw_address
 nm_device_vxlan_get_carrier
 nm_device_vxlan_get_parent
@@ -908,7 +947,6 @@ nm_device_vxlan_get_rsc
 nm_device_vxlan_get_l2miss
 nm_device_vxlan_get_l3miss
 <SUBSECTION Standard>
-NMDeviceVxlan
 NMDeviceVxlanClass
 NM_DEVICE_VXLAN
 NM_DEVICE_VXLAN_CLASS
@@ -929,6 +967,7 @@ NM_DEVICE_WIFI_BITRATE
 NM_DEVICE_WIFI_ACTIVE_ACCESS_POINT
 NM_DEVICE_WIFI_CAPABILITIES
 NM_DEVICE_WIFI_ACCESS_POINTS
+NMDeviceWifi
 nm_device_wifi_get_hw_address
 nm_device_wifi_get_permanent_hw_address
 nm_device_wifi_get_mode
@@ -943,7 +982,6 @@ nm_device_wifi_request_scan_async
 nm_device_wifi_request_scan_options_async
 nm_device_wifi_request_scan_finish
 <SUBSECTION Standard>
-NMDeviceWifi
 NMDeviceWifiClass
 NM_DEVICE_WIFI
 NM_DEVICE_WIFI_CLASS
@@ -965,6 +1003,7 @@ NM_DEVICE_WIMAX_CINR
 NM_DEVICE_WIMAX_TX_POWER
 NM_DEVICE_WIMAX_BSID
 NM_DEVICE_WIMAX_NSPS
+NMDeviceWimax
 nm_device_wimax_get_hw_address
 nm_device_wimax_get_active_nsp
 nm_device_wimax_get_nsp_by_path
@@ -975,7 +1014,6 @@ nm_device_wimax_get_cinr
 nm_device_wimax_get_tx_power
 nm_device_wimax_get_bsid
 <SUBSECTION Standard>
-NMDeviceWimax
 NMDeviceWimaxClass
 NM_DEVICE_WIMAX
 NM_DEVICE_WIMAX_CLASS
@@ -989,13 +1027,13 @@ nm_device_wimax_get_type
 <SECTION>
 <FILE>nm-dhcp-config</FILE>
 <TITLE>NMDhcpConfig</TITLE>
+NMDhcpConfig
 NM_DHCP_CONFIG_FAMILY
 NM_DHCP_CONFIG_OPTIONS
 nm_dhcp_config_get_family
 nm_dhcp_config_get_options
 nm_dhcp_config_get_one_option
 <SUBSECTION Standard>
-NMDhcpConfig
 NMDhcpConfigClass
 NM_DHCP_CONFIG
 NM_DHCP_CONFIG_CLASS
@@ -1047,6 +1085,7 @@ nm_vpn_plugin_error_quark
 <SECTION>
 <FILE>nm-ip-config</FILE>
 <TITLE>NMIPConfig</TITLE>
+NMIPConfig
 NM_IP_CONFIG_FAMILY
 NM_IP_CONFIG_GATEWAY
 NM_IP_CONFIG_ADDRESSES
@@ -1064,7 +1103,6 @@ nm_ip_config_get_domains
 nm_ip_config_get_searches
 nm_ip_config_get_wins_servers
 <SUBSECTION Standard>
-NMIPConfig
 NMIPConfigClass
 NM_IP_CONFIG
 NM_IP_CONFIG_CLASS
@@ -1080,9 +1118,9 @@ nm_ip_config_get_type
 <TITLE>NMObject</TITLE>
 NM_OBJECT_PATH
 NM_OBJECT_DBUS_CONNECTION
+NMObject
 nm_object_get_path
 <SUBSECTION Standard>
-NMObject
 NMObjectClass
 NM_IS_OBJECT
 NM_IS_OBJECT_CLASS
@@ -1100,6 +1138,7 @@ NM_REMOTE_CONNECTION_DBUS_CONNECTION
 NM_REMOTE_CONNECTION_PATH
 NM_REMOTE_CONNECTION_UNSAVED
 NM_REMOTE_CONNECTION_VISIBLE
+NMRemoteConnection
 nm_remote_connection_commit_changes
 nm_remote_connection_commit_changes_async
 nm_remote_connection_commit_changes_finish
@@ -1115,7 +1154,6 @@ nm_remote_connection_get_secrets_finish
 nm_remote_connection_get_unsaved
 nm_remote_connection_get_visible
 <SUBSECTION Standard>
-NMRemoteConnection
 NMRemoteConnectionClass
 NM_IS_REMOTE_CONNECTION
 NM_IS_REMOTE_CONNECTION_CLASS
@@ -1133,6 +1171,7 @@ NM_SECRET_AGENT_OLD_IDENTIFIER
 NM_SECRET_AGENT_OLD_AUTO_REGISTER
 NM_SECRET_AGENT_OLD_REGISTERED
 NM_SECRET_AGENT_OLD_CAPABILITIES
+NMSecretAgentOld
 NMSecretAgentOldGetSecretsFunc
 NMSecretAgentOldSaveSecretsFunc
 NMSecretAgentOldDeleteSecretsFunc
@@ -1147,7 +1186,6 @@ nm_secret_agent_old_get_secrets
 nm_secret_agent_old_save_secrets
 nm_secret_agent_old_delete_secrets
 <SUBSECTION Standard>
-NMSecretAgentOld
 NMSecretAgentOldClass
 NM_IS_SECRET_AGENT_OLD
 NM_IS_SECRET_AGENT_OLD_CLASS
@@ -1236,6 +1274,7 @@ NM_SETTING_802_1X_PHASE2_PRIVATE_KEY_PASSWORD_FLAGS
 NM_SETTING_802_1X_PIN
 NM_SETTING_802_1X_PIN_FLAGS
 NM_SETTING_802_1X_SYSTEM_CA_CERTS
+NMSetting8021x
 nm_setting_802_1x_new
 nm_setting_802_1x_check_cert_scheme
 nm_setting_802_1x_get_num_eap_methods
@@ -1308,7 +1347,6 @@ nm_setting_802_1x_get_phase2_private_key_password
 nm_setting_802_1x_get_phase2_private_key_password_flags
 nm_setting_802_1x_get_phase2_private_key_format
 <SUBSECTION Standard>
-NMSetting8021x
 NMSetting8021xClass
 NM_IS_SETTING_802_1X
 NM_IS_SETTING_802_1X_CLASS
@@ -1335,6 +1373,7 @@ NM_SETTING_ADSL_PROTOCOL_PPPOE
 NM_SETTING_ADSL_PROTOCOL_IPOATM
 NM_SETTING_ADSL_ENCAPSULATION_VCMUX
 NM_SETTING_ADSL_ENCAPSULATION_LLC
+NMSettingAdsl
 nm_setting_adsl_new
 nm_setting_adsl_get_username
 nm_setting_adsl_get_password
@@ -1344,7 +1383,6 @@ nm_setting_adsl_get_vpi
 nm_setting_adsl_get_vci
 nm_setting_adsl_get_password_flags
 <SUBSECTION Standard>
-NMSettingAdsl
 NMSettingAdslClass
 NM_IS_SETTING_ADSL
 NM_IS_SETTING_ADSL_CLASS
@@ -1363,11 +1401,11 @@ NM_SETTING_BLUETOOTH_BDADDR
 NM_SETTING_BLUETOOTH_TYPE
 NM_SETTING_BLUETOOTH_TYPE_DUN
 NM_SETTING_BLUETOOTH_TYPE_PANU
+NMSettingBluetooth
 nm_setting_bluetooth_new
 nm_setting_bluetooth_get_bdaddr
 nm_setting_bluetooth_get_connection_type
 <SUBSECTION Standard>
-NMSettingBluetooth
 NMSettingBluetoothClass
 NM_IS_SETTING_BLUETOOTH
 NM_IS_SETTING_BLUETOOTH_CLASS
@@ -1410,6 +1448,7 @@ NM_SETTING_BOND_OPTION_NUM_UNSOL_NA
 NM_SETTING_BOND_OPTION_PACKETS_PER_SLAVE
 NM_SETTING_BOND_OPTION_TLB_DYNAMIC_LB
 NM_SETTING_BOND_OPTION_LP_INTERVAL
+NMSettingBond
 nm_setting_bond_new
 nm_setting_bond_get_num_options
 nm_setting_bond_get_option
@@ -1420,7 +1459,6 @@ nm_setting_bond_validate_option
 nm_setting_bond_get_valid_options
 nm_setting_bond_get_option_default
 <SUBSECTION Standard>
-NMSettingBond
 NMSettingBondClass
 NM_IS_SETTING_BOND
 NM_IS_SETTING_BOND_CLASS
@@ -1443,6 +1481,7 @@ NM_SETTING_BRIDGE_HELLO_TIME
 NM_SETTING_BRIDGE_MAX_AGE
 NM_SETTING_BRIDGE_AGEING_TIME
 NM_SETTING_BRIDGE_MULTICAST_SNOOPING
+NMSettingBridge
 nm_setting_bridge_new
 nm_setting_bridge_get_mac_address
 nm_setting_bridge_get_stp
@@ -1453,7 +1492,6 @@ nm_setting_bridge_get_max_age
 nm_setting_bridge_get_ageing_time
 nm_setting_bridge_get_multicast_snooping
 <SUBSECTION Standard>
-NMSettingBridge
 NMSettingBridgeClass
 NM_IS_SETTING_BRIDGE
 NM_IS_SETTING_BRIDGE_CLASS
@@ -1471,12 +1509,12 @@ NM_SETTING_BRIDGE_PORT_SETTING_NAME
 NM_SETTING_BRIDGE_PORT_PRIORITY
 NM_SETTING_BRIDGE_PORT_PATH_COST
 NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE
+NMSettingBridgePort
 nm_setting_bridge_port_new
 nm_setting_bridge_port_get_priority
 nm_setting_bridge_port_get_path_cost
 nm_setting_bridge_port_get_hairpin_mode
 <SUBSECTION Standard>
-NMSettingBridgePort
 NMSettingBridgePortClass
 NM_IS_SETTING_BRIDGE_PORT
 NM_IS_SETTING_BRIDGE_PORT_CLASS
@@ -1495,13 +1533,13 @@ NM_SETTING_CDMA_NUMBER
 NM_SETTING_CDMA_USERNAME
 NM_SETTING_CDMA_PASSWORD
 NM_SETTING_CDMA_PASSWORD_FLAGS
+NMSettingCdma
 nm_setting_cdma_new
 nm_setting_cdma_get_number
 nm_setting_cdma_get_username
 nm_setting_cdma_get_password
 nm_setting_cdma_get_password_flags
 <SUBSECTION Standard>
-NMSettingCdma
 NMSettingCdmaClass
 NM_IS_SETTING_CDMA
 NM_IS_SETTING_CDMA_CLASS
@@ -1600,6 +1638,7 @@ NM_SETTING_DCB_PRIORITY_GROUP_BANDWIDTH
 NM_SETTING_DCB_PRIORITY_BANDWIDTH
 NM_SETTING_DCB_PRIORITY_STRICT_BANDWIDTH
 NM_SETTING_DCB_PRIORITY_TRAFFIC_CLASS
+NMSettingDcb
 nm_setting_dcb_new
 nm_setting_dcb_get_app_fcoe_flags
 nm_setting_dcb_get_app_fcoe_priority
@@ -1623,7 +1662,6 @@ nm_setting_dcb_set_priority_strict_bandwidth
 nm_setting_dcb_get_priority_traffic_class
 nm_setting_dcb_set_priority_traffic_class
 <SUBSECTION Standard>
-NMSettingDcb
 NMSettingDcbClass
 NM_IS_SETTING_DCB
 NM_IS_SETTING_DCB_CLASS
@@ -1638,9 +1676,9 @@ nm_setting_dcb_get_type
 <FILE>nm-setting-generic</FILE>
 <TITLE>NMSettingGeneric</TITLE>
 NM_SETTING_GENERIC_SETTING_NAME
+NMSettingGeneric
 nm_setting_generic_new
 <SUBSECTION Standard>
-NMSettingGeneric
 NMSettingGenericClass
 NM_IS_SETTING_GENERIC
 NM_IS_SETTING_GENERIC_CLASS
@@ -1667,6 +1705,7 @@ NM_SETTING_GSM_HOME_ONLY
 NM_SETTING_GSM_DEVICE_ID
 NM_SETTING_GSM_SIM_ID
 NM_SETTING_GSM_SIM_OPERATOR_ID
+NMSettingGsm
 nm_setting_gsm_new
 nm_setting_gsm_get_number
 nm_setting_gsm_get_username
@@ -1681,7 +1720,6 @@ nm_setting_gsm_get_sim_operator_id
 nm_setting_gsm_get_pin_flags
 nm_setting_gsm_get_password_flags
 <SUBSECTION Standard>
-NMSettingGsm
 NMSettingGsmClass
 NM_IS_SETTING_GSM
 NM_IS_SETTING_GSM_CLASS
@@ -1701,6 +1739,7 @@ NM_SETTING_INFINIBAND_MTU
 NM_SETTING_INFINIBAND_TRANSPORT_MODE
 NM_SETTING_INFINIBAND_P_KEY
 NM_SETTING_INFINIBAND_PARENT
+NMSettingInfiniband
 nm_setting_infiniband_new
 nm_setting_infiniband_get_mac_address
 nm_setting_infiniband_get_mtu
@@ -1709,7 +1748,6 @@ nm_setting_infiniband_get_p_key
 nm_setting_infiniband_get_parent
 nm_setting_infiniband_get_virtual_interface_name
 <SUBSECTION Standard>
-NMSettingInfiniband
 NMSettingInfinibandClass
 NM_IS_SETTING_INFINIBAND
 NM_IS_SETTING_INFINIBAND_CLASS
@@ -1793,6 +1831,7 @@ NM_SETTING_DNS_OPTION_SINGLE_REQUEST
 NM_SETTING_DNS_OPTION_SINGLE_REQUEST_REOPEN
 NM_SETTING_DNS_OPTION_NO_TLD_QUERY
 NM_SETTING_DNS_OPTION_USE_VC
+NMSettingIPConfig
 nm_setting_ip_config_get_method
 nm_setting_ip_config_get_num_dns
 nm_setting_ip_config_get_dns
@@ -1839,7 +1878,6 @@ nm_setting_ip_config_get_dhcp_timeout
 <SUBSECTION Standard>
 NMIPAddress
 NMIPRoute
-NMSettingIPConfig
 NMSettingIPConfigClass
 NM_IS_SETTING_IP_CONFIG
 NM_IS_SETTING_IP_CONFIG_CLASS
@@ -1868,6 +1906,7 @@ NM_SETTING_IP_TUNNEL_OUTPUT_KEY
 NM_SETTING_IP_TUNNEL_ENCAPSULATION_LIMIT
 NM_SETTING_IP_TUNNEL_FLOW_LABEL
 NM_SETTING_IP_TUNNEL_MTU
+NMSettingIPTunnel
 nm_setting_ip_tunnel_new
 nm_setting_ip_tunnel_get_parent
 nm_setting_ip_tunnel_get_mode
@@ -1882,7 +1921,6 @@ nm_setting_ip_tunnel_get_encapsulation_limit
 nm_setting_ip_tunnel_get_flow_label
 nm_setting_ip_tunnel_get_mtu
 <SUBSECTION Standard>
-NMSettingIPTunnel
 NMSettingIPTunnelClass
 NM_IS_SETTING_IP_TUNNEL
 NM_IS_SETTING_IP_TUNNEL_CLASS
@@ -1904,11 +1942,11 @@ NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL
 NM_SETTING_IP4_CONFIG_METHOD_MANUAL
 NM_SETTING_IP4_CONFIG_METHOD_SHARED
 NM_SETTING_IP4_CONFIG_METHOD_DISABLED
+NMSettingIP4Config
 nm_setting_ip4_config_new
 nm_setting_ip4_config_get_dhcp_client_id
 nm_setting_ip4_config_get_dhcp_fqdn
 <SUBSECTION Standard>
-NMSettingIP4Config
 NMSettingIP4ConfigClass
 NM_IS_SETTING_IP4_CONFIG
 NM_IS_SETTING_IP4_CONFIG_CLASS
@@ -1933,11 +1971,11 @@ NM_SETTING_IP6_CONFIG_METHOD_MANUAL
 NM_SETTING_IP6_CONFIG_METHOD_SHARED
 NMSettingIP6ConfigPrivacy
 NMSettingIP6ConfigAddrGenMode
+NMSettingIP6Config
 nm_setting_ip6_config_new
 nm_setting_ip6_config_get_ip6_privacy
 nm_setting_ip6_config_get_addr_gen_mode
 <SUBSECTION Standard>
-NMSettingIP6Config
 NMSettingIP6ConfigClass
 NM_IS_SETTING_IP6_CONFIG
 NM_IS_SETTING_IP6_CONFIG_CLASS
@@ -1956,6 +1994,7 @@ NM_SETTING_MACVLAN_PARENT
 NM_SETTING_MACVLAN_MODE
 NM_SETTING_MACVLAN_PROMISCUOUS
 NM_SETTING_MACVLAN_TAP
+NMSettingMacvlan
 NMSettingMacvlanMode
 nm_setting_macvlan_new
 nm_setting_macvlan_get_parent
@@ -1963,7 +2002,6 @@ nm_setting_macvlan_get_mode
 nm_setting_macvlan_get_promiscuous
 nm_setting_macvlan_get_tap
 <SUBSECTION Standard>
-NMSettingMacvlan
 NMSettingMacvlanClass
 NM_IS_SETTING_MACVLAN
 NM_IS_SETTING_MACVLAN_CLASS
@@ -1981,12 +2019,12 @@ NM_SETTING_OLPC_MESH_SETTING_NAME
 NM_SETTING_OLPC_MESH_SSID
 NM_SETTING_OLPC_MESH_CHANNEL
 NM_SETTING_OLPC_MESH_DHCP_ANYCAST_ADDRESS
+NMSettingOlpcMesh
 nm_setting_olpc_mesh_new
 nm_setting_olpc_mesh_get_ssid
 nm_setting_olpc_mesh_get_channel
 nm_setting_olpc_mesh_get_dhcp_anycast_address
 <SUBSECTION Standard>
-NMSettingOlpcMesh
 NMSettingOlpcMeshClass
 NM_IS_SETTING_OLPC_MESH
 NM_IS_SETTING_OLPC_MESH_CLASS
@@ -2019,6 +2057,7 @@ NM_SETTING_PPP_MRU
 NM_SETTING_PPP_MTU
 NM_SETTING_PPP_LCP_ECHO_FAILURE
 NM_SETTING_PPP_LCP_ECHO_INTERVAL
+NMSettingPpp
 nm_setting_ppp_new
 nm_setting_ppp_get_noauth
 nm_setting_ppp_get_refuse_eap
@@ -2039,7 +2078,6 @@ nm_setting_ppp_get_mtu
 nm_setting_ppp_get_lcp_echo_failure
 nm_setting_ppp_get_lcp_echo_interval
 <SUBSECTION Standard>
-NMSettingPpp
 NMSettingPppClass
 NM_IS_SETTING_PPP
 NM_IS_SETTING_PPP_CLASS
@@ -2058,13 +2096,13 @@ NM_SETTING_PPPOE_SERVICE
 NM_SETTING_PPPOE_USERNAME
 NM_SETTING_PPPOE_PASSWORD
 NM_SETTING_PPPOE_PASSWORD_FLAGS
+NMSettingPppoe
 nm_setting_pppoe_new
 nm_setting_pppoe_get_service
 nm_setting_pppoe_get_username
 nm_setting_pppoe_get_password
 nm_setting_pppoe_get_password_flags
 <SUBSECTION Standard>
-NMSettingPppoe
 NMSettingPppoeClass
 NM_IS_SETTING_PPPOE
 NM_IS_SETTING_PPPOE_CLASS
@@ -2085,6 +2123,7 @@ NM_SETTING_SERIAL_BITS
 NM_SETTING_SERIAL_PARITY
 NM_SETTING_SERIAL_STOPBITS
 NM_SETTING_SERIAL_SEND_DELAY
+NMSettingSerial
 nm_setting_serial_new
 nm_setting_serial_get_baud
 nm_setting_serial_get_bits
@@ -2092,7 +2131,6 @@ nm_setting_serial_get_parity
 nm_setting_serial_get_stopbits
 nm_setting_serial_get_send_delay
 <SUBSECTION Standard>
-NMSettingSerial
 NMSettingSerialClass
 NM_IS_SETTING_SERIAL
 NM_IS_SETTING_SERIAL_CLASS
@@ -2108,10 +2146,10 @@ nm_setting_serial_get_type
 <TITLE>NMSettingTeam</TITLE>
 NM_SETTING_TEAM_SETTING_NAME
 NM_SETTING_TEAM_CONFIG
+NMSettingTeam
 nm_setting_team_new
 nm_setting_team_get_config
 <SUBSECTION Standard>
-NMSettingTeam
 NMSettingTeamClass
 NM_IS_SETTING_TEAM
 NM_IS_SETTING_TEAM_CLASS
@@ -2127,10 +2165,10 @@ nm_setting_team_get_type
 <TITLE>NMSettingTeamPort</TITLE>
 NM_SETTING_TEAM_PORT_SETTING_NAME
 NM_SETTING_TEAM_PORT_CONFIG
+NMSettingTeamPort
 nm_setting_team_port_new
 nm_setting_team_port_get_config
 <SUBSECTION Standard>
-NMSettingTeamPort
 NMSettingTeamPortClass
 NM_IS_SETTING_TEAM_PORT
 NM_IS_SETTING_TEAM_PORT_CLASS
@@ -2152,6 +2190,7 @@ NM_SETTING_TUN_PI
 NM_SETTING_TUN_VNET_HDR
 NM_SETTING_TUN_MULTI_QUEUE
 NMSettingTunMode
+NMSettingTun
 nm_setting_tun_new
 nm_setting_tun_get_mode
 nm_setting_tun_get_owner
@@ -2160,7 +2199,6 @@ nm_setting_tun_get_pi
 nm_setting_tun_get_vnet_hdr
 nm_setting_tun_get_multi_queue
 <SUBSECTION Standard>
-NMSettingTun
 NMSettingTunClass
 NM_IS_SETTING_TUN
 NM_IS_SETTING_TUN_CLASS
@@ -2180,6 +2218,7 @@ NM_SETTING_VLAN_ID
 NM_SETTING_VLAN_FLAGS
 NM_SETTING_VLAN_INGRESS_PRIORITY_MAP
 NM_SETTING_VLAN_EGRESS_PRIORITY_MAP
+NMSettingVlan
 NMVlanPriorityMap
 NMVlanFlags
 NM_VLAN_FLAGS_ALL
@@ -2196,7 +2235,6 @@ nm_setting_vlan_remove_priority_str_by_value
 nm_setting_vlan_clear_priorities
 nm_setting_vlan_add_priority_str
 <SUBSECTION Standard>
-NMSettingVlan
 NMSettingVlanClass
 NM_IS_SETTING_VLAN
 NM_IS_SETTING_VLAN_CLASS
@@ -2217,6 +2255,7 @@ NM_SETTING_VPN_PERSISTENT
 NM_SETTING_VPN_DATA
 NM_SETTING_VPN_SECRETS
 NM_SETTING_VPN_TIMEOUT
+NMSettingVpn
 NMVpnIterFunc
 nm_setting_vpn_new
 nm_setting_vpn_get_service_type
@@ -2234,7 +2273,6 @@ nm_setting_vpn_remove_secret
 nm_setting_vpn_foreach_secret
 nm_setting_vpn_get_timeout
 <SUBSECTION Standard>
-NMSettingVpn
 NMSettingVpnClass
 NM_IS_SETTING_VPN
 NM_IS_SETTING_VPN_CLASS
@@ -2265,6 +2303,7 @@ NM_SETTING_VXLAN_LEARNING
 NM_SETTING_VXLAN_RSC
 NM_SETTING_VXLAN_L2_MISS
 NM_SETTING_VXLAN_L3_MISS
+NMSettingVxlan
 nm_setting_vxlan_new
 nm_setting_vxlan_get_parent
 nm_setting_vxlan_get_id
@@ -2283,7 +2322,6 @@ nm_setting_vxlan_get_rsc
 nm_setting_vxlan_get_l2_miss
 nm_setting_vxlan_get_l3_miss
 <SUBSECTION Standard>
-NMSettingVxlan
 NMSettingVxlanClass
 NM_IS_SETTING_VXLAN
 NM_IS_SETTING_VXLAN_CLASS
@@ -2300,11 +2338,11 @@ nm_setting_vxlan_get_type
 NM_SETTING_WIMAX_SETTING_NAME
 NM_SETTING_WIMAX_NETWORK_NAME
 NM_SETTING_WIMAX_MAC_ADDRESS
+NMSettingWimax
 nm_setting_wimax_new
 nm_setting_wimax_get_network_name
 nm_setting_wimax_get_mac_address
 <SUBSECTION Standard>
-NMSettingWimax
 NMSettingWimaxClass
 NM_IS_SETTING_WIMAX
 NM_IS_SETTING_WIMAX_CLASS
@@ -2333,6 +2371,7 @@ NM_SETTING_WIRED_S390_NETTYPE
 NM_SETTING_WIRED_S390_OPTIONS
 NM_SETTING_WIRED_WAKE_ON_LAN
 NM_SETTING_WIRED_WAKE_ON_LAN_PASSWORD
+NMSettingWired
 nm_setting_wired_new
 nm_setting_wired_get_port
 nm_setting_wired_get_speed
@@ -2359,7 +2398,6 @@ nm_setting_wired_get_valid_s390_options
 nm_setting_wired_get_wake_on_lan
 nm_setting_wired_get_wake_on_lan_password
 <SUBSECTION Standard>
-NMSettingWired
 NMSettingWiredClass
 NM_IS_SETTING_WIRED
 NM_IS_SETTING_WIRED_CLASS
@@ -2393,6 +2431,7 @@ NM_SETTING_WIRELESS_MODE_ADHOC
 NM_SETTING_WIRELESS_MODE_AP
 NM_SETTING_WIRELESS_MODE_INFRA
 NMSettingWirelessPowersave
+NMSettingWireless
 nm_setting_wireless_new
 nm_setting_wireless_get_ssid
 nm_setting_wireless_get_mode
@@ -2419,7 +2458,6 @@ nm_setting_wireless_get_num_seen_bssids
 nm_setting_wireless_get_seen_bssid
 nm_setting_wireless_ap_security_compatible
 <SUBSECTION Standard>
-NMSettingWireless
 NMSettingWirelessClass
 NM_IS_SETTING_WIRELESS
 NM_IS_SETTING_WIRELESS_CLASS
@@ -2452,6 +2490,7 @@ NM_SETTING_WIRELESS_SECURITY_PSK
 NM_SETTING_WIRELESS_SECURITY_PSK_FLAGS
 NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD
 NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS
+NMSettingWirelessSecurity
 nm_setting_wireless_security_new
 nm_setting_wireless_security_get_key_mgmt
 nm_setting_wireless_security_get_num_protos
@@ -2484,7 +2523,6 @@ nm_setting_wireless_security_get_auth_alg
 nm_setting_wireless_security_get_wep_key_flags
 nm_setting_wireless_security_get_wep_key_type
 <SUBSECTION Standard>
-NMSettingWirelessSecurity
 NMSettingWirelessSecurityClass
 NM_IS_SETTING_WIRELESS_SECURITY
 NM_IS_SETTING_WIRELESS_SECURITY_CLASS
@@ -2498,11 +2536,11 @@ nm_setting_wireless_security_get_type
 <SECTION>
 <FILE>nm-simple-connection</FILE>
 <TITLE>NMSimpleConnection</TITLE>
+NMSimpleConnection
 nm_simple_connection_new
 nm_simple_connection_new_from_dbus
 nm_simple_connection_new_clone
 <SUBSECTION Standard>
-NMSimpleConnection
 NMSimpleConnectionClass
 NM_IS_SIMPLE_CONNECTION
 NM_IS_SIMPLE_CONNECTION_CLASS
@@ -2511,6 +2549,37 @@ NM_SIMPLE_CONNECTION_CLASS
 NM_SIMPLE_CONNECTION_GET_CLASS
 NM_TYPE_SIMPLE_CONNECTION
 nm_simple_connection_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-types</FILE>
+NMAccessPoint
+NMActiveConnection
+NMClient
+NMDevice
+NMDeviceAdsl
+NMDeviceBond
+NMDeviceBridge
+NMDeviceBt
+NMDeviceEthernet
+NMDeviceGeneric
+NMDeviceIPTunnel
+NMDeviceInfiniband
+NMDeviceMacvlan
+NMDeviceModem
+NMDeviceOlpcMesh
+NMDeviceTeam
+NMDeviceTun
+NMDeviceVlan
+NMDeviceVxlan
+NMDeviceWifi
+NMDeviceWimax
+NMDhcpConfig
+NMIPConfig
+NMObject
+NMRemoteConnection
+NMVpnConnection
+NMWimaxNsp
 </SECTION>
 
 <SECTION>
@@ -2605,10 +2674,10 @@ NM_AVAILABLE_IN_1_4
 <TITLE>NMVpnConnection</TITLE>
 NM_VPN_CONNECTION_VPN_STATE
 NM_VPN_CONNECTION_BANNER
+NMVpnConnection
 nm_vpn_connection_get_vpn_state
 nm_vpn_connection_get_banner
 <SUBSECTION Standard>
-NMVpnConnection
 NMVpnConnectionClass
 NM_IS_VPN_CONNECTION
 NM_IS_VPN_CONNECTION_CLASS
@@ -2733,8 +2802,8 @@ NM_VPN_PLUGIN_INFO_KEYFILE
 NM_VPN_PLUGIN_INFO_KF_GROUP_CONNECTION
 NM_VPN_PLUGIN_INFO_KF_GROUP_LIBNM
 NM_VPN_PLUGIN_INFO_KF_GROUP_GNOME
-<SUBSECTION Standard>
 NMVpnPluginInfo
+<SUBSECTION Standard>
 NM_IS_VPN_PLUGIN_INFO
 NM_IS_VPN_PLUGIN_INFO_CLASS
 NM_TYPE_VPN_PLUGIN_INFO
@@ -2776,13 +2845,13 @@ NM_VPN_SERVICE_PLUGIN_GET_CLASS
 NM_WIMAX_NSP_NAME
 NM_WIMAX_NSP_SIGNAL_QUALITY
 NM_WIMAX_NSP_NETWORK_TYPE
+NMWimaxNsp
 nm_wimax_nsp_get_name
 nm_wimax_nsp_get_signal_quality
 nm_wimax_nsp_get_network_type
 nm_wimax_nsp_filter_connections
 nm_wimax_nsp_connection_valid
 <SUBSECTION Standard>
-NMWimaxNsp
 NMWimaxNspClass
 NM_IS_WIMAX_NSP
 NM_IS_WIMAX_NSP_CLASS

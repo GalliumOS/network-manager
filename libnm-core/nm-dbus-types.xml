@@ -1,0 +1,1291 @@
+<?xml version='1.0'?>
+<?xml-stylesheet type="text/xsl" href="http://docbook.sourceforge.net/release/xsl/current/xhtml/docbook.xsl"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<refentry id="nm-dbus-types">
+  <refmeta>
+    <refentrytitle role="top_of_page" id="nm-dbus-types.top_of_page">NetworkManager D-Bus API Types</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>NetworkManager D-Bus API Types</refmiscinfo>
+  </refmeta>
+  <refnamediv>
+    <refname>NetworkManager D-Bus API Types</refname>
+    <refpurpose></refpurpose>
+  </refnamediv>
+
+  <refsect2 id="NMState" role="enum">
+    <title>enum NMState</title>
+    <indexterm zone="NMState">
+      <primary>NMState</primary>
+    </indexterm>
+    <para><para><link linkend="NMState">NMState</link> values indicate the current overall networking state.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_STATE_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>networking state is unknown</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_STATE_ASLEEP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>networking is not enabled</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_STATE_DISCONNECTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>20</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>there is no active network connection</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_STATE_DISCONNECTING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>30</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>network connections are being cleaned up</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_STATE_CONNECTING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>40</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a network connection is being started</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_STATE_CONNECTED_LOCAL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>50</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>there is only local IPv4 and/or IPv6 connectivity</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_STATE_CONNECTED_SITE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>60</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>there is only site-wide IPv4 and/or IPv6 connectivity</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_STATE_CONNECTED_GLOBAL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>70</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>there is global IPv4 and/or IPv6 Internet connectivity</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMConnectivityState" role="enum">
+    <title>enum NMConnectivityState</title>
+    <indexterm zone="NMConnectivityState">
+      <primary>NMConnectivityState</primary>
+    </indexterm>
+    <para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTIVITY_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Network connectivity is unknown.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTIVITY_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The host is not connected to any network.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTIVITY_PORTAL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The host is behind a captive portal and cannot reach the full Internet.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTIVITY_LIMITED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The host is connected to a network, but does not appear to be able to reach the full Internet.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTIVITY_FULL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>5</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The host is connected to a network, and appears to be able to reach the full Internet.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMDeviceType" role="enum">
+    <title>enum NMDeviceType</title>
+    <indexterm zone="NMDeviceType">
+      <primary>NMDeviceType</primary>
+    </indexterm>
+    <para><para><link linkend="NMDeviceType">NMDeviceType</link> values indicate the type of hardware represented by a device object.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>unknown device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_GENERIC</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>14</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>generic support for unrecognized device types</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_ETHERNET</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a wired ethernet device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_WIFI</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an 802.11 WiFi device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_UNUSED1</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>not used</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_UNUSED2</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>not used</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_BT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>5</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a Bluetooth device supporting PAN or DUN access protocols</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_OLPC_MESH</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>6</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an OLPC XO mesh networking device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_WIMAX</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>7</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an 802.16e Mobile WiMAX broadband device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_MODEM</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>8</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a modem supporting analog telephone, CDMA/EVDO, GSM/UMTS, or LTE network access protocols</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_INFINIBAND</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>9</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an IP-over-InfiniBand device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_BOND</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a bond master interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_VLAN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>11</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an 802.1Q VLAN interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_ADSL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>12</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>ADSL modem</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_BRIDGE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>13</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a bridge master interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_TEAM</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>15</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a team master interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_TUN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>16</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a TUN or TAP interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_IP_TUNNEL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>17</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a IP tunnel interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_MACVLAN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>18</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a MACVLAN interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_VXLAN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>19</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a VXLAN interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_VETH</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>20</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a VETH interface</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMDeviceCapabilities" role="enum">
+    <title>enum NMDeviceCapabilities</title>
+    <indexterm zone="NMDeviceCapabilities">
+      <primary>NMDeviceCapabilities</primary>
+    </indexterm>
+    <para><para>General device capability flags.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_CAP_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device has no special capabilities</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_CAP_NM_SUPPORTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000001</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>NetworkManager supports this device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_CAP_CARRIER_DETECT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000002</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>this device can indicate carrier status</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_CAP_IS_SOFTWARE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000004</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>this device is a software device</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMDeviceWifiCapabilities" role="enum">
+    <title>enum NMDeviceWifiCapabilities</title>
+    <indexterm zone="NMDeviceWifiCapabilities">
+      <primary>NMDeviceWifiCapabilities</primary>
+    </indexterm>
+    <para><para>802.11 specific device encryption and authentication capabilities.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device has no encryption/authentication capabilities</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_CIPHER_WEP40</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000001</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports 40/64-bit WEP encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_CIPHER_WEP104</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000002</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports 104/128-bit WEP encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_CIPHER_TKIP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000004</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports TKIP encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_CIPHER_CCMP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000008</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports AES/CCMP encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_WPA</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000010</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports WPA1 authentication</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_RSN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000020</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports WPA2/RSN authentication</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_AP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000040</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports Access Point mode</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_ADHOC</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000080</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports Ad-Hoc mode</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_FREQ_VALID</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000100</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device reports frequency capabilities</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_FREQ_2GHZ</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000200</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports 2.4GHz frequencies</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_FREQ_5GHZ</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000400</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports 5GHz frequencies</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NM80211ApFlags" role="enum">
+    <title>enum NM80211ApFlags</title>
+    <indexterm zone="NM80211ApFlags">
+      <primary>NM80211ApFlags</primary>
+    </indexterm>
+    <para><para>802.11 access point flags.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_FLAGS_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>access point has no special capabilities</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_FLAGS_PRIVACY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000001</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>access point requires authentication and encryption (usually means WEP)</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NM80211ApSecurityFlags" role="enum">
+    <title>enum NM80211ApSecurityFlags</title>
+    <indexterm zone="NM80211ApSecurityFlags">
+      <primary>NM80211ApSecurityFlags</primary>
+    </indexterm>
+    <para><para>802.11 access point security and authentication flags.  These flags describe the current security requirements of an access point as determined from the access point's beacon.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the access point has no special security requirements</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_PAIR_WEP40</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000001</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>40/64-bit WEP is supported for pairwise/unicast encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_PAIR_WEP104</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000002</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>104/128-bit WEP is supported for pairwise/unicast encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_PAIR_TKIP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000004</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>TKIP is supported for pairwise/unicast encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_PAIR_CCMP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000008</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>AES/CCMP is supported for pairwise/unicast encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_GROUP_WEP40</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000010</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>40/64-bit WEP is supported for group/broadcast encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_GROUP_WEP104</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000020</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>104/128-bit WEP is supported for group/broadcast encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_GROUP_TKIP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000040</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>TKIP is supported for group/broadcast encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_GROUP_CCMP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000080</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>AES/CCMP is supported for group/broadcast encryption</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_PSK</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000100</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>WPA/RSN Pre-Shared Key encryption is supported</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_802_1X</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000200</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>802.1x authentication and key management is supported</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NM80211Mode" role="enum">
+    <title>enum NM80211Mode</title>
+    <indexterm zone="NM80211Mode">
+      <primary>NM80211Mode</primary>
+    </indexterm>
+    <para><para>Indicates the 802.11 mode an access point or device is currently in.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_MODE_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device or access point mode is unknown</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_MODE_ADHOC</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>for both devices and access point objects, indicates the object is part of an Ad-Hoc 802.11 network without a central coordinating access point.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_MODE_INFRA</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device or access point is in infrastructure mode. For devices, this indicates the device is an 802.11 client/station.  For access point objects, this indicates the object is an access point that provides connectivity to clients.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_MODE_AP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is an access point/hotspot.  Not valid for access point objects; used only for hotspot mode on the local machine.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMBluetoothCapabilities" role="enum">
+    <title>enum NMBluetoothCapabilities</title>
+    <indexterm zone="NMBluetoothCapabilities">
+      <primary>NMBluetoothCapabilities</primary>
+    </indexterm>
+    <para><para><link linkend="NMBluetoothCapabilities">NMBluetoothCapabilities</link> values indicate the usable capabilities of a Bluetooth device.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_BT_CAPABILITY_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device has no usable capabilities</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_BT_CAPABILITY_DUN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000001</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device provides Dial-Up Networking capability</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_BT_CAPABILITY_NAP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000002</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device provides Network Access Point capability</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMDeviceModemCapabilities" role="enum">
+    <title>enum NMDeviceModemCapabilities</title>
+    <indexterm zone="NMDeviceModemCapabilities">
+      <primary>NMDeviceModemCapabilities</primary>
+    </indexterm>
+    <para><para><link linkend="NMDeviceModemCapabilities">NMDeviceModemCapabilities</link> values indicate the generic radio access technology families a modem device supports.  For more information on the specific access technologies the device supports use the ModemManager D-Bus API.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_MODEM_CAPABILITY_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>modem has no usable capabilities</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_MODEM_CAPABILITY_POTS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000001</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>modem uses the analog wired telephone network and is not a wireless/cellular device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000002</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>modem supports at least one of CDMA 1xRTT, EVDO revision 0, EVDO revision A, or EVDO revision B</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000004</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>modem supports at least one of GSM, GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_MODEM_CAPABILITY_LTE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000008</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>modem has LTE data capability</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMWimaxNspNetworkType" role="enum">
+    <title>enum NMWimaxNspNetworkType</title>
+    <indexterm zone="NMWimaxNspNetworkType">
+      <primary>NMWimaxNspNetworkType</primary>
+    </indexterm>
+    <para><para>WiMAX network type.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>unknown network type</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIMAX_NSP_NETWORK_TYPE_HOME</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>home network</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIMAX_NSP_NETWORK_TYPE_PARTNER</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>partner network</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIMAX_NSP_NETWORK_TYPE_ROAMING_PARTNER</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>roaming partner network</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMDeviceState" role="enum">
+    <title>enum NMDeviceState</title>
+    <indexterm zone="NMDeviceState">
+      <primary>NMDeviceState</primary>
+    </indexterm>
+    <para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device's state is unknown</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_UNMANAGED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is recognized, but not managed by NetworkManager</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_UNAVAILABLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>20</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is managed by NetworkManager, but is not available for use.  Reasons may include the wireless switched off, missing firmware, no ethernet carrier, missing supplicant or modem manager, etc.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_DISCONNECTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>30</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device can be activated, but is currently idle and not connected to a network.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_PREPARE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>40</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is preparing the connection to the network.  This may include operations like changing the MAC address, setting physical link properties, and anything else required to connect to the requested network.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_CONFIG</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>50</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is connecting to the requested network. This may include operations like associating with the WiFi AP, dialing the modem, connecting to the remote Bluetooth device, etc.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_NEED_AUTH</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>60</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device requires more information to continue connecting to the requested network.  This includes secrets like WiFi passphrases, login passwords, PIN codes, etc.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_IP_CONFIG</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>70</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is requesting IPv4 and/or IPv6 addresses and routing information from the network.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_IP_CHECK</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>80</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is checking whether further action is required for the requested network connection.  This may include checking whether only local network access is available, whether a captive portal is blocking access to the Internet, etc.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_SECONDARIES</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>90</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is waiting for a secondary connection (like a VPN) which must activated before the device can be activated</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_ACTIVATED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>100</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device has a network connection, either local or global.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_DEACTIVATING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>110</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a disconnection from the current network connection was requested, and the device is cleaning up resources used for that connection.  The network connection may still be valid.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>120</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device failed to connect to the requested network and is cleaning up the connection request</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMDeviceStateReason" role="enum">
+    <title>enum NMDeviceStateReason</title>
+    <indexterm zone="NMDeviceStateReason">
+      <primary>NMDeviceStateReason</primary>
+    </indexterm>
+    <para><para>Device state change reason codes</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>No reason given</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Unknown error</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_NOW_MANAGED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Device is now managed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_NOW_UNMANAGED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Device is now unmanaged</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_CONFIG_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The device could not be readied for configuration</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_IP_CONFIG_UNAVAILABLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>5</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IP configuration could not be reserved (no available address, timeout, etc)</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_IP_CONFIG_EXPIRED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>6</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The IP config is no longer valid</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_NO_SECRETS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>7</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Secrets were required, but not provided</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SUPPLICANT_DISCONNECT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>8</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>802.1x supplicant disconnected</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SUPPLICANT_CONFIG_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>9</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>802.1x supplicant configuration failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>802.1x supplicant failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SUPPLICANT_TIMEOUT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>11</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>802.1x supplicant took too long to authenticate</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_PPP_START_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>12</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>PPP service failed to start</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_PPP_DISCONNECT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>13</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>PPP service disconnected</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_PPP_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>14</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>PPP failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_DHCP_START_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>15</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>DHCP client failed to start</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_DHCP_ERROR</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>16</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>DHCP client error</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_DHCP_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>17</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>DHCP client failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SHARED_START_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>18</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Shared connection service failed to start</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SHARED_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>19</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Shared connection service failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_AUTOIP_START_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>20</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>AutoIP service failed to start</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_AUTOIP_ERROR</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>21</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>AutoIP service error</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_AUTOIP_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>22</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>AutoIP service failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_BUSY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>23</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The line is busy</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_NO_DIAL_TONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>24</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>No dial tone</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_NO_CARRIER</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>25</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>No carrier could be established</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_DIAL_TIMEOUT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>26</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The dialing request timed out</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_DIAL_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>27</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The dialing attempt failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_INIT_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>28</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Modem initialization failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_APN_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>29</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Failed to select the specified APN</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_REGISTRATION_NOT_SEARCHING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>30</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Not searching for networks</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_REGISTRATION_DENIED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>31</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Network registration denied</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_REGISTRATION_TIMEOUT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>32</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Network registration timed out</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_REGISTRATION_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>33</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Failed to register with the requested network</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_PIN_CHECK_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>34</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>PIN check failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_FIRMWARE_MISSING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>35</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Necessary firmware for the device may be missing</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_REMOVED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>36</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The device was removed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SLEEPING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>37</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>NetworkManager went to sleep</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_CONNECTION_REMOVED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>38</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The device's active connection disappeared</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_USER_REQUESTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>39</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Device disconnected by user or client</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_CARRIER</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>40</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Carrier/link changed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_CONNECTION_ASSUMED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>41</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The device's existing connection was assumed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SUPPLICANT_AVAILABLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>42</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The supplicant is now available</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_NOT_FOUND</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>43</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The modem could not be found</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_BT_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>44</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The Bluetooth connection failed or timed out</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_SIM_NOT_INSERTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>45</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>GSM Modem's SIM Card not inserted</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_SIM_PIN_REQUIRED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>46</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>GSM Modem's SIM Pin required</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_SIM_PUK_REQUIRED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>47</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>GSM Modem's SIM Puk required</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_GSM_SIM_WRONG</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>48</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>GSM Modem's SIM wrong</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_INFINIBAND_MODE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>49</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>InfiniBand device does not support connected mode</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>50</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>A dependency of the connection failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_BR2684_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>51</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Problem with the RFC 2684 Ethernet over ADSL bridge</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_MANAGER_UNAVAILABLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>52</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>ModemManager not running</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SSID_NOT_FOUND</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>53</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The WiFi network could not be found</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SECONDARY_CONNECTION_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>54</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>A secondary connection of the base connection failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_DCB_FCOE_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>55</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>DCB or FCoE setup failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_TEAMD_CONTROL_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>56</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>teamd control failed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>57</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Modem failed or no longer available</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_MODEM_AVAILABLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>58</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Modem now ready and available</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SIM_PIN_INCORRECT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>59</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>SIM PIN was incorrect</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_NEW_ACTIVATION</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>60</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>New connection activation was enqueued</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_PARENT_CHANGED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>61</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device's parent changed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_PARENT_MANAGED_CHANGED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>62</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device parent's management changed</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMMetered" role="enum">
+    <title>enum NMMetered</title>
+    <indexterm zone="NMMetered">
+      <primary>NMMetered</primary>
+    </indexterm>
+    <para><para>Since: 1.2</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_METERED_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The metered status is unknown</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_METERED_YES</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Metered, the value was statically set</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_METERED_NO</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Not metered, the value was statically set</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_METERED_GUESS_YES</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Metered, the value was guessed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_METERED_GUESS_NO</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Not metered, the value was guessed</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMActiveConnectionState" role="enum">
+    <title>enum NMActiveConnectionState</title>
+    <indexterm zone="NMActiveConnectionState">
+      <primary>NMActiveConnectionState</primary>
+    </indexterm>
+    <para><para><link linkend="NMActiveConnectionState">NMActiveConnectionState</link> values indicate the state of a connection to a specific network while it is starting, connected, or disconnecting from that network.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the state of the connection is unknown</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_ACTIVATING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a network connection is being prepared</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_ACTIVATED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>there is a connection to the network</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_DEACTIVATING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the network connection is being torn down and cleaned up</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_DEACTIVATED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the network connection is disconnected and will be removed</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMSecretAgentGetSecretsFlags" role="enum">
+    <title>enum NMSecretAgentGetSecretsFlags</title>
+    <indexterm zone="NMSecretAgentGetSecretsFlags">
+      <primary>NMSecretAgentGetSecretsFlags</primary>
+    </indexterm>
+    <para><para><link linkend="NMSecretAgentGetSecretsFlags">NMSecretAgentGetSecretsFlags</link> values modify the behavior of a GetSecrets request.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>no special behavior; by default no user interaction is allowed and requests for secrets are fulfilled from persistent storage, or if no secrets are available an error is returned.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>allows the request to interact with the user, possibly prompting via UI for secrets if any are required, or if none are found in persistent storage.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>explicitly prompt for new secrets from the user.  This flag signals that NetworkManager thinks any existing secrets are invalid or wrong.  This flag implies that interaction is allowed.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_USER_REQUESTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>set if the request was initiated by user-requested action via the D-Bus interface, as opposed to automatically initiated by NetworkManager in response to (for example) scan results or carrier changes.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_ONLY_SYSTEM</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x80000000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Internal flag, not part of the D-Bus API.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_NO_ERRORS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x40000000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Internal flag, not part of the D-Bus API.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMSecretAgentCapabilities" role="enum">
+    <title>enum NMSecretAgentCapabilities</title>
+    <indexterm zone="NMSecretAgentCapabilities">
+      <primary>NMSecretAgentCapabilities</primary>
+    </indexterm>
+    <para><para><link linkend="NMSecretAgentCapabilities">NMSecretAgentCapabilities</link> indicate various capabilities of the agent.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_CAPABILITY_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the agent supports no special capabilities</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_CAPABILITY_VPN_HINTS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the agent supports passing hints to VPN plugin authentication dialogs.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMIPTunnelMode" role="enum">
+    <title>enum NMIPTunnelMode</title>
+    <indexterm zone="NMIPTunnelMode">
+      <primary>NMIPTunnelMode</primary>
+    </indexterm>
+    <para><para>The tunneling mode.</para><para>Since: 1.2</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Unknown/unset tunnel mode</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_IPIP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IP in IP tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_GRE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>GRE tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_SIT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>SIT tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_ISATAP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>ISATAP tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_VTI</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>5</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>VTI tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_IP6IP6</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>6</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IPv6 in IPv6 tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_IPIP6</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>7</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IPv4 in IPv6 tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_IP6GRE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>8</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IPv6 GRE tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_VTI6</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>9</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IPv6 VTI tunnel</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+</refentry>

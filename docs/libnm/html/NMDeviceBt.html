@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDeviceBt.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceBt.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceBt.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDeviceBt.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDeviceBt.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -115,6 +116,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceBt.html#NM-DEVICE-BT-CAPABILITIES:CAPS" title="NM_DEVICE_BT_CAPABILITIES">NM_DEVICE_BT_CAPABILITIES</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceBt.html#NMDeviceBt-struct" title="NMDeviceBt">NMDeviceBt</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -127,6 +132,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMDeviceBt.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceBt implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMDeviceBt.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -137,7 +148,7 @@
 nm_device_bt_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
 <p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.6.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.6.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -152,7 +163,7 @@ nm_device_bt_get_hw_address (<em class="parameter"><code><a class="link" href="N
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.6.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.6.9.2.6"></a><h4>Returns</h4>
 <p> the hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -164,7 +175,7 @@ device, and must not be modified.</p>
 nm_device_bt_get_name (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
 <p>Gets the name of the <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.6.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.6.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -179,7 +190,7 @@ nm_device_bt_get_name (<em class="parameter"><code><a class="link" href="NMDevic
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.6.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.6.9.3.6"></a><h4>Returns</h4>
 <p> the name of the device</p>
 </div>
 </div>
@@ -190,7 +201,7 @@ nm_device_bt_get_name (<em class="parameter"><code><a class="link" href="NMDevic
 nm_device_bt_get_capabilities (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
 <p>Returns the Bluetooth device's usable capabilities.</p>
 <div class="refsect3">
-<a name="id-1.5.6.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.6.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -205,7 +216,7 @@ nm_device_bt_get_capabilities (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.6.8.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.6.9.4.6"></a><h4>Returns</h4>
 <p> a combination of <a class="link" href="libnm-nm-dbus-interface.html#NMBluetoothCapabilities" title="enum NMBluetoothCapabilities"><span class="type">NMBluetoothCapabilities</span></a></p>
 </div>
 </div>
@@ -228,6 +239,11 @@ nm_device_bt_get_capabilities (<em class="parameter"><code><a class="link" href=
 <a name="NM-DEVICE-BT-CAPABILITIES:CAPS"></a><h3>NM_DEVICE_BT_CAPABILITIES</h3>
 <pre class="programlisting">#define NM_DEVICE_BT_CAPABILITIES "bt-capabilities"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceBt-struct"></a><h3>NMDeviceBt</h3>
+<pre class="programlisting">typedef struct _NMDeviceBt NMDeviceBt;</pre>
 </div>
 </div>
 <div class="refsect1">

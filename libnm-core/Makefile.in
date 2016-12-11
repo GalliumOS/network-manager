@@ -721,7 +721,7 @@ libnm_core_la_LIBADD = $(GLIB_LIBS) $(UUID_LIBS) $(am__append_3) \
 libnm_core_la_LDFLAGS = \
 	$(CODE_COVERAGE_LDFLAGS)
 
-BUILT_SOURCES = $(GLIB_GENERATED)
+BUILT_SOURCES = $(GLIB_GENERATED) nm-vpn-dbus-types.xml nm-dbus-types.xml
 CLEANFILES = $(BUILT_SOURCES)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -1489,6 +1489,12 @@ uninstall-am: uninstall-libnmincludeHEADERS
 include $(GLIB_MAKEFILE)
 
 @GNOME_CODE_COVERAGE_RULES@
+
+nm-vpn-dbus-types.xml: nm-vpn-dbus-interface.h $(top_srcdir)/tools/enums-to-docbook.pl
+	$(AM_V_GEN) @PERL@ $(top_srcdir)/tools/enums-to-docbook.pl 'nm-vpn-dbus-types' 'VPN Plugin D-Bus API Types' $^ >$@
+
+nm-dbus-types.xml: nm-dbus-interface.h $(top_srcdir)/tools/enums-to-docbook.pl
+	$(AM_V_GEN) @PERL@ $(top_srcdir)/tools/enums-to-docbook.pl 'nm-dbus-types' 'NetworkManager D-Bus API Types' $^ >$@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

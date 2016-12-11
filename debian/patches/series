@@ -10,13 +10,15 @@ Check-at-runtime-whether-to-start-ModemManager.patch
 Don-t-make-NetworkManager-D-Bus-activatable.patch
 Don-t-block-network.target-on-NetworkManager-wait-on.patch
 Fix-iscsiadm-path.patch
+Read-config-from-run.patch
+Read-system-connections-from-run.patch
 
 # ubuntu-specific
 whoopsie-daisy-dbus-support.patch
 #dont_mangle_bridges.patch
 
 # dnsmasq
-0001-dns-use-DBus-to-make-dnsmasq-nameserver-changes.patch
+#0001-dns-use-DBus-to-make-dnsmasq-nameserver-changes.patch
 nm-change-dnsmasq-parameters.diff
 dnsmasq-vpn-dns-filtering.patch
 lp936712_dnsmasq_ip6_ns_ordering.patch
@@ -25,11 +27,6 @@ lp936712_dnsmasq_ip6_ns_ordering.patch
 adhoc_use_wpa_rsn_part1.patch
 adhoc_use_wpa_rsn_part2.patch
 wifi-Signal-on-the-wifi-device-when-its-supplicant-i.patch
-
-# wifi powersave
-#disabled for GalliumOS -- suspected of causing slow speeds and packet loss.
-#powersave should be handled by the kernel module and shouldn't be forced.
-#default_powersave_on.patch
 
 # touch-specific
 ignore_rild_modem_devices.patch
@@ -46,7 +43,8 @@ ignore_rfkill_if_urfkill_is_present.patch
 # more fixes
 conditional_libteam_tests.patch
 disable_general_with_expect_test.patch
-lp1574347-re-read-link-type-if-the-name-changed.diff
-
-# galliumos patches
-galliumos-increase_scan_frequency.diff
+#lp1574347-re-read-link-type-if-the-name-changed.diff
+libnm-Check-self-still-NMManager-or-not.patch
+libnm-don-t-require-initialized-out_encrypted-argume.patch
+cli-initialize-connection-list-in-do_device_connect.patch
+dns-manager-don-t-merge-split-DNS-search-domains.patch

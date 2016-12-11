@@ -474,12 +474,16 @@ use WEP, LEAP, WPA or WPA2/RSN security</p>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-LEAP-PASSWORD-FLAGS:CAPS" title="NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS">NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity-struct" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect1">
 <a name="NMSettingWirelessSecurity.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+<pre class="screen">    GEnum
     <span class="lineart">╰──</span> NMWepKeyType
     GObject
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
@@ -1599,6 +1603,11 @@ the actual WEP key using the MD5 hash algorithm.</p>
 <a name="NM-SETTING-WIRELESS-SECURITY-LEAP-PASSWORD-FLAGS:CAPS"></a><h3>NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS</h3>
 <pre class="programlisting">#define NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS "leap-password-flags"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingWirelessSecurity-struct"></a><h3>NMSettingWirelessSecurity</h3>
+<pre class="programlisting">typedef struct _NMSettingWirelessSecurity NMSettingWirelessSecurity;</pre>
 </div>
 </div>
 <div class="refsect1">

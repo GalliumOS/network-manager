@@ -207,8 +207,8 @@
 <td class="function_name"><a class="link" href="NMSetting.html#NMSettingMacRandomization" title="enum NMSettingMacRandomization">NMSettingMacRandomization</a></td>
 </tr>
 <tr>
-<td class="datatype_keyword">struct</td>
-<td class="function_name"><a class="link" href="NMSetting.html#NMSetting-struct" title="struct NMSetting">NMSetting</a></td>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSetting.html#NMSetting-struct" title="NMSetting">NMSetting</a></td>
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
@@ -219,11 +219,11 @@
 </div>
 <div class="refsect1">
 <a name="NMSetting.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+<pre class="screen">    GEnum
     <span class="lineart">├──</span> NMSettingCompareFlags
     <span class="lineart">├──</span> NMSettingDiffResult
     <span class="lineart">╰──</span> NMSettingMacRandomization
-    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
+    GFlags
     <span class="lineart">╰──</span> NMSettingSecretFlags
     GObject
     <span class="lineart">╰──</span> NMSetting
@@ -263,7 +263,7 @@
 <p>Each <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> contains properties that describe configuration that applies
 to a specific network layer (like IPv4 or IPv6 configuration) or device type
 (like Ethernet, or Wi-Fi).  A collection of individual settings together
-make up an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>. Each property is strongly typed and usually has
+make up an <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>. Each property is strongly typed and usually has
 a number of allowed values.  See each <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass for a description
 of properties and allowed values.</p>
 </div>
@@ -320,7 +320,7 @@ of properties and allowed values.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>User data passed to <a class="link" href="libnm-NMConnection.html#nm-connection-clear-secrets-with-flags" title="nm_connection_clear_secrets_with_flags ()"><code class="function">nm_connection_clear_secrets_with_flags()</code></a></p></td>
+<td class="parameter_description"><p>User data passed to <a class="link" href="NMConnection.html#nm-connection-clear-secrets-with-flags" title="nm_connection_clear_secrets_with_flags ()"><code class="function">nm_connection_clear_secrets_with_flags()</code></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -467,7 +467,7 @@ like 'ppp' or 'wireless' or 'wired'.</p>
 <a name="nm-setting-verify"></a><h3>nm_setting_verify ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_setting_verify (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
-                   <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                   <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
                    <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Validates the setting.  Each setting's properties have allowed values, and
 some are dependent on other values (hence the need for <em class="parameter"><code>connection</code></em>
@@ -490,7 +490,7 @@ failed validation, and in what way that property failed validation.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
+<td class="parameter_description"><p> the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
 came from, or
 <code class="literal">NULL</code> if <em class="parameter"><code>setting</code></em>
 is being verified in isolation. </p></td>
@@ -514,7 +514,7 @@ is being verified in isolation. </p></td>
 <a name="nm-setting-verify-secrets"></a><h3>nm_setting_verify_secrets ()</h3>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_setting_verify_secrets (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
-                           <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> *connection</code></em>,
+                           <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
                            <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Verifies the secrets in the setting.
 The returned <span class="type">GError</span> contains information about which secret of the setting
@@ -537,7 +537,7 @@ in some cases connection failure is not desired just for the secrets.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
+<td class="parameter_description"><p> the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> that <em class="parameter"><code>setting</code></em>
 came from, or
 <code class="literal">NULL</code> if <em class="parameter"><code>setting</code></em>
 is being verified in isolation. </p></td>
@@ -994,7 +994,7 @@ two connections.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-COMPARE-FLAG-DIFF-RESULT-WITH-DEFAULT:CAPS"></a>NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT</p></td>
 <td class="enum_member_description">
 <p>if this flag is set,
-  <a class="link" href="NMSetting.html#nm-setting-diff" title="nm_setting_diff ()"><code class="function">nm_setting_diff()</code></a> and <a class="link" href="libnm-NMConnection.html#nm-connection-diff" title="nm_connection_diff ()"><code class="function">nm_connection_diff()</code></a> will also include properties that
+  <a class="link" href="NMSetting.html#nm-setting-diff" title="nm_setting_diff ()"><code class="function">nm_setting_diff()</code></a> and <a class="link" href="NMConnection.html#nm-connection-diff" title="nm_connection_diff ()"><code class="function">nm_connection_diff()</code></a> will also include properties that
   are set to their default value. See also <em class="parameter"><code>NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT</code></em>
 .</p>
 </td>
@@ -1004,7 +1004,7 @@ two connections.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-COMPARE-FLAG-DIFF-RESULT-NO-DEFAULT:CAPS"></a>NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT</p></td>
 <td class="enum_member_description">
 <p>if this flag is set,
-  <a class="link" href="NMSetting.html#nm-setting-diff" title="nm_setting_diff ()"><code class="function">nm_setting_diff()</code></a> and <a class="link" href="libnm-NMConnection.html#nm-connection-diff" title="nm_connection_diff ()"><code class="function">nm_connection_diff()</code></a> will not include properties that
+  <a class="link" href="NMSetting.html#nm-setting-diff" title="nm_setting_diff ()"><code class="function">nm_setting_diff()</code></a> and <a class="link" href="NMConnection.html#nm-connection-diff" title="nm_connection_diff ()"><code class="function">nm_connection_diff()</code></a> will not include properties that
   are set to their default value. This is the opposite of
   <em class="parameter"><code>NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT</code></em>
 . If both flags are set together,
@@ -1074,8 +1074,8 @@ overridden by user-controlled defaults configuration, is "never".</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="NMSetting-struct"></a><h3>struct NMSetting</h3>
-<pre class="programlisting">struct NMSetting;</pre>
+<a name="NMSetting-struct"></a><h3>NMSetting</h3>
+<pre class="programlisting">typedef struct _NMSetting NMSetting;</pre>
 <p>The NMSetting struct contains only private data.
 It should only be accessed through the functions described below.</p>
 </div>

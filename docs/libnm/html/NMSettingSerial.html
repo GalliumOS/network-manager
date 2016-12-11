@@ -166,12 +166,16 @@ serial communications</p>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingSerial.html#NM-SETTING-SERIAL-SEND-DELAY:CAPS" title="NM_SETTING_SERIAL_SEND_DELAY">NM_SETTING_SERIAL_SEND_DELAY</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial-struct" title="NMSettingSerial">NMSettingSerial</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect1">
 <a name="NMSettingSerial.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+<pre class="screen">    GEnum
     <span class="lineart">╰──</span> NMSettingSerialParity
     GObject
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
@@ -397,6 +401,11 @@ nm_setting_serial_get_send_delay (<em class="parameter"><code><a class="link" hr
 <a name="NM-SETTING-SERIAL-SEND-DELAY:CAPS"></a><h3>NM_SETTING_SERIAL_SEND_DELAY</h3>
 <pre class="programlisting">#define NM_SETTING_SERIAL_SEND_DELAY "send-delay"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingSerial-struct"></a><h3>NMSettingSerial</h3>
+<pre class="programlisting">typedef struct _NMSettingSerial NMSettingSerial;</pre>
 </div>
 </div>
 <div class="refsect1">

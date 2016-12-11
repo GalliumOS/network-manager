@@ -142,12 +142,16 @@
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigAddrGenMode" title="enum NMSettingIP6ConfigAddrGenMode">NMSettingIP6ConfigAddrGenMode</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config-struct" title="NMSettingIP6Config">NMSettingIP6Config</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+<pre class="screen">    GEnum
     <span class="lineart">├──</span> NMSettingIP6ConfigAddrGenMode
     <span class="lineart">╰──</span> NMSettingIP6ConfigPrivacy
     GObject
@@ -401,6 +405,11 @@ specified by RFC7217.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIP6Config-struct"></a><h3>NMSettingIP6Config</h3>
+<pre class="programlisting">typedef struct _NMSettingIP6Config NMSettingIP6Config;</pre>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.property-details"></a><h2>Property Details</h2>
@@ -409,7 +418,7 @@ specified by RFC7217.</p>
 <pre class="programlisting">  “addr-gen-mode”            <span class="type">gint</span></pre>
 <p>Configure method for creating the address for use with RFC4862 IPv6
 Stateless Address Autoconfiguration. The permitted values are: "eui64",
-"stable-privacy" or unset.</p>
+or "stable-privacy".</p>
 <p>If the property is set to "eui64", the addresses will be generated
 using the interface tokens derived from  hardware address. This makes
 the host part of the address to stay constant, making it possible
@@ -421,8 +430,10 @@ identification and the network address as specified by RFC7217.
 This makes it impossible to use the address track host's presence,
 and makes the address stable when the network interface hardware is
 replaced.</p>
-<p>Leaving this unset causes a default that could be subject to change
-in future versions to be used.</p>
+<p>On D-Bus, the absence of an addr-gen-mode setting equals enabling
+"stable-privacy". For keyfile plugin, the absence of the setting
+on disk means "eui64" so that the property doesn't change on upgrade
+from older versions.</p>
 <p>Note that this setting is distinct from the Privacy Extensions as
 configured by "ip6-privacy" property and it does not affect the
 temporary addresses configured with this option.</p>

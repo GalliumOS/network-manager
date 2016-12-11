@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDeviceWifi.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceWifi.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceWifi.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDeviceWifi.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDeviceWifi.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
                   <a href="#NMDeviceWifi.signals" class="shortcut">Signals</a></span>
 </td>
@@ -255,6 +256,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceWifi.html#NM-DEVICE-WIFI-ACCESS-POINTS:CAPS" title="NM_DEVICE_WIFI_ACCESS_POINTS">NM_DEVICE_WIFI_ACCESS_POINTS</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceWifi.html#NMDeviceWifi-struct" title="NMDeviceWifi">NMDeviceWifi</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -267,6 +272,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMDeviceWifi.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceWifi implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMDeviceWifi.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -277,7 +288,7 @@
 nm_device_wifi_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the actual hardware (MAC) address of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.18.9.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -292,7 +303,7 @@ nm_device_wifi_get_hw_address (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.2.6"></a><h4>Returns</h4>
 <p> the actual hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -305,7 +316,7 @@ nm_device_wifi_get_permanent_hw_address
                                (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the permanent hardware (MAC) address of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.18.9.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -320,7 +331,7 @@ nm_device_wifi_get_permanent_hw_address
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.3.6"></a><h4>Returns</h4>
 <p> the permanent hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -332,7 +343,7 @@ device, and must not be modified.</p>
 nm_device_wifi_get_mode (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> mode.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -347,7 +358,7 @@ nm_device_wifi_get_mode (<em class="parameter"><code><a class="link" href="NMDev
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.4.6"></a><h4>Returns</h4>
 <p> the mode</p>
 </div>
 </div>
@@ -358,7 +369,7 @@ nm_device_wifi_get_mode (<em class="parameter"><code><a class="link" href="NMDev
 nm_device_wifi_get_bitrate (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the bit rate of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> in kbit/s.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.5.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -373,7 +384,7 @@ nm_device_wifi_get_bitrate (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.5.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.5.6"></a><h4>Returns</h4>
 <p> the bit rate (kbit/s)</p>
 </div>
 </div>
@@ -384,7 +395,7 @@ nm_device_wifi_get_bitrate (<em class="parameter"><code><a class="link" href="NM
 nm_device_wifi_get_capabilities (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the Wi-Fi capabilities of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.6.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.6.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -399,7 +410,7 @@ nm_device_wifi_get_capabilities (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.6.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.6.6"></a><h4>Returns</h4>
 <p> the capabilities</p>
 </div>
 </div>
@@ -411,7 +422,7 @@ nm_device_wifi_get_active_access_point
                                (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets the active <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.7.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.7.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -426,7 +437,7 @@ nm_device_wifi_get_active_access_point
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.7.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.7.6"></a><h4>Returns</h4>
 <p> the access point or <code class="literal">NULL</code> if none is active. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -440,7 +451,7 @@ nm_device_wifi_get_access_point_by_path
                                 <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
 <p>Gets a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> by path.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.8.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.8.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -462,7 +473,7 @@ nm_device_wifi_get_access_point_by_path
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.8.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.8.6"></a><h4>Returns</h4>
 <p> the access point or <code class="literal">NULL</code> if none is found. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -474,7 +485,7 @@ nm_device_wifi_get_access_point_by_path
 nm_device_wifi_get_access_points (<em class="parameter"><code><a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a> *device</code></em>);</pre>
 <p>Gets all the scanned access points of the <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><span class="type">NMDeviceWifi</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.9.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.9.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -489,7 +500,7 @@ nm_device_wifi_get_access_points (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.9.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.9.6"></a><h4>Returns</h4>
 <p> a <span class="type">GPtrArray</span> containing all the
 scanned <a href="NMAccessPoint.html"><span class="type">NMAccessPoints</span></a>.
 The returned array is owned by the client and should not be modified. </p>
@@ -508,7 +519,7 @@ nm_device_wifi_request_scan (<em class="parameter"><code><a class="link" href="N
 returns immediately after requesting the scan, and it may take some time
 after that for the scan to complete.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.10.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.10.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -535,7 +546,7 @@ after that for the scan to complete.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.10.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.10.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be
 set.</p>
@@ -560,7 +571,7 @@ for the scanning. The argument is the dictionary passed to <code class="function
 D-Bus call. Valid otions inside the dictionary are:
 'ssids' =&gt; array of SSIDs (saay)</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.11.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.11.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -592,7 +603,7 @@ D-Bus call. Valid otions inside the dictionary are:
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.11.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.11.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be
 set.</p>
@@ -613,7 +624,7 @@ nm_device_wifi_request_scan_async (<em class="parameter"><code><a class="link" h
 called immediately after requesting the scan, and it may take some time after
 that for the scan to complete.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.12.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.12.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -668,7 +679,7 @@ for the scanning. The argument is the dictionary passed to <code class="function
 D-Bus call. Valid otions inside the dictionary are:
 'ssids' =&gt; array of SSIDs (saay)</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.13.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.13.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -716,7 +727,7 @@ nm_device_wifi_request_scan_finish (<em class="parameter"><code><a class="link" 
                                     <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Gets the result of a call to <a class="link" href="NMDeviceWifi.html#nm-device-wifi-request-scan-async" title="nm_device_wifi_request_scan_async ()"><code class="function">nm_device_wifi_request_scan_async()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.18.9.14.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.10.14.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -743,7 +754,7 @@ nm_device_wifi_request_scan_finish (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.18.9.14.6"></a><h4>Returns</h4>
+<a name="id-1.5.18.10.14.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> on error, in which case <em class="parameter"><code>error</code></em>
 will be
 set.</p>
@@ -792,6 +803,11 @@ set.</p>
 <a name="NM-DEVICE-WIFI-ACCESS-POINTS:CAPS"></a><h3>NM_DEVICE_WIFI_ACCESS_POINTS</h3>
 <pre class="programlisting">#define NM_DEVICE_WIFI_ACCESS_POINTS       "access-points"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceWifi-struct"></a><h3>NMDeviceWifi</h3>
+<pre class="programlisting">typedef struct _NMDeviceWifi NMDeviceWifi;</pre>
 </div>
 </div>
 <div class="refsect1">
@@ -860,7 +876,7 @@ user_function (<a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><sp
                <span class="type">gpointer</span>      user_data)</pre>
 <p>Notifies that a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> is added to the Wi-Fi device.</p>
 <div class="refsect3">
-<a name="id-1.5.18.12.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.13.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -897,7 +913,7 @@ user_function (<a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi"><sp
                <span class="type">gpointer</span>      user_data)</pre>
 <p>Notifies that a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> is removed from the Wi-Fi device.</p>
 <div class="refsect3">
-<a name="id-1.5.18.12.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.18.13.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">

@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMActiveConnection.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMActiveConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMActiveConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMActiveConnection.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMActiveConnection.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -325,6 +326,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMActiveConnection.html#NM-ACTIVE-CONNECTION-MASTER:CAPS" title="NM_ACTIVE_CONNECTION_MASTER">NM_ACTIVE_CONNECTION_MASTER</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMActiveConnection.html#NMActiveConnection-struct" title="NMActiveConnection">NMActiveConnection</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -335,6 +340,12 @@
         <span class="lineart">╰──</span> NMActiveConnection
             <span class="lineart">╰──</span> <a class="link" href="NMVpnConnection.html" title="NMVpnConnection">NMVpnConnection</a>
 </pre>
+</div>
+<div class="refsect1">
+<a name="NMActiveConnection.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMActiveConnection implements
+ GInitable and  GAsyncInitable.</p>
 </div>
 <div class="refsect1">
 <a name="NMActiveConnection.description"></a><h2>Description</h2>
@@ -348,7 +359,7 @@ nm_active_connection_get_connection (<em class="parameter"><code><a class="link"
 <p>Gets the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> associated with <em class="parameter"><code>connection</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -363,7 +374,7 @@ nm_active_connection_get_connection (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.2.6"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> which this
 <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> is an active instance of. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -374,9 +385,9 @@ nm_active_connection_get_connection (<em class="parameter"><code><a class="link"
 <a name="nm-active-connection-get-id"></a><h3>nm_active_connection_get_id ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_active_connection_get_id (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
-<p>Gets the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>'s ID.</p>
+<p>Gets the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>'s ID.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -391,8 +402,8 @@ nm_active_connection_get_id (<em class="parameter"><code><a class="link" href="N
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.3.6"></a><h4>Returns</h4>
-<p> the ID of the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> that backs the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.
+<a name="id-1.5.20.9.3.6"></a><h4>Returns</h4>
+<p> the ID of the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> that backs the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.
 This is the internal string used by the connection, and must not be modified.</p>
 </div>
 </div>
@@ -401,9 +412,9 @@ This is the internal string used by the connection, and must not be modified.</p
 <a name="nm-active-connection-get-uuid"></a><h3>nm_active_connection_get_uuid ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_active_connection_get_uuid (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
-<p>Gets the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>'s UUID.</p>
+<p>Gets the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>'s UUID.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -418,8 +429,8 @@ nm_active_connection_get_uuid (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.4.6"></a><h4>Returns</h4>
-<p> the UUID of the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> that backs the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.
+<a name="id-1.5.20.9.4.6"></a><h4>Returns</h4>
+<p> the UUID of the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> that backs the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.
 This is the internal string used by the connection, and must not be modified.</p>
 </div>
 </div>
@@ -429,9 +440,9 @@ This is the internal string used by the connection, and must not be modified.</p
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_active_connection_get_connection_type
                                (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
-<p>Gets the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a>'s type.</p>
+<p>Gets the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a>'s type.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.5.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -446,8 +457,8 @@ nm_active_connection_get_connection_type
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.5.6"></a><h4>Returns</h4>
-<p> the type of the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a> that backs the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.
+<a name="id-1.5.20.9.5.6"></a><h4>Returns</h4>
+<p> the type of the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> that backs the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.
 This is the internal string used by the connection, and must not be modified.</p>
 </div>
 </div>
@@ -465,7 +476,7 @@ is based on other information. (Eg, if <em class="parameter"><code>connection</c
 connection, then the specific object will be an <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a>, and you can
 resolve it with <a class="link" href="NMDeviceWifi.html#nm-device-wifi-get-access-point-by-path" title="nm_device_wifi_get_access_point_by_path ()"><code class="function">nm_device_wifi_get_access_point_by_path()</code></a>.)</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.6.6"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.6.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -480,7 +491,7 @@ resolve it with <a class="link" href="NMDeviceWifi.html#nm-device-wifi-get-acces
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.6.7"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.6.7"></a><h4>Returns</h4>
 <p> the specific object's D-Bus path. This is the internal string used
 by the connection, and must not be modified.</p>
 </div>
@@ -492,7 +503,7 @@ by the connection, and must not be modified.</p>
 nm_active_connection_get_devices (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
 <p>Gets the <a href="NMDevice.html"><span class="type">NMDevices</span></a> used for the active connections.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.7.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.7.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -507,7 +518,7 @@ nm_active_connection_get_devices (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.7.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.7.6"></a><h4>Returns</h4>
 <p> the <span class="type">GPtrArray</span> containing <a href="NMDevice.html"><span class="type">NMDevices</span></a>.
 This is the internal copy used by the connection, and must not be modified. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
@@ -520,7 +531,7 @@ This is the internal copy used by the connection, and must not be modified. </p>
 nm_active_connection_get_state (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
 <p>Gets the active connection's state.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.8.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.8.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -535,7 +546,7 @@ nm_active_connection_get_state (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.8.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.8.6"></a><h4>Returns</h4>
 <p> the state</p>
 </div>
 </div>
@@ -546,7 +557,7 @@ nm_active_connection_get_state (<em class="parameter"><code><a class="link" href
 nm_active_connection_get_master (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
 <p>Gets the master <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> of the connection.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.9.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.9.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -561,7 +572,7 @@ nm_active_connection_get_master (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.9.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.9.6"></a><h4>Returns</h4>
 <p> the master <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> of the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -574,7 +585,7 @@ nm_active_connection_get_default (<em class="parameter"><code><a class="link" hr
 <p>Whether the active connection is the default IPv4 one (that is, is used for
 the default IPv4 route and DNS information).</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.10.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.10.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -589,7 +600,7 @@ the default IPv4 route and DNS information).</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.10.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.10.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the active connection is the default IPv4 connection</p>
 </div>
 </div>
@@ -600,7 +611,7 @@ the default IPv4 route and DNS information).</p>
 nm_active_connection_get_ip4_config (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
 <p>Gets the current IPv4 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> associated with the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.11.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.11.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -615,7 +626,7 @@ nm_active_connection_get_ip4_config (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.11.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.11.6"></a><h4>Returns</h4>
 <p> the IPv4 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a>, or <code class="literal">NULL</code> if the connection is
 not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a> state. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -629,7 +640,7 @@ nm_active_connection_get_dhcp4_config (<em class="parameter"><code><a class="lin
 <p>Gets the current IPv4 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> (if any) associated with the
 <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.12.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.12.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -644,7 +655,7 @@ nm_active_connection_get_dhcp4_config (<em class="parameter"><code><a class="lin
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.12.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.12.6"></a><h4>Returns</h4>
 <p> the IPv4 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a>, or <code class="literal">NULL</code> if the connection
 does not use DHCP, or is not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a>
 state. </p>
@@ -659,7 +670,7 @@ nm_active_connection_get_default6 (<em class="parameter"><code><a class="link" h
 <p>Whether the active connection is the default IPv6 one (that is, is used for
 the default IPv6 route and DNS information).</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.13.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.13.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -674,7 +685,7 @@ the default IPv6 route and DNS information).</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.13.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.13.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the active connection is the default IPv6 connection</p>
 </div>
 </div>
@@ -685,7 +696,7 @@ the default IPv6 route and DNS information).</p>
 nm_active_connection_get_ip6_config (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
 <p>Gets the current IPv6 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> associated with the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.14.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.14.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -700,7 +711,7 @@ nm_active_connection_get_ip6_config (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.14.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.14.6"></a><h4>Returns</h4>
 <p> the IPv6 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a>, or <code class="literal">NULL</code> if the connection is
 not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a> state. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -714,7 +725,7 @@ nm_active_connection_get_dhcp6_config (<em class="parameter"><code><a class="lin
 <p>Gets the current IPv6 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a> (if any) associated with the
 <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.15.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.15.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -729,7 +740,7 @@ nm_active_connection_get_dhcp6_config (<em class="parameter"><code><a class="lin
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.15.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.15.6"></a><h4>Returns</h4>
 <p> the IPv6 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a>, or <code class="literal">NULL</code> if the connection
 does not use DHCPv6, or is not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a>
 state. </p>
@@ -743,7 +754,7 @@ state. </p>
 nm_active_connection_get_vpn (<em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *connection</code></em>);</pre>
 <p>Whether the active connection is a VPN connection.</p>
 <div class="refsect3">
-<a name="id-1.5.20.8.16.5"></a><h4>Parameters</h4>
+<a name="id-1.5.20.9.16.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -758,7 +769,7 @@ nm_active_connection_get_vpn (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.20.8.16.6"></a><h4>Returns</h4>
+<a name="id-1.5.20.9.16.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the active connection is a VPN connection</p>
 </div>
 </div>
@@ -853,6 +864,11 @@ nm_active_connection_get_vpn (<em class="parameter"><code><a class="link" href="
 <a name="NM-ACTIVE-CONNECTION-MASTER:CAPS"></a><h3>NM_ACTIVE_CONNECTION_MASTER</h3>
 <pre class="programlisting">#define NM_ACTIVE_CONNECTION_MASTER               "master"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActiveConnection-struct"></a><h3>NMActiveConnection</h3>
+<pre class="programlisting">typedef struct _NMActiveConnection NMActiveConnection;</pre>
 </div>
 </div>
 <div class="refsect1">

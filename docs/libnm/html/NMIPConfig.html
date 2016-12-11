@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMIPConfig.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMIPConfig.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMIPConfig.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMIPConfig.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMIPConfig.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -167,6 +168,10 @@
 </colgroup>
 <tbody>
 <tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMIPConfig.html#NMIPConfig-struct" title="NMIPConfig">NMIPConfig</a></td>
+</tr>
+<tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMIPConfig.html#NM-IP-CONFIG-FAMILY:CAPS" title="NM_IP_CONFIG_FAMILY">NM_IP_CONFIG_FAMILY</a></td>
 </tr>
@@ -209,6 +214,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMIPConfig.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMIPConfig implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMIPConfig.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -219,7 +230,7 @@
 nm_ip_config_get_family (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the IP address family</p>
 <div class="refsect3">
-<a name="id-1.5.25.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.25.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -234,7 +245,7 @@ nm_ip_config_get_family (<em class="parameter"><code><a class="link" href="NMIPC
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.25.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.25.9.2.6"></a><h4>Returns</h4>
 <p> the IP address family; either <code class="literal">AF_INET</code> or
 <code class="literal">AF_INET6</code></p>
 </div>
@@ -246,7 +257,7 @@ nm_ip_config_get_family (<em class="parameter"><code><a class="link" href="NMIPC
 nm_ip_config_get_gateway (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the IP gateway address.</p>
 <div class="refsect3">
-<a name="id-1.5.25.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.25.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -261,7 +272,7 @@ nm_ip_config_get_gateway (<em class="parameter"><code><a class="link" href="NMIP
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.25.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.25.9.3.6"></a><h4>Returns</h4>
 <p> the IP address of the gateway. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -273,7 +284,7 @@ nm_ip_config_get_gateway (<em class="parameter"><code><a class="link" href="NMIP
 nm_ip_config_get_addresses (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the IP addresses (containing the address, prefix, and gateway).</p>
 <div class="refsect3">
-<a name="id-1.5.25.8.4.5"></a><h4>Parameters</h4>
+<a name="id-1.5.25.9.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -288,7 +299,7 @@ nm_ip_config_get_addresses (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.25.8.4.6"></a><h4>Returns</h4>
+<a name="id-1.5.25.9.4.6"></a><h4>Returns</h4>
 <p> the <span class="type">GPtrArray</span>
 containing <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a>es.  This is the internal copy used by the
 configuration and must not be modified. The library never modifies the
@@ -303,7 +314,7 @@ returned array and thus it is safe for callers to reference and keep using it. <
 nm_ip_config_get_routes (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the routes.</p>
 <div class="refsect3">
-<a name="id-1.5.25.8.5.5"></a><h4>Parameters</h4>
+<a name="id-1.5.25.9.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -318,7 +329,7 @@ nm_ip_config_get_routes (<em class="parameter"><code><a class="link" href="NMIPC
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.25.8.5.6"></a><h4>Returns</h4>
+<a name="id-1.5.25.9.5.6"></a><h4>Returns</h4>
 <p> the <span class="type">GPtrArray</span> containing
 <a href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoutes</span></a>. This is the internal copy used by the configuration, and must
 not be modified. The library never modifies the returned array and thus it is
@@ -333,7 +344,7 @@ safe for callers to reference and keep using it. </p>
 nm_ip_config_get_nameservers (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the domain name servers (DNS).</p>
 <div class="refsect3">
-<a name="id-1.5.25.8.6.5"></a><h4>Parameters</h4>
+<a name="id-1.5.25.9.6.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -348,7 +359,7 @@ nm_ip_config_get_nameservers (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.25.8.6.6"></a><h4>Returns</h4>
+<a name="id-1.5.25.9.6.6"></a><h4>Returns</h4>
 <p> the array of nameserver IP addresses. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -360,7 +371,7 @@ nm_ip_config_get_nameservers (<em class="parameter"><code><a class="link" href="
 nm_ip_config_get_domains (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the domain names.</p>
 <div class="refsect3">
-<a name="id-1.5.25.8.7.5"></a><h4>Parameters</h4>
+<a name="id-1.5.25.9.7.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -375,7 +386,7 @@ nm_ip_config_get_domains (<em class="parameter"><code><a class="link" href="NMIP
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.25.8.7.6"></a><h4>Returns</h4>
+<a name="id-1.5.25.9.7.6"></a><h4>Returns</h4>
 <p> the array of domains.
 (This is never <code class="literal">NULL</code>, though it may be 0-length). </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -388,7 +399,7 @@ nm_ip_config_get_domains (<em class="parameter"><code><a class="link" href="NMIP
 nm_ip_config_get_searches (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the DNS searches.</p>
 <div class="refsect3">
-<a name="id-1.5.25.8.8.5"></a><h4>Parameters</h4>
+<a name="id-1.5.25.9.8.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -403,7 +414,7 @@ nm_ip_config_get_searches (<em class="parameter"><code><a class="link" href="NMI
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.25.8.8.6"></a><h4>Returns</h4>
+<a name="id-1.5.25.9.8.6"></a><h4>Returns</h4>
 <p> the array of DNS search strings.
 (This is never <code class="literal">NULL</code>, though it may be 0-length). </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -416,7 +427,7 @@ nm_ip_config_get_searches (<em class="parameter"><code><a class="link" href="NMI
 nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the Windows Internet Name Service servers (WINS).</p>
 <div class="refsect3">
-<a name="id-1.5.25.8.9.5"></a><h4>Parameters</h4>
+<a name="id-1.5.25.9.9.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -431,7 +442,7 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.25.8.9.6"></a><h4>Returns</h4>
+<a name="id-1.5.25.9.9.6"></a><h4>Returns</h4>
 <p> the arry of WINS server IP address strings.
 (This is never <code class="literal">NULL</code>, though it may be 0-length.). </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -440,6 +451,11 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect1">
 <a name="NMIPConfig.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NMIPConfig-struct"></a><h3>NMIPConfig</h3>
+<pre class="programlisting">typedef struct _NMIPConfig NMIPConfig;</pre>
+</div>
+<hr>
 <div class="refsect2">
 <a name="NM-IP-CONFIG-FAMILY:CAPS"></a><h3>NM_IP_CONFIG_FAMILY</h3>
 <pre class="programlisting">#define NM_IP_CONFIG_FAMILY "family"

@@ -16,7 +16,8 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMDeviceVxlan.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceVxlan.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceVxlan.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#NMDeviceVxlan.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
                   <a href="#NMDeviceVxlan.properties" class="shortcut">Properties</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
@@ -371,6 +372,10 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceVxlan.html#NM-DEVICE-VXLAN-DST-PORT:CAPS" title="NM_DEVICE_VXLAN_DST_PORT">NM_DEVICE_VXLAN_DST_PORT</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceVxlan.html#NMDeviceVxlan-struct" title="NMDeviceVxlan">NMDeviceVxlan</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -383,6 +388,12 @@
 </pre>
 </div>
 <div class="refsect1">
+<a name="NMDeviceVxlan.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+NMDeviceVxlan implements
+ GInitable and  GAsyncInitable.</p>
+</div>
+<div class="refsect1">
 <a name="NMDeviceVxlan.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
@@ -393,7 +404,7 @@
 nm_device_vxlan_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.17.8.2.5"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.2.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -408,7 +419,7 @@ nm_device_vxlan_get_hw_address (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.2.6"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.2.6"></a><h4>Returns</h4>
 <p> the hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -421,7 +432,7 @@ device, and must not be modified.</p>
 nm_device_vxlan_get_carrier (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <p>Whether the device has carrier.</p>
 <div class="refsect3">
-<a name="id-1.5.17.8.3.5"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -436,7 +447,7 @@ nm_device_vxlan_get_carrier (<em class="parameter"><code><a class="link" href="N
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.3.6"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.3.6"></a><h4>Returns</h4>
 <p> <code class="literal">TRUE</code> if the device has carrier.</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -447,7 +458,7 @@ nm_device_vxlan_get_carrier (<em class="parameter"><code><a class="link" href="N
 <pre class="programlisting"><a class="link" href="NMDevice.html" title="NMDevice"><span class="returnvalue">NMDevice</span></a> *
 nm_device_vxlan_get_parent (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.4.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.4.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -462,7 +473,7 @@ nm_device_vxlan_get_parent (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.4.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.4.5"></a><h4>Returns</h4>
 <p> the device's parent device. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -474,7 +485,7 @@ nm_device_vxlan_get_parent (<em class="parameter"><code><a class="link" href="NM
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vxlan_get_id (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.5.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.5.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -489,7 +500,7 @@ nm_device_vxlan_get_id (<em class="parameter"><code><a class="link" href="NMDevi
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.5.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.5.5"></a><h4>Returns</h4>
 <p> the device's VXLAN ID.</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -500,7 +511,7 @@ nm_device_vxlan_get_id (<em class="parameter"><code><a class="link" href="NMDevi
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_device_vxlan_get_group (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.6.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.6.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -515,7 +526,7 @@ nm_device_vxlan_get_group (<em class="parameter"><code><a class="link" href="NMD
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.6.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.6.5"></a><h4>Returns</h4>
 <p> The unicast destination IP address or the multicast
 IP address joined</p>
 </div>
@@ -527,7 +538,7 @@ IP address joined</p>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_device_vxlan_get_local (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.7.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.7.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -542,7 +553,7 @@ nm_device_vxlan_get_local (<em class="parameter"><code><a class="link" href="NMD
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.7.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.7.5"></a><h4>Returns</h4>
 <p> the source IP address to use in outgoing packets</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -553,7 +564,7 @@ nm_device_vxlan_get_local (<em class="parameter"><code><a class="link" href="NMD
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vxlan_get_src_port_min (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.8.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.8.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -568,7 +579,7 @@ nm_device_vxlan_get_src_port_min (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.8.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.8.5"></a><h4>Returns</h4>
 <p> the minimum UDP source port</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -579,7 +590,7 @@ nm_device_vxlan_get_src_port_min (<em class="parameter"><code><a class="link" hr
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vxlan_get_src_port_max (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.9.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.9.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -594,7 +605,7 @@ nm_device_vxlan_get_src_port_max (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.9.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.9.5"></a><h4>Returns</h4>
 <p>  the maximum UDP source port</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -605,7 +616,7 @@ nm_device_vxlan_get_src_port_max (<em class="parameter"><code><a class="link" hr
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vxlan_get_dst_port (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.10.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.10.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -620,7 +631,7 @@ nm_device_vxlan_get_dst_port (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.10.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.10.5"></a><h4>Returns</h4>
 <p> the UDP destination port</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -631,7 +642,7 @@ nm_device_vxlan_get_dst_port (<em class="parameter"><code><a class="link" href="
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_device_vxlan_get_learning (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.11.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.11.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -646,7 +657,7 @@ nm_device_vxlan_get_learning (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.11.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.11.5"></a><h4>Returns</h4>
 <p> whether address learning is enabled</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -657,7 +668,7 @@ nm_device_vxlan_get_learning (<em class="parameter"><code><a class="link" href="
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vxlan_get_ageing (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.12.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.12.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -672,7 +683,7 @@ nm_device_vxlan_get_ageing (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.12.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.12.5"></a><h4>Returns</h4>
 <p> the lifetime in seconds of FDB entries learnt by the kernel</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -683,7 +694,7 @@ nm_device_vxlan_get_ageing (<em class="parameter"><code><a class="link" href="NM
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vxlan_get_tos (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.13.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.13.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -698,7 +709,7 @@ nm_device_vxlan_get_tos (<em class="parameter"><code><a class="link" href="NMDev
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.13.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.13.5"></a><h4>Returns</h4>
 <p> the TOS value to use in outgoing packets</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -709,7 +720,7 @@ nm_device_vxlan_get_tos (<em class="parameter"><code><a class="link" href="NMDev
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vxlan_get_ttl (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.14.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.14.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -724,7 +735,7 @@ nm_device_vxlan_get_ttl (<em class="parameter"><code><a class="link" href="NMDev
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.14.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.14.5"></a><h4>Returns</h4>
 <p> the time-to-live value to use in outgoing packets</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -735,7 +746,7 @@ nm_device_vxlan_get_ttl (<em class="parameter"><code><a class="link" href="NMDev
 <pre class="programlisting"><span class="returnvalue">guint</span>
 nm_device_vxlan_get_limit (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.15.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.15.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -750,7 +761,7 @@ nm_device_vxlan_get_limit (<em class="parameter"><code><a class="link" href="NMD
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.15.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.15.5"></a><h4>Returns</h4>
 <p> the maximum number of entries that can be added to the
 forwarding table</p>
 </div>
@@ -762,7 +773,7 @@ forwarding table</p>
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_device_vxlan_get_proxy (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.16.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.16.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -777,7 +788,7 @@ nm_device_vxlan_get_proxy (<em class="parameter"><code><a class="link" href="NMD
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.16.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.16.5"></a><h4>Returns</h4>
 <p> whether ARP proxy is turned on</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -788,7 +799,7 @@ nm_device_vxlan_get_proxy (<em class="parameter"><code><a class="link" href="NMD
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_device_vxlan_get_rsc (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.17.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.17.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -803,7 +814,7 @@ nm_device_vxlan_get_rsc (<em class="parameter"><code><a class="link" href="NMDev
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.17.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.17.5"></a><h4>Returns</h4>
 <p> whether route short circuit is turned on</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -814,7 +825,7 @@ nm_device_vxlan_get_rsc (<em class="parameter"><code><a class="link" href="NMDev
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_device_vxlan_get_l2miss (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.18.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.18.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -829,7 +840,7 @@ nm_device_vxlan_get_l2miss (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.18.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.18.5"></a><h4>Returns</h4>
 <p> whether netlink LL ADDR miss notifications are generated</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -840,7 +851,7 @@ nm_device_vxlan_get_l2miss (<em class="parameter"><code><a class="link" href="NM
 <pre class="programlisting"><span class="returnvalue">gboolean</span>
 nm_device_vxlan_get_l3miss (<em class="parameter"><code><a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan"><span class="type">NMDeviceVxlan</span></a> *device</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.5.17.8.19.4"></a><h4>Parameters</h4>
+<a name="id-1.5.17.9.19.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -855,7 +866,7 @@ nm_device_vxlan_get_l3miss (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.17.8.19.5"></a><h4>Returns</h4>
+<a name="id-1.5.17.9.19.5"></a><h4>Returns</h4>
 <p> wether netlink IP ADDR miss notifications are generated</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -969,6 +980,11 @@ nm_device_vxlan_get_l3miss (<em class="parameter"><code><a class="link" href="NM
 <a name="NM-DEVICE-VXLAN-DST-PORT:CAPS"></a><h3>NM_DEVICE_VXLAN_DST_PORT</h3>
 <pre class="programlisting">#define NM_DEVICE_VXLAN_DST_PORT      "dst-port"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceVxlan-struct"></a><h3>NMDeviceVxlan</h3>
+<pre class="programlisting">typedef struct _NMDeviceVxlan NMDeviceVxlan;</pre>
 </div>
 </div>
 <div class="refsect1">

@@ -59,7 +59,7 @@ typedef enum {
 	/* NetworkManager is not running */
 	NMC_RESULT_ERROR_NM_NOT_RUNNING = 8,
 
-	/* nmcli and NetworkManager versions mismatch */
+	/* No more used, keep to preserve API */
 	NMC_RESULT_ERROR_VERSIONS_MISMATCH = 9,
 
 	/* Connection/Device/AP not found */
@@ -152,7 +152,6 @@ typedef struct _NmCli {
 	char *required_fields;                            /* Required fields in output: '--fields' option */
 	GPtrArray *output_data;                           /* GPtrArray of arrays of NmcOutputField structs - accumulates data for output */
 	NmcPrintFields print_fields;                      /* Structure with field indices to print */
-	gboolean nocheck_ver;                             /* Don't check nmcli and NM versions: option '--nocheck' */
 	gboolean ask;                                     /* Ask for missing parameters: option '--ask' */
 	gboolean show_secrets;                            /* Whether to display secrets (both input and output): option '--show-secrets' */
 	gboolean in_editor;                               /* Whether running the editor - nmcli con edit' */
@@ -162,6 +161,8 @@ typedef struct _NmCli {
 	NmcTermColor editor_prompt_color;                 /* Color of prompt in connection editor */
 } NmCli;
 
+extern NmCli nm_cli;
+
 /* Error quark for GError domain */
 #define NMCLI_ERROR (nmcli_error_quark ())
 GQuark nmcli_error_quark (void);
@@ -169,6 +170,5 @@ GQuark nmcli_error_quark (void);
 gboolean nmc_seen_sigint (void);
 void     nmc_clear_sigint (void);
 void     nmc_set_sigquit_internal (void);
-
 
 #endif /* NMC_NMCLI_H */
