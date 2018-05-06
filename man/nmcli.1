@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: nmcli
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 05/11/2016
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 03/12/2018
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.2.2
+.\"    Source: NetworkManager 1.10.6
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.2\&.2" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.10\&.6" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -140,7 +140,7 @@ only produces colors when standard output is directed to a terminal\&. The defau
 auto\&.
 .RE
 .PP
-\fB\-f\fR | \fB\-\-fields\fR {[\fIfield\fR...] | all | common}
+\fB\-f\fR | \fB\-\-fields\fR {\fIfield1\fR,\fIfield2\fR... | all | common}
 .RS 4
 This option is used to specify what fields (column names) should be printed\&. Valid field names differ for specific commands\&. List available fields by providing an invalid value to the
 \fB\-\-fields\fR
@@ -151,13 +151,16 @@ common
 is used to print common field values of the command\&.
 .sp
 If omitted, default is
-common\&. The option is mandatory when
-\fB\-\-terse\fR
-is used\&. In this case, generic values
-all
-and
-common
-cannot be used\&. This is to maintain compatibility when new fields are added in the future\&.
+common\&.
+.RE
+.PP
+\fB\-g\fR | \fB\-\-get\-values\fR {\fIfield1\fR,\fIfield2\fR... | all | common}
+.RS 4
+This option is used to print values from specific fields\&. It is basically a shortcut for
+\-\-mode tabular \-\-terse \-\-fields
+and is a convenient way to retrieve values for particular fields\&. The values are printed one per line without headers\&.
+.sp
+If a section is specified instead of a field, the section name will be printed followed by colon separated values of the fields belonging to that section, all on the same line\&.
 .RE
 .PP
 \fB\-e\fR | \fB\-\-escape\fR {yes | no}
@@ -187,7 +190,7 @@ When using this option
 will display passwords and secrets that might be present in an output of an operation\&. This option also influences echoing passwords typed by user as an input\&.
 .RE
 .PP
-[\fB\-w\fR\ |\ \fB\-\-wait\fR\ \fIseconds\fR...]
+\fB\-w\fR | \fB\-\-wait\fR \fIseconds\fR
 .RS 4
 This option sets a timeout period for which
 \fBnmcli\fR
@@ -198,6 +201,19 @@ Specifying a value of
 instructs
 \fBnmcli\fR
 not to wait but to exit immediately with a status of success\&. The default value depends on the executed command\&.
+.RE
+.PP
+\fB\-\-complete\-args\fR
+.RS 4
+Instead of conducting the desired action,
+\fBnmcli\fR
+will list possible completions for the last argument\&. This is useful to implement argument completion in shell\&.
+.sp
+The
+exit status
+will indicate success or return a code 65 to indicate the last argument is a file name\&.
+.sp
+NetworkManager ships with command completion support for GNU Bash\&.
 .RE
 .PP
 \fB\-v\fR | \fB\-\-version\fR
@@ -239,7 +255,7 @@ file when it starts\&.
 Show the permissions a caller has for various authenticated operations that NetworkManager provides, like enable and disable networking, changing Wi\-Fi and WWAN state, modifying connections, etc\&.
 .RE
 .PP
-\fBlogging\fR [\fBlevel\fR\ \fIlevel\fR] [\fBdomain\fR\ \fIdomains\fR...]
+\fBlogging\fR [\fBlevel\fR\ \fIlevel\fR] [\fBdomains\fR\ \fIdomains\fR...]
 .RS 4
 Get and change NetworkManager logging level and domains\&. Without any argument current logging level and domains are shown\&. In order to change logging state, provide
 \fBlevel\fR
@@ -257,7 +273,7 @@ Query NetworkManager networking status, enable and disable networking\&.
 .PP
 \fBon\fR, \fBoff\fR
 .RS 4
-Enable enable or disable networking control by NetworkManager\&. All interfaces managed by NetworkManager are deactivated when networking is disabled\&.
+Enable or disable networking control by NetworkManager\&. All interfaces managed by NetworkManager are deactivated when networking is disabled\&.
 .RE
 .PP
 \fBconnectivity\fR [check]
@@ -334,7 +350,7 @@ and
 to watch for changes in certain devices or connections\&.
 .SH "CONNECTION MANAGEMENT COMMANDS"
 .HP \w'\fBnmcli\ connection\fR\ 'u
-\fBnmcli connection\fR {\fBshow\fR | \fBup\fR | \fBdown\fR | \fBadd\fR | \fBedit\fR | \fBmodify\fR | \fBdelete\fR | \fBmonitor\fR | \fBreload\fR | \fBload\fR} [\fIARGUMENTS\fR...]
+\fBnmcli connection\fR {\fBshow\fR | \fBup\fR | \fBdown\fR | \fBmodify\fR | \fBadd\fR | \fBedit\fR | \fBclone\fR | \fBdelete\fR | \fBmonitor\fR | \fBreload\fR | \fBload\fR | \fBimport\fR | \fBexport\fR} [\fIARGUMENTS\fR...]
 .PP
 NetworkManager stores all network configuration as "connections", which are collections of data (Layer2 details, IP addressing, etc\&.) that describe how to create or connect to a network\&. A connection is "active" when a device uses that connection\*(Aqs configuration to create or connect to a network\&. There may be multiple connections that apply to a device, but only one of them can be active on that device at any given time\&. The additional connections can be used to allow quick switching between different networks and configurations\&.
 .PP
@@ -435,7 +451,7 @@ When no command is given to the
 \fBnmcli connection show\fR\&.
 .RE
 .PP
-\fBup\fR [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR... [\fBifname\fR\ \fIifname\fR] [\fBap\fR\ \fIBSSID\fR] [\fBpasswd\-file\fR\ \fIfile\fR]
+\fBup\fR [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR [\fBifname\fR\ \fIifname\fR] [\fBap\fR\ \fIBSSID\fR] [\fBpasswd\-file\fR\ \fIfile\fR]
 .RS 4
 Activate a connection\&. The connection is identified by its name, UUID or D\-Bus path\&. If
 \fIID\fR
@@ -516,6 +532,7 @@ For 802\&.1X password, the line would be
 .RE
 .\}
 .sp
+
 \fBnmcli\fR
 also accepts
 wifi\-sec
@@ -561,634 +578,341 @@ If
 option is not specified, the default timeout will be 10 seconds\&.
 .RE
 .PP
-\fBadd\fR \fBifname\fR\ \fIifname\fR [con\-name\ \fIname\fR] [\fBautoconnect\fR\ {yes\ |\ no}] [\fBsave\fR\ {yes\ |\ no}] [master\ \fImaster\fR] [slave\-type\ \fItype\fR] [type\ \fItype\fR] [\fIARGUMENTS\fR...] [ip4\ \fIaddr\fR] [gw4\ \fIaddr\fR] [ip6\ \fIaddr\fR] [gw6\ \fIaddr\fR] [\fB\-\-\fR\ [+|\-]\fIsetting\fR\&.\fIproperty\fR\ \fIvalue\fR\ ...]
+\fBmodify\fR [\fB\-\-temporary\fR] [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR {\fIoption\fR\ \fIvalue\fR\ |\ [+|\-]\fIsetting\fR\&.\fIproperty\fR\ \fIvalue\fR}...
 .RS 4
-Add a connection for NetworkManager\&. Arguments differ according to connection types, see below\&.
-.PP
-\fBifname\fR
-.RS 4
-interface to bind the connection to\&. The connection will only be applicable to this interface name\&. A special value of
-*
-can be used for interface\-independent connections\&. The
-\fBifname\fR
-argument is mandatory for all connection types except bond, team, bridge and vlan\&. Note: use quotes around
-*
-to suppress shell expansion\&.
+Add, modify or remove properties in the connection profile\&.
+.sp
+To set the property just specify the property name followed by the value\&. An empty value ("") removes the property value\&.
+.sp
+In addition to the properties, you can also use short names for some of the properties\&. Consult the
+PROPERTY ALIASES
+section for details\&.
+.sp
+If you want to append an item to the existing value, use
++
+prefix for the property name\&. If you want to remove just one item from container\-type property, use
+\-
+prefix for the property name and specify a value or an zero\-based index of the item to remove (or option name for properties with named options) as
+\fIvalue\fR\&. The
++
+and
+\-
+modifies only have a real effect for multi\-value (container) properties like
+ipv4\&.dns,
+ipv4\&.addresses,
+bond\&.options, etc\&.
+.sp
+See
+\fBnm-settings\fR(5)
+for complete reference of setting and property names, their descriptions and default values\&. The
+\fIsetting\fR
+and
+\fIproperty\fR
+can be abbreviated provided they are unique\&.
+.sp
+The connection is identified by its name, UUID or D\-Bus path\&. If
+\fIID\fR
+is ambiguous, a keyword
+\fBid\fR,
+\fBuuid\fR
+or
+\fBpath\fR
+can be used\&.
 .RE
 .PP
-\fBcon\-name\fR
+\fBadd\fR [\fBsave\fR\ {yes\ |\ no}] {\fIoption\fR\ \fIvalue\fR\ |\ [+|\-]\fIsetting\fR\&.\fIproperty\fR\ \fIvalue\fR}...
 .RS 4
-connection name (when not provided a default name is generated: <type>[\-<ifname>][\-<num>])\&.
-.RE
-.PP
-\fBautoconnect\fR
+Create a new connection using specified properties\&.
+.sp
+You need to describe the newly created connections with the property and value pairs\&. See
+\fBnm-settings\fR(5)
+for the complete reference\&. You can also use the aliases described in
+PROPERTY ALIASES
+section\&. The syntax is the same as of the
+\fBnmcli connection modify\fR
+command\&.
+.sp
+To construct a meaningful connection you at the very least need to set the
+\fBconnection\&.type\fR
+property (or use the
+\fBtype\fR
+alias) to one of known NetworkManager connection types:
+.sp
 .RS 4
-whether the connection profile can be automatically activated (default: yes)\&.
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ethernet
 .RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+wifi
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+wimax
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+pppoe
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+gsm
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+cdma
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+infiniband
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+bluetooth
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+vlan
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+bond
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+bond\-slave
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+team
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+team\-slave
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+bridge
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+bridge\-slave
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+vpn
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+olpc\-mesh
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+adsl
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+tun
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ip\-tunnel
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+macvlan
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+vxlan
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+dummy
+.RE
+.sp
+The most typical uses are described in the
+EXAMPLES
+section\&.
+.sp
+Aside from the properties and values two special options are accepted:
 .PP
 \fBsave\fR
 .RS 4
-whether the connection should be persistent, i\&.e\&. NetworkManager should store it on disk (default:
+Controls whether the connection should be persistent, i\&.e\&. NetworkManager should store it on disk (default:
 yes)\&.
-.RE
-.PP
-\fBmaster\fR
-.RS 4
-master interface name, or connection UUID or ID of master connection profile\&. The value can be prefixed with
-ifname/,
-uuid/
-or
-id/
-to disambiguate it\&.
-.RE
-.PP
-\fBslave\-type\fR
-.RS 4
-type of master connection\&. Only required when it can not be inferred (i\&.e\&. the master connection does not exist yet)\&.
-.RE
-.PP
-\fBtype\fR
-.RS 4
-connection type; see below for allowed values\&. Note that types
-\fBbond\-slave\fR,
-\fBteam\-slave\fR
-and
-\fBbridge\-slave\fR
-create
-\fBethernet\fR
-connection profiles\&. Their use is discouraged in favor of using a specific type with
-\fBmaster\fR
-option\&.
-.RE
-.PP
-\fBtype ethernet\fR [\fBmac\fR\ \fIaddr\fR] [\fBcloned\-mac\fR\ \fIaddr\fR] [\fBmtu\fR\ \fImtu\fR]
-.RS 4
-.PP
-\fBmac\fR
-.RS 4
-MAC address of the device this connection is locked to\&.
-.RE
-.PP
-\fBcloned\-mac\fR
-.RS 4
-cloned MAC\&.
-.RE
-.PP
-\fBmtu\fR
-.RS 4
-MTU\&.
-.RE
-.RE
-.PP
-\fBtype wifi\fR \fBssid\fR\ \fISSID\fR [\fBmac\fR\ \fIaddr\fR] [\fBcloned\-mac\fR\ \fIaddr\fR] [\fBmode\fR\ {infrastructure\ |\ ap\ |\ adhoc}] [\fBmtu\fR\ \fImtu\fR]
-.RS 4
-.PP
-\fBssid\fR
-.RS 4
-SSID\&.
-.RE
-.PP
-\fBmac\fR
-.RS 4
-MAC address of the device this connection is locked to\&.
-.RE
-.PP
-\fBcloned\-mac\fR
-.RS 4
-cloned MAC\&.
-.RE
-.PP
-\fBmode\fR
-.RS 4
-Wi\-Fi network mode\&. If blank,
-infrastructure
-is assumed\&.
-.RE
-.PP
-\fBmtu\fR
-.RS 4
-MTU\&.
-.RE
-.RE
-.PP
-\fBtype wimax\fR [\fBmac\fR\ \fIaddr\fR] [\fBnsp\fR\ \fInsp\fR]
-.RS 4
-.PP
-\fBmac\fR
-.RS 4
-MAC address of the device this connection is locked to\&.
-.RE
-.PP
-\fBnsp\fR
-.RS 4
-Network Service Provider name\&.
-.RE
-.RE
-.PP
-\fBtype pppoe\fR \fBusername\fR\ \fIuser\fR [\fBpassword\fR\ \fIpasswd\fR] [\fBservice\fR\ \fIname\fR] [\fBmtu\fR\ \fImtu\fR] [\fBmac\fR\ \fIaddr\fR]
-.RS 4
-.PP
-\fBusername\fR
-.RS 4
-PPPoE username\&.
-.RE
-.PP
-\fBpassword\fR
-.RS 4
-Password for the PPPoE username\&.
-.RE
-.PP
-\fBservice\fR
-.RS 4
-PPPoE service name (if required by concentrator)\&.
-.RE
-.PP
-\fBmtu\fR
-.RS 4
-MTU\&.
-.RE
-.PP
-\fBmac\fR
-.RS 4
-MAC address of the device this connection is locked to\&.
-.RE
-.RE
-.PP
-\fBtype gsm\fR [\fBapn\fR\ \fIAPN\fR] [\fBusername\fR\ \fIuser\fR] [\fBpassword\fR\ \fIpasswd\fR]
-.RS 4
-.PP
-\fBapn\fR
-.RS 4
-APN \- GSM Access Point Name\&.
-.RE
-.PP
-\fBuser\fR
-.RS 4
-user name\&.
-.RE
-.PP
-\fBpassword\fR
-.RS 4
-password\&.
-.RE
-.RE
-.PP
-\fBtype cdma\fR [\fBusername\fR\ \fIuser\fR] [\fBpassword\fR\ \fIpasswd\fR]
-.RS 4
-.PP
-\fBuser\fR
-.RS 4
-user name\&.
-.RE
-.PP
-\fBpassword\fR
-.RS 4
-password\&.
-.RE
-.RE
-.PP
-\fBtype infiniband\fR [\fBmac\fR\ \fIaddr\fR] [\fBmtu\fR\ \fImtu\fR] [\fBtransport\-mode\fR\ {datagram\ |\ connected}] [\fBparent\fR\ \fIdevice\fR] [\fBp\-key\fR\ \fIkey\fR]
-.RS 4
-.PP
-\fBmac\fR
-.RS 4
-MAC address of the device this connection is locked to (InfiniBand MAC is 20 bytes)\&.
-.RE
-.PP
-\fBmtu\fR
-.RS 4
-MTU\&.
-.RE
-.PP
-\fBtransport\-mode\fR
-.RS 4
-InfiniBand transport mode\&.
-.RE
-.PP
-\fBparent\fR
-.RS 4
-the interface name of the parent device (if any)\&.
-.RE
-.PP
-\fBp\-key\fR
-.RS 4
-the InfiniBand P_Key (16\-bit unsigned integer)\&.
-.RE
-.RE
-.PP
-\fBtype bluetooth\fR [\fBaddr\fR\ \fIaddr\fR] [\fBbt\-type\fR\ {panu\ |\ dun\-gsm\ |\ dun\-cdma}]
-.RS 4
-.PP
-\fBaddr\fR
-.RS 4
-Bluetooth device address (MAC)\&.
-.RE
-.PP
-\fBbt\-type\fR
-.RS 4
-Bluetooth connection type\&.
-.RE
-.RE
-.PP
-\fBtype vlan\fR \fBdev\fR\ \fIdevice\fR \fBid\fR\ \fIid\fR [\fBflags\fR\ \fIflags\fR] [\fBingress\fR\ \fImapping\fR] [\fBegress\fR\ \fImapping\fR] [\fBmtu\fR\ \fImtu\fR]
-.RS 4
-.PP
-\fBdev\fR
-.RS 4
-parent device this VLAN is on\&.
-.RE
-.PP
-\fBid\fR
-.RS 4
-VLAN ID in range 0\-4095\&.
-.RE
-.PP
-\fBflags\fR
-.RS 4
-flags\&.
-.RE
-.PP
-\fBingress\fR
-.RS 4
-VLAN ingress priority mapping\&.
-.RE
-.PP
-\fBegress\fR
-.RS 4
-VLAN egress priority mapping\&.
-.RE
-.PP
-\fBmtu\fR
-.RS 4
-MTU\&.
-.RE
-.RE
-.PP
-\fBtype bond\fR [\fBmode\fR\ {active\-backup\ |\ balance\-xor\ |\ broadcast\ |\ 802\&.3ad\ |\ balance\-tlb\ |\ balance\-alb\ |\ \fInum\fR}] [\fBprimary\fR\ \fIifname\fR] [\fBmiimon\fR\ \fInum\fR] [\fBdowndelay\fR\ \fInum\fR] [\fBupdelay\fR\ \fInum\fR] [\fBarp\-interval\fR\ \fInum\fR] [\fBarp\-ip\-target\fR\ \fInum\fR]
-.RS 4
-.PP
-\fBmode\fR
-.RS 4
-bonding mode (default:
-balance\-rr)\&.
-.RE
-.PP
-\fBprimary\fR
-.RS 4
-primary interface name (for
-active\-backup
-mode)\&.
-.RE
-.PP
-\fBmiimon\fR
-.RS 4
-miimon (default:
-100)\&.
-.RE
-.PP
-\fBdowndelay\fR
-.RS 4
-downdelay (default:
-0)\&.
-.RE
-.PP
-\fBupdelay\fR
-.RS 4
-updelay (default:
-0)\&.
-.RE
-.PP
-\fBarp\-interval\fR
-.RS 4
-ARP interval (default:
-0)\&.
-.RE
-.PP
-\fBarp\-ip\-target\fR
-.RS 4
-ARP IP target\&.
-.RE
-.RE
-.PP
-\fBtype bond\-slave\fR [\fBmaster\fR\ \fImaster\fR]
-.RS 4
-.PP
-\fBmaster\fR
-.RS 4
-master bond interface name, or connection UUID or ID of bond master connection profile\&. The value can be prefixed with
-ifname/,
-uuid/
-or
-id/
-to disambiguate it\&.
-.RE
-.RE
-.PP
-\fBtype team\fR [\fBconfig\fR\ {file\ |\ \fIJSON\fR}]
-.RS 4
-.PP
-\fBconfig\fR
-.RS 4
-JSON configuration for team\&.
-.RE
-.RE
-.PP
-\fBtype team\-slave\fR [\fBconfig\fR\ \fB\fIJSON\fR\fR]
-.RS 4
-.PP
-\fBmaster\fR
-.RS 4
-master team interface name, or connection UUID or ID of team master connection profile\&. The value can be prefixed with
-ifname/,
-uuid/
-or
-id/to disambiguate it\&.
-.RE
-.PP
-\fBconfig\fR
-.RS 4
-JSON configuration for team\&.
-.RE
-.RE
-.PP
-\fBtype bridge\fR [\fBstp\fR\ {yes\ |\ no}] [\fBpriority\fR\ \fInum\fR] [\fBforward\-delay\fR\ \fI2\-30\fR] [\fBhello\-time\fR\ \fI1\-10\fR] [\fBmax\-age\fR\ \fI6\-42\fR] [\fBageing\-time\fR\ \fI0\-1000000\fR] [\fBmulticast\-snooping\fR\ {yes\ |\ no}] [\fBmac\fR\ \fIaddr\fR]
-.RS 4
-.PP
-\fBstp\fR
-.RS 4
-controls whether Spanning Tree Protocol (STP) is enabled for this bridge (default:
-yes)\&.
-.RE
-.PP
-\fBpriority\fR
-.RS 4
-sets STP priority (default:
-128)\&.
-.RE
-.PP
-\fBforward\-delay\fR
-.RS 4
-STP forwarding delay, in seconds (default:
-15)\&.
-.RE
-.PP
-\fBhello\-time\fR
-.RS 4
-STP hello time, in seconds (default:
-2)\&.
-.RE
-.PP
-\fBmax\-age\fR
-.RS 4
-STP maximum message age, in seconds (default:
-20)\&.
-.RE
-.PP
-\fBageing\-time\fR
-.RS 4
-the Ethernet MAC address aging time, in seconds (default:
-300)\&.
-.RE
-.PP
-\fBmulticast\-snooping\fR
-.RS 4
-controls whether IGMP snooping is enabled (default:
-yes)\&.
-.RE
-.PP
-\fBmac\fR
-.RS 4
-MAC address of the bridge (note: this requires a recent kernel feature, originally introduced in 3\&.15 upstream kernel)\&.
-.RE
-.RE
-.PP
-\fBtype bridge\-slave\fR [\fBmaster\fR\ \fImaster\fR] [\fBpriority\fR\ \fInum\fR] [\fBpath\-cost\fR\ \fI1\-65535\fR] [\fBhairpin\fR\ {yes\ |\ no}]
-.RS 4
-.PP
-\fBmaster\fR
-.RS 4
-master bridge interface name, or connection UUID or ID of bridge master connection profile\&. The value can be prefixed with
-ifname/,
-uuid/
-or
-id/
-to disambiguate it\&.
-.RE
-.PP
-\fBpriority\fR
-.RS 4
-STP priority of this slave (default:
-32)\&.
-.RE
-.PP
-\fBpath\-cost\fR
-.RS 4
-STP port cost for destinations via this slave (default:
-100)\&.
-.RE
-.PP
-\fBhairpin\fR
-.RS 4
-\*(Aqhairpin mode\*(Aq for the slave, which allows frames to be sent back out through the slave the frame was received on (default:
-yes)\&.
-.RE
-.RE
-.PP
-\fBtype vpn\fR [\fBtype\fR\ \fItype\fR] [\fBuser\fR\ \fIusername\fR]
-.RS 4
-.PP
-\fBvpn\-type\fR
-.RS 4
-VPN type\&.
-.RE
-.PP
-\fBuser\fR
-.RS 4
-VPN username\&.
-.RE
-.RE
-.PP
-\fBtype olpc\-mesh\fR \fBssid\fR\ \fISSID\fR [\fBchannel\fR\ \fI1\-13\fR] [\fBdhcp\-anycast\fR\ \fIMAC\fR]
-.RS 4
-.PP
-\fBssid\fR
-.RS 4
-SSID\&.
-.RE
-.PP
-\fBchannel\fR
-.RS 4
-channel to use for the network\&.
-.RE
-.PP
-\fBdhcp\-anycast\fR
-.RS 4
-anycast DHCP MAC address used when requesting an IP address via DHCP\&.
-.RE
-.RE
-.PP
-\fBtype adsl\fR \fBusername\fR\ \fIusername\fR \fBprotocol\fR\ {pppoa\ |\ pppoe\ |\ ipoatm} [\fBpassword\fR\ \fIpasswd\fR] [\fBencapsulation\fR\ {vcmux\ |\ llc}]
-.RS 4
-.PP
-\fBusername\fR
-.RS 4
-ADSL user name\&.
-.RE
-.PP
-\fBprotocol\fR
-.RS 4
-ADSL protocol\&.
-.RE
-.PP
-\fBpassword\fR
-.RS 4
-ADSL password\&.
-.RE
-.PP
-\fBencapsulation\fR
-.RS 4
-ADSL encapsulation\&.
-.RE
-.RE
-.PP
-\fBtype tun\fR \fBmode\fR\ {tun\ |\ tap} [\fBowner\fR\ \fIUID\fR] [\fBgroup\fR\ \fIGID\fR] [\fBpi\fR\ {yes\ |\ no}] [\fBvnet\-hdr\fR\ {yes\ |\ no}] [\fBmulti\-queue\fR\ {yes\ |\ no}]
-.RS 4
-.PP
-\fBmode\fR
-.RS 4
-Mode for the device\&.
-.RE
-.PP
-\fBowner\fR
-.RS 4
-UID of the owner\&.
-.RE
-.PP
-\fBgroup\fR
-.RS 4
-GID of the group\&.
-.RE
-.PP
-\fBpi\fR
-.RS 4
-include packet information (~IFF_NO_PI flag)\&.
-.RE
-.PP
-\fBvnet\-hdr\fR
-.RS 4
-send and receive large (i\&.e\&. GSO) packets and packets with partial checksums (IFF_VNET_HDR flag)\&.
-.RE
-.PP
-\fBmulti\-queue\fR
-.RS 4
-multi\-queue support for tun/tap device (IFF_MULTI_QUEUE flag)\&.
-.RE
-.RE
-.PP
-\fBtype ip\-tunnel\fR \fBmode\fR\ {ipip\ |\ gre\ |\ sit\ |\ isatap\ |\ vti\ |\ ip6ip6\ |\ ipip6\ |\ ip6gre\ |\ vti6\ |\ tun} \fBremote\fR\ \fIaddr\fR [\fBlocal\fR\ \fIaddr\fR] [\fBdev\fR\ \fIdevice\fR]
-.RS 4
-.PP
-\fBmode\fR
-.RS 4
-tunnel mode\&.
-.RE
-.PP
-\fBremote\fR
-.RS 4
-IPv4 or IPv6 address of the remote tunnel endpoint\&.
-.RE
-.PP
-\fBlocal\fR
-.RS 4
-IPv4 or IPv6 address of the local tunnel endpoint\&.
-.RE
-.PP
-\fBdev\fR
-.RS 4
-device to use for tunnel endpoint communication\&.
-.RE
-.RE
-.PP
-\fBtype macvlan\fR \fBdev\fR\ \fIdevice\fR \fBmode\fR\ {vepa\ |\ bridge\ |\ private\ |\ passthru\ |\ source} [\fBtap\fR\ {yes\ |\ no}]
-.RS 4
-.PP
-\fBdev\fR
-.RS 4
-parent device this MACVLAN is on\&.
-.RE
-.PP
-\fBmode\fR
-.RS 4
-MACVLAN mode, which specifies the communication mechanism between multiple MACVLANs on the same lower device\&.
-.RE
-.PP
-\fBtap\fR
-.RS 4
-controls the device type\&. If set to \*(Aqyes\*(Aq a MACVTAP will be created (default:
-no)\&.
-.RE
-.RE
-.PP
-\fBtype vxlan\fR \fBid\fR\ \fIid\fR \fBremote\fR\ \fIaddr\fR [\fBdev\fR\ \fIparent\ device\ (ifname\ or\ connection\ UUID)\fR] [\fBlocal\fR\ \fIaddr\fR] [\fBsource\-port\-min\fR\ \fI0\-65535\fR] [\fBsource\-port\-max\fR\ \fI0\-65535\fR] [\fBdestination\-port\fR\ \fI0\-65535\fR]
-.RS 4
-.PP
-\fBid\fR
-.RS 4
-VXLAN Network Identifer to use\&.
-.RE
-.PP
-\fBremote\fR
-.RS 4
-unicast destination IP address or multicast IP address to join\&.
-.RE
-.PP
-\fBdev\fR
-.RS 4
-device to use for tunnel endpoint communication\&.
-.RE
-.PP
-\fBlocal\fR
-.RS 4
-source IP address\&.
-.RE
-.PP
-\fBsource\-port\-min\fR
-.RS 4
-minimum UDP source port to communicate to the remote VXLAN tunnel endpoint\&.
-.RE
-.PP
-\fBsource\-port\-max\fR
-.RS 4
-maximum UDP source port to communicate to the remote VXLAN tunnel endpoint\&.
-.RE
-.PP
-\fBdestination\-port\fR
-.RS 4
-UDP destination port to communicate to the remote VXLAN tunnel endpoint\&.
-.RE
-.RE
-.PP
-\fBip4\fR, \fBgw4\fR
-.RS 4
-IPv4 addresses\&.
-.RE
-.PP
-\fBip6\fR, \fBgw6\fR
-.RS 4
-IPv6 addresses\&.
 .RE
 .PP
 \fB\-\-\fR
 .RS 4
-If a
+If a single
 \fB\-\-\fR
-argument is encountered, the rest of command line is interpreted as property list in the same format as
-\fBconnection modify\fR
-command accepts\&. This makes it possible to adjust the connection properties before it\*(Aqs added\&.
+argument is encountered it is ignored\&. This is for compatibility with older versions on
+\fBnmcli\fR\&.
 .RE
 .RE
 .PP
-\fBedit\fR {[\fBid\fR\ |\ \fBuuid\fR\ |\ \fBpath\fR]\ \fIID\fR... | [\fBtype\fR\ \fItype\fR]\ [\fBcon\-name\fR\ \fIname\fR] }
+\fBedit\fR {[\fBid\fR\ |\ \fBuuid\fR\ |\ \fBpath\fR]\ \fIID\fR | [\fBtype\fR\ \fItype\fR]\ [\fBcon\-name\fR\ \fIname\fR] }
 .RS 4
 Edit an existing connection or add a new one, using an interactive editor\&.
 .sp
@@ -1228,43 +952,7 @@ for all NetworkManager settings and property names, and their descriptions; and
 for sample editor sessions\&.
 .RE
 .PP
-\fBmodify\fR [\fB\-\-temporary\fR] [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR [+|\-]\fIsetting\fR\&.\fIproperty\fR\ \fIvalue\fR...
-.RS 4
-Modify one or more properties in the connection profile\&.
-.sp
-The connection is identified by its name, UUID or D\-Bus path\&. If
-\fIID\fR
-is ambiguous, a keyword
-\fBid\fR,
-\fBuuid\fR
-or
-\fBpath\fR
-can be used\&. See
-\fBnm-settings\fR(5)
-for setting and property names, their descriptions and default values\&. This command supports abbreviations for
-\fIsetting\fR
-and
-\fIproperty\fR
-provided they are unique\&. Empty
-\fIvalue\fR
-("") removes the property value (sets the property to the default value)\&. The provided value overwrites the existing property value\&.
-.sp
-If you want to append an item to the existing value, use
-+
-prefix for the property name\&. If you want to remove just one item from container\-type property, use
-\-
-prefix for the property name and specify a value or an zero\-based index of the item to remove (or option name for properties with named options) as
-\fIvalue\fR\&. Of course,
-+
-and
-\-
-only have a real effect for multi\-value (container) properties like
-ipv4\&.dns,
-ipv4\&.addresses,
-bond\&.options, etc\&.
-.RE
-.PP
-\fBclone\fR [\fB\-\-temporary\fR] [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR... \fBnew\fR\ \fIname\fR
+\fBclone\fR [\fB\-\-temporary\fR] [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR \fInew_name\fR
 .RS 4
 Clone a connection\&. The connection to be cloned is identified by its name, UUID or D\-Bus path\&. If
 \fIID\fR
@@ -1277,8 +965,8 @@ can be used\&. See
 \fBconnection show\fR
 above for the description of the
 \fIID\fR\-specifying keywords\&.
-\fIname\fR
-is the name of the new cloned connection\&. The new connection will be the exact copy except the connection\&.id (\fIname\fR) and connection\&.uuid (generated) properties\&.
+\fInew_name\fR
+is the name of the new cloned connection\&. The new connection will be the exact copy except the connection\&.id (\fInew_name\fR) and connection\&.uuid (generated) properties\&.
 .sp
 The new connection profile will be saved as persistent unless
 \fB\-\-temporary\fR
@@ -1334,7 +1022,7 @@ Reload all connection files from disk\&. NetworkManager does not monitor changes
 Load/reload one or more connection files from disk\&. Use this after manually editing a connection file to ensure that NetworkManager is aware of its latest state\&.
 .RE
 .PP
-\fBimport\fR [\fB\-\-temporary\fR] [\fBtype\fR\ \fItype\fR] [\fBfile\fR\ \fIfile\fR]
+\fBimport\fR [\fB\-\-temporary\fR] \fBtype\fR\ \fItype\fR \fBfile\fR\ \fIfile\fR
 .RS 4
 Import an external/foreign configuration as a NetworkManager connection profile\&. The type of the input file is specified by
 \fBtype\fR
@@ -1366,7 +1054,7 @@ is provided, the VPN configuration data will be printed to standard output\&.
 .RE
 .SH "DEVICE MANAGEMENT COMMANDS"
 .HP \w'\fBnmcli\ device\fR\ 'u
-\fBnmcli device\fR {\fBstatus\fR | \fBshow\fR | \fBset\fR | \fBconnect\fR | \fBreapply\fR | \fBdisconnect\fR | \fBdelete\fR | \fBmonitor\fR | \fBwifi\fR | \fBlldp\fR} [\fIARGUMENTS\fR...]
+\fBnmcli device\fR {\fBstatus\fR | \fBshow\fR | \fBset\fR | \fBconnect\fR | \fBreapply\fR | \fBmodify\fR | \fBdisconnect\fR | \fBdelete\fR | \fBmonitor\fR | \fBwifi\fR | \fBlldp\fR} [\fIARGUMENTS\fR...]
 .PP
 Show and manage network interfaces\&.
 .PP
@@ -1388,7 +1076,7 @@ Show detailed information about devices\&. Without an argument, all devices are 
 Set device properties\&.
 .RE
 .PP
-\fBconnect\fR [\fIifname\fR]
+\fBconnect\fR \fIifname\fR
 .RS 4
 Connect the device\&. NetworkManager will try to find a suitable connection that will be activated\&. It will also consider connections that are not set to auto connect\&.
 .sp
@@ -1397,12 +1085,29 @@ If
 option is not specified, the default timeout will be 90 seconds\&.
 .RE
 .PP
-\fBreapply\fR [\fIifname\fR]
+\fBreapply\fR \fIifname\fR
 .RS 4
 Attempt to update device with changes to the currently active connection made since it was last applied\&.
 .RE
 .PP
-\fBdisconnect\fR [\fIifname\fR...]
+\fBmodify\fR \fIifname\fR {\fIoption\fR\ \fIvalue\fR\ |\ [+|\-]\fIsetting\fR\&.\fIproperty\fR\ \fIvalue\fR}...
+.RS 4
+Modify the settings currently active on the device\&.
+.sp
+This command lets you do temporary changes to a configuration active on a particular device\&. The changes are not preserved in the connection profile\&.
+.sp
+See
+\fBnm-settings\fR(5)
+for the list of available properties\&. Please note that some properties can\*(Aqt be changed on an already connected device\&.
+.sp
+You can also use the aliases described in
+PROPERTY ALIASES
+section\&. The syntax is the same as of the
+\fBnmcli connection modify\fR
+command\&.
+.RE
+.PP
+\fBdisconnect\fR \fIifname\fR...
 .RS 4
 Disconnect a device and prevent the device from automatically activating further connections without user/manual intervention\&. Note that disconnecting software devices may mean that the devices will disappear\&.
 .sp
@@ -1411,7 +1116,7 @@ If
 option is not specified, the default timeout will be 10 seconds\&.
 .RE
 .PP
-\fBdelete\fR [\fIifname\fR...]
+\fBdelete\fR \fIifname\fR...
 .RS 4
 Delete a device\&. The command removes the interface from the system\&. Note that this only works for software devices like bonds, bridges, teams, etc\&. Hardware devices (like Ethernet) cannot be deleted by the command\&.
 .sp
@@ -1592,6 +1297,1107 @@ Runs
 \fBnmcli\fR
 as both NetworkManager secret and a polkit agent\&.
 .RE
+.SH "PROPERTY ALIASES"
+.PP
+Apart from the property\-value pairs,
+\fBconnection add\fR,
+\fBconnection modify\fR
+and
+\fBdevice modify\fR
+also accept short forms of some properties\&. They exist for convenience\&. Some aliases can affect multiple connection properties at once\&.
+.PP
+The overview of the aliases is below\&. An actual connection type is used to disambiguate these options from the options of the same name that are valid for multiple connection types (such as
+\fBmtu\fR)\&.
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&1.\ \&Options for all connections
+.TS
+allbox tab(:);
+lB lB lB.
+T{
+Alias
+T}:T{
+Property
+T}:T{
+Note
+T}
+.T&
+l l lt
+l l lt
+l l l
+l l lt
+l l lt
+l l l.
+T{
+type
+T}:T{
+connection\&.type
+T}:T{
+This alias also accepts values of \fBbond\-slave\fR,
+\fBteam\-slave\fR and \fBbridge\-slave\fR\&. They create
+\fBethernet\fR connection profiles\&. Their use is discouraged in
+favor of using a specific type with \fBmaster\fR option\&.
+T}
+T{
+con\-name
+T}:T{
+connection\&.id
+T}:T{
+When not provided a default name is generated: <type>[\-<ifname>][\-<num>])\&.
+T}
+T{
+autoconnect
+T}:T{
+connection\&.autoconnect
+T}:T{
+\ \&
+T}
+T{
+ifname
+T}:T{
+connection\&.interface\-name
+T}:T{
+A value of * will be interpreted as
+no value, making the connection profile interface\-independent\&.
+Note: use quotes around * to suppress shell expansion\&.
+For bond, team and bridge connections a default name will be generated if not set\&.
+T}
+T{
+master
+T}:T{
+connection\&.master
+T}:T{
+Value specified here will be canonicalized\&.
+It can be prefixed with ifname/, uuid/
+or id/ to disambiguate it\&.
+T}
+T{
+slave\-type
+T}:T{
+connection\&.slave\-type
+T}:T{
+\ \&
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&2.\ \&PPPoE options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l.
+T{
+username
+T}:T{
+pppoe\&.username
+T}
+T{
+password
+T}:T{
+pppoe\&.password
+T}
+T{
+service
+T}:T{
+pppoe\&.service
+T}
+T{
+parent
+T}:T{
+pppoe\&.parent
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&3.\ \&Wired Ethernet options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l.
+T{
+mtu
+T}:T{
+wired\&.mtu
+T}
+T{
+mac
+T}:T{
+wired\&.mac\-address
+T}
+T{
+cloned\-mac
+T}:T{
+wired\&.cloned\-mac\-address
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&4.\ \&Infiniband options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l
+l l.
+T{
+mtu
+T}:T{
+infiniband\&.mtu
+T}
+T{
+mac
+T}:T{
+infiniband\&.mac\-address
+T}
+T{
+transport\-mode
+T}:T{
+infiniband\&.transport\-mode
+T}
+T{
+parent
+T}:T{
+infiniband\&.parent
+T}
+T{
+p\-key
+T}:T{
+infiniband\&.p\-key
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&5.\ \&Wi\-Fi options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l
+l l.
+T{
+ssid
+T}:T{
+wireless\&.ssid
+T}
+T{
+mode
+T}:T{
+wireless\&.mode
+T}
+T{
+mtu
+T}:T{
+wireless\&.mtu
+T}
+T{
+mac
+T}:T{
+wireless\&.mac\-address
+T}
+T{
+cloned\-mac
+T}:T{
+wireless\&.cloned\-mac\-address
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&6.\ \&WiMax options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l.
+T{
+nsp
+T}:T{
+wimax\&.network\-name
+T}
+T{
+mac
+T}:T{
+wimax\&.mac\-address
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&7.\ \&GSM options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l.
+T{
+apn
+T}:T{
+gsm\&.apn
+T}
+T{
+user
+T}:T{
+gsm\&.username
+T}
+T{
+password
+T}:T{
+gsm\&.password
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&8.\ \&CDMA options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l.
+T{
+user
+T}:T{
+cdma\&.username
+T}
+T{
+password
+T}:T{
+cdma\&.password
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&9.\ \&Bluetooth options
+.TS
+allbox tab(:);
+lB lB lB.
+T{
+Alias
+T}:T{
+Property
+T}:T{
+Note
+T}
+.T&
+l l l
+l l lt.
+T{
+addr
+T}:T{
+bluetooth\&.bdaddr
+T}:T{
+\ \&
+T}
+T{
+bt\-type
+T}:T{
+bluetooth\&.type
+T}:T{
+Apart from the usual panu,
+nap and dun options, the values of
+dun\-gsm and dun\-cdma can be used for compatibility
+with older versions\&. They are equivalent to using dun and setting
+appropriate gsm\&.* or cdma\&.* properties\&.
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&10.\ \&VLAN options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l
+l l.
+T{
+dev
+T}:T{
+vlan\&.parent
+T}
+T{
+id
+T}:T{
+vlan\&.id
+T}
+T{
+flags
+T}:T{
+vlan\&.flags
+T}
+T{
+ingress
+T}:T{
+vlan\&.ingress\-priority\-map
+T}
+T{
+egress
+T}:T{
+vlan\&.egress\-priority\-map
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&11.\ \&Bonding options
+.TS
+allbox tab(:);
+lB lB lB.
+T{
+Alias
+T}:T{
+Property
+T}:T{
+Note
+T}
+.T&
+l l lt
+l ^ ^
+l ^ ^
+l ^ ^
+l ^ ^
+l ^ ^
+l ^ ^
+l ^ ^.
+T{
+mode
+T}:T{
+bond\&.options
+T}:T{
+Setting each of these adds the option to bond\&.options property\&.
+It\*(Aqs equivalent to the +bond\&.options \*(Aqoption=value\*(Aq syntax\&.
+T}
+T{
+primary
+T}::
+T{
+miimon
+T}::
+T{
+downdelay
+T}::
+T{
+updelay
+T}::
+T{
+arp\-interval
+T}::
+T{
+arp\-ip\-target
+T}::
+T{
+lacp\-rate
+T}::
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&12.\ \&Team options
+.TS
+allbox tab(:);
+lB lB lB.
+T{
+Alias
+T}:T{
+Property
+T}:T{
+Note
+T}
+.T&
+l l l.
+T{
+config
+T}:T{
+team\&.config
+T}:T{
+Either a filename or a team configuration in JSON format\&. To enforce one or the other, the value can be prefixed with "file://" or "json://"\&.
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&13.\ \&Team port options
+.TS
+allbox tab(:);
+lB lB lB.
+T{
+Alias
+T}:T{
+Property
+T}:T{
+Note
+T}
+.T&
+l l l.
+T{
+config
+T}:T{
+team\-port\&.config
+T}:T{
+Either a filename or a team configuration in JSON format\&. To enforce one or the other, the value can be prefixed with "file://" or "json://"\&.
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&14.\ \&Bridge options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l
+l l.
+T{
+stp
+T}:T{
+bridge\&.stp
+T}
+T{
+priority
+T}:T{
+bridge\&.priority
+T}
+T{
+forward\-delay
+T}:T{
+bridge\&.forward\-delay
+T}
+T{
+hello\-time
+T}:T{
+bridge\&.hello\-time
+T}
+T{
+max\-age
+T}:T{
+bridge\&.max\-age
+T}
+T{
+ageing\-time
+T}:T{
+bridge\&.ageing\-time
+T}
+T{
+group\-forward\-mask
+T}:T{
+bridge\&.group\-forward\-mask
+T}
+T{
+multicast\-snooping
+T}:T{
+bridge\&.multicast\-snooping
+T}
+T{
+mac
+T}:T{
+bridge\&.mac\-address
+T}
+T{
+priority
+T}:T{
+bridge\-port\&.priority
+T}
+T{
+path\-cost
+T}:T{
+bridge\-port\&.path\-cost
+T}
+T{
+hairpin
+T}:T{
+bridge\-port\&.hairpin\-mode
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&15.\ \&VPN options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l.
+T{
+vpn\-type
+T}:T{
+vpn\&.service\-type
+T}
+T{
+user
+T}:T{
+vpn\&.user\-name
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&16.\ \&OLPC Mesh options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l.
+T{
+ssid
+T}:T{
+olpc\-mesh\&.ssid
+T}
+T{
+channel
+T}:T{
+olpc\-mesh\&.channel
+T}
+T{
+dhcp\-anycast
+T}:T{
+olpc\-mesh\&.dhcp\-anycast\-address
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&17.\ \&ADSL options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l.
+T{
+username
+T}:T{
+adsl\&.username
+T}
+T{
+protocol
+T}:T{
+adsl\&.protocol
+T}
+T{
+password
+T}:T{
+adsl\&.password
+T}
+T{
+encapsulation
+T}:T{
+adsl\&.encapsulation
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&18.\ \&MACVLAN options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l.
+T{
+dev
+T}:T{
+macvlan\&.parent
+T}
+T{
+mode
+T}:T{
+macvlan\&.mode
+T}
+T{
+tap
+T}:T{
+macvlan\&.tap
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&19.\ \&MACsec options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l
+l l
+l l.
+T{
+dev
+T}:T{
+macsec\&.parent
+T}
+T{
+mode
+T}:T{
+macsec\&.mode
+T}
+T{
+encrypt
+T}:T{
+macsec\&.encrypt
+T}
+T{
+cak
+T}:T{
+macsec\&.cak
+T}
+T{
+ckn
+T}:T{
+macsec\&.ckn
+T}
+T{
+port
+T}:T{
+macsec\&.port
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&20.\ \&VxLAN options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l
+l l
+l l
+l l.
+T{
+id
+T}:T{
+vxlan\&.id
+T}
+T{
+remote
+T}:T{
+vxlan\&.remote
+T}
+T{
+dev
+T}:T{
+vxlan\&.parent
+T}
+T{
+local
+T}:T{
+vxlan\&.local
+T}
+T{
+source\-port\-min
+T}:T{
+vxlan\&.source\-port\-min
+T}
+T{
+source\-port\-max
+T}:T{
+vxlan\&.source\-port\-max
+T}
+T{
+destination\-port
+T}:T{
+vxlan\&.destination\-port
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&21.\ \&Tun options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l
+l l
+l l.
+T{
+mode
+T}:T{
+tun\&.mode
+T}
+T{
+owner
+T}:T{
+tun\&.owner
+T}
+T{
+group
+T}:T{
+tun\&.group
+T}
+T{
+pi
+T}:T{
+tun\&.pi
+T}
+T{
+vnet\-hdr
+T}:T{
+tun\&.vnet\-hdr
+T}
+T{
+multi\-queue
+T}:T{
+tun\&.multi\-queue
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&22.\ \&IP tunneling options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l
+l l.
+T{
+mode
+T}:T{
+ip\-tunnel\&.mode
+T}
+T{
+local
+T}:T{
+ip\-tunnel\&.local
+T}
+T{
+remote
+T}:T{
+ip\-tunnel\&.remote
+T}
+T{
+dev
+T}:T{
+ip\-tunnel\&.parent
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&23.\ \&IPv4 options
+.TS
+allbox tab(:);
+lB lB lB.
+T{
+Alias
+T}:T{
+Property
+T}:T{
+Note
+T}
+.T&
+l l lt
+l l l.
+T{
+ip4
+T}:T{
+ipv4\&.addresses ipv4\&.method
+T}:T{
+The alias is equivalent to the +ipv4\&.addresses syntax and also sets ipv4\&.method to manual\&. It can be specified multiple times\&.
+T}
+T{
+gw4
+T}:T{
+ipv4\&.gateway
+T}:T{
+\ \&
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&24.\ \&IPv6 options
+.TS
+allbox tab(:);
+lB lB lB.
+T{
+Alias
+T}:T{
+Property
+T}:T{
+Note
+T}
+.T&
+l l lt
+l l l.
+T{
+ip6
+T}:T{
+ipv6\&.addresses ipv6\&.method
+T}:T{
+The alias is equivalent to the +ipv6\&.addresses syntax and also sets ipv6\&.method to manual\&. It can be specified multiple times\&.
+T}
+T{
+gw6
+T}:T{
+ipv6\&.gateway
+T}:T{
+\ \&
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&25.\ \&Proxy options
+.TS
+allbox tab(:);
+lB lB lB.
+T{
+Alias
+T}:T{
+Property
+T}:T{
+Note
+T}
+.T&
+l l l
+l l l
+l l l
+l l lt.
+T{
+method
+T}:T{
+proxy\&.method
+T}:T{
+\ \&
+T}
+T{
+browser\-only
+T}:T{
+proxy\&.browser\-only
+T}:T{
+\ \&
+T}
+T{
+pac\-url
+T}:T{
+proxy\&.pac\-url
+T}:T{
+\ \&
+T}
+T{
+pac\-script
+T}:T{
+proxy\&.pac\-script
+T}:T{
+Read the JavaScript PAC (proxy auto\-config) script from file or pass it directly on the command line\&. Prefix the value with "file://" or "js://" to force one or the other\&.
+T}
+.TE
+.sp 1
 .SH "ENVIRONMENT VARIABLES"
 .PP
 \fBnmcli\fR\*(Aqs behavior is affected by the following environment variables\&.
@@ -1691,6 +2497,13 @@ NetworkManager is not running\&.
 \fB10\fR
 .RS 4
 Connection, device, or access point does not exist\&.
+.RE
+.PP
+\fB65\fR
+.RS 4
+When used with
+\fB\-\-complete\-args\fR
+option, a file name is expected to follow\&.
 .RE
 .SH "EXAMPLES"
 .PP
@@ -1806,6 +2619,16 @@ so that the existing connection profile can be used and no additional is created
 creates a hotspot profile and connects it\&. Prints the hotspot password the user should use to connect to the hotspot from other devices\&.
 .RE
 .PP
+\fBnmcli dev modify em1 ipv4\&.method shared\fR
+.RS 4
+starts IPv4 connection sharing using em1 device\&. The sharing will be active until the device is disconnected\&.
+.RE
+.PP
+\fBnmcli dev modify em1 ipv6\&.address 2001:db8::a:bad:c0de\fR
+.RS 4
+temporarily adds an IP address to a device\&. The address will be removed when the same connection is activated again\&.
+.RE
+.PP
 \fBnmcli connection add type ethernet autoconnect no ifname eth0\fR
 .RS 4
 non\-interactively adds an Ethernet connection tied to eth0 interface with automatic IP configuration (DHCP), and disables the connection\*(Aqs
@@ -1818,7 +2641,7 @@ flag\&.
 non\-interactively adds a VLAN connection with ID 55\&. The connection will use eth0 and the VLAN interface will be named Maxipes\-fik\&.
 .RE
 .PP
-\fBnmcli c a ifname eth0 type ethernet \-\- ipv4\&.method disabled ipv6\&.method link\-local\fR
+\fBnmcli c a ifname eth0 type ethernet ipv4\&.method disabled ipv6\&.method link\-local\fR
 .RS 4
 non\-interactively adds a connection that will use eth0 Ethernet interface and only have an IPv6 link\-local address configured\&.
 .RE

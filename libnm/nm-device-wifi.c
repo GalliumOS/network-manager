@@ -31,13 +31,11 @@
 #include "nm-utils.h"
 
 #include "nm-access-point.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
-#include "nm-object-cache.h"
 #include "nm-core-internal.h"
 #include "nm-dbus-helpers.h"
 
-#include "nmdbus-device-wifi.h"
+#include "introspection/org.freedesktop.NetworkManager.Device.Wireless.h"
 
 G_DEFINE_TYPE (NMDeviceWifi, nm_device_wifi, NM_TYPE_DEVICE)
 
@@ -100,7 +98,7 @@ nm_device_wifi_get_hw_address (NMDeviceWifi *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_WIFI (device), NULL);
 
-	return NM_DEVICE_WIFI_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_WIFI_GET_PRIVATE (device)->hw_address);
 }
 
 /**
@@ -117,7 +115,7 @@ nm_device_wifi_get_permanent_hw_address (NMDeviceWifi *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_WIFI (device), NULL);
 
-	return NM_DEVICE_WIFI_GET_PRIVATE (device)->perm_hw_address;
+	return nm_str_not_empty (NM_DEVICE_WIFI_GET_PRIVATE (device)->perm_hw_address);
 }
 
 /**
@@ -409,6 +407,8 @@ _device_wifi_request_scan_async (NMDeviceWifi *device,
 
 	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
 	                                    nm_device_wifi_request_scan_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 
 	/* If a scan is in progress, just return */
 	if (priv->scan_info) {
@@ -520,10 +520,7 @@ clean_up_aps (NMDeviceWifi *self, gboolean in_dispose)
 
 	priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
 
-	if (priv->active_ap) {
-		g_object_unref (priv->active_ap);
-		priv->active_ap = NULL;
-	}
+	g_clear_object (&priv->active_ap);
 
 	aps = priv->aps;
 
@@ -656,14 +653,12 @@ get_hw_address (NMDevice *device)
 	return nm_device_wifi_get_hw_address (NM_DEVICE_WIFI (device));
 }
 
-/**************************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_wifi_init (NMDeviceWifi *device)
 {
 	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (device);
-
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_WIFI);
 
 	g_signal_connect (device,
 	                  "notify::" NM_DEVICE_STATE,
@@ -722,10 +717,7 @@ state_changed_cb (NMDevice *device, GParamSpec *pspec, gpointer user_data)
 	case NM_DEVICE_STATE_DISCONNECTED:
 	case NM_DEVICE_STATE_FAILED:
 		/* Just clear active AP; don't clear the AP list unless wireless is disabled completely */
-		if (priv->active_ap) {
-			g_object_unref (priv->active_ap);
-			priv->active_ap = NULL;
-		}
+		g_clear_object (&priv->active_ap);
 		_nm_object_queue_notify (NM_OBJECT (device), NM_DEVICE_WIFI_ACTIVE_ACCESS_POINT);
 		priv->rate = 0;
 		_nm_object_queue_notify (NM_OBJECT (device), NM_DEVICE_WIFI_BITRATE);
@@ -764,8 +756,7 @@ access_point_removed (NMDeviceWifi *self, NMAccessPoint *ap)
 	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
 
 	if (ap == priv->active_ap) {
-		g_object_unref (priv->active_ap);
-		priv->active_ap = NULL;
+		g_clear_object (&priv->active_ap);
 		_nm_object_queue_notify (NM_OBJECT (self), NM_DEVICE_WIFI_ACTIVE_ACCESS_POINT);
 
 		priv->rate = 0;
@@ -780,6 +771,8 @@ dispose (GObject *object)
 
 	if (priv->aps)
 		clean_up_aps (NM_DEVICE_WIFI (object), TRUE);
+
+	g_clear_object (&priv->proxy);
 
 	G_OBJECT_CLASS (nm_device_wifi_parent_class)->dispose (object);
 }
@@ -803,10 +796,6 @@ nm_device_wifi_class_init (NMDeviceWifiClass *wifi_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (wifi_class);
 
 	g_type_class_add_private (wifi_class, sizeof (NMDeviceWifiPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_WIRELESS);
-	_nm_dbus_register_proxy_type (NM_DBUS_INTERFACE_DEVICE_WIRELESS,
-	                              NMDBUS_TYPE_DEVICE_WIFI_PROXY);
 
 	/* virtual methods */
 	object_class->get_property = get_property;

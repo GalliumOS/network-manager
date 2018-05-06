@@ -19,37 +19,33 @@
 
 #include "nm-sd-adapt.h"
 
-#include <dirent.h>
 #include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <linux/magic.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "alloc-util.h"
-#if 0 /* NM_IGNORED */
 #include "dirent-util.h"
-#endif /* NM_IGNORED */
 #include "fd-util.h"
 #include "fileio.h"
 #include "fs-util.h"
 #include "log.h"
 #include "macro.h"
-#if 0 /* NM_IGNORED */
 #include "missing.h"
 #include "mkdir.h"
-#endif /* NM_IGNORED */
 #include "parse-util.h"
 #include "path-util.h"
+#include "stat-util.h"
+#include "stdio-util.h"
 #include "string-util.h"
 #include "strv.h"
 #include "time-util.h"
-#if 0 /* NM_IGNORED */
 #include "user-util.h"
-#endif /* NM_IGNORED */
 #include "util.h"
 
 int unlink_noerrno(const char *path) {
@@ -151,6 +147,7 @@ int rename_noreplace(int olddirfd, const char *oldpath, int newdirfd, const char
 
         return 0;
 }
+#endif /* NM_IGNORED */
 
 int readlinkat_malloc(int fd, const char *p, char **ret) {
         size_t l = 100;
@@ -189,6 +186,7 @@ int readlink_malloc(const char *p, char **ret) {
         return readlinkat_malloc(AT_FDCWD, p, ret);
 }
 
+#if 0 /* NM_IGNORED */
 int readlink_value(const char *p, char **ret) {
         _cleanup_free_ char *link = NULL;
         char *value;
@@ -231,25 +229,25 @@ int readlink_and_make_absolute(const char *p, char **r) {
         return 0;
 }
 
-int readlink_and_canonicalize(const char *p, char **r) {
+int readlink_and_canonicalize(const char *p, const char *root, char **ret) {
         char *t, *s;
-        int j;
+        int r;
 
         assert(p);
-        assert(r);
+        assert(ret);
 
-        j = readlink_and_make_absolute(p, &t);
-        if (j < 0)
-                return j;
+        r = readlink_and_make_absolute(p, &t);
+        if (r < 0)
+                return r;
 
-        s = canonicalize_file_name(t);
-        if (s) {
+        r = chase_symlinks(t, root, 0, &s);
+        if (r < 0)
+                /* If we can't follow up, then let's return the original string, slightly cleaned up. */
+                *ret = path_kill_slashes(t);
+        else {
+                *ret = s;
                 free(t);
-                *r = s;
-        } else
-                *r = t;
-
-        path_kill_slashes(*r);
+        }
 
         return 0;
 }
@@ -317,7 +315,7 @@ int fd_warn_permissions(const char *path, int fd) {
         if (st.st_mode & 0002)
                 log_warning("Configuration file %s is marked world-writable. Please remove world writability permission bits. Proceeding anyway.", path);
 
-        if (getpid() == 1 && (st.st_mode & 0044) != 0044)
+        if (getpid_cached() == 1 && (st.st_mode & 0044) != 0044)
                 log_warning("Configuration file %s is marked world-inaccessible. This has no effect as configuration data is accessible via APIs without restrictions. Proceeding anyway.", path);
 
         return 0;
@@ -333,7 +331,7 @@ int touch_file(const char *path, bool parents, usec_t stamp, uid_t uid, gid_t gi
                 mkdir_parents(path, 0755);
 
         fd = open(path, O_WRONLY|O_CREAT|O_CLOEXEC|O_NOCTTY,
-                        (mode == 0 || mode == MODE_INVALID) ? 0644 : mode);
+                  IN_SET(mode, 0, MODE_INVALID) ? 0644 : mode);
         if (fd < 0)
                 return -errno;
 
@@ -368,22 +366,25 @@ int touch(const char *path) {
 }
 
 int symlink_idempotent(const char *from, const char *to) {
-        _cleanup_free_ char *p = NULL;
         int r;
 
         assert(from);
         assert(to);
 
         if (symlink(from, to) < 0) {
+                _cleanup_free_ char *p = NULL;
+
                 if (errno != EEXIST)
                         return -errno;
 
                 r = readlink_malloc(to, &p);
-                if (r < 0)
+                if (r == -EINVAL) /* Not a symlink? In that case return the original error we encountered: -EEXIST */
+                        return -EEXIST;
+                if (r < 0) /* Any other error? In that case propagate it as is */
                         return r;
 
-                if (!streq(p, from))
-                        return -EINVAL;
+                if (!streq(p, from)) /* Not the symlink we want it to be? In that case, propagate the original -EEXIST */
+                        return -EEXIST;
         }
 
         return 0;
@@ -455,6 +456,7 @@ int mkfifo_atomic(const char *path, mode_t mode) {
 
 int get_files_in_directory(const char *path, char ***list) {
         _cleanup_closedir_ DIR *d = NULL;
+        struct dirent *de;
         size_t bufsize = 0, n = 0;
         _cleanup_strv_free_ char **l = NULL;
 
@@ -468,16 +470,7 @@ int get_files_in_directory(const char *path, char ***list) {
         if (!d)
                 return -errno;
 
-        for (;;) {
-                struct dirent *de;
-
-                errno = 0;
-                de = readdir(d);
-                if (!de && errno > 0)
-                        return -errno;
-                if (!de)
-                        break;
-
+        FOREACH_DIRENT_ALL(de, d, return -errno) {
                 dirent_ensure_type(d, de);
 
                 if (!dirent_is_file(de))
@@ -503,5 +496,325 @@ int get_files_in_directory(const char *path, char ***list) {
         }
 
         return n;
+}
+
+static int getenv_tmp_dir(const char **ret_path) {
+        const char *n;
+        int r, ret = 0;
+
+        assert(ret_path);
+
+        /* We use the same order of environment variables python uses in tempfile.gettempdir():
+         * https://docs.python.org/3/library/tempfile.html#tempfile.gettempdir */
+        FOREACH_STRING(n, "TMPDIR", "TEMP", "TMP") {
+                const char *e;
+
+                e = secure_getenv(n);
+                if (!e)
+                        continue;
+                if (!path_is_absolute(e)) {
+                        r = -ENOTDIR;
+                        goto next;
+                }
+                if (!path_is_safe(e)) {
+                        r = -EPERM;
+                        goto next;
+                }
+
+                r = is_dir(e, true);
+                if (r < 0)
+                        goto next;
+                if (r == 0) {
+                        r = -ENOTDIR;
+                        goto next;
+                }
+
+                *ret_path = e;
+                return 1;
+
+        next:
+                /* Remember first error, to make this more debuggable */
+                if (ret >= 0)
+                        ret = r;
+        }
+
+        if (ret < 0)
+                return ret;
+
+        *ret_path = NULL;
+        return ret;
+}
+
+static int tmp_dir_internal(const char *def, const char **ret) {
+        const char *e;
+        int r, k;
+
+        assert(def);
+        assert(ret);
+
+        r = getenv_tmp_dir(&e);
+        if (r > 0) {
+                *ret = e;
+                return 0;
+        }
+
+        k = is_dir(def, true);
+        if (k == 0)
+                k = -ENOTDIR;
+        if (k < 0)
+                return r < 0 ? r : k;
+
+        *ret = def;
+        return 0;
+}
+
+int var_tmp_dir(const char **ret) {
+
+        /* Returns the location for "larger" temporary files, that is backed by physical storage if available, and thus
+         * even might survive a boot: /var/tmp. If $TMPDIR (or related environment variables) are set, its value is
+         * returned preferably however. Note that both this function and tmp_dir() below are affected by $TMPDIR,
+         * making it a variable that overrides all temporary file storage locations. */
+
+        return tmp_dir_internal("/var/tmp", ret);
+}
+
+int tmp_dir(const char **ret) {
+
+        /* Similar to var_tmp_dir() above, but returns the location for "smaller" temporary files, which is usually
+         * backed by an in-memory file system: /tmp. */
+
+        return tmp_dir_internal("/tmp", ret);
+}
+
+int inotify_add_watch_fd(int fd, int what, uint32_t mask) {
+        char path[strlen("/proc/self/fd/") + DECIMAL_STR_MAX(int) + 1];
+        int r;
+
+        /* This is like inotify_add_watch(), except that the file to watch is not referenced by a path, but by an fd */
+        xsprintf(path, "/proc/self/fd/%i", what);
+
+        r = inotify_add_watch(fd, path, mask);
+        if (r < 0)
+                return -errno;
+
+        return r;
+}
+
+int chase_symlinks(const char *path, const char *original_root, unsigned flags, char **ret) {
+        _cleanup_free_ char *buffer = NULL, *done = NULL, *root = NULL;
+        _cleanup_close_ int fd = -1;
+        unsigned max_follow = 32; /* how many symlinks to follow before giving up and returning ELOOP */
+        bool exists = true;
+        char *todo;
+        int r;
+
+        assert(path);
+
+        /* This is a lot like canonicalize_file_name(), but takes an additional "root" parameter, that allows following
+         * symlinks relative to a root directory, instead of the root of the host.
+         *
+         * Note that "root" primarily matters if we encounter an absolute symlink. It is also used when following
+         * relative symlinks to ensure they cannot be used to "escape" the root directory. The path parameter passed is
+         * assumed to be already prefixed by it, except if the CHASE_PREFIX_ROOT flag is set, in which case it is first
+         * prefixed accordingly.
+         *
+         * Algorithmically this operates on two path buffers: "done" are the components of the path we already
+         * processed and resolved symlinks, "." and ".." of. "todo" are the components of the path we still need to
+         * process. On each iteration, we move one component from "todo" to "done", processing it's special meaning
+         * each time. The "todo" path always starts with at least one slash, the "done" path always ends in no
+         * slash. We always keep an O_PATH fd to the component we are currently processing, thus keeping lookup races
+         * at a minimum.
+         *
+         * Suggested usage: whenever you want to canonicalize a path, use this function. Pass the absolute path you got
+         * as-is: fully qualified and relative to your host's root. Optionally, specify the root parameter to tell this
+         * function what to do when encountering a symlink with an absolute path as directory: prefix it by the
+         * specified path.
+         *
+         * Note: there's also chase_symlinks_prefix() (see below), which as first step prefixes the passed path by the
+         * passed root. */
+
+        if (original_root) {
+                r = path_make_absolute_cwd(original_root, &root);
+                if (r < 0)
+                        return r;
+
+                if (flags & CHASE_PREFIX_ROOT)
+                        path = prefix_roota(root, path);
+        }
+
+        r = path_make_absolute_cwd(path, &buffer);
+        if (r < 0)
+                return r;
+
+        fd = open("/", O_CLOEXEC|O_NOFOLLOW|O_PATH);
+        if (fd < 0)
+                return -errno;
+
+        todo = buffer;
+        for (;;) {
+                _cleanup_free_ char *first = NULL;
+                _cleanup_close_ int child = -1;
+                struct stat st;
+                size_t n, m;
+
+                /* Determine length of first component in the path */
+                n = strspn(todo, "/");                  /* The slashes */
+                m = n + strcspn(todo + n, "/");         /* The entire length of the component */
+
+                /* Extract the first component. */
+                first = strndup(todo, m);
+                if (!first)
+                        return -ENOMEM;
+
+                todo += m;
+
+                /* Just a single slash? Then we reached the end. */
+                if (isempty(first) || path_equal(first, "/"))
+                        break;
+
+                /* Just a dot? Then let's eat this up. */
+                if (path_equal(first, "/."))
+                        continue;
+
+                /* Two dots? Then chop off the last bit of what we already found out. */
+                if (path_equal(first, "/..")) {
+                        _cleanup_free_ char *parent = NULL;
+                        int fd_parent = -1;
+
+                        /* If we already are at the top, then going up will not change anything. This is in-line with
+                         * how the kernel handles this. */
+                        if (isempty(done) || path_equal(done, "/"))
+                                continue;
+
+                        parent = dirname_malloc(done);
+                        if (!parent)
+                                return -ENOMEM;
+
+                        /* Don't allow this to leave the root dir.  */
+                        if (root &&
+                            path_startswith(done, root) &&
+                            !path_startswith(parent, root))
+                                continue;
+
+                        free_and_replace(done, parent);
+
+                        fd_parent = openat(fd, "..", O_CLOEXEC|O_NOFOLLOW|O_PATH);
+                        if (fd_parent < 0)
+                                return -errno;
+
+                        safe_close(fd);
+                        fd = fd_parent;
+
+                        continue;
+                }
+
+                /* Otherwise let's see what this is. */
+                child = openat(fd, first + n, O_CLOEXEC|O_NOFOLLOW|O_PATH);
+                if (child < 0) {
+
+                        if (errno == ENOENT &&
+                            (flags & CHASE_NONEXISTENT) &&
+                            (isempty(todo) || path_is_safe(todo))) {
+
+                                /* If CHASE_NONEXISTENT is set, and the path does not exist, then that's OK, return
+                                 * what we got so far. But don't allow this if the remaining path contains "../ or "./"
+                                 * or something else weird. */
+
+                                if (!strextend(&done, first, todo, NULL))
+                                        return -ENOMEM;
+
+                                exists = false;
+                                break;
+                        }
+
+                        return -errno;
+                }
+
+                if (fstat(child, &st) < 0)
+                        return -errno;
+                if ((flags & CHASE_NO_AUTOFS) &&
+                    fd_check_fstype(child, AUTOFS_SUPER_MAGIC) > 0)
+                        return -EREMOTE;
+
+                if (S_ISLNK(st.st_mode)) {
+                        char *joined;
+
+                        _cleanup_free_ char *destination = NULL;
+
+                        /* This is a symlink, in this case read the destination. But let's make sure we don't follow
+                         * symlinks without bounds. */
+                        if (--max_follow <= 0)
+                                return -ELOOP;
+
+                        r = readlinkat_malloc(fd, first + n, &destination);
+                        if (r < 0)
+                                return r;
+                        if (isempty(destination))
+                                return -EINVAL;
+
+                        if (path_is_absolute(destination)) {
+
+                                /* An absolute destination. Start the loop from the beginning, but use the root
+                                 * directory as base. */
+
+                                safe_close(fd);
+                                fd = open(root ?: "/", O_CLOEXEC|O_NOFOLLOW|O_PATH);
+                                if (fd < 0)
+                                        return -errno;
+
+                                free(done);
+
+                                /* Note that we do not revalidate the root, we take it as is. */
+                                if (isempty(root))
+                                        done = NULL;
+                                else {
+                                        done = strdup(root);
+                                        if (!done)
+                                                return -ENOMEM;
+                                }
+
+                        }
+
+                        /* Prefix what's left to do with what we just read, and start the loop again,
+                         * but remain in the current directory. */
+
+                        joined = strjoin("/", destination, todo);
+                        if (!joined)
+                                return -ENOMEM;
+
+                        free(buffer);
+                        todo = buffer = joined;
+
+                        continue;
+                }
+
+                /* If this is not a symlink, then let's just add the name we read to what we already verified. */
+                if (!done) {
+                        done = first;
+                        first = NULL;
+                } else {
+                        if (!strextend(&done, first, NULL))
+                                return -ENOMEM;
+                }
+
+                /* And iterate again, but go one directory further down. */
+                safe_close(fd);
+                fd = child;
+                child = -1;
+        }
+
+        if (!done) {
+                /* Special case, turn the empty string into "/", to indicate the root directory. */
+                done = strdup("/");
+                if (!done)
+                        return -ENOMEM;
+        }
+
+        if (ret) {
+                *ret = done;
+                done = NULL;
+        }
+
+        return exists;
 }
 #endif /* NM_IGNORED */

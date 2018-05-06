@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-keyfile"><refentryinfo><title>nm-settings-keyfile</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-keyfile</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.2.2</refmiscinfo></refmeta><refnamediv><refname>nm-settings-keyfile</refname><refpurpose>Description of <emphasis>keyfile</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-keyfile"><refentryinfo><title>nm-settings-keyfile</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-keyfile</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.10.6</refmiscinfo></refmeta><refnamediv><refname>nm-settings-keyfile</refname><refpurpose>Description of <emphasis>keyfile</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on the concept of connection profiles that contain
           network configuration (see <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry> for details). The profiles can be
           stored in various formats. NetworkManager uses plugins for reading and writing
@@ -128,7 +128,7 @@ id=4
           There are several exceptions to this rule, mainly for making keyfile syntax easier
           for humans. The exceptions handled specially by <emphasis>keyfile</emphasis>
           plugin are listed below. Refer to
-          <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+          <link linkend="nm-settings"><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
           for all available settings and properties and their description.
         </para><formalpara><title>Name aliases</title><para>
             Some of the NetworkManager setting names are somewhat hard to type or remember. Therefore
@@ -149,12 +149,12 @@ Example: </emphasis>mac-address=00:22:68:12:79:A2 mac-address=0;34;104;18;121;16
 
 
 
+
 <table><title>infiniband setting (section)</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Keyfile Variable</entry><entry>Format</entry><entry>Description</entry></row></thead><tbody>
 <row><entry align="left">mac-address</entry><entry align="left">mac-address</entry><entry align="left">usual hex-digits-and-colons notation</entry><entry align="left">MAC address in traditional hex-digits-and-colons notation, or or semicolon separated list of 20 decimal bytes (obsolete)<emphasis role="bold">
 
 Example: </emphasis>mac-address= 80:00:00:6d:fe:80:00:00:00:00:00:00:00:02:55:00:70:33:cf:01</entry></row>
 </tbody></tgroup></table>
-
 
 <table><title>ipv4 setting (section)</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Keyfile Variable</entry><entry>Format</entry><entry>Description</entry></row></thead><tbody>
 <row><entry align="left">dns</entry><entry align="left">dns</entry><entry align="left">list of DNS IP addresses</entry><entry align="left">List of DNS servers.<emphasis role="bold">
@@ -188,11 +188,19 @@ Example: </emphasis>route1=2001:4860:4860::/64,2620:52:0:2219:222:68ff:fe11:5403
 
 
 
+
+
+
+
+
+
 <table><title>serial setting (section)</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Keyfile Variable</entry><entry>Format</entry><entry>Description</entry></row></thead><tbody>
 <row><entry align="left">parity</entry><entry align="left">parity</entry><entry align="left">'e', 'o', or 'n'</entry><entry align="left">The connection parity; even, odd, or none. Note that older versions of NetworkManager stored this as an integer: 69 ('E') for even, 111 ('o') for odd, or 110 ('n') for none.<emphasis role="bold">
 
 Example: </emphasis>parity=n</entry></row>
 </tbody></tgroup></table>
+
+
 
 
 
@@ -234,9 +242,9 @@ Example: </emphasis>mac-address-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78</
               and storing this secret; when it is required, agents will be asked to provide it.</para></listitem><listitem><para>2 - (not-saved) - this secret should not be saved but should be requested
               from the user each time it is required.</para></listitem><listitem><para>4 - (not-required) - in some situations it cannot be automatically determined
               that a secret is required or not. This flag hints that the secret is not required
-              and should not be requested from the user.</para></listitem></itemizedlist></refsect2></refsect1><refsect1 id="files"><title>Files</title><para><filename>/etc/NetworkManager/system-connections/*</filename></para></refsect1><refsect1 id="see_also"><title>See Also</title><para><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
-        <citerefentry><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
-        <citerefentry><refentrytitle>NetworkManager</refentrytitle><manvolnum>8</manvolnum></citerefentry>,
-        <citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
-        <citerefentry><refentrytitle>nmcli</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
-        <citerefentry><refentrytitle>nmcli-examples</refentrytitle><manvolnum>7</manvolnum></citerefentry></para></refsect1></refentry>
+              and should not be requested from the user.</para></listitem></itemizedlist></refsect2></refsect1><refsect1 id="files"><title>Files</title><para><filename>/etc/NetworkManager/system-connections/*</filename></para></refsect1><refsect1 id="see_also"><title>See Also</title><para><link linkend="nm-settings"><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
+        <link linkend="nm-settings-ifcfg-rh"><citerefentry><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
+        <link linkend="NetworkManager"><citerefentry><refentrytitle>NetworkManager</refentrytitle><manvolnum>8</manvolnum></citerefentry></link>,
+        <link linkend="NetworkManager.conf"><citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
+        <link linkend="nmcli"><citerefentry><refentrytitle>nmcli</refentrytitle><manvolnum>1</manvolnum></citerefentry></link>,
+        <link linkend="nmcli-examples"><citerefentry><refentrytitle>nmcli-examples</refentrytitle><manvolnum>7</manvolnum></citerefentry></link></para></refsect1></refentry>

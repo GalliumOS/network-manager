@@ -20,47 +20,58 @@
 
 #include "nm-default.h"
 
+#include "nm-device-tun.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 
-#include "nm-activation-request.h"
-#include "nm-device-tun.h"
+#include "nm-act-request.h"
 #include "nm-device-private.h"
 #include "nm-ip4-config.h"
-#include "nm-platform.h"
+#include "platform/nm-platform.h"
 #include "nm-device-factory.h"
 #include "nm-setting-tun.h"
 #include "nm-core-internal.h"
 
-#include "nmdbus-device-tun.h"
+#include "introspection/org.freedesktop.NetworkManager.Device.Tun.h"
 
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceTun);
 
-G_DEFINE_TYPE (NMDeviceTun, nm_device_tun, NM_TYPE_DEVICE)
+/*****************************************************************************/
 
-#define NM_DEVICE_TUN_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DEVICE_TUN, NMDeviceTunPrivate))
-
-typedef struct {
-	NMPlatformTunProperties props;
-	const char *mode;
-} NMDeviceTunPrivate;
-
-enum {
-	PROP_0,
+NM_GOBJECT_PROPERTIES_DEFINE (NMDeviceTun,
 	PROP_OWNER,
 	PROP_GROUP,
 	PROP_MODE,
 	PROP_NO_PI,
 	PROP_VNET_HDR,
 	PROP_MULTI_QUEUE,
+);
 
-	LAST_PROP
+typedef struct {
+	NMPlatformTunProperties props;
+	const char *mode;
+} NMDeviceTunPrivate;
+
+struct _NMDeviceTun {
+	NMDevice parent;
+	NMDeviceTunPrivate _priv;
 };
 
+struct _NMDeviceTunClass {
+	NMDeviceClass parent;
+};
+
+G_DEFINE_TYPE (NMDeviceTun, nm_device_tun, NM_TYPE_DEVICE)
+
+#define NM_DEVICE_TUN_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMDeviceTun, NM_IS_DEVICE_TUN)
+
+/*****************************************************************************/
+
 static void
-reload_tun_properties (NMDeviceTun *self)
+update_properties (NMDeviceTun *self)
 {
 	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (self);
 	GObject *object = G_OBJECT (self);
@@ -69,7 +80,7 @@ reload_tun_properties (NMDeviceTun *self)
 
 	ifindex = nm_device_get_ifindex (NM_DEVICE (self));
 	if (ifindex > 0) {
-		if (!nm_platform_link_tun_get_properties (NM_PLATFORM_GET, ifindex, &props)) {
+		if (!nm_platform_link_tun_get_properties (nm_device_get_platform (NM_DEVICE (self)), ifindex, &props)) {
 			_LOGD (LOGD_DEVICE, "tun-properties: cannot loading tun properties from platform for ifindex %d", ifindex);
 			ifindex = 0;
 		} else if (g_strcmp0 (priv->mode, props.mode) != 0) {
@@ -89,27 +100,33 @@ reload_tun_properties (NMDeviceTun *self)
 	g_object_freeze_notify (object);
 
 	if (priv->props.owner != props.owner)
-		g_object_notify (object, NM_DEVICE_TUN_OWNER);
+		_notify (self, PROP_OWNER);
 	if (priv->props.group != props.group)
-		g_object_notify (object, NM_DEVICE_TUN_GROUP);
+		_notify (self, PROP_GROUP);
 	if (priv->props.no_pi != props.no_pi)
-		g_object_notify (object, NM_DEVICE_TUN_NO_PI);
+		_notify (self, PROP_NO_PI);
 	if (priv->props.vnet_hdr != props.vnet_hdr)
-		g_object_notify (object, NM_DEVICE_TUN_VNET_HDR);
+		_notify (self, PROP_VNET_HDR);
 	if (priv->props.multi_queue != props.multi_queue)
-		g_object_notify (object, NM_DEVICE_TUN_MULTI_QUEUE);
+		_notify (self, PROP_MULTI_QUEUE);
 
 	memcpy (&priv->props, &props, sizeof (NMPlatformTunProperties));
 
 	g_object_thaw_notify (object);
 }
 
-static void
-link_changed (NMDevice *device, NMPlatformLink *info)
+static NMDeviceCapabilities
+get_generic_capabilities (NMDevice *dev)
 {
-	NM_DEVICE_CLASS (nm_device_tun_parent_class)->link_changed (device, info);
+	return NM_DEVICE_CAP_IS_SOFTWARE;
+}
 
-	reload_tun_properties (NM_DEVICE_TUN (device));
+static void
+link_changed (NMDevice *device,
+              const NMPlatformLink *pllink)
+{
+	NM_DEVICE_CLASS (nm_device_tun_parent_class)->link_changed (device, pllink);
+	update_properties (NM_DEVICE_TUN (device));
 }
 
 static gboolean
@@ -121,7 +138,7 @@ complete_connection (NMDevice *device,
 {
 	NMSettingTun *s_tun;
 
-	nm_utils_complete_generic (NM_PLATFORM_GET,
+	nm_utils_complete_generic (nm_device_get_platform (device),
 	                           connection,
 	                           NM_SETTING_TUN_SETTING_NAME,
 	                           existing_connections,
@@ -164,8 +181,8 @@ update_connection (NMDevice *device, NMConnection *connection)
 		nm_connection_add_setting (connection, (NMSetting *) s_tun);
 	}
 
-	if (!nm_platform_link_tun_get_properties (NM_PLATFORM_GET, nm_device_get_ifindex (device), &props)) {
-		_LOGW (LOGD_HW, "failed to get TUN interface info while updating connection.");
+	if (!nm_platform_link_tun_get_properties (nm_device_get_platform (device), nm_device_get_ifindex (device), &props)) {
+		_LOGW (LOGD_PLATFORM, "failed to get TUN interface info while updating connection.");
 		return;
 	}
 
@@ -215,7 +232,7 @@ create_and_realize (NMDevice *device,
 	user = _nm_utils_ascii_str_to_int64 (nm_setting_tun_get_owner (s_tun), 10, 0, G_MAXINT32, -1);
 	group = _nm_utils_ascii_str_to_int64 (nm_setting_tun_get_group (s_tun), 10, 0, G_MAXINT32, -1);
 
-	plerr = nm_platform_link_tun_add (NM_PLATFORM_GET, iface,
+	plerr = nm_platform_link_tun_add (nm_device_get_platform (device), iface,
 	                                  nm_setting_tun_get_mode (s_tun) == NM_SETTING_TUN_MODE_TAP,
 	                                  user, group,
 	                                  nm_setting_tun_get_pi (s_tun),
@@ -227,18 +244,11 @@ create_and_realize (NMDevice *device,
 		             "Failed to create TUN/TAP interface '%s' for '%s': %s",
 		             iface,
 		             nm_connection_get_id (connection),
-		             nm_platform_error_to_string (plerr));
+		             nm_platform_error_to_string_a (plerr));
 		return FALSE;
 	}
 
 	return TRUE;
-}
-
-static void
-realize_start_notify (NMDevice *device, const NMPlatformLink *plink)
-{
-	NM_DEVICE_CLASS (nm_device_tun_parent_class)->realize_start_notify (device, plink);
-	reload_tun_properties (device);
 }
 
 static gboolean
@@ -281,17 +291,13 @@ check_connection_compatible (NMDevice *device, NMConnection *connection)
 }
 
 static NMActStageReturn
-act_stage1_prepare (NMDevice *device, NMDeviceStateReason *reason)
+act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceTun *self = NM_DEVICE_TUN (device);
 	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (self);
-	NMSettingWired *s_wired;
-	const char *cloned_mac;
 	NMActStageReturn ret;
 
-	g_return_val_if_fail (reason != NULL, NM_ACT_STAGE_RETURN_FAILURE);
-
-	ret = NM_DEVICE_CLASS (nm_device_tun_parent_class)->act_stage1_prepare (device, reason);
+	ret = NM_DEVICE_CLASS (nm_device_tun_parent_class)->act_stage1_prepare (device, out_failure_reason);
 	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
 		return ret;
 
@@ -299,32 +305,10 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *reason)
 	if (g_strcmp0 (priv->mode, "tap"))
 		return NM_ACT_STAGE_RETURN_SUCCESS;
 
-	s_wired = (NMSettingWired *) nm_device_get_applied_setting (device, NM_TYPE_SETTING_WIRED);
-	if (s_wired) {
-		/* Set device MAC address if the connection wants to change it */
-		cloned_mac = nm_setting_wired_get_cloned_mac_address (s_wired);
-		nm_device_set_hw_addr (device, cloned_mac, "set", LOGD_DEVICE);
-	}
+	if (!nm_device_hw_addr_set_cloned (device, nm_device_get_applied_connection (device), FALSE))
+		return NM_ACT_STAGE_RETURN_FAILURE;
 
 	return NM_ACT_STAGE_RETURN_SUCCESS;
-}
-
-static void
-ip4_config_pre_commit (NMDevice *device, NMIP4Config *config)
-{
-	NMConnection *connection;
-	NMSettingWired *s_wired;
-	guint32 mtu;
-
-	connection = nm_device_get_applied_connection (device);
-	g_assert (connection);
-
-	s_wired = nm_connection_get_setting_wired (connection);
-	if (s_wired) {
-		mtu = nm_setting_wired_get_mtu (s_wired);
-		if (mtu)
-			nm_ip4_config_set_mtu (config, mtu, NM_IP_CONFIG_SOURCE_USER);
-	}
 }
 
 static void
@@ -332,25 +316,17 @@ unrealize_notify (NMDevice *device)
 {
 	NMDeviceTun *self = NM_DEVICE_TUN (device);
 	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (self);
-	GParamSpec **properties;
-	guint n_properties, i;
+	guint i;
 
 	NM_DEVICE_CLASS (nm_device_tun_parent_class)->unrealize_notify (device);
 
 	memset (&priv->props, 0, sizeof (NMPlatformTunProperties));
 
-	properties = g_object_class_list_properties (G_OBJECT_GET_CLASS (self), &n_properties);
-	for (i = 0; i < n_properties; i++)
-		g_object_notify_by_pspec (G_OBJECT (self), properties[i]);
-	g_free (properties);
+	for (i = 1; i < _PROPERTY_ENUMS_LAST; i++)
+		g_object_notify_by_pspec ((GObject *) self, obj_properties[i]);
 }
 
-/**************************************************************/
-
-static void
-nm_device_tun_init (NMDeviceTun *self)
-{
-}
+/*****************************************************************************/
 
 static void
 get_property (GObject *object, guint prop_id,
@@ -411,13 +387,18 @@ set_property (GObject *object, guint prop_id,
 	}
 }
 
+/*****************************************************************************/
+
+static void
+nm_device_tun_init (NMDeviceTun *self)
+{
+}
+
 static void
 nm_device_tun_class_init (NMDeviceTunClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (klass);
-
-	g_type_class_add_private (klass, sizeof (NMDeviceTunPrivate));
 
 	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NULL, NM_LINK_TYPE_TUN, NM_LINK_TYPE_TAP)
 
@@ -425,53 +406,48 @@ nm_device_tun_class_init (NMDeviceTunClass *klass)
 	object_class->set_property = set_property;
 
 	device_class->connection_type = NM_SETTING_TUN_SETTING_NAME;
-
 	device_class->link_changed = link_changed;
 	device_class->complete_connection = complete_connection;
 	device_class->check_connection_compatible = check_connection_compatible;
 	device_class->create_and_realize = create_and_realize;
-	device_class->realize_start_notify = realize_start_notify;
+	device_class->get_generic_capabilities = get_generic_capabilities;
 	device_class->unrealize_notify = unrealize_notify;
 	device_class->update_connection = update_connection;
 	device_class->act_stage1_prepare = act_stage1_prepare;
-	device_class->ip4_config_pre_commit = ip4_config_pre_commit;
+	device_class->get_configured_mtu = nm_device_get_configured_mtu_for_wired;
 
-	/* properties */
-	g_object_class_install_property
-		(object_class, PROP_OWNER,
-		 g_param_spec_int64 (NM_DEVICE_TUN_OWNER, "", "",
-		                     -1, G_MAXUINT32, -1,
-		                     G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_OWNER] =
+	     g_param_spec_int64 (NM_DEVICE_TUN_OWNER, "", "",
+	                         -1, G_MAXUINT32, -1,
+	                         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_GROUP,
-		 g_param_spec_int64 (NM_DEVICE_TUN_GROUP, "", "",
-		                     -1, G_MAXUINT32, -1,
-		                     G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_GROUP] =
+	     g_param_spec_int64 (NM_DEVICE_TUN_GROUP, "", "",
+	                         -1, G_MAXUINT32, -1,
+	                         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_MODE,
-		 g_param_spec_string (NM_DEVICE_TUN_MODE, "", "",
-		                      "tun",
-		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_MODE] =
+	     g_param_spec_string (NM_DEVICE_TUN_MODE, "", "",
+	                          "tun",
+	                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_NO_PI,
-		 g_param_spec_boolean (NM_DEVICE_TUN_NO_PI, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_NO_PI] =
+	     g_param_spec_boolean (NM_DEVICE_TUN_NO_PI, "", "",
+	                           FALSE,
+	                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_VNET_HDR,
-		 g_param_spec_boolean (NM_DEVICE_TUN_VNET_HDR, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_VNET_HDR] =
+	     g_param_spec_boolean (NM_DEVICE_TUN_VNET_HDR, "", "",
+	                           FALSE,
+	                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_MULTI_QUEUE,
-		 g_param_spec_boolean (NM_DEVICE_TUN_MULTI_QUEUE, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_MULTI_QUEUE] =
+	     g_param_spec_boolean (NM_DEVICE_TUN_MULTI_QUEUE, "", "",
+	                           FALSE,
+	                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
 	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
 	                                        NMDBUS_TYPE_DEVICE_TUN_SKELETON,
@@ -479,10 +455,10 @@ nm_device_tun_class_init (NMDeviceTunClass *klass)
 }
 
 
-/*************************************************************/
+/*****************************************************************************/
 
-#define NM_TYPE_TUN_FACTORY (nm_tun_factory_get_type ())
-#define NM_TUN_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_TUN_FACTORY, NMTunFactory))
+#define NM_TYPE_TUN_DEVICE_FACTORY (nm_tun_device_factory_get_type ())
+#define NM_TUN_DEVICE_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_TUN_DEVICE_FACTORY, NMTunDeviceFactory))
 
 static NMDevice *
 create_device (NMDeviceFactory *factory,
@@ -528,6 +504,5 @@ create_device (NMDeviceFactory *factory,
 NM_DEVICE_FACTORY_DEFINE_INTERNAL (TUN, Tun, tun,
 	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES (NM_LINK_TYPE_TUN, NM_LINK_TYPE_TAP)
 	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_TUN_SETTING_NAME),
-	factory_iface->create_device = create_device;
-	)
-
+	factory_class->create_device = create_device;
+);

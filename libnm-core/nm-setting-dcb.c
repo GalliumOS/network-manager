@@ -41,7 +41,7 @@
  **/
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingDcb, nm_setting_dcb, NM_TYPE_SETTING,
-                         _nm_register_setting (DCB, 2))
+                         _nm_register_setting (DCB, NM_SETTING_PRIORITY_HW_AUX))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_DCB)
 
 #define NM_SETTING_DCB_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_DCB, NMSettingDcbPrivate))
@@ -506,7 +506,7 @@ nm_setting_dcb_set_priority_traffic_class (NMSettingDcb *setting,
 	}
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
 #define DCB_FLAGS_ALL (NM_SETTING_DCB_FLAG_ENABLE | \
                        NM_SETTING_DCB_FLAG_ADVERTISE | \
@@ -724,7 +724,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	return TRUE;
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
 static void
 nm_setting_dcb_init (NMSettingDcb *setting)
@@ -1182,7 +1182,7 @@ nm_setting_dcb_class_init (NMSettingDcbClass *setting_class)
 	 * An array of 8 uint values, where the array index corresponds to the
 	 * Priority Group ID (0 - 7) and the value indicates the percentage of link
 	 * bandwidth allocated to that group.  Allowed values are 0 - 100, and the
-	 * sum of all values must total 100 percent.
+	 * sum of all values must total 100 percents.
 	 *
 	 * Element-type: guint
 	 **/
@@ -1211,7 +1211,7 @@ nm_setting_dcb_class_init (NMSettingDcbClass *setting_class)
 	 * Priority (0 - 7) and the value indicates the percentage of bandwidth of
 	 * the priority's assigned group that the priority may use.  The sum of all
 	 * percentages for priorities which belong to the same group must total 100
-	 * percent.
+	 * percents.
 	 *
 	 * Element-type: guint
 	 **/

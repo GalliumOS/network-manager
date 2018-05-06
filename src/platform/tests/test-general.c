@@ -22,36 +22,36 @@
 
 #include <linux/rtnetlink.h>
 
-#include "nm-platform-utils.h"
-#include "nm-linux-platform.h"
+#include "platform/nm-platform-utils.h"
+#include "platform/nm-linux-platform.h"
 
-#include "nm-test-utils.h"
+#include "nm-test-utils-core.h"
 
 
-/******************************************************************/
+/*****************************************************************************/
 
 static void
 test_init_linux_platform (void)
 {
 	gs_unref_object NMPlatform *platform = NULL;
 
-	platform = nm_linux_platform_new (NM_PLATFORM_NETNS_SUPPORT_DEFAULT);
+	platform = nm_linux_platform_new (TRUE, NM_PLATFORM_NETNS_SUPPORT_DEFAULT);
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
 static void
 test_link_get_all (void)
 {
 	gs_unref_object NMPlatform *platform = NULL;
-	gs_unref_array GArray *links = NULL;
+	gs_unref_ptrarray GPtrArray *links = NULL;
 
-	platform = nm_linux_platform_new (NM_PLATFORM_NETNS_SUPPORT_DEFAULT);
+	platform = nm_linux_platform_new (TRUE, NM_PLATFORM_NETNS_SUPPORT_DEFAULT);
 
-	links = nm_platform_link_get_all (platform);
+	links = nm_platform_link_get_all (platform, TRUE);
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
 NMTST_DEFINE ();
 

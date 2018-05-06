@@ -423,7 +423,7 @@
    fun:g_slice_alloc0
    fun:g_type_create_instance
    fun:g_object_new_internal
-   fun:g_object_newv
+   fun:g_object_new*
    fun:g_object_new
    fun:g_task_new
    fun:_g_socket_read_with_control_messages
@@ -433,10 +433,69 @@
    ...
    fun:g_main_dispatch
    fun:g_main_context_dispatch
-   fun:g_main_context_iterate.isra.29
+   fun:g_main_context_iterate.isra.*
    fun:g_main_loop_run
    fun:gdbus_shared_thread_func
    fun:g_thread_proxy
    fun:start_thread
    fun:clone
+}
+{
+   _gdbus_f25_1
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:g_malloc
+   fun:g_slice_alloc
+   fun:g_slice_alloc0
+   fun:g_system_thread_new
+   fun:g_thread_new_internal
+   fun:g_thread_new
+   fun:g_get_worker_context
+   fun:g_task_thread_pool_init
+   fun:g_task_get_type
+   fun:ensure_required_types
+   ...
+   fun:g_bus_get_sync
+}
+{
+   _gdbus_f25_2
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:g_dbus_proxy_new_sync
+   fun:initable_init
+   fun:async_init_thread
+   fun:g_task_thread_pool_thread
+   fun:g_thread_pool_thread_proxy
+   fun:g_thread_proxy
+   fun:start_thread
+   fun:clone
+}
+{
+   _gdbusobjectmanager_f25_1
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:g_malloc
+   fun:g_slice_alloc
+   fun:g_slice_alloc0
+   fun:g_system_thread_new
+   fun:g_thread_new_internal
+   fun:g_thread_pool_start_thread.part.1
+   fun:g_thread_pool_start_thread
+   fun:g_thread_pool_push
+   fun:g_task_run_in_thread
+   fun:g_async_initable_real_init_async
+   fun:g_async_initable_new_valist_async
+   fun:g_async_initable_new_async
+   fun:g_dbus_object_manager_client_new_for_bus
+}
+{
+   _btrfs_io_clone
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   fun:btrfs_reflink_with_progress
+   ...
 }

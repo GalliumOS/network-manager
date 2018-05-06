@@ -26,9 +26,11 @@
 #include <string.h>
 
 #include "nm-config.h"
-#include "nm-device.h"
+#include "devices/nm-device.h"
 #include "nm-core-internal.h"
 #include "nm-keyfile-internal.h"
+
+/*****************************************************************************/
 
 typedef struct {
 	char *group_name;
@@ -40,43 +42,7 @@ typedef struct {
 		gboolean has;
 		GSList *spec;
 	} match_device;
-} ConnectionInfo;
-
-typedef struct {
-	char *config_main_file;
-	char *config_description;
-
-	GKeyFile *keyfile;
-	GKeyFile *keyfile_user;
-	GKeyFile *keyfile_intern;
-
-	/* A zero-terminated list of pre-processed information from the
-	 * [connection] sections. This is to speed up lookup. */
-	ConnectionInfo *connection_infos;
-
-	struct {
-		char *uri;
-		char *response;
-		guint interval;
-	} connectivity;
-
-	struct {
-		char **arr;
-		GSList *specs;
-		GSList *specs_config;
-	} no_auto_default;
-
-	GSList *ignore_carrier;
-	GSList *assume_ipv6ll_only;
-
-	char *dns_mode;
-	char *rc_manager;
-
-	NMGlobalDnsConfig *global_dns;
-
-	/* mutable field */
-	char *value_cached;
-} NMConfigDataPrivate;
+} MatchSectionInfo;
 
 struct _NMGlobalDnsDomain {
 	char *name;
@@ -92,26 +58,74 @@ struct _NMGlobalDnsConfig {
 	gboolean internal;
 };
 
-enum {
-	PROP_0,
+/*****************************************************************************/
+
+NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 	PROP_CONFIG_MAIN_FILE,
 	PROP_CONFIG_DESCRIPTION,
 	PROP_KEYFILE_USER,
 	PROP_KEYFILE_INTERN,
+	PROP_CONNECTIVITY_ENABLED,
 	PROP_CONNECTIVITY_URI,
 	PROP_CONNECTIVITY_INTERVAL,
 	PROP_CONNECTIVITY_RESPONSE,
 	PROP_NO_AUTO_DEFAULT,
+);
 
-	LAST_PROP
+typedef struct {
+	char *config_main_file;
+	char *config_description;
+
+	GKeyFile *keyfile;
+	GKeyFile *keyfile_user;
+	GKeyFile *keyfile_intern;
+
+	/* A zero-terminated list of pre-processed information from the
+	 * [connection] sections. This is to speed up lookup. */
+	MatchSectionInfo *connection_infos;
+
+	/* A zero-terminated list of pre-processed information from the
+	 * [device] sections. This is to speed up lookup. */
+	MatchSectionInfo *device_infos;
+
+	struct {
+		gboolean enabled;
+		char *uri;
+		char *response;
+		guint interval;
+	} connectivity;
+
+	int autoconnect_retries_default;
+
+	struct {
+		char **arr;
+		GSList *specs;
+		GSList *specs_config;
+	} no_auto_default;
+
+	GSList *ignore_carrier;
+	GSList *assume_ipv6ll_only;
+
+	char *dns_mode;
+	char *rc_manager;
+
+	NMGlobalDnsConfig *global_dns;
+} NMConfigDataPrivate;
+
+struct _NMConfigData {
+	GObject parent;
+	NMConfigDataPrivate _priv;
 };
 
+struct _NMConfigDataClass {
+	GObjectClass parent;
+};
 
 G_DEFINE_TYPE (NMConfigData, nm_config_data, G_TYPE_OBJECT)
 
-#define NM_CONFIG_DATA_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_CONFIG_DATA, NMConfigDataPrivate))
+#define NM_CONFIG_DATA_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMConfigData, NM_IS_CONFIG_DATA)
 
-/************************************************************************/
+/*****************************************************************************/
 
 #define _HAS_PREFIX(str, prefix) \
 	({ \
@@ -119,7 +133,7 @@ G_DEFINE_TYPE (NMConfigData, nm_config_data, G_TYPE_OBJECT)
 		g_str_has_prefix ( _str, ""prefix"") && _str[NM_STRLEN(prefix)] != '\0'; \
 	})
 
-/************************************************************************/
+/*****************************************************************************/
 
 const char *
 nm_config_data_get_config_main_file (const NMConfigData *self)
@@ -156,22 +170,6 @@ nm_config_data_get_value (const NMConfigData *self, const char *group, const cha
 	return nm_config_keyfile_get_value (NM_CONFIG_DATA_GET_PRIVATE (self)->keyfile, group, key, flags);
 }
 
-const char *nm_config_data_get_value_cached (const NMConfigData *self, const char *group, const char *key, NMConfigGetValueFlags flags)
-{
-	NMConfigDataPrivate *priv;
-
-	g_return_val_if_fail (NM_IS_CONFIG_DATA (self), NULL);
-	g_return_val_if_fail (group && *group, NULL);
-	g_return_val_if_fail (key && *key, NULL);
-
-	priv = NM_CONFIG_DATA_GET_PRIVATE (self);
-
-	/* we modify @value_cached. In C++ jargon, the field is mutable. */
-	g_free (priv->value_cached);
-	priv->value_cached = nm_config_keyfile_get_value (priv->keyfile, group, key, flags);
-	return priv->value_cached;
-}
-
 gboolean
 nm_config_data_has_value (const NMConfigData *self, const char *group, const char *key, NMConfigGetValueFlags flags)
 {
@@ -196,12 +194,63 @@ nm_config_data_get_value_boolean (const NMConfigData *self, const char *group, c
 	g_return_val_if_fail (key && *key, default_value);
 
 	/* when parsing the boolean, base it on the raw value from g_key_file_get_value(). */
-	str = g_key_file_get_value (NM_CONFIG_DATA_GET_PRIVATE (self)->keyfile, group, key, NULL);
+	str = nm_config_keyfile_get_value (NM_CONFIG_DATA_GET_PRIVATE (self)->keyfile, group, key, NM_CONFIG_GET_VALUE_RAW);
 	if (str) {
 		value = nm_config_parse_boolean (str, default_value);
 		g_free (str);
 	}
 	return value;
+}
+
+gint64
+nm_config_data_get_value_int64 (const NMConfigData *self, const char *group, const char *key, guint base, gint64 min, gint64 max, gint64 fallback)
+{
+	int errsv;
+	gint64 val;
+	char *str;
+
+	g_return_val_if_fail (NM_IS_CONFIG_DATA (self), fallback);
+	g_return_val_if_fail (group && *group, fallback);
+	g_return_val_if_fail (key && *key, fallback);
+
+	str = nm_config_keyfile_get_value (NM_CONFIG_DATA_GET_PRIVATE (self)->keyfile, group, key, NM_CONFIG_GET_VALUE_NONE);
+	val = _nm_utils_ascii_str_to_int64 (str, base, min, max, fallback);
+	if (str) {
+		/* preserve errno from the parsing. */
+		errsv = errno;
+		g_free (str);
+		errno = errsv;
+	}
+	return val;
+}
+
+char **
+nm_config_data_get_plugins (const NMConfigData *self, gboolean allow_default)
+{
+	const NMConfigDataPrivate *priv;
+	char **list;
+
+	g_return_val_if_fail (self, NULL);
+
+	priv = NM_CONFIG_DATA_GET_PRIVATE (self);
+
+	list = g_key_file_get_string_list (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_MAIN, "plugins", NULL, NULL);
+	if (!list && allow_default) {
+		gs_unref_keyfile GKeyFile *kf = nm_config_create_keyfile ();
+
+		/* let keyfile split the default string according to it's own escaping rules. */
+		g_key_file_set_value (kf, NM_CONFIG_KEYFILE_GROUP_MAIN, "plugins", NM_CONFIG_DEFAULT_MAIN_PLUGINS);
+		list = g_key_file_get_string_list (kf, NM_CONFIG_KEYFILE_GROUP_MAIN, "plugins", NULL, NULL);
+	}
+	return _nm_utils_strv_cleanup (list, TRUE, TRUE, TRUE);
+}
+
+gboolean
+nm_config_data_get_connectivity_enabled (const NMConfigData *self)
+{
+	g_return_val_if_fail (self, FALSE);
+
+	return NM_CONFIG_DATA_GET_PRIVATE (self)->connectivity.enabled;
 }
 
 const char *
@@ -212,7 +261,7 @@ nm_config_data_get_connectivity_uri (const NMConfigData *self)
 	return NM_CONFIG_DATA_GET_PRIVATE (self)->connectivity.uri;
 }
 
-const guint
+guint
 nm_config_data_get_connectivity_interval (const NMConfigData *self)
 {
 	g_return_val_if_fail (self, 0);
@@ -228,6 +277,14 @@ nm_config_data_get_connectivity_response (const NMConfigData *self)
 	return NM_CONFIG_DATA_GET_PRIVATE (self)->connectivity.response;
 }
 
+int
+nm_config_data_get_autoconnect_retries_default (const NMConfigData *self)
+{
+	g_return_val_if_fail (self, FALSE);
+
+	return NM_CONFIG_DATA_GET_PRIVATE (self)->autoconnect_retries_default;
+}
+
 const char *const*
 nm_config_data_get_no_auto_default (const NMConfigData *self)
 {
@@ -239,7 +296,7 @@ nm_config_data_get_no_auto_default (const NMConfigData *self)
 gboolean
 nm_config_data_get_no_auto_default_for_device (const NMConfigData *self, NMDevice *device)
 {
-	NMConfigDataPrivate *priv;
+	const NMConfigDataPrivate *priv;
 
 	g_return_val_if_fail (NM_IS_CONFIG_DATA (self), FALSE);
 	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
@@ -268,10 +325,24 @@ nm_config_data_get_rc_manager (const NMConfigData *self)
 gboolean
 nm_config_data_get_ignore_carrier (const NMConfigData *self, NMDevice *device)
 {
+	gs_free char *value = NULL;
+	gboolean has_match;
+	int m;
+
 	g_return_val_if_fail (NM_IS_CONFIG_DATA (self), FALSE);
 	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
 
-	return nm_device_spec_match_list (device, NM_CONFIG_DATA_GET_PRIVATE (self)->ignore_carrier);
+	value = nm_config_data_get_device_config (self, NM_CONFIG_KEYFILE_KEY_DEVICE_IGNORE_CARRIER, device, &has_match);
+	if (has_match)
+		m = nm_config_parse_boolean (value, -1);
+	else
+		m = nm_device_spec_match_list_full (device, NM_CONFIG_DATA_GET_PRIVATE (self)->ignore_carrier, -1);
+
+	if (NM_IN_SET (m, TRUE, FALSE))
+		return m;
+
+	/* if ignore-carrier is not explicitly configed, then it depends on the device (type). */
+	return nm_device_ignore_carrier_by_default (device);
 }
 
 gboolean
@@ -286,7 +357,7 @@ nm_config_data_get_assume_ipv6ll_only (const NMConfigData *self, NMDevice *devic
 GKeyFile *
 nm_config_data_clone_keyfile_intern (const NMConfigData *self)
 {
-	NMConfigDataPrivate *priv;
+	const NMConfigDataPrivate *priv;
 	GKeyFile *keyfile;
 
 	g_return_val_if_fail (NM_IS_CONFIG_DATA (self), FALSE);
@@ -317,7 +388,7 @@ _nm_config_data_get_keyfile_user (const NMConfigData *self)
 	return NM_CONFIG_DATA_GET_PRIVATE (self)->keyfile_user;
 }
 
-/************************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_config_data_get_groups:
@@ -362,7 +433,7 @@ nm_config_data_get_keys (const NMConfigData *self, const char *group)
 gboolean
 nm_config_data_is_intern_atomic_group (const NMConfigData *self, const char *group)
 {
-	NMConfigDataPrivate *priv;
+	const NMConfigDataPrivate *priv;
 
 	g_return_val_if_fail (NM_IS_CONFIG_DATA (self), FALSE);
 	g_return_val_if_fail (group && *group, FALSE);
@@ -380,7 +451,7 @@ nm_config_data_is_intern_atomic_group (const NMConfigData *self, const char *gro
 	return g_key_file_has_group (priv->keyfile, group);
 }
 
-/************************************************************************/
+/*****************************************************************************/
 
 static GKeyFile *
 _merge_keyfiles (GKeyFile *keyfile_user, GKeyFile *keyfile_intern)
@@ -445,13 +516,15 @@ _merge_keyfiles (GKeyFile *keyfile_user, GKeyFile *keyfile_intern)
 	return keyfile;
 }
 
-/************************************************************************/
+/*****************************************************************************/
 
 static int
 _nm_config_data_log_sort (const char **pa, const char **pb, gpointer dummy)
 {
 	gboolean a_is_connection, b_is_connection;
+	gboolean a_is_device, b_is_device;
 	gboolean a_is_intern, b_is_intern;
+	gboolean a_is_main, b_is_main;
 	const char *a = *pa;
 	const char *b = *pb;
 
@@ -488,9 +561,48 @@ _nm_config_data_log_sort (const char **pa, const char **pb, gpointer dummy)
 	if (b_is_connection && !a_is_connection)
 		return -1;
 
-	/* no reordering. */
-	return 0;
+	/* we sort device groups before connection groups (to the end). */
+	a_is_device = a && g_str_has_prefix (a, NM_CONFIG_KEYFILE_GROUPPREFIX_DEVICE);
+	b_is_device = b && g_str_has_prefix (b, NM_CONFIG_KEYFILE_GROUPPREFIX_DEVICE);
+
+	if (a_is_device && b_is_device) {
+		/* if both are device groups, we want the explicit [device] group first. */
+		a_is_device = a[NM_STRLEN (NM_CONFIG_KEYFILE_GROUPPREFIX_DEVICE)] == '\0';
+		b_is_device = b[NM_STRLEN (NM_CONFIG_KEYFILE_GROUPPREFIX_DEVICE)] == '\0';
+
+		if (a_is_device != b_is_device) {
+			if (a_is_device)
+				return -1;
+			return 1;
+		}
+		/* the sections are ordered lowest-priority first. Reverse their order. */
+		return pa < pb ? 1 : -1;
+	}
+	if (a_is_device && !b_is_device)
+		return 1;
+	if (b_is_device && !a_is_device)
+		return -1;
+
+	a_is_main = nm_streq0 (a, "main");
+	b_is_main = nm_streq0 (b, "main");
+	if (a_is_main != b_is_main)
+		return a_is_main ? -1 : 1;
+
+	return g_strcmp0 (a, b);
 }
+
+static const struct {
+	const char *group;
+	const char *key;
+	const char *value;
+} default_values[] = {
+	{ NM_CONFIG_KEYFILE_GROUP_MAIN,    "plugins",                              NM_CONFIG_DEFAULT_MAIN_PLUGINS },
+	{ NM_CONFIG_KEYFILE_GROUP_MAIN,    "rc-manager",                           NM_CONFIG_DEFAULT_MAIN_RC_MANAGER },
+	{ NM_CONFIG_KEYFILE_GROUP_MAIN,    NM_CONFIG_KEYFILE_KEY_MAIN_AUTH_POLKIT, NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT },
+	{ NM_CONFIG_KEYFILE_GROUP_MAIN,    NM_CONFIG_KEYFILE_KEY_MAIN_DHCP,        NM_CONFIG_DEFAULT_MAIN_DHCP },
+	{ NM_CONFIG_KEYFILE_GROUP_LOGGING, "backend",                              NM_CONFIG_DEFAULT_LOGGING_BACKEND },
+	{ NM_CONFIG_KEYFILE_GROUP_LOGGING, "audit",                                NM_CONFIG_DEFAULT_LOGGING_AUDIT },
+};
 
 void
 nm_config_data_log (const NMConfigData *self,
@@ -498,11 +610,13 @@ nm_config_data_log (const NMConfigData *self,
                     const char *key_prefix,
                     /* FILE* */ gpointer print_stream)
 {
-	NMConfigDataPrivate *priv;
+	const NMConfigDataPrivate *priv;
 	gs_strfreev char **groups = NULL;
 	gsize ngroups;
-	guint g, k;
+	guint g, k, i;
 	FILE *stream = print_stream;
+	gs_unref_ptrarray GPtrArray *groups_full = NULL;
+	gboolean print_default = !!stream;
 
 	g_return_if_fail (NM_IS_CONFIG_DATA (self));
 
@@ -517,7 +631,7 @@ nm_config_data_log (const NMConfigData *self,
 #define _LOG(stream, prefix, ...) \
 	G_STMT_START { \
 		if (!stream) \
-			_nm_log (LOGL_DEBUG, LOGD_CORE, 0, "%s"_NM_UTILS_MACRO_FIRST(__VA_ARGS__)"%s", prefix _NM_UTILS_MACRO_REST (__VA_ARGS__), ""); \
+			_nm_log (LOGL_DEBUG, LOGD_CORE, 0, NULL, NULL, "%s"_NM_UTILS_MACRO_FIRST(__VA_ARGS__)"%s", prefix _NM_UTILS_MACRO_REST (__VA_ARGS__), ""); \
 		else \
 			fprintf (stream, "%s"_NM_UTILS_MACRO_FIRST(__VA_ARGS__)"%s", prefix _NM_UTILS_MACRO_REST (__VA_ARGS__), "\n"); \
 	} G_STMT_END
@@ -528,18 +642,35 @@ nm_config_data_log (const NMConfigData *self,
 	if (!groups)
 		ngroups = 0;
 
-	if (groups && groups[0]) {
-		g_qsort_with_data (groups, ngroups,
-		                   sizeof (char *),
-		                   (GCompareDataFunc) _nm_config_data_log_sort,
-		                   NULL);
+	groups_full = g_ptr_array_sized_new (ngroups + 5);
+
+	if (ngroups) {
+		g_ptr_array_set_size (groups_full, ngroups);
+		memcpy (groups_full->pdata, groups, sizeof (groups[0]) * ngroups);
+		g_ptr_array_sort_with_data (groups_full, (GCompareDataFunc) _nm_config_data_log_sort, NULL);
+	}
+
+	if (print_default) {
+		for (g = 0; g < G_N_ELEMENTS (default_values); g++) {
+			const char *group = default_values[g].group;
+			gssize idx;
+
+			idx = _nm_utils_array_find_binary_search ((gconstpointer *) groups_full->pdata,
+			                                          sizeof (char *),
+			                                          groups_full->len,
+			                                          &group,
+			                                          (GCompareDataFunc) _nm_config_data_log_sort,
+			                                          NULL);
+			if (idx < 0)
+				g_ptr_array_insert (groups_full, (~idx), (gpointer) group);
+		}
 	}
 
 	if (!stream)
-		_LOG (stream, prefix, "config-data[%p]: %lu groups", self, (unsigned long) ngroups);
+		_LOG (stream, prefix, "config-data[%p]: %u groups", self, groups_full->len);
 
-	for (g = 0; g < ngroups; g++) {
-		const char *group = groups[g];
+	for (g = 0; g < groups_full->len; g++) {
+		const char *group = groups_full->pdata[g];
 		gs_strfreev char **keys = NULL;
 		gboolean is_atomic;
 
@@ -547,6 +678,17 @@ nm_config_data_log (const NMConfigData *self,
 
 		_LOG (stream, prefix, "");
 		_LOG (stream, prefix, "[%s]%s", group, is_atomic && !stream ? " # atomic section" : "");
+
+		/* Print default values as comments */
+		if (print_default) {
+			for (i = 0; i < G_N_ELEMENTS (default_values); i++) {
+				if (   nm_streq (default_values[i].group, group)
+				    && !g_key_file_has_key (priv->keyfile, group, default_values[i].key, NULL)) {
+					_LOG (stream, prefix, "%s# %s=%s", key_prefix, default_values[i].key,
+					      default_values[i].value);
+				}
+			}
+		}
 
 		keys = g_key_file_get_keys (priv->keyfile, group, NULL, NULL);
 		for (k = 0; keys && keys[k]; k++) {
@@ -561,7 +703,7 @@ nm_config_data_log (const NMConfigData *self,
 #undef _LOG
 }
 
-/************************************************************************/
+/*****************************************************************************/
 
 const char *const *
 nm_global_dns_config_get_searches (const NMGlobalDnsConfig *dns)
@@ -746,7 +888,7 @@ load_global_dns (GKeyFile *keyfile, gboolean internal)
 		return NULL;
 
 	conf = g_malloc0 (sizeof (NMGlobalDnsConfig));
-	conf->domains = g_hash_table_new_full (g_str_hash, g_str_equal,
+	conf->domains = g_hash_table_new_full (nm_str_hash, g_str_equal,
 	                                       g_free, (GDestroyNotify) global_dns_domain_free);
 
 	strv = g_key_file_get_string_list (keyfile, group, "searches", NULL, NULL);
@@ -948,7 +1090,7 @@ nm_global_dns_config_from_dbus (const GValue *value, GError **error)
 	}
 
 	dns_config = g_malloc0 (sizeof (NMGlobalDnsConfig));
-	dns_config->domains = g_hash_table_new_full (g_str_hash, g_str_equal,
+	dns_config->domains = g_hash_table_new_full (nm_str_hash, g_str_equal,
 	                                             g_free, (GDestroyNotify) global_dns_domain_free);
 
 	g_variant_iter_init (&iter, variant);
@@ -1047,27 +1189,20 @@ global_dns_equal (NMGlobalDnsConfig *old, NMGlobalDnsConfig *new)
 	return TRUE;
 }
 
-/************************************************************************/
+/*****************************************************************************/
 
-char *
-nm_config_data_get_connection_default (const NMConfigData *self,
-                                       const char *property,
-                                       NMDevice *device)
+static const MatchSectionInfo *
+_match_section_infos_lookup (const MatchSectionInfo *match_section_infos,
+                             GKeyFile *keyfile,
+                             const char *property,
+                             NMDevice *device,
+                             char **out_value)
 {
-	NMConfigDataPrivate *priv;
-	const ConnectionInfo *connection_info;
-
-	g_return_val_if_fail (self, NULL);
-	g_return_val_if_fail (property && *property, NULL);
-	g_return_val_if_fail (strchr (property, '.'), NULL);
-
-	priv = NM_CONFIG_DATA_GET_PRIVATE (self);
-
-	if (!priv->connection_infos)
+	if (!match_section_infos)
 		return NULL;
 
-	for (connection_info = &priv->connection_infos[0]; connection_info->group_name; connection_info++) {
-		char *value;
+	for (; match_section_infos->group_name; match_section_infos++) {
+		char *value = NULL;
 		gboolean match;
 
 		/* FIXME: Here we use g_key_file_get_string(). This should be in sync with what keyfile-reader
@@ -1077,23 +1212,87 @@ nm_config_data_get_connection_default (const NMConfigData *self,
 		 * string_to_value(keyfile_to_string(keyfile)) in one. Optimally, keyfile library would
 		 * expose both functions, and we would return here keyfile_to_string(keyfile).
 		 * The caller then could convert the string to the proper value via string_to_value(value). */
-		value = g_key_file_get_string (priv->keyfile, connection_info->group_name, property, NULL);
-		if (!value && !connection_info->stop_match)
+		value = g_key_file_get_string (keyfile, match_section_infos->group_name, property, NULL);
+		if (!value && !match_section_infos->stop_match)
 			continue;
 
 		match = TRUE;
-		if (connection_info->match_device.has)
-			match = device && nm_device_spec_match_list (device, connection_info->match_device.spec);
+		if (match_section_infos->match_device.has)
+			match = device && nm_device_spec_match_list (device, match_section_infos->match_device.spec);
 
-		if (match)
-			return value;
+		if (match) {
+			*out_value = value;
+			return match_section_infos;
+		}
 		g_free (value);
 	}
 	return NULL;
 }
 
+char *
+nm_config_data_get_device_config (const NMConfigData *self,
+                                  const char *property,
+                                  NMDevice *device,
+                                  gboolean *has_match)
+{
+	const NMConfigDataPrivate *priv;
+	const MatchSectionInfo *connection_info;
+	char *value = NULL;
+
+	g_return_val_if_fail (self, NULL);
+	g_return_val_if_fail (property && *property, NULL);
+
+	priv = NM_CONFIG_DATA_GET_PRIVATE (self);
+
+	connection_info = _match_section_infos_lookup (&priv->device_infos[0],
+	                                               priv->keyfile,
+	                                               property,
+	                                               device,
+	                                               &value);
+	NM_SET_OUT (has_match, !!connection_info);
+	return value;
+}
+
+gboolean
+nm_config_data_get_device_config_boolean (const NMConfigData *self,
+                                          const char *property,
+                                          NMDevice *device,
+                                          gint val_no_match,
+                                          gint val_invalid)
+{
+	gs_free char *value = NULL;
+	gboolean has_match;
+
+	value = nm_config_data_get_device_config (self, property, device, &has_match);
+	if (!has_match)
+		return val_no_match;
+	return nm_config_parse_boolean (value, val_invalid);
+}
+
+char *
+nm_config_data_get_connection_default (const NMConfigData *self,
+                                       const char *property,
+                                       NMDevice *device)
+{
+	const NMConfigDataPrivate *priv;
+	char *value = NULL;
+
+	g_return_val_if_fail (self, NULL);
+	g_return_val_if_fail (property && *property, NULL);
+	g_return_val_if_fail (strchr (property, '.'), NULL);
+
+	priv = NM_CONFIG_DATA_GET_PRIVATE (self);
+
+	_match_section_infos_lookup (&priv->connection_infos[0],
+	                             priv->keyfile,
+	                             property,
+	                             device,
+	                             &value);
+	return value;
+}
+
 static void
-_get_connection_info_init (ConnectionInfo *connection_info, GKeyFile *keyfile, char *group)
+_get_connection_info_init (MatchSectionInfo *connection_info, GKeyFile *keyfile, char *group)
 {
 	/* pass ownership of @group on... */
 	connection_info->group_name = group;
@@ -1105,27 +1304,43 @@ _get_connection_info_init (ConnectionInfo *connection_info, GKeyFile *keyfile, c
 	connection_info->stop_match = nm_config_keyfile_get_boolean (keyfile, group, "stop-match", FALSE);
 }
 
-static ConnectionInfo *
-_get_connection_infos (GKeyFile *keyfile)
+static void
+_match_section_infos_free (MatchSectionInfo *match_section_infos)
+{
+	guint i;
+
+	if (!match_section_infos)
+		return;
+	for (i = 0; match_section_infos[i].group_name; i++) {
+		g_free (match_section_infos[i].group_name);
+		g_slist_free_full (match_section_infos[i].match_device.spec, g_free);
+	}
+	g_free (match_section_infos);
+}
+
+static MatchSectionInfo *
+_match_section_infos_construct (GKeyFile *keyfile, const char *prefix)
 {
 	char **groups;
 	gsize i, j, ngroups;
 	char *connection_tag = NULL;
-	ConnectionInfo *connection_infos = NULL;
+	MatchSectionInfo *match_section_infos = NULL;
 
-	/* get the list of existing [connection.\+] sections that we consider
-	 * for nm_config_data_get_connection_default().
+	/* get the list of existing [connection.\+]/[device.\+] sections.
 	 *
 	 * We expect the sections in their right order, with lowest priority
 	 * first. Only exception is the (literal) [connection] section, which
 	 * we will always reorder to the end. */
 	groups = g_key_file_get_groups (keyfile, &ngroups);
 	if (!groups)
-		ngroups = 0;
-	else if (ngroups > 0) {
+		return NULL;
+
+	if (ngroups > 0) {
+		gsize l = strlen (prefix);
+
 		for (i = 0, j = 0; i < ngroups; i++) {
-			if (g_str_has_prefix (groups[i], NM_CONFIG_KEYFILE_GROUPPREFIX_CONNECTION)) {
-				if (groups[i][NM_STRLEN (NM_CONFIG_KEYFILE_GROUPPREFIX_CONNECTION)] == '\0')
+			if (g_str_has_prefix (groups[i], prefix)) {
+				if (groups[i][l] == '\0')
 					connection_tag = groups[i];
 				else
 					groups[j++] = groups[i];
@@ -1135,21 +1350,26 @@ _get_connection_infos (GKeyFile *keyfile)
 		ngroups = j;
 	}
 
-	connection_infos = g_new0 (ConnectionInfo, ngroups + 1 + (connection_tag ? 1 : 0));
+	if (ngroups == 0 && !connection_tag) {
+		g_free (groups);
+		return NULL;
+	}
+
+	match_section_infos = g_new0 (MatchSectionInfo, ngroups + 1 + (connection_tag ? 1 : 0));
 	for (i = 0; i < ngroups; i++) {
 		/* pass ownership of @group on... */
-		_get_connection_info_init (&connection_infos[i], keyfile, groups[ngroups - i - 1]);
+		_get_connection_info_init (&match_section_infos[i], keyfile, groups[ngroups - i - 1]);
 	}
 	if (connection_tag) {
 		/* pass ownership of @connection_tag on... */
-		_get_connection_info_init (&connection_infos[i], keyfile, connection_tag);
+		_get_connection_info_init (&match_section_infos[i], keyfile, connection_tag);
 	}
 	g_free (groups);
 
-	return connection_infos;
+	return match_section_infos;
 }
 
-/************************************************************************/
+/*****************************************************************************/
 
 static gboolean
 _slist_str_equals (GSList *a, GSList *b)
@@ -1183,7 +1403,8 @@ nm_config_data_diff (NMConfigData *old_data, NMConfigData *new_data)
 	    || g_strcmp0 (nm_config_data_get_config_description (old_data), nm_config_data_get_config_description (new_data)) != 0)
 		changes |= NM_CONFIG_CHANGE_CONFIG_FILES;
 
-	if (   nm_config_data_get_connectivity_interval (old_data) != nm_config_data_get_connectivity_interval (new_data)
+	if (   nm_config_data_get_connectivity_enabled (old_data) != nm_config_data_get_connectivity_enabled (new_data)
+	    || nm_config_data_get_connectivity_interval (old_data) != nm_config_data_get_connectivity_interval (new_data)
 	    || g_strcmp0 (nm_config_data_get_connectivity_uri (old_data), nm_config_data_get_connectivity_uri (new_data))
 	    || g_strcmp0 (nm_config_data_get_connectivity_response (old_data), nm_config_data_get_connectivity_response (new_data)))
 		changes |= NM_CONFIG_CHANGE_CONNECTIVITY;
@@ -1201,10 +1422,12 @@ nm_config_data_diff (NMConfigData *old_data, NMConfigData *new_data)
 	if (!global_dns_equal (priv_old->global_dns, priv_new->global_dns))
 		changes |= NM_CONFIG_CHANGE_GLOBAL_DNS_CONFIG;
 
+	nm_assert (!NM_FLAGS_ANY (changes, NM_CONFIG_CHANGE_CAUSES));
+
 	return changes;
 }
 
-/************************************************************************/
+/*****************************************************************************/
 
 static void
 get_property (GObject *object,
@@ -1220,6 +1443,9 @@ get_property (GObject *object,
 		break;
 	case PROP_CONFIG_DESCRIPTION:
 		g_value_set_string (value, nm_config_data_get_config_description (self));
+		break;
+	case PROP_CONNECTIVITY_ENABLED:
+		g_value_set_boolean (value, nm_config_data_get_connectivity_enabled (self));
 		break;
 	case PROP_CONNECTIVITY_URI:
 		g_value_set_string (value, nm_config_data_get_connectivity_uri (self));
@@ -1245,15 +1471,17 @@ set_property (GObject *object,
 	NMConfigData *self = NM_CONFIG_DATA (object);
 	NMConfigDataPrivate *priv = NM_CONFIG_DATA_GET_PRIVATE (self);
 
-	/* This type is immutable. All properties are construct only. */
 	switch (prop_id) {
 	case PROP_CONFIG_MAIN_FILE:
+		/* construct-only */
 		priv->config_main_file = g_value_dup_string (value);
 		break;
 	case PROP_CONFIG_DESCRIPTION:
+		/* construct-only */
 		priv->config_description = g_value_dup_string (value);
 		break;
 	case PROP_KEYFILE_USER:
+		/* construct-only */
 		priv->keyfile_user = g_value_dup_boxed (value);
 		if (   priv->keyfile_user
 		    && !_nm_keyfile_has_values (priv->keyfile_user)) {
@@ -1262,6 +1490,7 @@ set_property (GObject *object,
 		}
 		break;
 	case PROP_KEYFILE_INTERN:
+		/* construct-only */
 		priv->keyfile_intern = g_value_dup_boxed (value);
 		if (   priv->keyfile_intern
 		    && !_nm_keyfile_has_values (priv->keyfile_intern)) {
@@ -1270,6 +1499,7 @@ set_property (GObject *object,
 		}
 		break;
 	case PROP_NO_AUTO_DEFAULT:
+		/* construct-only */
 		{
 			char **value_arr = g_value_get_boxed (value);
 			guint i, j = 0;
@@ -1280,7 +1510,7 @@ set_property (GObject *object,
 			for (i = 0; value_arr && value_arr[i]; i++) {
 				if (   *value_arr[i]
 				    && nm_utils_hwaddr_valid (value_arr[i], -1)
-				    && _nm_utils_strv_find_first (value_arr, i, value_arr[i]) < 0) {
+				    && nm_utils_strv_find_first (value_arr, i, value_arr[i]) < 0) {
 					priv->no_auto_default.arr[j++] = g_strdup (value_arr[i]);
 					priv->no_auto_default.specs = g_slist_prepend (priv->no_auto_default.specs, g_strdup_printf ("mac:%s", value_arr[i]));
 				}
@@ -1295,53 +1525,7 @@ set_property (GObject *object,
 	}
 }
 
-static void
-dispose (GObject *object)
-{
-}
-
-static void
-finalize (GObject *gobject)
-{
-	NMConfigDataPrivate *priv = NM_CONFIG_DATA_GET_PRIVATE (gobject);
-	guint i;
-
-	g_free (priv->config_main_file);
-	g_free (priv->config_description);
-
-	g_free (priv->connectivity.uri);
-	g_free (priv->connectivity.response);
-
-	g_slist_free_full (priv->no_auto_default.specs, g_free);
-	g_slist_free_full (priv->no_auto_default.specs_config, g_free);
-	g_strfreev (priv->no_auto_default.arr);
-
-	g_free (priv->dns_mode);
-	g_free (priv->rc_manager);
-
-	g_slist_free_full (priv->ignore_carrier, g_free);
-	g_slist_free_full (priv->assume_ipv6ll_only, g_free);
-
-	nm_global_dns_config_free (priv->global_dns);
-
-	if (priv->connection_infos) {
-		for (i = 0; priv->connection_infos[i].group_name; i++) {
-			g_free (priv->connection_infos[i].group_name);
-			g_slist_free_full (priv->connection_infos[i].match_device.spec, g_free);
-		}
-		g_free (priv->connection_infos);
-	}
-
-	g_key_file_unref (priv->keyfile);
-	if (priv->keyfile_user)
-		g_key_file_unref (priv->keyfile_user);
-	if (priv->keyfile_intern)
-		g_key_file_unref (priv->keyfile_intern);
-
-	G_OBJECT_CLASS (nm_config_data_parent_class)->finalize (gobject);
-
-	g_free (priv->value_cached);
-}
+/*****************************************************************************/
 
 static void
 nm_config_data_init (NMConfigData *self)
@@ -1353,22 +1537,26 @@ constructed (GObject *object)
 {
 	NMConfigData *self = NM_CONFIG_DATA (object);
 	NMConfigDataPrivate *priv = NM_CONFIG_DATA_GET_PRIVATE (self);
-	char *interval;
+	char *str;
 
 	priv->keyfile = _merge_keyfiles (priv->keyfile_user, priv->keyfile_intern);
 
-	priv->connection_infos = _get_connection_infos (priv->keyfile);
+	priv->connection_infos = _match_section_infos_construct (priv->keyfile, NM_CONFIG_KEYFILE_GROUPPREFIX_CONNECTION);
+	priv->device_infos = _match_section_infos_construct (priv->keyfile, NM_CONFIG_KEYFILE_GROUPPREFIX_DEVICE);
 
+	priv->connectivity.enabled = nm_config_keyfile_get_boolean (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_CONNECTIVITY, "enabled", TRUE);
 	priv->connectivity.uri = nm_strstrip (g_key_file_get_string (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_CONNECTIVITY, "uri", NULL));
 	priv->connectivity.response = g_key_file_get_string (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_CONNECTIVITY, "response", NULL);
 
+	str = nm_config_keyfile_get_value (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_MAIN, NM_CONFIG_KEYFILE_KEY_MAIN_AUTOCONNECT_RETRIES_DEFAULT, NM_CONFIG_GET_VALUE_NONE);
+	priv->autoconnect_retries_default = _nm_utils_ascii_str_to_int64 (str, 10, 0, G_MAXINT32, 4);
+	g_free (str);
+
 	/* On missing config value, fallback to 300. On invalid value, disable connectivity checking by setting
 	 * the interval to zero. */
-	interval = g_key_file_get_string (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_CONNECTIVITY, "interval", NULL);
-	priv->connectivity.interval = interval
-	    ? _nm_utils_ascii_str_to_int64 (interval, 10, 0, G_MAXUINT, 0)
-	    : NM_CONFIG_DEFAULT_CONNECTIVITY_INTERVAL;
-	g_free (interval);
+	str = g_key_file_get_string (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_CONNECTIVITY, "interval", NULL);
+	priv->connectivity.interval = _nm_utils_ascii_str_to_int64 (str, 10, 0, G_MAXUINT, NM_CONFIG_DEFAULT_CONNECTIVITY_INTERVAL);
+	g_free (str);
 
 	priv->dns_mode = nm_strstrip (g_key_file_get_string (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_MAIN, "dns", NULL));
 	priv->rc_manager = nm_strstrip (g_key_file_get_string (priv->keyfile, NM_CONFIG_KEYFILE_GROUP_MAIN, "rc-manager", NULL));
@@ -1404,7 +1592,7 @@ nm_config_data_new (const char *config_main_file,
 NMConfigData *
 nm_config_data_new_update_keyfile_intern (const NMConfigData *base, GKeyFile *keyfile_intern)
 {
-	NMConfigDataPrivate *priv = NM_CONFIG_DATA_GET_PRIVATE (base);
+	const NMConfigDataPrivate *priv = NM_CONFIG_DATA_GET_PRIVATE (base);
 
 	return g_object_new (NM_TYPE_CONFIG_DATA,
 	                     NM_CONFIG_DATA_CONFIG_MAIN_FILE, priv->config_main_file,
@@ -1419,7 +1607,7 @@ NMConfigData *
 nm_config_data_new_update_no_auto_default (const NMConfigData *base,
                                            const char *const*no_auto_default)
 {
-	NMConfigDataPrivate *priv = NM_CONFIG_DATA_GET_PRIVATE (base);
+	const NMConfigDataPrivate *priv = NM_CONFIG_DATA_GET_PRIVATE (base);
 
 	return g_object_new (NM_TYPE_CONFIG_DATA,
 	                     NM_CONFIG_DATA_CONFIG_MAIN_FILE, priv->config_main_file,
@@ -1431,78 +1619,108 @@ nm_config_data_new_update_no_auto_default (const NMConfigData *base,
 }
 
 static void
+finalize (GObject *gobject)
+{
+	NMConfigDataPrivate *priv = NM_CONFIG_DATA_GET_PRIVATE ((NMConfigData *) gobject);
+
+	g_free (priv->config_main_file);
+	g_free (priv->config_description);
+
+	g_free (priv->connectivity.uri);
+	g_free (priv->connectivity.response);
+
+	g_slist_free_full (priv->no_auto_default.specs, g_free);
+	g_slist_free_full (priv->no_auto_default.specs_config, g_free);
+	g_strfreev (priv->no_auto_default.arr);
+
+	g_free (priv->dns_mode);
+	g_free (priv->rc_manager);
+
+	g_slist_free_full (priv->ignore_carrier, g_free);
+	g_slist_free_full (priv->assume_ipv6ll_only, g_free);
+
+	nm_global_dns_config_free (priv->global_dns);
+
+	_match_section_infos_free (priv->connection_infos);
+	_match_section_infos_free (priv->device_infos);
+
+	g_key_file_unref (priv->keyfile);
+	if (priv->keyfile_user)
+		g_key_file_unref (priv->keyfile_user);
+	if (priv->keyfile_intern)
+		g_key_file_unref (priv->keyfile_intern);
+
+	G_OBJECT_CLASS (nm_config_data_parent_class)->finalize (gobject);
+}
+
+static void
 nm_config_data_class_init (NMConfigDataClass *config_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (config_class);
 
-	g_type_class_add_private (config_class, sizeof (NMConfigDataPrivate));
-
 	object_class->constructed = constructed;
-	object_class->dispose = dispose;
 	object_class->finalize = finalize;
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 
-	g_object_class_install_property
-	    (object_class, PROP_CONFIG_MAIN_FILE,
+	obj_properties[PROP_CONFIG_MAIN_FILE] =
 	     g_param_spec_string (NM_CONFIG_DATA_CONFIG_MAIN_FILE, "", "",
 	                          NULL,
 	                          G_PARAM_READWRITE |
 	                          G_PARAM_CONSTRUCT_ONLY |
-	                          G_PARAM_STATIC_STRINGS));
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-	    (object_class, PROP_CONFIG_DESCRIPTION,
+	obj_properties[PROP_CONFIG_DESCRIPTION] =
 	     g_param_spec_string (NM_CONFIG_DATA_CONFIG_DESCRIPTION, "", "",
 	                          NULL,
 	                          G_PARAM_READWRITE |
 	                          G_PARAM_CONSTRUCT_ONLY |
-	                          G_PARAM_STATIC_STRINGS));
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-	      (object_class, PROP_KEYFILE_USER,
-	       g_param_spec_boxed (NM_CONFIG_DATA_KEYFILE_USER, "", "",
-	                           G_TYPE_KEY_FILE,
-	                           G_PARAM_WRITABLE |
-	                           G_PARAM_CONSTRUCT_ONLY |
-	                           G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_KEYFILE_USER] =
+	     g_param_spec_boxed (NM_CONFIG_DATA_KEYFILE_USER, "", "",
+	                         G_TYPE_KEY_FILE,
+	                         G_PARAM_WRITABLE |
+	                         G_PARAM_CONSTRUCT_ONLY |
+	                         G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-	      (object_class, PROP_KEYFILE_INTERN,
-	       g_param_spec_boxed (NM_CONFIG_DATA_KEYFILE_INTERN, "", "",
-	                           G_TYPE_KEY_FILE,
-	                           G_PARAM_WRITABLE |
-	                           G_PARAM_CONSTRUCT_ONLY |
-	                           G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_KEYFILE_INTERN] =
+	     g_param_spec_boxed (NM_CONFIG_DATA_KEYFILE_INTERN, "", "",
+	                         G_TYPE_KEY_FILE,
+	                         G_PARAM_WRITABLE |
+	                         G_PARAM_CONSTRUCT_ONLY |
+	                         G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-	    (object_class, PROP_CONNECTIVITY_URI,
+	obj_properties[PROP_CONNECTIVITY_ENABLED] =
+	     g_param_spec_string (NM_CONFIG_DATA_CONNECTIVITY_ENABLED, "", "",
+	                          NULL,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
+
+	obj_properties[PROP_CONNECTIVITY_URI] =
 	     g_param_spec_string (NM_CONFIG_DATA_CONNECTIVITY_URI, "", "",
 	                          NULL,
 	                          G_PARAM_READABLE |
-	                          G_PARAM_STATIC_STRINGS));
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-	    (object_class, PROP_CONNECTIVITY_INTERVAL,
+	obj_properties[PROP_CONNECTIVITY_INTERVAL] =
 	     g_param_spec_uint (NM_CONFIG_DATA_CONNECTIVITY_INTERVAL, "", "",
 	                        0, G_MAXUINT, 0,
 	                        G_PARAM_READABLE |
-	                        G_PARAM_STATIC_STRINGS));
+	                        G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-	    (object_class, PROP_CONNECTIVITY_RESPONSE,
+	obj_properties[PROP_CONNECTIVITY_RESPONSE] =
 	     g_param_spec_string (NM_CONFIG_DATA_CONNECTIVITY_RESPONSE, "", "",
 	                          NULL,
 	                          G_PARAM_READABLE |
-	                          G_PARAM_STATIC_STRINGS));
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-	    (object_class, PROP_NO_AUTO_DEFAULT,
+	obj_properties[PROP_NO_AUTO_DEFAULT] =
 	     g_param_spec_boxed (NM_CONFIG_DATA_NO_AUTO_DEFAULT, "", "",
 	                         G_TYPE_STRV,
 	                         G_PARAM_WRITABLE |
 	                         G_PARAM_CONSTRUCT_ONLY |
-	                         G_PARAM_STATIC_STRINGS));
+	                         G_PARAM_STATIC_STRINGS);
 
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 }
-

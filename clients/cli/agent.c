@@ -21,6 +21,8 @@
 
 #include "nm-default.h"
 
+#include "agent.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -31,7 +33,6 @@
 #include "utils.h"
 #include "nm-secret-agent-simple.h"
 #include "polkit-agent.h"
-#include "agent.h"
 
 static void
 usage (void)
@@ -96,7 +97,8 @@ get_secrets_from_user (const char *request_id,
 		char *pwd = NULL;
 
 		/* Ask user for the password */
-		g_print ("%s\n", msg);
+		if (msg)
+			g_print ("%s\n", msg);
 		if (secret->value) {
 			/* Prefill the password if we have it. */
 			rl_startup_hook = set_deftext;
@@ -124,7 +126,7 @@ secrets_requested (NMSecretAgentSimple *agent,
 	NmCli *nmc = (NmCli *) user_data;
 	gboolean success = FALSE;
 
-	if (nmc->print_output == NMC_PRINT_PRETTY)
+	if (nmc->nmc_config.print_output == NMC_PRINT_PRETTY)
 		nmc_terminal_erase_line ();
 
 	success = get_secrets_from_user (request_id, title, msg, secrets);
@@ -138,6 +140,10 @@ secrets_requested (NMSecretAgentSimple *agent,
 static NMCResultCode
 do_agent_secret (NmCli *nmc, int argc, char **argv)
 {
+	next_arg (nmc, &argc, &argv, NULL);
+	if (nmc->complete)
+		return nmc->return_value;
+
 	/* Create secret agent */
 	nmc->secret_agent = nm_secret_agent_simple_new ("nmcli-agent");
 	if (nmc->secret_agent) {
@@ -145,7 +151,10 @@ do_agent_secret (NmCli *nmc, int argc, char **argv)
 		nmc->should_wait++;
 
 		nm_secret_agent_simple_enable (NM_SECRET_AGENT_SIMPLE (nmc->secret_agent), NULL);
-		g_signal_connect (nmc->secret_agent, "request-secrets", G_CALLBACK (secrets_requested), nmc);
+		g_signal_connect (nmc->secret_agent,
+		                  NM_SECRET_AGENT_SIMPLE_REQUEST_SECRETS,
+		                  G_CALLBACK (secrets_requested),
+		                  nmc);
 		g_print (_("nmcli successfully registered as a NetworkManager's secret agent.\n"));
 	} else {
 		g_string_printf (nmc->return_text, _("Error: secret agent initialization failed"));
@@ -159,6 +168,10 @@ static NMCResultCode
 do_agent_polkit (NmCli *nmc, int argc, char **argv)
 {
 	GError *error = NULL;
+
+	next_arg (nmc, &argc, &argv, NULL);
+	if (nmc->complete)
+		return nmc->return_value;
 
 	/* Initialize polkit agent */
 	if (!nmc_polkit_agent_init (nmc, TRUE, &error)) {
@@ -182,12 +195,22 @@ do_agent_all (NmCli *nmc, int argc, char **argv)
 {
 	NMCResultCode secret_res;
 
+	next_arg (nmc, &argc, &argv, NULL);
+	if (nmc->complete)
+		return nmc->return_value;
+
 	/* Run both secret and polkit agent */
 	secret_res = do_agent_secret (nmc, argc, argv);
-	if (secret_res != NMC_RESULT_SUCCESS)
+	if (secret_res != NMC_RESULT_SUCCESS) {
 		g_printerr ("%s\n", nmc->return_text->str);
+		g_string_truncate (nmc->return_text, 0);
+	}
 
 	nmc->return_value = do_agent_polkit (nmc, argc, argv);
+	if (nmc->return_value != NMC_RESULT_SUCCESS) {
+		g_printerr ("%s\n", nmc->return_text->str);
+		g_string_truncate (nmc->return_text, 0);
+	}
 
 	if (nmc->return_value == NMC_RESULT_SUCCESS && secret_res != NMC_RESULT_SUCCESS)
 		nmc->return_value = secret_res;
@@ -195,52 +218,18 @@ do_agent_all (NmCli *nmc, int argc, char **argv)
 	return nmc->return_value;
 }
 
+static const NMCCommand agent_cmds[] = {
+	{ "secret",  do_agent_secret,  usage_agent_secret,  TRUE,   TRUE },
+	{ "polkit",  do_agent_polkit,  usage_agent_polkit,  TRUE,   TRUE },
+	{ "all",     do_agent_all,     usage_agent_all,     TRUE,   TRUE },
+	{ NULL,      do_agent_all,     usage,               TRUE,   TRUE },
+};
+
 NMCResultCode
 do_agent (NmCli *nmc, int argc, char **argv)
 {
-	/* Get NMClient object */
-	nmc->get_client (nmc);
+	next_arg (nmc, &argc, &argv, NULL);
+	nmc_do_cmd (nmc, agent_cmds, *argv, argc, argv);
 
-	/* Check whether NetworkManager is running */
-	if (!nm_client_get_nm_running (nmc->client)) {
-		g_string_printf (nmc->return_text, _("Error: NetworkManager is not running."));
-		nmc->return_value = NMC_RESULT_ERROR_NM_NOT_RUNNING;
-		return nmc->return_value;
-	}
-
-	if (argc == 0) {
-		nmc->return_value = do_agent_all (nmc, 0, NULL);
-	}
-
-	if (argc > 0) {
-		if (nmc_arg_is_help (*argv)) {
-			usage ();
-			goto usage_exit;
-		} else if (matches (*argv, "secret") == 0) {
-			if (nmc_arg_is_help (*(argv+1))) {
-				usage_agent_secret ();
-				goto usage_exit;
-			}
-			nmc->return_value = do_agent_secret (nmc, argc-1, argv+1);
-		} else if (matches (*argv, "polkit") == 0) {
-			if (nmc_arg_is_help (*(argv+1))) {
-				usage_agent_polkit ();
-				goto usage_exit;
-			}
-			nmc->return_value = do_agent_polkit (nmc, argc-1, argv+1);
-		} else if (matches (*argv, "all") == 0) {
-			if (nmc_arg_is_help (*(argv+1))) {
-				usage_agent_all ();
-				goto usage_exit;
-			}
-			nmc->return_value = do_agent_all (nmc, argc-1, argv+1);
-		} else {
-			usage ();
-			g_string_printf (nmc->return_text, _("Error: 'agent' command '%s' is not valid."), *argv);
-			nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
-		}
-	}
-
-usage_exit:
 	return nmc->return_value;
 }

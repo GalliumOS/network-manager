@@ -24,16 +24,19 @@
 #include <stddef.h>
 
 #include "macro.h"
+#include "string-util.h"
 #include "time-util.h"
 
+#if 0 /* NM_IGNORED */
 #define DEFAULT_PATH_NORMAL "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 #define DEFAULT_PATH_SPLIT_USR DEFAULT_PATH_NORMAL ":/sbin:/bin"
 
-#ifdef HAVE_SPLIT_USR
+#if HAVE_SPLIT_USR
 #  define DEFAULT_PATH DEFAULT_PATH_SPLIT_USR
 #else
 #  define DEFAULT_PATH DEFAULT_PATH_NORMAL
 #endif
+#endif /* NM_IGNORED */
 
 bool is_path(const char *p) _pure_;
 int path_split_and_make_absolute(const char *p, char ***ret);
@@ -45,12 +48,41 @@ char* path_kill_slashes(char *path);
 char* path_startswith(const char *path, const char *prefix) _pure_;
 int path_compare(const char *a, const char *b) _pure_;
 bool path_equal(const char *a, const char *b) _pure_;
-bool path_equal_or_files_same(const char *a, const char *b);
+bool path_equal_or_files_same(const char *a, const char *b, int flags);
 char* path_join(const char *root, const char *path, const char *rest);
 
+static inline bool path_equal_ptr(const char *a, const char *b) {
+        return !!a == !!b && (!a || path_equal(a, b));
+}
+
+/* Note: the search terminates on the first NULL item. */
+#define PATH_IN_SET(p, ...)                                     \
+        ({                                                      \
+                char **s;                                       \
+                bool _found = false;                            \
+                STRV_FOREACH(s, STRV_MAKE(__VA_ARGS__))         \
+                        if (path_equal(p, *s)) {                \
+                               _found = true;                   \
+                               break;                           \
+                        }                                       \
+                _found;                                         \
+        })
+
+#define PATH_STARTSWITH_SET(p, ...)                             \
+        ({                                                      \
+                char **s;                                       \
+                bool _found = false;                            \
+                STRV_FOREACH(s, STRV_MAKE(__VA_ARGS__))         \
+                        if (path_startswith(p, *s)) {           \
+                               _found = true;                   \
+                               break;                           \
+                        }                                       \
+                _found;                                         \
+        })
+
 int path_strv_make_absolute_cwd(char **l);
-char** path_strv_resolve(char **l, const char *prefix);
-char** path_strv_resolve_uniq(char **l, const char *prefix);
+char** path_strv_resolve(char **l, const char *root);
+char** path_strv_resolve_uniq(char **l, const char *root);
 
 int find_binary(const char *name, char **filename);
 
@@ -105,7 +137,21 @@ bool path_is_safe(const char *p) _pure_;
 
 char *file_in_same_dir(const char *path, const char *filename);
 
-bool hidden_file_allow_backup(const char *filename);
-bool hidden_file(const char *filename) _pure_;
+bool hidden_or_backup_file(const char *filename) _pure_;
 
 bool is_device_path(const char *path);
+bool is_deviceallow_pattern(const char *path);
+
+int systemd_installation_has_version(const char *root, unsigned minimal_version);
+
+bool dot_or_dot_dot(const char *path);
+
+static inline const char *skip_dev_prefix(const char *p) {
+        const char *e;
+
+        /* Drop any /dev prefix if there is any */
+
+        e = path_startswith(p, "/dev/");
+
+        return e ?: p;
+}

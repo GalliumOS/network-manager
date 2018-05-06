@@ -23,11 +23,16 @@
  * a few defines from the NetworkManager headers.
  *
  * Compile with:
- *   gcc -Wall `pkg-config --cflags libnm` `pkg-config --cflags --libs gio-2.0` get-active-connections-gdbus.c -o get-active-connections-gdbus
+ *   gcc -Wall get-active-connections-gdbus.c -o get-active-connections-gdbus `pkg-config --cflags --libs libnm`
  */
 
 #include <string.h>
 #include <gio/gio.h>
+
+#include <nm-dbus-interface.h>
+
+/* include NetworkManager.h for the defines, but we don't link against
+ * libnm. */
 #include <NetworkManager.h>
 
 static void

@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NetworkManager: libnm-util Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm-util Reference Manual">
 <link rel="up" href="ch01.html" title="libnm-util API Reference">
 <link rel="prev" href="libnm-util-nm-utils.html" title="nm-utils">
 <link rel="next" href="libnm-util-NetworkManagerVPN.html" title="NetworkManagerVPN">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -33,7 +33,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="libnm-util-NetworkManager.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -511,8 +511,8 @@
 <a name="NMState"></a><h3>enum NMState</h3>
 <p><a class="link" href="libnm-util-NetworkManager.html#NMState" title="enum NMState"><span class="type">NMState</span></a> values indicate the current overall networking state.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.42.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMState.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -589,8 +589,8 @@
 <div class="refsect2">
 <a name="NMConnectivityState"></a><h3>enum NMConnectivityState</h3>
 <div class="refsect3">
-<a name="id-1.2.31.6.44.3"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMConnectivityState.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -644,10 +644,10 @@
 <div class="refsect2">
 <a name="NMDeviceType"></a><h3>enum NMDeviceType</h3>
 <p><a class="link" href="libnm-util-NetworkManager.html#NMDeviceType" title="enum NMDeviceType"><span class="type">NMDeviceType</span></a> values indicate the type of hardware represented by
-an <a href="/usr/share/gtk-doc/html/libnm-glib/NMDevice.html"><span class="type">NMDevice</span></a>.</p>
+an <a href="../libnm/NMDevice.html#NMDevice-struct"><span class="type">NMDevice</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.45.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMDeviceType.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -811,8 +811,8 @@ GSM/UMTS, or LTE network access protocols</p>
 <a name="NMDeviceCapabilities"></a><h3>enum NMDeviceCapabilities</h3>
 <p>General device capability flags.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.46.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMDeviceCapabilities.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -856,8 +856,8 @@ GSM/UMTS, or LTE network access protocols</p>
 <a name="NMDeviceWifiCapabilities"></a><h3>enum NMDeviceWifiCapabilities</h3>
 <p>802.11 specific device encryption and authentication capabilities.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.47.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMDeviceWifiCapabilities.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -957,8 +957,8 @@ GSM/UMTS, or LTE network access protocols</p>
 <a name="NM80211ApFlags"></a><h3>enum NM80211ApFlags</h3>
 <p>802.11 access point flags.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.48.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NM80211ApFlags.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -991,8 +991,8 @@ encryption (usually means WEP)</p>
 the current security requirements of an access point as determined from the
 access point's beacon.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.49.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NM80211ApSecurityFlags.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -1092,8 +1092,8 @@ is supported</p>
 <a name="NM80211Mode"></a><h3>enum NM80211Mode</h3>
 <p>Indicates the 802.11 mode an access point or device is currently in.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.50.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NM80211Mode.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -1144,8 +1144,8 @@ is supported</p>
 <p><a class="link" href="libnm-util-NetworkManager.html#NMBluetoothCapabilities" title="enum NMBluetoothCapabilities"><span class="type">NMBluetoothCapabilities</span></a> values indicate the usable capabilities of a
 Bluetooth device.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.51.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMBluetoothCapabilities.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -1185,8 +1185,8 @@ technology families a modem device supports.  For more information on the
 specific access technologies the device supports use the ModemManager D-Bus
 API.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.52.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMDeviceModemCapabilities.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -1239,8 +1239,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <div class="refsect2">
 <a name="NMDeviceState"></a><h3>enum NMDeviceState</h3>
 <div class="refsect3">
-<a name="id-1.2.31.6.53.3"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMDeviceState.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -1369,8 +1369,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <a name="NMDeviceStateReason"></a><h3>enum NMDeviceStateReason</h3>
 <p>Device state change reason codes</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.54.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMDeviceStateReason.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -1834,8 +1834,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 specific network while it is starting, connected, or disconnecting from that
 network.</p>
 <div class="refsect3">
-<a name="id-1.2.31.6.55.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMActiveConnectionState.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -1886,6 +1886,6 @@ network.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

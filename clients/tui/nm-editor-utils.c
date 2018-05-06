@@ -221,9 +221,17 @@ nm_editor_utils_get_connection_type_list (void)
 	item->id_format = _("VLAN connection %d");
 	g_ptr_array_add (array, item);
 
+	item = g_new0 (NMEditorConnectionTypeDataReal, 1);
+	item->data.name = _("IP tunnel");
+	item->data.setting_type = NM_TYPE_SETTING_IP_TUNNEL;
+	item->data.device_type = NM_TYPE_DEVICE_IP_TUNNEL;
+	item->data.virtual = TRUE;
+	item->id_format = _("IP tunnel connection %d");
+	g_ptr_array_add (array, item);
+
 #if 0
 	/* Add "VPN" only if there are plugins */
-	vpn_plugins_hash = nm_vpn_get_plugins ();
+	vpn_plugins_hash = nm_vpn_get_plugin_infos ();
 	have_vpn_plugins  = vpn_plugins_hash && g_hash_table_size (vpn_plugins_hash);
 	if (have_vpn_plugins) {
 		GHashTableIter iter;
@@ -252,6 +260,18 @@ nm_editor_utils_get_connection_type_list (void)
 	return list;
 }
 
+static gboolean
+_assert_format_int (const char *format)
+{
+	g_assert (format);
+	format = strchr (format, '%');
+	g_assert (format);
+	format++;
+	g_assert (!strchr (format, '%'));
+	g_assert (format[0] == 'd');
+	return TRUE;
+}
+
 static char *
 get_available_connection_name (const char *format,
                                NMClient   *client)
@@ -260,6 +280,8 @@ get_available_connection_name (const char *format,
 	GSList *names = NULL, *iter;
 	char *cname = NULL;
 	int i = 0;
+
+	nm_assert (_assert_format_int (format));
 
 	conns = nm_client_get_connections (client);
 	for (i = 0; i < conns->len; i++) {
@@ -275,7 +297,9 @@ get_available_connection_name (const char *format,
 		char *temp;
 		gboolean found = FALSE;
 
+		NM_PRAGMA_WARNING_DISABLE("-Wformat-nonliteral")
 		temp = g_strdup_printf (format, i);
+		NM_PRAGMA_WARNING_REENABLE
 		for (iter = names; iter; iter = g_slist_next (iter)) {
 			if (!strcmp (iter->data, temp)) {
 				found = TRUE;
@@ -290,6 +314,33 @@ get_available_connection_name (const char *format,
 
 	g_slist_free (names);
 	return cname;
+}
+
+static char *
+get_available_iface_name (const char *try_name,
+                          NMClient   *client)
+{
+	const GPtrArray *connections;
+	NMConnection *connection;
+	char *new_name;
+	unsigned num = 1;
+	int i = 0;
+	const char *ifname = NULL;
+
+	connections = nm_client_get_connections (client);
+
+	new_name = g_strdup (try_name);
+	while (i < connections->len) {
+		connection = NM_CONNECTION (connections->pdata[i]);
+		ifname = nm_connection_get_interface_name (connection);
+		if (g_strcmp0 (new_name, ifname) == 0) {
+			g_free (new_name);
+			new_name = g_strdup_printf ("%s%d", try_name, num++);
+			i = 0;
+		} else
+			i++;
+	}
+	return new_name;
 }
 
 /**
@@ -319,7 +370,7 @@ nm_editor_utils_create_connection (GType         type,
 	NMConnection *connection;
 	NMSettingConnection *s_con;
 	NMSetting *s_hw, *s_slave;
-	char *uuid, *id;
+	char *uuid, *id, *ifname;
 	int i;
 
 	if (master) {
@@ -352,6 +403,15 @@ nm_editor_utils_create_connection (GType         type,
 	s_hw = g_object_new (type, NULL);
 	nm_connection_add_setting (connection, s_hw);
 
+	if (type == NM_TYPE_SETTING_BOND)
+		ifname = get_available_iface_name ("nm-bond", client);
+	else if (type == NM_TYPE_SETTING_TEAM)
+		ifname = get_available_iface_name ("nm-team", client);
+	else if (type == NM_TYPE_SETTING_BRIDGE)
+		ifname = get_available_iface_name ("nm-bridge", client);
+	else
+		ifname = NULL;
+
 	if (slave_setting_type != G_TYPE_INVALID) {
 		s_slave = g_object_new (slave_setting_type, NULL);
 		nm_connection_add_setting (connection, s_slave);
@@ -367,10 +427,12 @@ nm_editor_utils_create_connection (GType         type,
 	              NM_SETTING_CONNECTION_AUTOCONNECT, !type_data->no_autoconnect,
 	              NM_SETTING_CONNECTION_MASTER, master_uuid,
 	              NM_SETTING_CONNECTION_SLAVE_TYPE, master_setting_type,
+	              NM_SETTING_CONNECTION_INTERFACE_NAME, ifname,
 	              NULL);
 
 	g_free (uuid);
 	g_free (id);
+	g_free (ifname);
 
 	if (type_data->connection_setup_func)
 		type_data->connection_setup_func (connection, s_con, s_hw);

@@ -21,29 +21,42 @@
  */
 #include "nm-default.h"
 
+#include "nm-session-monitor.h"
+
 #include <pwd.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
 
-#include "nm-session-monitor.h"
-#include "NetworkManagerUtils.h"
+#if defined (SESSION_TRACKING_SYSTEMD) && defined (SESSION_TRACKING_ELOGIND)
+#error Cannot build both systemd-logind and elogind support
+#endif
 
 #ifdef SESSION_TRACKING_SYSTEMD
 #include <systemd/sd-login.h>
+#define LOGIND_NAME "systemd-logind"
 #endif
 
-/********************************************************************/
+#ifdef SESSION_TRACKING_ELOGIND
+#include <elogind/sd-login.h>
+#define LOGIND_NAME "elogind"
+/* Re-Use SESSION_TRACKING_SYSTEMD as elogind substitutes systemd-login */
+#define SESSION_TRACKING_SYSTEMD 1
+#endif
 
-/* <internal>
- * SECTION:nm-session-monitor
- * @title: NMSessionMonitor
- * @short_description: Monitor sessions
- *
- * The #NMSessionMonitor class is a utility class to track and monitor sessions.
- */
+#include "NetworkManagerUtils.h"
+
+/*****************************************************************************/
+
+enum {
+	CHANGED,
+	LAST_SIGNAL,
+};
+
+static guint signals[LAST_SIGNAL] = { 0 };
+
 struct _NMSessionMonitor {
-	GObject parent_instance;
+	GObject parent;
 
 #ifdef SESSION_TRACKING_SYSTEMD
 	struct {
@@ -62,21 +75,15 @@ struct _NMSessionMonitor {
 };
 
 struct _NMSessionMonitorClass {
-	GObjectClass parent_class;
-
-	void (*changed) (NMSessionMonitor *monitor);
+	GObjectClass parent;
 };
 
 G_DEFINE_TYPE (NMSessionMonitor, nm_session_monitor, G_TYPE_OBJECT);
 
-enum {
-	CHANGED,
-	LAST_SIGNAL,
-};
+#define _NMLOG_DOMAIN      LOGD_CORE
+#define _NMLOG(level, ...) __NMLOG_DEFAULT (level, _NMLOG_DOMAIN, "session-monitor", __VA_ARGS__)
 
-static guint signals[LAST_SIGNAL] = { 0 };
-
-/********************************************************************/
+/*****************************************************************************/
 
 #ifdef SESSION_TRACKING_SYSTEMD
 static gboolean
@@ -90,8 +97,7 @@ st_sd_session_exists (NMSessionMonitor *monitor, uid_t uid, gboolean active)
 	status = sd_uid_get_sessions (uid, active, NULL);
 
 	if (status < 0)
-		nm_log_err (LOGD_CORE, "Failed to get systemd sessions for uid %d: %d",
-		            uid, status);
+		_LOGE ("failed to get "LOGIND_NAME" sessions for uid %d: %d", uid, status);
 
 	return status > 0;
 }
@@ -118,7 +124,7 @@ st_sd_init (NMSessionMonitor *monitor)
 		return;
 
 	if ((status = sd_login_monitor_new (NULL, &monitor->sd.monitor)) < 0) {
-		nm_log_err (LOGD_CORE, "Failed to create systemd login monitor: %d", status);
+		_LOGE ("failed to create "LOGIND_NAME" monitor: %d", status);
 		return;
 	}
 
@@ -136,7 +142,7 @@ st_sd_finalize (NMSessionMonitor *monitor)
 }
 #endif /* SESSION_TRACKING_SYSTEMD */
 
-/********************************************************************/
+/*****************************************************************************/
 
 #ifdef SESSION_TRACKING_CONSOLEKIT
 typedef struct {
@@ -156,7 +162,7 @@ ck_load_cache (GHashTable *cache)
 		goto out;
 
 	if (!(groups = g_key_file_get_groups (keyfile, &len))) {
-		nm_log_err (LOGD_CORE, "Could not load groups from " CKDB_PATH);
+		_LOGE ("could not load groups from " CKDB_PATH);
 		goto out;
 	}
 
@@ -166,7 +172,7 @@ ck_load_cache (GHashTable *cache)
 		guint uid = G_MAXUINT;
 		CkSession session = { .active = FALSE };
 
-		if (!g_str_has_prefix (groups[i], "CkSession "))
+		if (!g_str_has_prefix (groups[i], "Session "))
 			continue;
 
 		uid = g_key_file_get_integer (keyfile, groups[i], "uid", &error);
@@ -183,7 +189,7 @@ ck_load_cache (GHashTable *cache)
 	finished = TRUE;
 out:
 	if (error)
-		nm_log_err (LOGD_CORE, "ConsoleKit: Failed to load database: %s", error->message);
+		_LOGE ("failed to load ConsoleKit database: %s", error->message);
 	g_clear_error (&error);
 	g_clear_pointer (&groups, g_strfreev);
 	g_clear_pointer (&keyfile, g_key_file_free);
@@ -201,7 +207,7 @@ ck_update_cache (NMSessionMonitor *monitor)
 
 	/* Check the database file */
 	if (stat (CKDB_PATH, &statbuf) != 0) {
-		nm_log_err (LOGD_CORE, "Failed to check ConsoleKit timestamp: %s", strerror (errno));
+		_LOGE ("failed to check ConsoleKit timestamp: %s", strerror (errno));
 		return FALSE;
 	}
 	if (statbuf.st_mtime == monitor->ck.timestamp)
@@ -254,11 +260,11 @@ ck_init (NMSessionMonitor *monitor)
 		if ((monitor->ck.monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL, &error))) {
 			monitor->ck.cache = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, g_free);
 			g_signal_connect (monitor->ck.monitor,
-							  "changed",
-							  G_CALLBACK (ck_changed),
-							  monitor);
+			                  "changed",
+			                  G_CALLBACK (ck_changed),
+			                  monitor);
 		} else {
-			nm_log_err (LOGD_CORE, "Error monitoring " CKDB_PATH ": %s", error->message);
+			_LOGE ("error monitoring " CKDB_PATH ": %s", error->message);
 			g_clear_error (&error);
 		}
 	}
@@ -274,48 +280,9 @@ ck_finalize (NMSessionMonitor *monitor)
 }
 #endif /* SESSION_TRACKING_CONSOLEKIT */
 
-/********************************************************************/
+/*****************************************************************************/
 
 NM_DEFINE_SINGLETON_GETTER (NMSessionMonitor, nm_session_monitor_get, NM_TYPE_SESSION_MONITOR);
-
-/**
- * nm_session_monitor_connect:
- * @self: the session monitor
- * @callback: The callback.
- * @user_data: User data for the callback.
- *
- * Connect a callback to the session monitor.
- *
- * Returns: Handler ID to be used with nm_session_monitor_disconnect().
- */
-gulong
-nm_session_monitor_connect (NMSessionMonitor *self,
-                            NMSessionCallback callback,
-                            gpointer user_data)
-{
-	g_return_val_if_fail (NM_IS_SESSION_MONITOR (self), 0);
-
-	return g_signal_connect (self,
-                             NM_SESSION_MONITOR_CHANGED,
-                             G_CALLBACK (callback),
-                             user_data);
-}
-
-/**
- * nm_session_monitor_disconnect:
- * @self: the session monitor
- * @handler_id: Handler ID returned by nm_session_monitor-connect().
- *
- * Disconnect callback from the session handler.
- */
-void
-nm_session_monitor_disconnect (NMSessionMonitor *self,
-                               gulong handler_id)
-{
-	g_return_if_fail (NM_IS_SESSION_MONITOR (self));
-
-	g_signal_handler_disconnect (self, handler_id);
-}
 
 /**
  * nm_session_monitor_uid_to_user:
@@ -395,22 +362,24 @@ nm_session_monitor_session_exists (NMSessionMonitor *self,
 	return FALSE;
 }
 
-/********************************************************************/
+/*****************************************************************************/
 
 static void
 nm_session_monitor_init (NMSessionMonitor *monitor)
 {
 #ifdef SESSION_TRACKING_SYSTEMD
 	st_sd_init (monitor);
+	_LOGD ("using "LOGIND_NAME" session tracking");
 #endif
 
 #ifdef SESSION_TRACKING_CONSOLEKIT
 	ck_init (monitor);
+	_LOGD ("using ConsoleKit session tracking");
 #endif
 }
 
 static void
-nm_session_monitor_finalize (GObject *object)
+finalize (GObject *object)
 {
 #ifdef SESSION_TRACKING_SYSTEMD
 	st_sd_finalize (NM_SESSION_MONITOR (object));
@@ -420,8 +389,7 @@ nm_session_monitor_finalize (GObject *object)
 	ck_finalize (NM_SESSION_MONITOR (object));
 #endif
 
-	if (G_OBJECT_CLASS (nm_session_monitor_parent_class)->finalize != NULL)
-		G_OBJECT_CLASS (nm_session_monitor_parent_class)->finalize (object);
+	G_OBJECT_CLASS (nm_session_monitor_parent_class)->finalize (object);
 }
 
 static void
@@ -429,7 +397,7 @@ nm_session_monitor_class_init (NMSessionMonitorClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
-	gobject_class->finalize = nm_session_monitor_finalize;
+	gobject_class->finalize = finalize;
 
 	/**
 	 * NMSessionMonitor::changed:
@@ -438,12 +406,10 @@ nm_session_monitor_class_init (NMSessionMonitorClass *klass)
 	 * Emitted when something changes.
 	 */
 	signals[CHANGED] = g_signal_new (NM_SESSION_MONITOR_CHANGED,
-	                                        NM_TYPE_SESSION_MONITOR,
-	                                        G_SIGNAL_RUN_LAST,
-	                                        G_STRUCT_OFFSET (NMSessionMonitorClass, changed),
-	                                        NULL,                   /* accumulator      */
-	                                        NULL,                   /* accumulator data */
-	                                        g_cclosure_marshal_VOID__VOID,
-	                                        G_TYPE_NONE,
-	                                        0);
+	                                 NM_TYPE_SESSION_MONITOR,
+	                                 G_SIGNAL_RUN_LAST,
+	                                 0, NULL, NULL,
+	                                 g_cclosure_marshal_VOID__VOID,
+	                                 G_TYPE_NONE,
+	                                 0);
 }

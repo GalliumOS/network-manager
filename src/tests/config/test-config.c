@@ -24,12 +24,13 @@
 
 #include "nm-config.h"
 #include "nm-test-device.h"
-#include "nm-fake-platform.h"
+#include "platform/nm-fake-platform.h"
 #include "nm-bus-manager.h"
+#include "nm-connectivity.h"
 
-#include "nm-test-utils.h"
+#include "nm-test-utils-core.h"
 
-/********************************************************************************/
+/*****************************************************************************/
 
 static void
 _assert_config_value (const NMConfigData *config_data, const char *group, const char *key, const char *expected_value, const char *file, int line)
@@ -46,7 +47,18 @@ _assert_config_value (const NMConfigData *config_data, const char *group, const 
 }
 #define assert_config_value(config_data, group, key, expected_value) _assert_config_value (config_data, group, key, expected_value, __FILE__, __LINE__)
 
-/********************************************************************************/
+#define _config_get_dhcp_client_a(config) \
+	({ \
+		gs_free char *_s = NULL; \
+		\
+		_s = nm_config_data_get_value (nm_config_get_data_orig (config), \
+		                               NM_CONFIG_KEYFILE_GROUP_MAIN, \
+		                               NM_CONFIG_KEYFILE_KEY_MAIN_DHCP, \
+		                               NM_CONFIG_GET_VALUE_STRIP | NM_CONFIG_GET_VALUE_NO_EMPTY); \
+		_s ? nm_sprintf_bufa (100, "%s", _s) : NULL; \
+	})
+
+/*****************************************************************************/
 
 static NMConfig *
 setup_config (GError **error, const char *config_file, const char *intern_config, const char *const* atomic_section_prefixes, const char *config_dir, const char *system_config_dir, ...)
@@ -86,7 +98,7 @@ setup_config (GError **error, const char *config_file, const char *intern_config
 	argv = (char **)args->pdata;
 	argc = args->len;
 
-	cli = nm_config_cmd_line_options_new ();
+	cli = nm_config_cmd_line_options_new (FALSE);
 
 	context = g_option_context_new (NULL);
 	nm_config_cmd_line_options_add_to_entries (cli, context);
@@ -114,8 +126,8 @@ setup_config (GError **error, const char *config_file, const char *intern_config
 static void
 test_config_simple (void)
 {
-	NMConfig *config;
-	const char **plugins;
+	gs_unref_object NMConfig *config = NULL;
+	gs_strfreev char **plugins = NULL;
 	char *value;
 	gs_unref_object NMDevice *dev50 = nm_test_device_new ("00:00:00:00:00:50");
 	gs_unref_object NMDevice *dev51 = nm_test_device_new ("00:00:00:00:00:51");
@@ -124,11 +136,11 @@ test_config_simple (void)
 	config = setup_config (NULL, SRCDIR "/NetworkManager.conf", "", NULL, "/no/such/dir", "", NULL);
 
 	g_assert_cmpstr (nm_config_data_get_config_main_file (nm_config_get_data_orig (config)), ==, SRCDIR "/NetworkManager.conf");
-	g_assert_cmpstr (nm_config_get_dhcp_client (config), ==, "dhclient");
+	g_assert_cmpstr (_config_get_dhcp_client_a (config), ==, "dhclient");
 	g_assert_cmpstr (nm_config_get_log_level (config), ==, "INFO");
 	g_assert_cmpint (nm_config_data_get_connectivity_interval (nm_config_get_data_orig (config)), ==, 100);
 
-	plugins = nm_config_get_plugins (config);
+	plugins = nm_config_data_get_plugins (nm_config_get_data_orig (config), FALSE);
 	g_assert_cmpint (g_strv_length ((char **)plugins), ==, 3);
 	g_assert_cmpstr (plugins[0], ==, "foo");
 	g_assert_cmpstr (plugins[1], ==, "bar");
@@ -190,9 +202,6 @@ test_config_simple (void)
 	value = nm_config_data_get_connection_default (nm_config_get_data_orig (config), "dummy.test2", dev50);
 	g_assert_cmpstr (value, ==, "no");
 	g_free (value);
-
-
-	g_object_unref (config);
 }
 
 static void
@@ -218,8 +227,8 @@ test_config_parse_error (void)
 static void
 test_config_override (void)
 {
-	NMConfig *config;
-	const char **plugins;
+	gs_unref_object NMConfig *config = NULL;
+	gs_strfreev char **plugins = NULL;
 
 	config = setup_config (NULL, SRCDIR "/NetworkManager.conf", "", NULL, "/no/such/dir", "",
 	                       "--plugins", "alpha,beta,gamma,delta",
@@ -227,18 +236,16 @@ test_config_override (void)
 	                       NULL);
 
 	g_assert_cmpstr (nm_config_data_get_config_main_file (nm_config_get_data_orig (config)), ==, SRCDIR "/NetworkManager.conf");
-	g_assert_cmpstr (nm_config_get_dhcp_client (config), ==, "dhclient");
+	g_assert_cmpstr (_config_get_dhcp_client_a (config), ==, "dhclient");
 	g_assert_cmpstr (nm_config_get_log_level (config), ==, "INFO");
 	g_assert_cmpint (nm_config_data_get_connectivity_interval (nm_config_get_data_orig (config)), ==, 12);
 
-	plugins = nm_config_get_plugins (config);
+	plugins = nm_config_data_get_plugins (nm_config_get_data_orig (config), FALSE);
 	g_assert_cmpint (g_strv_length ((char **)plugins), ==, 4);
 	g_assert_cmpstr (plugins[0], ==, "alpha");
 	g_assert_cmpstr (plugins[1], ==, "beta");
 	g_assert_cmpstr (plugins[2], ==, "gamma");
 	g_assert_cmpstr (plugins[3], ==, "delta");
-
-	g_object_unref (config);
 }
 
 static void
@@ -311,6 +318,42 @@ test_config_global_dns (void)
 	g_object_unref (config);
 }
 
+#if WITH_CONCHECK
+static void
+test_config_connectivity_check (void)
+{
+	const char *CONFIG_INTERN = BUILDDIR"/test-connectivity-check-intern.conf";
+	NMConfig *config;
+	NMConnectivity *connectivity;
+
+	g_assert (g_file_set_contents (CONFIG_INTERN, "", 0, NULL));
+	config = setup_config (NULL, SRCDIR "/NetworkManager.conf", CONFIG_INTERN, NULL,
+	                       "/no/such/dir", "", NULL);
+	connectivity = nm_connectivity_get();
+
+	g_assert (nm_connectivity_check_enabled (connectivity));
+
+	/* disable connectivity checking */
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal *");
+	nm_config_set_connectivity_check_enabled (config, FALSE);
+	g_test_assert_expected_messages ();
+
+	g_assert (!nm_connectivity_check_enabled (connectivity));
+
+	/* re-enable connectivity checking */
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal *");
+	nm_config_set_connectivity_check_enabled (config, TRUE);
+	g_test_assert_expected_messages ();
+
+	g_assert (nm_connectivity_check_enabled (connectivity));
+
+	g_object_unref (connectivity);
+	g_object_unref (config);
+
+	g_assert (remove (CONFIG_INTERN) == 0);
+}
+#endif
+
 static void
 test_config_no_auto_default (void)
 {
@@ -327,7 +370,7 @@ test_config_no_auto_default (void)
 	g_assert_cmpint (nwrote, ==, 18);
 	nwrote = write (fd, "44:44:44:44:44:44\n", 18);
 	g_assert_cmpint (nwrote, ==, 18);
-	close (fd);
+	nm_close (fd);
 
 	config = setup_config (NULL, SRCDIR "/NetworkManager.conf", "", NULL, "/no/such/dir", "",
 	                       "--no-auto-default", state_file,
@@ -343,7 +386,7 @@ test_config_no_auto_default (void)
 	g_assert (!nm_config_get_no_auto_default_for_device (config, dev3));
 	g_assert (nm_config_get_no_auto_default_for_device (config, dev4));
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: update * (no-auto-default)*");
+	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal NO_AUTO_DEFAULT,no-auto-default *");
 	nm_config_set_no_auto_default_for_device (config, dev3);
 	g_test_assert_expected_messages ();
 
@@ -374,21 +417,21 @@ test_config_no_auto_default (void)
 static void
 test_config_confdir (void)
 {
-	NMConfig *config;
-	const char **plugins;
+	gs_unref_object NMConfig *config = NULL;
+	gs_strfreev char **plugins = NULL;
 	char *value;
 	GSList *specs;
 
 	config = setup_config (NULL, SRCDIR "/NetworkManager.conf", "", NULL, SRCDIR "/conf.d", "", NULL);
 
 	g_assert_cmpstr (nm_config_data_get_config_main_file (nm_config_get_data_orig (config)), ==, SRCDIR "/NetworkManager.conf");
-	g_assert_cmpstr (nm_config_get_dhcp_client (config), ==, "dhcpcd");
+	g_assert_cmpstr (_config_get_dhcp_client_a (config), ==, "dhcpcd");
 	g_assert_cmpstr (nm_config_get_log_level (config), ==, "INFO");
 	g_assert_cmpstr (nm_config_get_log_domains (config), ==, "PLATFORM,DNS,WIFI");
 	g_assert_cmpstr (nm_config_data_get_connectivity_uri (nm_config_get_data_orig (config)), ==, "http://example.net");
 	g_assert_cmpint (nm_config_data_get_connectivity_interval (nm_config_get_data_orig (config)), ==, 100);
 
-	plugins = nm_config_get_plugins (config);
+	plugins = nm_config_data_get_plugins (nm_config_get_data_orig (config), FALSE);
 	g_assert_cmpint (g_strv_length ((char **)plugins), ==, 5);
 	g_assert_cmpstr (plugins[0], ==, "foo");
 	g_assert_cmpstr (plugins[1], ==, "bar");
@@ -475,8 +518,6 @@ test_config_confdir (void)
 	g_free (value);
 
 	nm_config_data_log (nm_config_get_data_orig (config), ">>> TEST: ", " ", NULL);
-
-	g_object_unref (config);
 }
 
 static void
@@ -511,9 +552,9 @@ _set_values_config_changed_cb (NMConfig *config,
 	g_assert (config_changed_data);
 	g_assert (config_changed_data->changes == NM_CONFIG_CHANGE_NONE);
 
-	if (changes == NM_CONFIG_CHANGE_SIGHUP)
+	if (changes == NM_CONFIG_CHANGE_CAUSE_SIGHUP)
 		return;
-	changes &= ~NM_CONFIG_CHANGE_SIGHUP;
+	changes &= ~NM_CONFIG_CHANGE_CAUSE_SIGHUP;
 
 	config_changed_data->changes = changes;
 
@@ -556,11 +597,11 @@ _set_values_user (NMConfig *config,
 	config_data_before = g_object_ref (nm_config_get_data (config));
 
 	if (expected_changes != NM_CONFIG_CHANGE_NONE)
-		g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: update *");
+		g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal *");
 	else
 		g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal SIGHUP (no changes from disk)*");
 
-	nm_config_reload (config, SIGHUP);
+	nm_config_reload (config, NM_CONFIG_CHANGE_CAUSE_SIGHUP);
 
 	g_test_assert_expected_messages ();
 
@@ -600,7 +641,7 @@ _set_values_intern (NMConfig *config,
 	                  &config_changed_data);
 
 	if (expected_changes != NM_CONFIG_CHANGE_NONE)
-		g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: update *");
+		g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal *");
 
 	nm_config_set_values (config, keyfile_intern, TRUE, FALSE);
 
@@ -649,14 +690,14 @@ static void
 _set_values_intern_internal_set (NMConfig *config, gboolean set_user, GKeyFile *keyfile, NMConfigChangeFlags *out_expected_changes)
 {
 	g_key_file_set_string (keyfile, NM_CONFIG_KEYFILE_GROUPPREFIX_INTERN"section1", "key", "internal-section");
-	*out_expected_changes = NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN;
+	*out_expected_changes = NM_CONFIG_CHANGE_CAUSE_SET_VALUES | NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN;
 }
 
 static void
 _set_values_intern_internal_check (NMConfig *config, NMConfigData *config_data, gboolean is_change_event, NMConfigChangeFlags changes, NMConfigData *old_data)
 {
 	if (is_change_event)
-		g_assert (changes == (NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN));
+		g_assert (changes == (NM_CONFIG_CHANGE_CAUSE_SET_VALUES | NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN));
 	assert_config_value (config_data, NM_CONFIG_KEYFILE_GROUPPREFIX_INTERN"section1", "key", "internal-section");
 }
 
@@ -690,14 +731,14 @@ _set_values_intern_atomic_section_1_set (NMConfig *config, gboolean set_user, GK
 	g_key_file_set_string (keyfile, "atomic-prefix-1.section-a", "key3", "intern-value3");
 	g_key_file_set_string (keyfile, "non-atomic-prefix-1.section-a", "nap1-key1", "intern-value1");
 	g_key_file_set_string (keyfile, "non-atomic-prefix-1.section-a", "nap1-key3", "intern-value3");
-	*out_expected_changes = NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN;
+	*out_expected_changes = NM_CONFIG_CHANGE_CAUSE_SET_VALUES | NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN;
 }
 
 static void
 _set_values_intern_atomic_section_1_check (NMConfig *config, NMConfigData *config_data, gboolean is_change_event, NMConfigChangeFlags changes, NMConfigData *old_data)
 {
 	if (is_change_event)
-		g_assert (changes == (NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN));
+		g_assert (changes == (NM_CONFIG_CHANGE_CAUSE_SET_VALUES | NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN));
 	assert_config_value (config_data, "atomic-prefix-1.section-a", "key1", "intern-value1");
 	assert_config_value (config_data, "atomic-prefix-1.section-a", "key2", NULL);
 	assert_config_value (config_data, "atomic-prefix-1.section-a", "key3", "intern-value3");
@@ -744,14 +785,14 @@ _set_values_intern_atomic_section_2_set (NMConfig *config, gboolean set_user, GK
 	g_key_file_set_string (keyfile, "non-atomic-prefix-1.section-a", "nap1-key3", "intern-value3");
 	g_key_file_set_string (keyfile, NM_CONFIG_KEYFILE_GROUPPREFIX_INTERN"with-whitespace", "key1", " b c\\,  d  ");
 	g_key_file_set_value  (keyfile, NM_CONFIG_KEYFILE_GROUPPREFIX_INTERN"with-whitespace", "key2", " b c\\,  d  ");
-	*out_expected_changes = NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN;
+	*out_expected_changes = NM_CONFIG_CHANGE_CAUSE_SET_VALUES | NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN;
 }
 
 static void
 _set_values_intern_atomic_section_2_check (NMConfig *config, NMConfigData *config_data, gboolean is_change_event, NMConfigChangeFlags changes, NMConfigData *old_data)
 {
 	if (is_change_event)
-		g_assert (changes == (NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN));
+		g_assert (changes == (NM_CONFIG_CHANGE_CAUSE_SET_VALUES | NM_CONFIG_CHANGE_VALUES | NM_CONFIG_CHANGE_VALUES_INTERN));
 	g_assert (!nm_config_data_has_group (config_data, "atomic-prefix-1.section-a"));
 	assert_config_value (config_data, "atomic-prefix-1.section-b", "key1", "user-value1");
 	assert_config_value (config_data, "non-atomic-prefix-1.section-a", "nap1-key1", NULL);
@@ -862,17 +903,17 @@ test_config_signal (void)
 	                  G_CALLBACK (_test_signal_config_changed_cb),
 	                  &expected);
 
-	expected = NM_CONFIG_CHANGE_SIGUSR1;
+	expected = NM_CONFIG_CHANGE_CAUSE_SIGUSR1;
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal SIGUSR1");
-	nm_config_reload (config, SIGUSR1);
+	nm_config_reload (config, expected);
 
-	expected = NM_CONFIG_CHANGE_SIGUSR2;
+	expected = NM_CONFIG_CHANGE_CAUSE_SIGUSR2;
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal SIGUSR2");
-	nm_config_reload (config, SIGUSR2);
+	nm_config_reload (config, expected);
 
-	expected = NM_CONFIG_CHANGE_SIGHUP;
+	expected = NM_CONFIG_CHANGE_CAUSE_SIGHUP;
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal SIGHUP (no changes from disk)*");
-	nm_config_reload (config, SIGHUP);
+	nm_config_reload (config, expected);
 
 
 	/* test with subscribing two signals...
@@ -883,9 +924,9 @@ test_config_signal (void)
 	                  NM_CONFIG_SIGNAL_CONFIG_CHANGED,
 	                  G_CALLBACK (_test_signal_config_changed_cb2),
 	                  &expected);
-	expected = NM_CONFIG_CHANGE_SIGUSR2;
+	expected = NM_CONFIG_CHANGE_CAUSE_SIGUSR2;
 	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_INFO, "*config: signal SIGUSR2");
-	nm_config_reload (config, SIGUSR2);
+	nm_config_reload (config, NM_CONFIG_CHANGE_CAUSE_SIGUSR2);
 	g_signal_handlers_disconnect_by_func (config, _test_signal_config_changed_cb2, &expected);
 
 
@@ -930,6 +971,65 @@ test_config_enable (void)
 
 /*****************************************************************************/
 
+static void
+test_config_state_file (void)
+{
+	NMConfig *config;
+	const NMConfigState *state;
+	gs_free_error GError *error = NULL;
+	gboolean ret;
+	gs_free char *file_data = NULL;
+	gsize file_size;
+	const char *const TMP_FILE = BUILDDIR "/tmp.state";
+
+	ret = g_file_get_contents (SRCDIR "/NetworkManager.state", &file_data, &file_size, &error);
+	nmtst_assert_success (ret, error);
+	ret = g_file_set_contents (TMP_FILE, file_data, file_size, &error);
+	nmtst_assert_success (ret, error);
+
+	config = setup_config (NULL, SRCDIR "/NetworkManager.conf", "", NULL, SRCDIR "/conf.d", "",
+	                       "--state-file", TMP_FILE, NULL);
+	g_assert (config);
+
+	state = nm_config_state_get (config);
+	g_assert (state);
+
+	g_assert_cmpint (state->net_enabled, ==, TRUE);
+	g_assert_cmpint (state->wifi_enabled, ==, TRUE);
+	g_assert_cmpint (state->wwan_enabled, ==, TRUE);
+
+	nm_config_state_set (config, TRUE, TRUE,
+	                     NM_CONFIG_STATE_PROPERTY_NETWORKING_ENABLED, FALSE,
+	                     NM_CONFIG_STATE_PROPERTY_WIFI_ENABLED, TRUE,
+	                     NM_CONFIG_STATE_PROPERTY_WWAN_ENABLED, FALSE);
+
+	state = nm_config_state_get (config);
+	g_assert (state);
+
+	g_assert_cmpint (state->net_enabled, ==, FALSE);
+	g_assert_cmpint (state->wifi_enabled, ==, TRUE);
+	g_assert_cmpint (state->wwan_enabled, ==, FALSE);
+
+	g_object_unref (config);
+
+	/* Reload configuration */
+	config = setup_config (NULL, SRCDIR "/NetworkManager.conf", "", NULL, SRCDIR "/conf.d", "",
+	                       "--state-file", TMP_FILE, NULL);
+	g_assert (config);
+
+	state = nm_config_state_get (config);
+	g_assert (state);
+
+	g_assert_cmpint (state->net_enabled, ==, FALSE);
+	g_assert_cmpint (state->wifi_enabled, ==, TRUE);
+	g_assert_cmpint (state->wwan_enabled, ==, FALSE);
+
+	g_object_unref (config);
+	unlink (TMP_FILE);
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE ();
 
 int
@@ -955,10 +1055,15 @@ main (int argc, char **argv)
 
 	g_test_add_func ("/config/set-values", test_config_set_values);
 	g_test_add_func ("/config/global-dns", test_config_global_dns);
+#if WITH_CONCHECK
+	g_test_add_func ("/config/connectivity-check", test_config_connectivity_check);
+#endif
 
 	g_test_add_func ("/config/signal", test_config_signal);
 
 	g_test_add_func ("/config/enable", test_config_enable);
+
+	g_test_add_func ("/config/state-file", test_config_state_file);
 
 	/* This one has to come last, because it leaves its values in
 	 * nm-config.c's global variables, and there's no way to reset

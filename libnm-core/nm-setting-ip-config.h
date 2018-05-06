@@ -28,6 +28,7 @@
 #endif
 
 #include "nm-setting.h"
+#include "nm-utils.h"
 
 G_BEGIN_DECLS
 
@@ -91,6 +92,17 @@ void         nm_ip_route_ref                 (NMIPRoute  *route);
 void         nm_ip_route_unref               (NMIPRoute  *route);
 gboolean     nm_ip_route_equal               (NMIPRoute  *route,
                                               NMIPRoute  *other);
+
+enum {
+	NM_IP_ROUTE_EQUAL_CMP_FLAGS_NONE         = 0,
+	NM_IP_ROUTE_EQUAL_CMP_FLAGS_WITH_ATTRS   = (1LL <<  0),
+};
+
+NM_AVAILABLE_IN_1_10
+gboolean     nm_ip_route_equal_full          (NMIPRoute  *route,
+                                              NMIPRoute  *other,
+                                              guint       cmp_flags);
+
 NMIPRoute   *nm_ip_route_dup                 (NMIPRoute  *route);
 
 int          nm_ip_route_get_family          (NMIPRoute  *route);
@@ -121,7 +133,30 @@ GVariant    *nm_ip_route_get_attribute       (NMIPRoute   *route,
 void         nm_ip_route_set_attribute       (NMIPRoute   *route,
                                               const char  *name,
                                               GVariant    *value);
+NM_AVAILABLE_IN_1_8
+const NMVariantAttributeSpec *const *nm_ip_route_get_variant_attribute_spec (void);
+NM_AVAILABLE_IN_1_8
+gboolean     nm_ip_route_attribute_validate  (const char *name,
+                                              GVariant *value,
+                                              int family,
+                                              gboolean *known,
+                                              GError **error);
 
+#define NM_IP_ROUTE_ATTRIBUTE_TABLE          "table"
+#define NM_IP_ROUTE_ATTRIBUTE_SRC            "src"
+#define NM_IP_ROUTE_ATTRIBUTE_FROM           "from"
+#define NM_IP_ROUTE_ATTRIBUTE_TOS            "tos"
+#define NM_IP_ROUTE_ATTRIBUTE_ONLINK         "onlink"
+#define NM_IP_ROUTE_ATTRIBUTE_WINDOW         "window"
+#define NM_IP_ROUTE_ATTRIBUTE_CWND           "cwnd"
+#define NM_IP_ROUTE_ATTRIBUTE_INITCWND       "initcwnd"
+#define NM_IP_ROUTE_ATTRIBUTE_INITRWND       "initrwnd"
+#define NM_IP_ROUTE_ATTRIBUTE_MTU            "mtu"
+#define NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW    "lock-window"
+#define NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND      "lock-cwnd"
+#define NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND  "lock-initcwnd"
+#define NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND  "lock-initrwnd"
+#define NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU       "lock-mtu"
 
 #define NM_TYPE_SETTING_IP_CONFIG            (nm_setting_ip_config_get_type ())
 #define NM_SETTING_IP_CONFIG(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTING_IP_CONFIG, NMSettingIPConfig))
@@ -136,10 +171,12 @@ void         nm_ip_route_set_attribute       (NMIPRoute   *route,
 #define NM_SETTING_IP_CONFIG_DNS                "dns"
 #define NM_SETTING_IP_CONFIG_DNS_SEARCH         "dns-search"
 #define NM_SETTING_IP_CONFIG_DNS_OPTIONS        "dns-options"
+#define NM_SETTING_IP_CONFIG_DNS_PRIORITY       "dns-priority"
 #define NM_SETTING_IP_CONFIG_ADDRESSES          "addresses"
 #define NM_SETTING_IP_CONFIG_GATEWAY            "gateway"
 #define NM_SETTING_IP_CONFIG_ROUTES             "routes"
 #define NM_SETTING_IP_CONFIG_ROUTE_METRIC       "route-metric"
+#define NM_SETTING_IP_CONFIG_ROUTE_TABLE        "route-table"
 #define NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES "ignore-auto-routes"
 #define NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS    "ignore-auto-dns"
 #define NM_SETTING_IP_CONFIG_DHCP_HOSTNAME      "dhcp-hostname"
@@ -219,6 +256,9 @@ gboolean      nm_setting_ip_config_remove_dns_option_by_value (NMSettingIPConfig
                                                                const char        *dns_option);
 void          nm_setting_ip_config_clear_dns_options          (NMSettingIPConfig *setting, gboolean is_set);
 
+NM_AVAILABLE_IN_1_4
+gint          nm_setting_ip_config_get_dns_priority (NMSettingIPConfig *setting);
+
 guint         nm_setting_ip_config_get_num_addresses          (NMSettingIPConfig *setting);
 NMIPAddress  *nm_setting_ip_config_get_address                (NMSettingIPConfig *setting,
                                                                int                idx);
@@ -244,6 +284,9 @@ gboolean      nm_setting_ip_config_remove_route_by_value      (NMSettingIPConfig
 void          nm_setting_ip_config_clear_routes               (NMSettingIPConfig *setting);
 
 gint64        nm_setting_ip_config_get_route_metric           (NMSettingIPConfig *setting);
+
+NM_AVAILABLE_IN_1_10
+guint32       nm_setting_ip_config_get_route_table            (NMSettingIPConfig *setting);
 
 gboolean      nm_setting_ip_config_get_ignore_auto_routes     (NMSettingIPConfig *setting);
 gboolean      nm_setting_ip_config_get_ignore_auto_dns        (NMSettingIPConfig *setting);

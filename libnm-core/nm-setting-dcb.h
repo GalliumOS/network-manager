@@ -26,7 +26,7 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-setting.h>
+#include "nm-setting.h"
 
 G_BEGIN_DECLS
 
@@ -94,6 +94,8 @@ typedef enum { /*< flags >*/
 
 /**
  * NMSettingDcb:
+ *
+ * Data Center Bridging Settings
  */
 struct _NMSettingDcb {
 	NMSetting parent;

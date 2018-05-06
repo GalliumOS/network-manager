@@ -30,27 +30,27 @@
 
 #include "nm-utils.h"
 
-#include "nm-linux-platform.h"
+#include "platform/nm-linux-platform.h"
+#include "dhcp/nm-dhcp-manager.h"
 
-#include "net_parser.h"
-#include "net_utils.h"
-#include "wpa_parser.h"
-#include "connection_parser.h"
-#include "nm-config.h"
+#include "settings/plugins/ifnet/nms-ifnet-net-parser.h"
+#include "settings/plugins/ifnet/nms-ifnet-net-utils.h"
+#include "settings/plugins/ifnet/nms-ifnet-wpa-parser.h"
+#include "settings/plugins/ifnet/nms-ifnet-connection-parser.h"
 
-#include "nm-test-utils.h"
+#include "nm-test-utils-core.h"
 
-/* Fake NMConfig handling; the values it returns don't matter, so this
+/* Fake config handling; the values it returns don't matter, so this
  * is easier than forcing it to read our own config file, etc.
  */
-NMConfig *
-nm_config_get (void)
+NMDhcpManager *
+nm_dhcp_manager_get (void)
 {
 	return NULL;
 }
 
 const char *
-nm_config_get_dhcp_client (NMConfig *config)
+nm_dhcp_manager_get_config (NMDhcpManager *dhcp_manager)
 {
 	return "dhclient";
 }
@@ -346,7 +346,7 @@ test_delete_connection (void)
 static void
 test_missing_config (void)
 {
-	GError *error = NULL;
+	gs_free_error GError *error = NULL;
 	NMConnection *connection;
 
 	connection = ifnet_update_connection_from_config_block ("eth8", NULL, &error);

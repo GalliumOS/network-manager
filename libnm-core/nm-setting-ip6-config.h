@@ -43,6 +43,8 @@ G_BEGIN_DECLS
 
 #define NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE "addr-gen-mode"
 
+#define NM_SETTING_IP6_CONFIG_TOKEN "token"
+
 /**
  * NM_SETTING_IP6_CONFIG_METHOD_IGNORE:
  *
@@ -125,7 +127,7 @@ typedef enum {
  * key along with the connection identification and the network address as
  * specified by RFC7217.
  *
- * #NMSettingIP6ConfigAddrGenMode controls how the the Interface Identifier for
+ * #NMSettingIP6ConfigAddrGenMode controls how the Interface Identifier for
  * RFC4862 Stateless Address Autoconfiguration is created.
  *
  * Since: 1.2
@@ -137,6 +139,8 @@ typedef enum {
 
 /**
  * NMSettingIP6Config:
+ *
+ * IPv6 Settings
  */
 struct _NMSettingIP6Config {
 	NMSettingIPConfig parent;
@@ -156,6 +160,8 @@ NMSetting *nm_setting_ip6_config_new (void);
 NMSettingIP6ConfigPrivacy nm_setting_ip6_config_get_ip6_privacy (NMSettingIP6Config *setting);
 NM_AVAILABLE_IN_1_2
 NMSettingIP6ConfigAddrGenMode nm_setting_ip6_config_get_addr_gen_mode (NMSettingIP6Config *setting);
+NM_AVAILABLE_IN_1_4
+const char *nm_setting_ip6_config_get_token (NMSettingIP6Config *setting);
 
 G_END_DECLS
 

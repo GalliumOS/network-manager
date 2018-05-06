@@ -23,8 +23,6 @@
 
 #include "nm-device.h"
 
-G_BEGIN_DECLS
-
 #define NM_TYPE_DEVICE_MACVLAN            (nm_device_macvlan_get_type ())
 #define NM_DEVICE_MACVLAN(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE_MACVLAN, NMDeviceMacvlan))
 #define NM_DEVICE_MACVLAN_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_DEVICE_MACVLAN, NMDeviceMacvlanClass))
@@ -32,16 +30,16 @@ G_BEGIN_DECLS
 #define NM_IS_DEVICE_MACVLAN_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_MACVLAN))
 #define NM_DEVICE_MACVLAN_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_MACVLAN, NMDeviceMacvlanClass))
 
-#define NM_DEVICE_MACVLAN_PARENT     "parent"
 #define NM_DEVICE_MACVLAN_MODE       "mode"
 #define NM_DEVICE_MACVLAN_NO_PROMISC "no-promisc"
 #define NM_DEVICE_MACVLAN_TAP        "tap"
 
-typedef NMDevice NMDeviceMacvlan;
-typedef NMDeviceClass NMDeviceMacvlanClass;
+/* defined in the parent class, but exposed on D-Bus by the subclass. */
+#define NM_DEVICE_MACVLAN_PARENT     NM_DEVICE_PARENT
+
+typedef struct _NMDeviceMacvlan NMDeviceMacvlan;
+typedef struct _NMDeviceMacvlanClass NMDeviceMacvlanClass;
 
 GType nm_device_macvlan_get_type (void);
 
-G_END_DECLS
-
-#endif	/* NM_DEVICE_MACVLAN_H */
+#endif /* __NETWORKMANAGER_DEVICE_MACVLAN_H__ */

@@ -27,16 +27,42 @@
 #include <sys/ioctl.h>
 #include <net/ethernet.h>
 #include <unistd.h>
-#include <math.h>
 #include <netlink/netlink.h>
 #include <netlink/msg.h>
 #include <linux/nl80211.h>
 
 #include "wifi-utils-private.h"
 #include "wifi-utils-nl80211.h"
-#include "nm-platform.h"
+#include "platform/nm-platform.h"
+#include "platform/nm-platform-utils.h"
 #include "nm-utils.h"
 
+#define _NMLOG_PREFIX_NAME      "wifi-nl80211"
+#define _NMLOG(level, domain, ...) \
+	G_STMT_START { \
+		nm_log ((level), (domain), NULL, NULL, \
+		        "%s: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
+		        _NMLOG_PREFIX_NAME \
+		        _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
+	} G_STMT_END
+
+/*****************************************************************************/
+
+static int
+_nl_nla_parse (struct nlattr *tb[], int maxtype, struct nlattr *head, int len,
+               const struct nla_policy *policy)
+{
+	return nla_parse (tb, maxtype, head, len, (struct nla_policy *) policy);
+}
+#define nla_parse(...) _nl_nla_parse(__VA_ARGS__)
+
+static int
+_nl_nla_parse_nested (struct nlattr *tb[], int maxtype, struct nlattr *nla,
+                      const struct nla_policy *policy)
+{
+	return nla_parse_nested (tb, maxtype, nla, (struct nla_policy *) policy);
+}
+#define nla_parse_nested(...) _nl_nla_parse_nested(__VA_ARGS__)
 
 /*****************************************************************************
  * Copied from libnl3/genl:
@@ -123,7 +149,7 @@ genlmsg_valid_hdr (struct nlmsghdr *nlh, int hdrlen)
 
 static int
 genlmsg_parse (struct nlmsghdr *nlh, int hdrlen, struct nlattr *tb[],
-               int maxtype, struct nla_policy *policy)
+               int maxtype, const struct nla_policy *policy)
 {
 	struct genlmsghdr *ghdr;
 
@@ -142,7 +168,7 @@ genlmsg_parse (struct nlmsghdr *nlh, int hdrlen, struct nlattr *tb[],
 static int
 probe_response (struct nl_msg *msg, void *arg)
 {
-	static struct nla_policy ctrl_policy[CTRL_ATTR_MAX+1] = {
+	static const struct nla_policy ctrl_policy[CTRL_ATTR_MAX+1] = {
 		[CTRL_ATTR_FAMILY_ID]    = { .type = NLA_U16 },
 		[CTRL_ATTR_FAMILY_NAME]  = { .type = NLA_STRING,
 		                            .maxlen = GENL_NAMSIZ },
@@ -219,9 +245,9 @@ out_cb_free:
 	nl_cb_put (cb);
 out:
 	if (result >= 0)
-		nm_log_dbg (LOGD_WIFI, "genl_ctrl_resolve: resolved \"%s\" as 0x%x", name, result);
+		_LOGD (LOGD_WIFI, "genl_ctrl_resolve: resolved \"%s\" as 0x%x", name, result);
 	else
-		nm_log_err (LOGD_WIFI, "genl_ctrl_resolve: failed resolve \"%s\"", name);
+		_LOGE (LOGD_WIFI, "genl_ctrl_resolve: failed resolve \"%s\"", name);
 	return result;
 }
 
@@ -333,8 +359,8 @@ _nl80211_send_and_recv (struct nl_sock *nl_sock,
 			    genlmsg_hdr (nlmsg_hdr (msg))->cmd == NL80211_CMD_GET_SCAN)
 				break;
 
-			nm_log_warn (LOGD_WIFI, "nl_recvmsgs() error: (%d) %s",
-			             err, nl_geterror (err));
+			_LOGW (LOGD_WIFI, "nl_recvmsgs() error: (%d) %s",
+			       err, nl_geterror (err));
 			break;
 		}
 	}
@@ -381,7 +407,7 @@ nl80211_iface_info_handler (struct nl_msg *msg, void *arg)
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 
 	if (nla_parse (tb, NL80211_ATTR_MAX, genlmsg_attrdata (gnlh, 0),
-		       genlmsg_attrlen (gnlh, 0), NULL) < 0)
+	               genlmsg_attrlen (gnlh, 0), NULL) < 0)
 		return NL_SKIP;
 
 	if (!tb[NL80211_ATTR_IFTYPE])
@@ -521,7 +547,7 @@ nl80211_bss_dump_handler (struct nl_msg *msg, void *arg)
 	struct genlmsghdr *gnlh = nlmsg_data (nlmsg_hdr (msg));
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
 	struct nlattr *bss[NL80211_BSS_MAX + 1];
-	static struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
+	static const struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
 		[NL80211_BSS_TSF] = { .type = NLA_U64 },
 		[NL80211_BSS_FREQUENCY] = { .type = NLA_U32 },
 		[NL80211_BSS_BSSID] = { },
@@ -535,15 +561,15 @@ nl80211_bss_dump_handler (struct nl_msg *msg, void *arg)
 	guint32 status;
 
 	if (nla_parse (tb, NL80211_ATTR_MAX, genlmsg_attrdata (gnlh, 0),
-		       genlmsg_attrlen (gnlh, 0), NULL) < 0)
+	               genlmsg_attrlen (gnlh, 0), NULL) < 0)
 		return NL_SKIP;
 
 	if (tb[NL80211_ATTR_BSS] == NULL)
 		return NL_SKIP;
 
 	if (nla_parse_nested (bss, NL80211_BSS_MAX,
-			      tb[NL80211_ATTR_BSS],
-			      bss_policy))
+	                      tb[NL80211_ATTR_BSS],
+	                      bss_policy))
 		return NL_SKIP;
 
 	if (bss[NL80211_BSS_STATUS] == NULL)
@@ -657,7 +683,7 @@ nl80211_station_handler (struct nl_msg *msg, void *arg)
 	struct genlmsghdr *gnlh = nlmsg_data (nlmsg_hdr (msg));
 	struct nlattr *sinfo[NL80211_STA_INFO_MAX + 1];
 	struct nlattr *rinfo[NL80211_RATE_INFO_MAX + 1];
-	static struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
+	static const struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
 		[NL80211_STA_INFO_INACTIVE_TIME] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_RX_BYTES] = { .type = NLA_U32 },
 		[NL80211_STA_INFO_TX_BYTES] = { .type = NLA_U32 },
@@ -670,7 +696,7 @@ nl80211_station_handler (struct nl_msg *msg, void *arg)
 		[NL80211_STA_INFO_PLINK_STATE] = { .type = NLA_U8 },
 	};
 
-	static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
+	static const struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
 		[NL80211_RATE_INFO_BITRATE] = { .type = NLA_U16 },
 		[NL80211_RATE_INFO_MCS] = { .type = NLA_U8 },
 		[NL80211_RATE_INFO_40_MHZ_WIDTH] = { .type = NLA_FLAG },
@@ -863,7 +889,7 @@ static int nl80211_wiphy_info_handler (struct nl_msg *msg, void *arg)
 	int rem_freq;
 	int rem_band;
 	int freq_idx;
-	static struct nla_policy freq_policy[NL80211_FREQUENCY_ATTR_MAX + 1] = {
+	static const struct nla_policy freq_policy[NL80211_FREQUENCY_ATTR_MAX + 1] = {
 		[NL80211_FREQUENCY_ATTR_FREQ] = { .type = NLA_U32 },
 		[NL80211_FREQUENCY_ATTR_DISABLED] = { .type = NLA_FLAG },
 #ifdef NL80211_FREQUENCY_ATTR_NO_IR
@@ -934,8 +960,9 @@ static int nl80211_wiphy_info_handler (struct nl_msg *msg, void *arg)
 
 		nla_for_each_nested (nl_freq, tb_band[NL80211_BAND_ATTR_FREQS],
 		                     rem_freq) {
-			nla_parse_nested (tb_freq, NL80211_FREQUENCY_ATTR_MAX,
-			                  nl_freq, freq_policy);
+			if (nla_parse_nested (tb_freq, NL80211_FREQUENCY_ATTR_MAX,
+			                      nl_freq, freq_policy) < 0)
+				continue;
 
 			if (!tb_freq[NL80211_FREQUENCY_ATTR_FREQ])
 				continue;
@@ -955,8 +982,9 @@ static int nl80211_wiphy_info_handler (struct nl_msg *msg, void *arg)
 
 		nla_for_each_nested (nl_freq, tb_band[NL80211_BAND_ATTR_FREQS],
 		                    rem_freq) {
-			nla_parse_nested (tb_freq, NL80211_FREQUENCY_ATTR_MAX,
-			                  nl_freq, freq_policy);
+			if (nla_parse_nested (tb_freq, NL80211_FREQUENCY_ATTR_MAX,
+			                      nl_freq, freq_policy) < 0)
+				continue;
 
 			if (!tb_freq[NL80211_FREQUENCY_ATTR_FREQ])
 				continue;
@@ -1003,7 +1031,9 @@ static int nl80211_wiphy_info_handler (struct nl_msg *msg, void *arg)
 			case WLAN_CIPHER_SUITE_SMS4:
 				break;
 			default:
-				nm_log_dbg (LOGD_HW | LOGD_WIFI, "Don't know the meaning of NL80211_ATTR_CIPHER_SUITE %#8.8x.", ciphers[i]);
+				_LOGD (LOGD_PLATFORM | LOGD_WIFI,
+				       "don't know the meaning of NL80211_ATTR_CIPHER_SUITE %#8.8x.",
+				       ciphers[i]);
 				break;
 			}
 		}
@@ -1030,13 +1060,20 @@ static int nl80211_wiphy_info_handler (struct nl_msg *msg, void *arg)
 }
 
 WifiData *
-wifi_nl80211_init (const char *iface, int ifindex)
+wifi_nl80211_init (int ifindex)
 {
 	WifiDataNl80211 *nl80211;
 	struct nl_msg *msg;
 	struct nl80211_device_info device_info = {};
+	char ifname[IFNAMSIZ];
 
-	nl80211 = wifi_data_new (iface, ifindex, sizeof (*nl80211));
+	if (!nmp_utils_if_indextoname (ifindex, ifname)) {
+		_LOGW (LOGD_PLATFORM | LOGD_WIFI,
+		       "can't determine interface name for ifindex %d", ifindex);
+		nm_sprintf_buf (ifname, "if %d", ifindex);
+	}
+
+	nl80211 = wifi_data_new (ifindex, sizeof (*nl80211));
 	nl80211->parent.get_mode = wifi_nl80211_get_mode;
 	nl80211->parent.set_mode = wifi_nl80211_set_mode;
 	nl80211->parent.set_powersave = wifi_nl80211_set_powersave;
@@ -1071,44 +1108,44 @@ wifi_nl80211_init (const char *iface, int ifindex)
 
 	if (nl80211_send_and_recv (nl80211, msg, nl80211_wiphy_info_handler,
 	                           &device_info) < 0) {
-		nm_log_dbg (LOGD_HW | LOGD_WIFI,
-		            "(%s): NL80211_CMD_GET_WIPHY request failed",
-		            nl80211->parent.iface);
+		_LOGD (LOGD_PLATFORM | LOGD_WIFI,
+		       "(%s): NL80211_CMD_GET_WIPHY request failed",
+		       ifname);
 		goto error;
 	}
 
 	if (!device_info.success) {
-		nm_log_dbg (LOGD_HW | LOGD_WIFI,
-		            "(%s): NL80211_CMD_GET_WIPHY request indicated failure",
-		            nl80211->parent.iface);
+		_LOGD (LOGD_PLATFORM | LOGD_WIFI,
+		       "(%s): NL80211_CMD_GET_WIPHY request indicated failure",
+		       ifname);
 		goto error;
 	}
 
 	if (!device_info.supported) {
-		nm_log_dbg (LOGD_HW | LOGD_WIFI,
-		            "(%s): driver does not fully support nl80211, falling back to WEXT",
-		            nl80211->parent.iface);
+		_LOGD (LOGD_PLATFORM | LOGD_WIFI,
+		       "(%s): driver does not fully support nl80211, falling back to WEXT",
+		       ifname);
 		goto error;
 	}
 
 	if (!device_info.can_scan_ssid) {
-		nm_log_err (LOGD_HW | LOGD_WIFI,
-		            "(%s): driver does not support SSID scans",
-		            nl80211->parent.iface);
+		_LOGE (LOGD_PLATFORM | LOGD_WIFI,
+		       "(%s): driver does not support SSID scans",
+		       ifname);
 		goto error;
 	}
 
 	if (device_info.num_freqs == 0 || device_info.freqs == NULL) {
-		nm_log_err (LOGD_HW | LOGD_WIFI,
+		nm_log_err (LOGD_PLATFORM | LOGD_WIFI,
 		            "(%s): driver reports no supported frequencies",
-		            nl80211->parent.iface);
+		            ifname);
 		goto error;
 	}
 
 	if (device_info.caps == 0) {
-		nm_log_err (LOGD_HW | LOGD_WIFI,
-		            "(%s): driver doesn't report support of any encryption",
-		            nl80211->parent.iface);
+		_LOGE (LOGD_PLATFORM | LOGD_WIFI,
+		       "(%s): driver doesn't report support of any encryption",
+		       ifname);
 		goto error;
 	}
 
@@ -1120,9 +1157,9 @@ wifi_nl80211_init (const char *iface, int ifindex)
 	if (device_info.can_wowlan)
 		nl80211->parent.get_wowlan = wifi_nl80211_get_wowlan;
 
-	nm_log_info (LOGD_HW | LOGD_WIFI,
-	             "(%s): using nl80211 for WiFi device control",
-	             nl80211->parent.iface);
+	_LOGI (LOGD_PLATFORM | LOGD_WIFI,
+	       "(%s): using nl80211 for WiFi device control",
+	       ifname);
 
 	return (WifiData *) nl80211;
 

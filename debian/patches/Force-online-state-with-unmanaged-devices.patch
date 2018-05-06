@@ -8,23 +8,23 @@ online state to CONNECTED.
 
 Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
 ---
- src/nm-manager.c |  120 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 120 insertions(+)
+ src/nm-manager.c | 117 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 117 insertions(+)
 
-Index: b/src/nm-manager.c
-===================================================================
+diff --git a/src/nm-manager.c b/src/nm-manager.c
+index 8391dbf..e60b6c6 100644
 --- a/src/nm-manager.c
 +++ b/src/nm-manager.c
-@@ -57,6 +57,8 @@
- #include "nmdbus-manager.h"
- #include "nmdbus-device.h"
+@@ -62,6 +62,8 @@
+ #include "introspection/org.freedesktop.NetworkManager.h"
+ #include "introspection/org.freedesktop.NetworkManager.Device.h"
  
 +#define IFUPDOWN_STATE_FILE "/run/network/ifstate"
 +
- static gboolean add_device (NMManager *self, NMDevice *device, GError **error);
+ /*****************************************************************************/
  
- static NMActiveConnection *_new_active_connection (NMManager *self,
-@@ -137,6 +139,10 @@ typedef struct {
+ typedef struct {
+@@ -169,6 +171,10 @@ typedef struct {
  	GFileMonitor *fw_monitor;
  	guint fw_changed_id;
  
@@ -34,8 +34,8 @@ Index: b/src/nm-manager.c
 +
  	guint timestamp_update_id;
  
- 	gboolean startup;
-@@ -687,6 +693,29 @@ find_best_device_state (NMManager *manag
+ 	guint devices_inited_id;
+@@ -1124,6 +1130,29 @@ find_best_device_state (NMManager *manager)
  	return best_state;
  }
  
@@ -65,20 +65,21 @@ Index: b/src/nm-manager.c
  static void
  nm_manager_update_metered (NMManager *self)
  {
-@@ -727,6 +756,9 @@ nm_manager_update_state (NMManager *mana
- 
- 	nm_connectivity_set_online (priv->connectivity, new_state >= NM_STATE_CONNECTED_LOCAL);
+@@ -1162,6 +1191,9 @@ nm_manager_update_state (NMManager *manager)
+ 	else
+ 		new_state = find_best_device_state (manager);
  
 +	if (new_state != NM_STATE_CONNECTED_GLOBAL)
 +		new_state = find_unmanaged_state (manager, new_state);
 +
- 	if (new_state == NM_STATE_CONNECTED_SITE) {
- 		nm_connectivity_check_async (priv->connectivity,
- 		                             checked_connectivity,
-@@ -4400,6 +4432,65 @@ impl_manager_check_connectivity (NMManag
+ 	if (   new_state >= NM_STATE_CONNECTED_LOCAL
+ 	    && priv->connectivity_state == NM_CONNECTIVITY_FULL) {
+ 		new_state = NM_STATE_CONNECTED_GLOBAL;
+@@ -5421,6 +5453,62 @@ impl_manager_check_connectivity (NMManager *self,
+ 	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_NETWORK_CONTROL, TRUE);
  }
  
- static void
++static void
 +check_ifstate_file (gpointer user_data)
 +{
 +	NMManager *self = NM_MANAGER (user_data);
@@ -118,9 +119,6 @@ Index: b/src/nm-manager.c
 +                      GFileMonitorEvent event_type,
 +                      gpointer user_data)
 +{
-+	NMManager *self = NM_MANAGER (user_data);
-+	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
-+
 +	switch (event_type) {
 +//	case G_FILE_MONITOR_EVENT_CREATED:
 +//#if GLIB_CHECK_VERSION(2,23,4)
@@ -137,13 +135,12 @@ Index: b/src/nm-manager.c
 +	}
 +}
 +
-+static void
+ static void
  start_factory (NMDeviceFactory *factory, gpointer user_data)
  {
- 	nm_device_factory_start (factory);
-@@ -4470,6 +4561,9 @@ nm_manager_start (NMManager *self, GErro
- 
- 	check_if_startup_complete (self);
+@@ -5572,6 +5660,9 @@ nm_manager_start (NMManager *self, GError **error)
+ 	nm_clear_g_source (&priv->devices_inited_id);
+ 	priv->devices_inited_id = g_idle_add_full (G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);
  
 +	/* Trigger ifupdown state file check */
 +	check_ifstate_file (self);
@@ -151,7 +148,7 @@ Index: b/src/nm-manager.c
  	return TRUE;
  }
  
-@@ -5270,6 +5364,22 @@ nm_manager_init (NMManager *self)
+@@ -6567,6 +6658,22 @@ nm_manager_init (NMManager *self)
  		       KERNEL_FIRMWARE_DIR);
  	}
  
@@ -174,12 +171,12 @@ Index: b/src/nm-manager.c
  	/* Update timestamps in active connections */
  	priv->timestamp_update_id = g_timeout_add_seconds (300, (GSourceFunc) periodic_update_active_connection_timestamps, self);
  
-@@ -5512,6 +5622,16 @@ dispose (GObject *object)
+@@ -6849,6 +6956,16 @@ dispose (GObject *object)
  		g_clear_object (&priv->fw_monitor);
  	}
  
 +	if (priv->ifstate_monitor) {
-+		g_signal_handlers_disconnect_by_func (priv->ifstate_monitor, ifstate_file_changed, manager);
++		g_signal_handlers_disconnect_by_func (priv->ifstate_monitor, ifstate_file_changed, self);
 +
 +		if (priv->ifstate_force_online)
 +			g_source_remove (priv->ifstate_force_online);
@@ -189,5 +186,5 @@ Index: b/src/nm-manager.c
 +	}
 +
  	if (priv->rfkill_mgr) {
- 		g_signal_handlers_disconnect_by_func (priv->rfkill_mgr, rfkill_manager_rfkill_changed_cb, manager);
+ 		g_signal_handlers_disconnect_by_func (priv->rfkill_mgr, rfkill_manager_rfkill_changed_cb, self);
  		g_clear_object (&priv->rfkill_mgr);

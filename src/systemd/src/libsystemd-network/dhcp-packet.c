@@ -36,8 +36,8 @@ int dhcp_message_init(DHCPMessage *message, uint8_t op, uint32_t xid,
         size_t offset = 0;
         int r;
 
-        assert(op == BOOTREQUEST || op == BOOTREPLY);
-        assert(arp_type == ARPHRD_ETHER || arp_type == ARPHRD_INFINIBAND);
+        assert(IN_SET(op, BOOTREQUEST, BOOTREPLY));
+        assert(IN_SET(arp_type, ARPHRD_ETHER, ARPHRD_INFINIBAND));
 
         message->op = op;
         message->htype = arp_type;
@@ -116,7 +116,7 @@ void dhcp_packet_append_ip_headers(DHCPPacket *packet, be32_t source_addr,
         packet->ip.check = dhcp_packet_checksum((uint8_t*)&packet->ip, DHCP_IP_SIZE);
 }
 
-int dhcp_packet_verify_headers(DHCPPacket *packet, size_t len, bool checksum) {
+int dhcp_packet_verify_headers(DHCPPacket *packet, size_t len, bool checksum, uint16_t port) {
         size_t hdrlen;
 
         assert(packet);
@@ -162,10 +162,10 @@ int dhcp_packet_verify_headers(DHCPPacket *packet, size_t len, bool checksum) {
                 return -EINVAL;
         }
 
-        if (be16toh(packet->udp.dest) != DHCP_PORT_CLIENT) {
+        if (be16toh(packet->udp.dest) != port) {
                 log_debug("ignoring packet: to port %u, which "
                           "is not the DHCP client port (%u)",
-                          be16toh(packet->udp.dest), DHCP_PORT_CLIENT);
+                          be16toh(packet->udp.dest), port);
                 return -EINVAL;
         }
 

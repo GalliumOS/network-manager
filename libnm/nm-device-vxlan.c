@@ -27,7 +27,6 @@
 #include "nm-utils.h"
 
 #include "nm-device-vxlan.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 
 G_DEFINE_TYPE (NMDeviceVxlan, nm_device_vxlan, NM_TYPE_DEVICE)
@@ -95,7 +94,7 @@ nm_device_vxlan_get_hw_address (NMDeviceVxlan *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_VXLAN (device), NULL);
 
-	return NM_DEVICE_VXLAN_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_VXLAN_GET_PRIVATE (device)->hw_address);
 }
 
 /**
@@ -162,7 +161,7 @@ nm_device_vxlan_get_group (NMDeviceVxlan *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_VXLAN (device), NULL);
 
-	return NM_DEVICE_VXLAN_GET_PRIVATE (device)->group;
+	return nm_str_not_empty (NM_DEVICE_VXLAN_GET_PRIVATE (device)->group);
 }
 
 /**
@@ -178,7 +177,7 @@ nm_device_vxlan_get_local (NMDeviceVxlan *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_VXLAN (device), NULL);
 
-	return NM_DEVICE_VXLAN_GET_PRIVATE (device)->local;
+	return nm_str_not_empty (NM_DEVICE_VXLAN_GET_PRIVATE (device)->local);
 }
 
 /**
@@ -410,12 +409,11 @@ get_hw_address (NMDevice *device)
 	return nm_device_vxlan_get_hw_address (NM_DEVICE_VXLAN (device));
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_vxlan_init (NMDeviceVxlan *device)
 {
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_VXLAN);
 }
 
 static void
@@ -458,6 +456,8 @@ finalize (GObject *object)
 
 	g_free (priv->hw_address);
 	g_clear_object (&priv->parent);
+	g_free (priv->group);
+	g_free (priv->local);
 
 	G_OBJECT_CLASS (nm_device_vxlan_parent_class)->finalize (object);
 }
@@ -539,8 +539,6 @@ nm_device_vxlan_class_init (NMDeviceVxlanClass *vxlan_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (vxlan_class);
 
 	g_type_class_add_private (vxlan_class, sizeof (NMDeviceVxlanPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_VXLAN);
 
 	/* virtual methods */
 	object_class->finalize = finalize;

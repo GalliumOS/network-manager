@@ -22,11 +22,8 @@
 #ifndef __NETWORKMANAGER_MODEM_H__
 #define __NETWORKMANAGER_MODEM_H__
 
-#include "nm-default.h"
-#include "ppp-manager/nm-ppp-manager.h"
-#include "nm-device.h"
-
-G_BEGIN_DECLS
+#include "ppp/nm-ppp-manager.h"
+#include "devices/nm-device.h"
 
 #define NM_TYPE_MODEM            (nm_modem_get_type ())
 #define NM_MODEM(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_MODEM, NMModem))
@@ -79,7 +76,7 @@ typedef enum {
  * combination of flags is possible.  For example, (%NM_MODEM_IP_TYPE_IPV4 |
  * %NM_MODEM_IP_TYPE_IPV6) indicates that the modem supports IPv4 and IPv6
  * but not simultaneously on the same bearer.
- */ 
+ */
 typedef enum {
 	NM_MODEM_IP_TYPE_UNKNOWN = 0x0,
 	NM_MODEM_IP_TYPE_IPV4 = 0x1,
@@ -101,12 +98,19 @@ typedef enum {  /*< underscore_name=nm_modem_state >*/
 	NM_MODEM_STATE_DISCONNECTING = 10,
 	NM_MODEM_STATE_CONNECTING    = 11,
 	NM_MODEM_STATE_CONNECTED     = 12,
+
+	_NM_MODEM_STATE_LAST0,
+	_NM_MODEM_STATE_LAST = _NM_MODEM_STATE_LAST0 -1,
 } NMModemState;
 
+struct _NMModemPrivate;
 
-typedef struct {
+struct _NMModem {
 	GObject parent;
-} NMModem;
+	struct _NMModemPrivate *_priv;
+};
+
+typedef struct _NMModem NMModem;
 
 typedef struct {
 	GObjectClass parent;
@@ -130,17 +134,17 @@ typedef struct {
 
 	NMActStageReturn (*act_stage1_prepare)     (NMModem *modem,
 	                                            NMConnection *connection,
-	                                            NMDeviceStateReason *reason);
+	                                            NMDeviceStateReason *out_failure_reason);
 
 	NMActStageReturn (*static_stage3_ip4_config_start) (NMModem *self,
 	                                                    NMActRequest *req,
-	                                                    NMDeviceStateReason *reason);
+	                                                    NMDeviceStateReason *out_failure_reason);
 
 	/* Request the IP6 config; when the config returns the modem
 	 * subclass should emit the ip6_config_result signal.
 	 */
 	NMActStageReturn (*stage3_ip6_config_request) (NMModem *self,
-	                                               NMDeviceStateReason *reason);
+	                                               NMDeviceStateReason *out_failure_reason);
 
 	void (*set_mm_enabled)                     (NMModem *self, gboolean enabled);
 
@@ -156,26 +160,6 @@ typedef struct {
 	void     (*deactivate_cleanup)             (NMModem *self, NMDevice *device);
 
 	gboolean (*owns_port)                      (NMModem *self, const char *iface);
-
-	/* Signals */
-	void (*ppp_stats)  (NMModem *self, guint32 in_bytes, guint32 out_bytes);
-	void (*ppp_failed) (NMModem *self, NMDeviceStateReason reason);
-
-	void (*prepare_result)    (NMModem *self, gboolean success, NMDeviceStateReason reason);
-	void (*ip4_config_result) (NMModem *self, NMIP4Config *config, GError *error);
-	void (*ip6_config_result) (NMModem *self,
-	                           NMIP6Config *config,
-	                           gboolean do_slaac,
-	                           GError *error);
-
-	void (*auth_requested)    (NMModem *self);
-	void (*auth_result)       (NMModem *self, GError *error);
-
-	void (*state_changed)     (NMModem *self,
-	                           NMModemState new_state,
-	                           NMModemState old_state);
-
-	void (*removed)           (NMModem *self);
 } NMModemClass;
 
 GType nm_modem_get_type (void);
@@ -203,22 +187,37 @@ gboolean nm_modem_complete_connection (NMModem *self,
                                        const GSList *existing_connections,
                                        GError **error);
 
+void nm_modem_get_route_parameters (NMModem *self,
+                                    guint32 *out_ip4_route_table,
+                                    guint32 *out_ip4_route_metric,
+                                    guint32 *out_ip6_route_table,
+                                    guint32 *out_ip6_route_metric);
+
+void nm_modem_set_route_parameters (NMModem *self,
+                                    guint32 ip4_route_table,
+                                    guint32 ip4_route_metric,
+                                    guint32 ip6_route_table,
+                                    guint32 ip6_route_metric);
+
+void nm_modem_set_route_parameters_from_device (NMModem *modem,
+                                                NMDevice *device);
+
 NMActStageReturn nm_modem_act_stage1_prepare (NMModem *modem,
                                               NMActRequest *req,
-                                              NMDeviceStateReason *reason);
+                                              NMDeviceStateReason *out_failure_reason);
 
 NMActStageReturn nm_modem_act_stage2_config (NMModem *modem,
                                              NMActRequest *req,
-                                             NMDeviceStateReason *reason);
+                                             NMDeviceStateReason *out_failure_reason);
 
 NMActStageReturn nm_modem_stage3_ip4_config_start (NMModem *modem,
                                                    NMDevice *device,
                                                    NMDeviceClass *device_class,
-                                                   NMDeviceStateReason *reason);
+                                                   NMDeviceStateReason *out_failure_reason);
 
 NMActStageReturn nm_modem_stage3_ip6_config_start (NMModem *modem,
                                                    NMActRequest *req,
-                                                   NMDeviceStateReason *reason);
+                                                   NMDeviceStateReason *out_failure_reason);
 
 void nm_modem_ip4_pre_commit (NMModem *modem, NMDevice *device, NMIP4Config *config);
 
@@ -240,8 +239,7 @@ gboolean nm_modem_deactivate_async_finish (NMModem *self,
 
 void nm_modem_device_state_changed (NMModem *modem,
                                     NMDeviceState new_state,
-                                    NMDeviceState old_state,
-                                    NMDeviceStateReason reason);
+                                    NMDeviceState old_state);
 
 void          nm_modem_set_mm_enabled (NMModem *self, gboolean enabled);
 
@@ -257,6 +255,10 @@ NMModemIPType nm_modem_get_supported_ip_types (NMModem *self);
 /* For the modem-manager only */
 void          nm_modem_emit_removed (NMModem *self);
 
+void          nm_modem_emit_prepare_result (NMModem *self, gboolean success, NMDeviceStateReason reason);
+
+void          nm_modem_emit_ppp_failed (NMModem *self, NMDeviceStateReason reason);
+
 GArray       *nm_modem_get_connection_ip_type (NMModem *self,
                                                NMConnection *connection,
                                                GError **error);
@@ -268,6 +270,6 @@ void nm_modem_emit_ip6_config_result (NMModem *self,
 
 const gchar *nm_modem_ip_type_to_string (NMModemIPType ip_type);
 
-G_END_DECLS
+guint32 nm_modem_get_configured_mtu (NMDevice *self, gboolean *out_is_user_config);
 
 #endif /* __NETWORKMANAGER_MODEM_H__ */

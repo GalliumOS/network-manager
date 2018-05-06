@@ -16,7 +16,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Copyright (C) 2008 - 2009 Novell, Inc.
- * Copyright (C) 2008 - 2015 Red Hat, Inc.
+ * Copyright (C) 2008 - 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -30,9 +30,13 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <linux/pkt_sched.h>
 
+#include "nm-common-macros.h"
 #include "nm-core-internal.h"
 #include "nm-keyfile-utils.h"
+
+#include "nm-setting-user.h"
 
 typedef struct {
 	NMConnection *connection;
@@ -107,26 +111,30 @@ read_array_of_uint (GKeyFile *file,
                     NMSetting *setting,
                     const char *key)
 {
-	GArray *array = NULL;
+	gs_unref_array GArray *array = NULL;
 	gsize length;
-	int i;
-	gint *tmp;
+	gsize i;
+	gs_free int *tmp = NULL;
 
 	tmp = nm_keyfile_plugin_kf_get_integer_list (file, nm_setting_get_name (setting), key, &length, NULL);
-	array = g_array_sized_new (FALSE, FALSE, sizeof (guint32), length);
+	if (length > G_MAXUINT)
+		return;
 
-	for (i = 0; i < length; i++)
+	array = g_array_sized_new (FALSE, FALSE, sizeof (guint), length);
+
+	for (i = 0; i < length; i++) {
+		if (tmp[i] < 0)
+			return;
 		g_array_append_val (array, tmp[i]);
+	}
 
 	g_object_set (setting, key, array, NULL);
-	g_array_unref (array);
 }
 
 static gboolean
 get_one_int (KeyfileReaderInfo *info, const char *property_name, const char *str, guint32 max_val, guint32 *out)
 {
-	long tmp;
-	char *endptr;
+	gint64 tmp;
 
 	g_return_val_if_fail (!info == !property_name, FALSE);
 
@@ -137,13 +145,13 @@ get_one_int (KeyfileReaderInfo *info, const char *property_name, const char *str
 		return FALSE;
 	}
 
-	errno = 0;
-	tmp = strtol (str, &endptr, 10);
-	if (errno || (tmp < 0) || (tmp > max_val) || *endptr != 0) {
-		if (property_name)
+	tmp = _nm_utils_ascii_str_to_int64 (str, 10, 0, max_val, -1);
+	if (tmp == -1) {
+		if (property_name) {
 			handle_warn (info, property_name, NM_KEYFILE_WARN_SEVERITY_WARN,
 			             _("ignoring invalid number '%s'"),
 			            str);
+		}
 		return FALSE;
 	}
 
@@ -178,7 +186,8 @@ build_route (KeyfileReaderInfo *info,
              const char *gateway_str, const char *metric_str)
 {
 	NMIPRoute *route;
-	guint32 metric = 0;
+	guint32 u32;
+	gint64 metric = -1;
 	GError *error = NULL;
 
 	g_return_val_if_fail (plen, NULL);
@@ -197,9 +206,10 @@ build_route (KeyfileReaderInfo *info,
 			 **/
 			if (   family == AF_INET6
 			    && !metric_str
-			    && get_one_int (NULL, NULL, gateway_str, G_MAXUINT32, &metric))
+			    && get_one_int (NULL, NULL, gateway_str, G_MAXUINT32, &u32)) {
+				metric = u32;
 				gateway_str = NULL;
-			else {
+			} else {
 				if (!info->error) {
 					handle_warn (info, property_name, NM_KEYFILE_WARN_SEVERITY_WARN,
 					             _("ignoring invalid gateway '%s' for %s route"),
@@ -211,14 +221,15 @@ build_route (KeyfileReaderInfo *info,
 	} else
 		gateway_str = NULL;
 
-	/* parse metric, default to 0 */
+	/* parse metric, default to -1 */
 	if (metric_str) {
-		if (!get_one_int (info, property_name, metric_str, G_MAXUINT32, &metric))
+		if (!get_one_int (info, property_name, metric_str, G_MAXUINT32, &u32))
 			return NULL;
+		metric = u32;
 	}
 
 	route = nm_ip_route_new (family, dest_str, plen, gateway_str,
-	                         metric ? (gint64) metric : -1,
+	                         metric,
 	                         &error);
 	if (!route) {
 		handle_warn (info, property_name, NM_KEYFILE_WARN_SEVERITY_WARN,
@@ -242,17 +253,17 @@ build_route (KeyfileReaderInfo *info,
  * When @current target is %NULL, gracefully fail returning %NULL while
  * leaving the @current target %NULL end setting @error to %NULL;
  */
-static char *
-read_field (char **current, char **error, const char *characters, const char *delimiters)
+static const char *
+read_field (char **current, const char **out_err_str, const char *characters, const char *delimiters)
 {
-	char *start;
+	const char *start;
 
-	g_return_val_if_fail (current, NULL);
-	g_return_val_if_fail (error, NULL);
-	g_return_val_if_fail (characters, NULL);
-	g_return_val_if_fail (delimiters, NULL);
+	nm_assert (current);
+	nm_assert (out_err_str);
+	nm_assert (characters);
+	nm_assert (delimiters);
 
-	*error = NULL;
+	*out_err_str = NULL;
 
 	if (!*current) {
 		/* graceful failure, leave '*current' NULL */
@@ -275,8 +286,8 @@ read_field (char **current, char **error, const char *characters, const char *de
 			return start;
 		} else {
 			/* error, bad character */
-			*error = *current;
-			*current = start;
+			*out_err_str = *current;
+			*current = (char *) start;
 			return NULL;
 		}
 	else {
@@ -325,42 +336,50 @@ read_one_ip_address_or_route (KeyfileReaderInfo *info,
                               char **out_gateway,
                               NMSetting *setting)
 {
-	guint32 plen = G_MAXUINT32;
+	guint plen;
 	gpointer result;
-	char *address_str, *plen_str, *gateway_str, *metric_str, *current, *error;
-	gs_free char *value = NULL, *value_orig = NULL;
+	const char *address_str;
+	const char *plen_str;
+	const char *gateway_str;
+	const char *metric_str;
+	const char *err_str = NULL;
+	char *current;
+	gs_free char *value = NULL;
+	gs_free char *value_orig = NULL;
 
 #define VALUE_ORIG()   (value_orig ? value_orig : (value_orig = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key_name, NULL)))
 
-	current = value = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key_name, NULL);
+	value = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key_name, NULL);
 	if (!value)
 		return NULL;
 
+	current = value;
+
 	/* get address field */
-	address_str = read_field (&current, &error, IP_ADDRESS_CHARS, DELIMITERS);
-	if (error) {
+	address_str = read_field (&current, &err_str, IP_ADDRESS_CHARS, DELIMITERS);
+	if (err_str) {
 		handle_warn (info, property_name, NM_KEYFILE_WARN_SEVERITY_WARN,
 		             _("unexpected character '%c' for address %s: '%s' (position %td)"),
-		             *error, key_name, VALUE_ORIG (), error - current);
+		             *err_str, key_name, VALUE_ORIG (), err_str - current);
 		return NULL;
 	}
 	/* get prefix length field (skippable) */
-	plen_str = read_field (&current, &error, DIGITS, DELIMITERS);
+	plen_str = read_field (&current, &err_str, DIGITS, DELIMITERS);
 	/* get gateway field */
-	gateway_str = read_field (&current, &error, IP_ADDRESS_CHARS, DELIMITERS);
-	if (error) {
+	gateway_str = read_field (&current, &err_str, IP_ADDRESS_CHARS, DELIMITERS);
+	if (err_str) {
 		handle_warn (info, property_name, NM_KEYFILE_WARN_SEVERITY_WARN,
 		             _("unexpected character '%c' for %s: '%s' (position %td)"),
-		             *error, key_name, VALUE_ORIG (), error - current);
+		             *err_str, key_name, VALUE_ORIG (), err_str - current);
 		return NULL;
 	}
 	/* for routes, get metric */
 	if (route) {
-		metric_str = read_field (&current, &error, DIGITS, DELIMITERS);
-		if (error) {
+		metric_str = read_field (&current, &err_str, DIGITS, DELIMITERS);
+		if (err_str) {
 			handle_warn (info, property_name, NM_KEYFILE_WARN_SEVERITY_WARN,
 			             _("unexpected character '%c' in prefix length for %s: '%s' (position %td)"),
-			             *error, key_name, VALUE_ORIG (), error - current);
+			             *err_str, key_name, VALUE_ORIG (), err_str - current);
 			return NULL;
 		}
 	} else
@@ -386,7 +405,7 @@ read_one_ip_address_or_route (KeyfileReaderInfo *info,
 
 	/* parse plen, fallback to defaults */
 	if (plen_str) {
-		if (!get_one_int (info, property_name, plen_str, ipv6 ? 128 : 32, &plen)
+		if (   !get_one_int (info, property_name, plen_str, ipv6 ? 128 : 32, &plen)
 		    || (route && plen == 0)) {
 			plen = DEFAULT_PREFIX (route, ipv6);
 			if (   info->error
@@ -423,6 +442,31 @@ read_one_ip_address_or_route (KeyfileReaderInfo *info,
 }
 
 static void
+fill_route_attributes (GKeyFile *kf, NMIPRoute *route, const char *setting, const char *key, int family)
+{
+	gs_free char *value = NULL;
+	gs_unref_hashtable GHashTable *hash = NULL;
+	GHashTableIter iter;
+	char *name;
+	GVariant *variant;
+
+	value = nm_keyfile_plugin_kf_get_string (kf, setting, key, NULL);
+	if (!value || !value[0])
+		return;
+
+	hash = nm_utils_parse_variant_attributes (value, ',', '=', TRUE,
+	                                          nm_ip_route_get_variant_attribute_spec (),
+	                                          NULL);
+	if (hash) {
+		g_hash_table_iter_init (&iter, hash);
+		while (g_hash_table_iter_next (&iter, (gpointer *) &name, (gpointer *) &variant)) {
+			if (nm_ip_route_attribute_validate (name, variant, family, NULL, NULL))
+				nm_ip_route_set_attribute (route, name, g_variant_ref (variant));
+		}
+	}
+}
+
+static void
 ip_address_or_route_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
 {
 	const char *setting_name = nm_setting_get_name (setting);
@@ -448,6 +492,7 @@ ip_address_or_route_parser (KeyfileReaderInfo *info, NMSetting *setting, const c
 		for (key_basename = key_names; *key_basename; key_basename++) {
 			char *key_name;
 			gpointer item;
+			char options_key[128];
 
 			/* -1 means no suffix */
 			if (i >= 0)
@@ -457,6 +502,11 @@ ip_address_or_route_parser (KeyfileReaderInfo *info, NMSetting *setting, const c
 
 			item = read_one_ip_address_or_route (info, key, setting_name, key_name, ipv6, routes,
 			                                     gateway ? NULL : &gateway, setting);
+			if (item && routes) {
+				nm_sprintf_buf (options_key, "%s_options", key_name);
+				fill_route_attributes (info->keyfile, item, setting_name, options_key, ipv6 ? AF_INET6 : AF_INET);
+			}
+
 			g_free (key_name);
 
 			if (info->error) {
@@ -581,19 +631,28 @@ ip6_addr_gen_mode_parser (KeyfileReaderInfo *info, NMSetting *setting, const cha
 }
 
 static void
-mac_address_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key, gsize enforce_length)
+mac_address_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key, gsize enforce_length, gboolean cloned_mac_addr)
 {
 	const char *setting_name = nm_setting_get_name (setting);
-	char *tmp_string = NULL, *p, *mac_str;
-	gint *tmp_list;
-	GByteArray *array = NULL;
+	gs_free char *tmp_string = NULL;
+	const char *p, *mac_str;
+	gs_free guint8 *buf_arr = NULL;
+	guint buf_len = 0;
 	gsize length;
 
-	p = tmp_string = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key, NULL);
+	tmp_string = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key, NULL);
+
+	if (   cloned_mac_addr
+	    && NM_CLONED_MAC_IS_SPECIAL (tmp_string)) {
+		mac_str = tmp_string;
+		goto out;
+	}
+
 	if (tmp_string && tmp_string[0]) {
 		/* Look for enough ':' characters to signify a MAC address */
 		guint i = 0;
 
+		p = tmp_string;
 		while (*p) {
 			if (*p == ':')
 				i++;
@@ -602,108 +661,139 @@ mac_address_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key
 
 		if (enforce_length == 0 || enforce_length == i+1) {
 			/* If we found enough it's probably a string-format MAC address */
-			array = g_byte_array_sized_new (i+1);
-			g_byte_array_set_size (array, i+1);
-			if (!nm_utils_hwaddr_aton (tmp_string, array->data, array->len)) {
-				g_byte_array_unref (array);
-				array = NULL;
-			}
+			buf_len = i + 1;
+			buf_arr = g_new (guint8, buf_len);
+			if (!nm_utils_hwaddr_aton (tmp_string, buf_arr, buf_len))
+				g_clear_pointer (&buf_arr, g_free);
 		}
 	}
-	g_free (tmp_string);
+	g_clear_pointer (&tmp_string, g_free);
 
-	if (array == NULL) {
+	if (!buf_arr) {
+		gs_free int *tmp_list = NULL;
+
 		/* Old format; list of ints */
 		tmp_list = nm_keyfile_plugin_kf_get_integer_list (info->keyfile, setting_name, key, &length, NULL);
 		if (length > 0 && (enforce_length == 0 || enforce_length == length)) {
 			gsize i;
 
-			array = g_byte_array_sized_new (length);
+			buf_len = length;
+			buf_arr = g_new (guint8, buf_len);
 			for (i = 0; i < length; i++) {
 				int val = tmp_list[i];
-				const guint8 v = (guint8) (val & 0xFF);
 
 				if (val < 0 || val > 255) {
 					handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
 					             _("ignoring invalid byte element '%d' (not between 0 and 255 inclusive)"),
 					             val);
-					g_byte_array_free (array, TRUE);
-					g_free (tmp_list);
 					return;
 				}
-				g_byte_array_append (array, &v, 1);
+				buf_arr[i] = (guint8) val;
 			}
 		}
-		g_free (tmp_list);
 	}
 
-	if (!array) {
+	if (!buf_arr) {
 		handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
 		             _("ignoring invalid MAC address"));
 		return;
 	}
 
-	mac_str = nm_utils_hwaddr_ntoa (array->data, array->len);
+	tmp_string = nm_utils_hwaddr_ntoa (buf_arr, buf_len);
+	mac_str = tmp_string;
+
+out:
 	g_object_set (setting, key, mac_str, NULL);
-	g_free (mac_str);
-	g_byte_array_free (array, TRUE);
 }
 
 static void
 mac_address_parser_ETHER (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
 {
-	mac_address_parser (info, setting, key, ETH_ALEN);
+	mac_address_parser (info, setting, key, ETH_ALEN, FALSE);
+}
+
+static void
+mac_address_parser_ETHER_cloned (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
+{
+	mac_address_parser (info, setting, key, ETH_ALEN, TRUE);
 }
 
 static void
 mac_address_parser_INFINIBAND (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
 {
-	mac_address_parser (info, setting, key, INFINIBAND_ALEN);
+	mac_address_parser (info, setting, key, INFINIBAND_ALEN, FALSE);
 }
 
 static void
 read_hash_of_string (GKeyFile *file, NMSetting *setting, const char *key)
 {
-	char **keys, **iter;
-	char *value;
+	gs_strfreev char **keys = NULL;
+	const char *const*iter;
 	const char *setting_name = nm_setting_get_name (setting);
+	gboolean is_vpn;
 
 	keys = nm_keyfile_plugin_kf_get_keys (file, setting_name, NULL, NULL);
 	if (!keys || !*keys)
 		return;
 
-	for (iter = keys; *iter; iter++) {
-		value = nm_keyfile_plugin_kf_get_string (file, setting_name, *iter, NULL);
-		if (!value)
-			continue;
+	if (   (is_vpn = NM_IS_SETTING_VPN (setting))
+	    || NM_IS_SETTING_BOND (setting)) {
+		for (iter = (const char *const*) keys; *iter; iter++) {
+			gs_free char *to_free = NULL;
+			gs_free char *value = NULL;
+			const char *name;
 
-		if (NM_IS_SETTING_VPN (setting)) {
-			/* Add any item that's not a class property to the data hash */
-			if (!g_object_class_find_property (G_OBJECT_GET_CLASS (setting), *iter))
-				nm_setting_vpn_add_data_item (NM_SETTING_VPN (setting), *iter, value);
+			value = nm_keyfile_plugin_kf_get_string (file, setting_name, *iter, NULL);
+			if (!value)
+				continue;
+
+			name = nm_keyfile_key_decode (*iter, &to_free);
+
+			if (is_vpn) {
+				/* Add any item that's not a class property to the data hash */
+				if (!g_object_class_find_property (G_OBJECT_GET_CLASS (setting), name))
+					nm_setting_vpn_add_data_item (NM_SETTING_VPN (setting), name, value);
+			} else {
+				if (strcmp (name, "interface-name"))
+					nm_setting_bond_add_option (NM_SETTING_BOND (setting), name, value);
+			}
 		}
-		if (NM_IS_SETTING_BOND (setting)) {
-			if (strcmp (*iter, "interface-name"))
-				nm_setting_bond_add_option (NM_SETTING_BOND (setting), *iter, value);
-		}
-		g_free (value);
+		return;
 	}
-	g_strfreev (keys);
+
+	if (NM_IS_SETTING_USER (setting)) {
+		gs_unref_hashtable GHashTable *data = NULL;
+
+		data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+		for (iter = (const char *const*) keys; *iter; iter++) {
+			gs_free char *to_free = NULL;
+			char *value = NULL;
+			const char *name;
+
+			value = nm_keyfile_plugin_kf_get_string (file, setting_name, *iter, NULL);
+			if (!value)
+				continue;
+			name = nm_keyfile_key_decode (*iter, &to_free);
+			g_hash_table_insert (data,
+			                     g_steal_pointer (&to_free) ?: g_strdup (name),
+			                     value);
+		}
+		g_object_set (setting, NM_SETTING_USER_DATA, data, NULL);
+	}
 }
 
-static void
+static gsize
 unescape_semicolons (char *str)
 {
-	int i;
-	gsize len = strlen (str);
+	gsize i, j;
 
-	for (i = 0; i < len; i++) {
-		if (str[i] == '\\' && str[i+1] == ';') {
-			memmove(str + i, str + i + 1, len - (i + 1));
-			len--;
-		}
-		str[len] = '\0';
+	for (i = 0, j = 0; str[i]; ) {
+		if (str[i] == '\\' && str[i+1] == ';')
+			i++;
+		str[j++] = str[i++];;
 	}
+	str[j] = '\0';
+	return j;
 }
 
 static GBytes *
@@ -713,77 +803,121 @@ get_bytes (KeyfileReaderInfo *info,
            gboolean zero_terminate,
            gboolean unescape_semicolon)
 {
-	GByteArray *array = NULL;
-	char *tmp_string;
-	gint *tmp_list;
+	gs_free char *tmp_string = NULL;
+	gboolean may_be_int_list = TRUE;
 	gsize length;
-	int i;
-
-	if (!nm_keyfile_plugin_kf_has_key (info->keyfile, setting_name, key, NULL))
-		return NULL;
 
 	/* New format: just a string
 	 * Old format: integer list; e.g. 11;25;38;
 	 */
 	tmp_string = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key, NULL);
-	if (tmp_string) {
-		GRegex *regex;
-		GMatchInfo *match_info;
-		const char *pattern = "^[[:space:]]*[[:digit:]]{1,3}[[:space:]]*;([[:space:]]*[[:digit:]]{1,3}[[:space:]]*;)*([[:space:]]*)?$";
-
-		regex = g_regex_new (pattern, 0, 0, NULL);
-		g_regex_match (regex, tmp_string, 0, &match_info);
-		if (!g_match_info_matches (match_info)) {
-			/* Handle as a simple string (ie, new format) */
-			if (unescape_semicolon)
-				unescape_semicolons (tmp_string);
-			length = strlen (tmp_string);
-			if (zero_terminate)
-				length++;
-			array = g_byte_array_sized_new (length);
-			g_byte_array_append (array, (guint8 *) tmp_string, length);
-		}
-		g_match_info_free (match_info);
-		g_regex_unref (regex);
-		g_free (tmp_string);
-	}
-
-	if (!array) {
-		gboolean already_warned = FALSE;
-
-		/* Old format; list of ints */
-		tmp_list = nm_keyfile_plugin_kf_get_integer_list (info->keyfile, setting_name, key, &length, NULL);
-		if (!tmp_list) {
-			handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
-			             _("ignoring invalid binary property"));
-			return NULL;
-		}
-		array = g_byte_array_sized_new (length);
-		for (i = 0; i < length; i++) {
-			int val = tmp_list[i];
-			unsigned char v = (unsigned char) (val & 0xFF);
-
-			if (val < 0 || val > 255) {
-				if (   !already_warned
-				    && !handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
-				                     _("ignoring invalid byte element '%d' (not between 0 and 255 inclusive)"),
-				                     val)) {
-					g_free (tmp_list);
-					g_byte_array_free (array, TRUE);
-					return NULL;
-				}
-				already_warned = TRUE;
-			} else
-				g_byte_array_append (array, (const unsigned char *) &v, sizeof (v));
-		}
-		g_free (tmp_list);
-	}
-
-	if (array->len == 0) {
-		g_byte_array_free (array, TRUE);
+	if (!tmp_string)
 		return NULL;
-	} else
-		return g_byte_array_free_to_bytes (array);
+
+	/* if the string is empty, we return an empty GBytes array.
+	 * Note that for NM_SETTING_802_1X_PASSWORD_RAW both %NULL and
+	 * an empty GBytes are valid, and shall be destinguished. */
+	if (!tmp_string[0]) {
+		/* note that even if @zero_terminate is TRUE, we return an empty
+		 * byte-array. The reason is that zero_terminate is there to terminate
+		 * *valid* strings. It's not there to terminated invalid (empty) strings.
+		 */
+		return g_bytes_new_take (tmp_string, 0);
+	}
+
+	for (length = 0; tmp_string[length]; length++) {
+		const char ch = tmp_string[length];
+
+		if (   !g_ascii_isspace (ch)
+		    && !g_ascii_isdigit (ch)
+		    && ch != ';') {
+			may_be_int_list = FALSE;
+			length += strlen (&tmp_string[length]);
+			break;
+		}
+	}
+
+	/* Try to parse the string as a integer list. */
+	if (may_be_int_list && length > 0) {
+		gs_free guint8 *bin_data = NULL;
+		const char *const s = tmp_string;
+		gsize i, d;
+		const gsize BIN_DATA_LEN = (length / 2 + 3);
+
+		bin_data = g_malloc (BIN_DATA_LEN);
+
+#define DIGIT(c) ((c) - '0')
+		i = 0;
+		d = 0;
+		while (TRUE) {
+			int n;
+
+			/* leading whitespace */
+			while (g_ascii_isspace (s[i]))
+				i++;
+			if (s[i] == '\0')
+				break;
+			/* then expect 1 to 3 digits */
+			if (!g_ascii_isdigit (s[i])) {
+				d = 0;
+				break;
+			}
+			n = DIGIT (s[i]);
+			i++;
+			if (g_ascii_isdigit (s[i])) {
+				n = 10 * n + DIGIT (s[i]);
+				i++;
+				if (g_ascii_isdigit (s[i])) {
+					n = 10 * n + DIGIT (s[i]);
+					i++;
+				}
+			}
+			if (n > 255) {
+				d = 0;
+				break;
+			}
+
+			bin_data[d++] = n;
+			nm_assert (d < BIN_DATA_LEN);
+
+			/* allow whitespace after the digit. */
+			while (g_ascii_isspace (s[i]))
+				i++;
+			/* need a semicolon as separator. */
+			if (s[i] != ';') {
+				d = 0;
+				break;
+			}
+			i++;
+		}
+#undef DIGIT
+
+		/* Old format; list of ints. We already did a strict validation of the
+		 * string format before. We expect that this conversion cannot fail. */
+		if (d > 0) {
+			/* note that @zero_terminate does not add a terminating '\0' to
+			 * binary data as an integer list.
+			 *
+			 * But we add a '\0' to the bin_data pointer, just to avoid somebody
+			 * (erronously!) reading the binary data as C-string.
+			 *
+			 * @d itself does not entail the '\0'. */
+			nm_assert (d + 1 <= BIN_DATA_LEN);
+			bin_data = g_realloc (bin_data, d + 1);
+			bin_data[d] = '\0';
+			return g_bytes_new_take (g_steal_pointer (&bin_data), d);
+		}
+	}
+
+	/* Handle as a simple string (ie, new format) */
+	if (unescape_semicolon)
+		length = unescape_semicolons (tmp_string);
+	if (zero_terminate)
+		length++;
+	if (length == 0)
+		return NULL;
+	tmp_string = g_realloc (tmp_string, length + (zero_terminate ? 0 : 1));
+	return g_bytes_new_take (g_steal_pointer (&tmp_string), length);
 }
 
 static void
@@ -895,6 +1029,16 @@ handle_as_scheme (KeyfileReaderInfo *info, GBytes *bytes, NMSetting *setting, co
 		} else {
 			handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
 			             _("invalid key/cert value path \"%s\""), data);
+		}
+		return TRUE;
+	}
+	if (   data_len >= NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PKCS11)
+	    && g_str_has_prefix (data, NM_KEYFILE_CERT_SCHEME_PREFIX_PKCS11)) {
+		if (nm_setting_802_1x_check_cert_scheme (data, data_len + 1, NULL) == NM_SETTING_802_1X_CK_SCHEME_PKCS11) {
+			g_object_set (setting, key, bytes, NULL);
+		} else {
+			handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
+			             _("invalid PKCS#11 URI \"%s\""), data);
 		}
 		return TRUE;
 	}
@@ -1152,6 +1296,120 @@ parity_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
 	g_object_set (setting, key, parity, NULL);
 }
 
+static void
+team_config_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
+{
+	const char *setting_name = nm_setting_get_name (setting);
+	gs_free char *conf = NULL;
+	gs_free_error GError *error = NULL;
+
+	conf = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key, NULL);
+	if (conf && conf[0] && !nm_utils_is_json_object (conf, &error)) {
+		handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
+		             _("ignoring invalid team configuration: %s"),
+		             error->message);
+		g_clear_pointer (&conf, g_free);
+	}
+
+	g_object_set (G_OBJECT (setting), key, conf, NULL);
+}
+
+static void
+qdisc_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
+{
+	const char *setting_name = nm_setting_get_name (setting);
+	GPtrArray *qdiscs;
+	gs_strfreev gchar **keys = NULL;
+	gsize n_keys = 0;
+	int i;
+
+	qdiscs = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_tc_qdisc_unref);
+
+	keys = nm_keyfile_plugin_kf_get_keys (info->keyfile, setting_name, &n_keys, NULL);
+	if (!keys || n_keys == 0)
+		return;
+
+	for (i = 0; i < n_keys; i++) {
+		NMTCQdisc *qdisc;
+		const char *qdisc_parent;
+		gs_free char *qdisc_rest = NULL;
+		gs_free char *qdisc_str = NULL;
+		gs_free_error GError *err = NULL;
+
+		if (!g_str_has_prefix (keys[i], "qdisc."))
+			continue;
+
+		qdisc_parent = keys[i] + sizeof ("qdisc.") - 1;
+		qdisc_rest = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, keys[i], NULL);
+		qdisc_str = g_strdup_printf ("%s%s %s",
+		                             _nm_utils_parse_tc_handle (qdisc_parent, NULL) != TC_H_UNSPEC ? "parent " : "",
+		                             qdisc_parent,
+		                             qdisc_rest);
+
+		qdisc = nm_utils_tc_qdisc_from_str (qdisc_str, &err);
+		if (!qdisc) {
+			handle_warn (info, keys[i], NM_KEYFILE_WARN_SEVERITY_WARN,
+			             _("invalid qdisc: %s"),
+			             err->message);
+		} else {
+			g_ptr_array_add (qdiscs, qdisc);
+		}
+	}
+
+	if (qdiscs->len >= 1)
+		g_object_set (setting, key, qdiscs, NULL);
+
+	g_ptr_array_unref (qdiscs);
+}
+
+static void
+tfilter_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
+{
+	const char *setting_name = nm_setting_get_name (setting);
+	GPtrArray *tfilters;
+	gs_strfreev gchar **keys = NULL;
+	gsize n_keys = 0;
+	int i;
+
+	tfilters = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_tc_tfilter_unref);
+
+	keys = nm_keyfile_plugin_kf_get_keys (info->keyfile, setting_name, &n_keys, NULL);
+	if (!keys || n_keys == 0)
+		return;
+
+	for (i = 0; i < n_keys; i++) {
+		NMTCTfilter *tfilter;
+		const char *tfilter_parent;
+		gs_free char *tfilter_rest = NULL;
+		gs_free char *tfilter_str = NULL;
+		gs_free_error GError *err = NULL;
+
+		if (!g_str_has_prefix (keys[i], "tfilter."))
+			continue;
+
+		tfilter_parent = keys[i] + sizeof ("tfilter.") - 1;
+		tfilter_rest = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, keys[i], NULL);
+		tfilter_str = g_strdup_printf ("%s%s %s",
+		                             _nm_utils_parse_tc_handle (tfilter_parent, NULL) != TC_H_UNSPEC ? "parent " : "",
+		                             tfilter_parent,
+		                             tfilter_rest);
+
+		tfilter = nm_utils_tc_tfilter_from_str (tfilter_str, &err);
+		if (!tfilter) {
+			handle_warn (info, keys[i], NM_KEYFILE_WARN_SEVERITY_WARN,
+			             _("invalid tfilter: %s"),
+			             err->message);
+		} else {
+			g_ptr_array_add (tfilters, tfilter);
+		}
+	}
+
+	if (tfilters->len >= 1)
+		g_object_set (setting, key, tfilters, NULL);
+
+	g_ptr_array_unref (tfilters);
+}
+
 typedef struct {
 	const char *setting_name;
 	const char *key;
@@ -1209,7 +1467,7 @@ static KeyParser key_parsers[] = {
 	{ NM_SETTING_WIRED_SETTING_NAME,
 	  NM_SETTING_WIRED_CLONED_MAC_ADDRESS,
 	  TRUE,
-	  mac_address_parser_ETHER },
+	  mac_address_parser_ETHER_cloned },
 	{ NM_SETTING_WIRELESS_SETTING_NAME,
 	  NM_SETTING_WIRELESS_MAC_ADDRESS,
 	  TRUE,
@@ -1217,7 +1475,7 @@ static KeyParser key_parsers[] = {
 	{ NM_SETTING_WIRELESS_SETTING_NAME,
 	  NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS,
 	  TRUE,
-	  mac_address_parser_ETHER },
+	  mac_address_parser_ETHER_cloned },
 	{ NM_SETTING_WIRELESS_SETTING_NAME,
 	  NM_SETTING_WIRELESS_BSSID,
 	  TRUE,
@@ -1270,6 +1528,22 @@ static KeyParser key_parsers[] = {
 	  NM_SETTING_SERIAL_PARITY,
 	  TRUE,
 	  parity_parser },
+	{ NM_SETTING_TEAM_SETTING_NAME,
+	  NM_SETTING_TEAM_CONFIG,
+	  TRUE,
+	  team_config_parser },
+	{ NM_SETTING_TEAM_PORT_SETTING_NAME,
+	  NM_SETTING_TEAM_CONFIG,
+	  TRUE,
+	  team_config_parser },
+        { NM_SETTING_TC_CONFIG_SETTING_NAME,
+          NM_SETTING_TC_CONFIG_QDISCS,
+	  FALSE,
+          qdisc_parser },
+        { NM_SETTING_TC_CONFIG_SETTING_NAME,
+          NM_SETTING_TC_CONFIG_TFILTERS,
+	  FALSE,
+          tfilter_parser },
 	{ NULL, NULL, FALSE }
 };
 
@@ -1277,11 +1551,6 @@ static void
 set_default_for_missing_key (NMSetting *setting, const char *property)
 {
 	/* Set a value different from the default value of the property's spec */
-
-	if (NM_IS_SETTING_WIRELESS (setting)) {
-		if (!strcmp (property, NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION))
-			g_object_set (setting, property, (NMSettingMacRandomization) NM_SETTING_MAC_RANDOMIZATION_NEVER, NULL);
-	}
 }
 
 static void
@@ -1316,6 +1585,13 @@ read_one_setting_value (NMSetting *setting,
 	    && !strcmp (key, NM_SETTING_CONNECTION_READ_ONLY))
 		return;
 
+	if (   (   NM_IS_SETTING_TEAM (setting)
+	        || NM_IS_SETTING_TEAM_PORT (setting))
+	    && !NM_IN_STRSET (key, NM_SETTING_TEAM_CONFIG)) {
+		/* silently ignore all team properties (except "config"). */
+		return;
+	}
+
 	setting_name = nm_setting_get_name (setting);
 
 	/* Look through the list of handlers for non-standard format key values */
@@ -1327,12 +1603,11 @@ read_one_setting_value (NMSetting *setting,
 		parser++;
 	}
 
-	/* VPN properties don't have the exact key name */
 	if (NM_IS_SETTING_VPN (setting))
 		check_for_key = FALSE;
-
-	/* Bonding 'options' don't have the exact key name. The options are right under [bond] group. */
-	if (NM_IS_SETTING_BOND (setting))
+	else if (NM_IS_SETTING_USER (setting))
+		check_for_key = FALSE;
+	else if (NM_IS_SETTING_BOND (setting))
 		check_for_key = FALSE;
 
 	/* Check for the exact key in the GKeyFile if required.  Most setting
@@ -1480,7 +1755,7 @@ read_one_setting_value (NMSetting *setting,
 			else {
 				if (!handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
 				                  _("too large FLAGS property '%s' (%llu)"),
-				                  G_VALUE_TYPE_NAME (value), (long long unsigned) uint_val))
+				                  G_VALUE_TYPE_NAME (value), (unsigned long long) uint_val))
 					goto out_error;
 			}
 		}

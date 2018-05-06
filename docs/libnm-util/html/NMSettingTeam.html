@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingTeam: libnm-util Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm-util Reference Manual">
 <link rel="up" href="ch01.html" title="libnm-util API Reference">
 <link rel="prev" href="NMSettingBridgePort.html" title="NMSettingBridgePort">
 <link rel="next" href="NMSettingTeamPort.html" title="NMSettingTeamPort">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingTeam.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -43,7 +43,7 @@
 <tbody>
 <tr>
 <td class="function_type">
-<span class="returnvalue">GQuark</span>
+<a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingTeam.html#nm-setting-team-error-quark" title="nm_setting_team_error_quark ()">nm_setting_team_error_quark</a> <span class="c_punctuation">()</span>
@@ -76,7 +76,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingTeam.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -85,13 +85,13 @@
 <tbody>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingTeam.html#NMSettingTeam--config" title="The “config” property">config</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingTeam.html#NMSettingTeam--interface-name" title="The “interface-name” property">interface-name</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -100,7 +100,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingTeam.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -131,9 +131,9 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingTeam.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GEnum
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">╰──</span> NMSettingTeamError
-    GObject
+    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingTeam
 </pre>
@@ -152,11 +152,11 @@ necessary for team connections.</p>
 <a name="NMSettingTeam.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="nm-setting-team-error-quark"></a><h3>nm_setting_team_error_quark ()</h3>
-<pre class="programlisting"><span class="returnvalue">GQuark</span>
+<pre class="programlisting"><a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 nm_setting_team_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Registers an error quark for <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> if necessary.</p>
 <div class="refsect3">
-<a name="id-1.2.16.9.2.5"></a><h4>Returns</h4>
+<a name="nm-setting-team-error-quark.returns"></a><h4>Returns</h4>
 <p> the error quark used for <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> errors.</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -168,8 +168,8 @@ nm_setting_team_error_quark (<em class="parameter"><code><span class="type">void
 nm_setting_team_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.2.16.9.3.5"></a><h4>Returns</h4>
-<p> the new empty <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> object. </p>
+<a name="nm-setting-team-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -180,8 +180,8 @@ nm_setting_team_new (<em class="parameter"><code><span class="type">void</span><
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_team_get_interface_name (<em class="parameter"><code><a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.2.16.9.4.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-team-get-interface-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -195,7 +195,7 @@ nm_setting_team_get_interface_name (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.16.9.4.5"></a><h4>Returns</h4>
+<a name="nm-setting-team-get-interface-name.returns"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingTeam.html#NMSettingTeam--interface-name" title="The “interface-name” property"><span class="type">“interface-name”</span></a> property of the setting</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -206,8 +206,8 @@ nm_setting_team_get_interface_name (<em class="parameter"><code><a class="link" 
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_team_get_config (<em class="parameter"><code><a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.2.16.9.5.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-team-get-config.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -221,7 +221,7 @@ nm_setting_team_get_config (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.16.9.5.5"></a><h4>Returns</h4>
+<a name="nm-setting-team-get-config.returns"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingTeam.html#NMSettingTeam--config" title="The “config” property"><span class="type">“config”</span></a> property of the setting</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -238,8 +238,8 @@ nm_setting_team_get_config (<em class="parameter"><code><a class="link" href="NM
 <div class="refsect2">
 <a name="NMSettingTeamError"></a><h3>enum NMSettingTeamError</h3>
 <div class="refsect3">
-<a name="id-1.2.16.10.3.3"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMSettingTeamError.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -295,7 +295,7 @@ required</p>
 <a name="NMSettingTeam.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingTeam--config"></a><h3>The <code class="literal">“config”</code> property</h3>
-<pre class="programlisting">  “config”                   <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “config”                   <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The JSON configuration for the team network interface.  The property
 should contain raw JSON configuration data suitable for teamd, because
 the value is passed directly to teamd. If not specified, the default
@@ -306,7 +306,7 @@ configuration is used.  See man teamd.conf for the format details.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingTeam--interface-name"></a><h3>The <code class="literal">“interface-name”</code> property</h3>
-<pre class="programlisting">  “interface-name”           <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “interface-name”           <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The name of the virtual in-kernel team network interface</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
@@ -314,6 +314,6 @@ configuration is used.  See man teamd.conf for the format details.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

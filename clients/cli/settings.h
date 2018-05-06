@@ -20,24 +20,22 @@
 #ifndef NMC_SETTINGS_H
 #define NMC_SETTINGS_H
 
+#include "nm-meta-setting.h"
+#include "nm-meta-setting-desc.h"
+
 #include "nmcli.h"
-#include "utils.h"
 
-/* --- Functions --- */
+/*****************************************************************************/
 
-void nmc_properties_init (void);
-void nmc_properties_cleanup (void);
-
-NMSetting *nmc_setting_new_for_name (const char *name);
-void nmc_setting_custom_init (NMSetting *setting);
 void nmc_setting_ip4_connect_handlers (NMSettingIPConfig *setting);
 void nmc_setting_ip6_connect_handlers (NMSettingIPConfig *setting);
+void nmc_setting_proxy_connect_handlers (NMSettingProxy *setting);
 void nmc_setting_wireless_connect_handlers (NMSettingWireless *setting);
 void nmc_setting_connection_connect_handlers (NMSettingConnection *setting, NMConnection *connection);
 
 char      **nmc_setting_get_valid_properties (NMSetting *setting);
 char       *nmc_setting_get_property_desc (NMSetting *setting, const char *prop);
-const char **nmc_setting_get_property_allowed_values (NMSetting *setting, const char *prop);
+const char *const*nmc_setting_get_property_allowed_values (NMSetting *setting, const char *prop, char ***out_to_free);
 char       *nmc_setting_get_property (NMSetting *setting,
                                       const char *prop,
                                       GError **error);
@@ -61,6 +59,6 @@ void nmc_property_set_default_value (NMSetting *setting, const char *prop);
 gboolean nmc_property_get_gvalue (NMSetting *setting, const char *prop, GValue *value);
 gboolean nmc_property_set_gvalue (NMSetting *setting, const char *prop, GValue *value);
 
-gboolean setting_details (NMSetting *setting, NmCli *nmc, const char *one_prop, gboolean secrets);
+gboolean setting_details (const NmcConfig *nmc_config, NMSetting *setting, const char *one_prop);
 
 #endif /* NMC_SETTINGS_H */

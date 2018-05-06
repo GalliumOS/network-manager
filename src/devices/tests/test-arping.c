@@ -20,8 +20,8 @@
 
 #include "nm-default.h"
 
-#include "nm-arping-manager.h"
-#include "test-common.h"
+#include "devices/nm-arping-manager.h"
+#include "platform/tests/test-common.h"
 
 #define IFACE_VETH0 "nm-test-veth0"
 #define IFACE_VETH1 "nm-test-veth1"
@@ -40,9 +40,8 @@ static void
 fixture_setup (test_fixture *fixture, gconstpointer user_data)
 {
 	/* create veth pair. */
-	nmtstp_run_command_check ("ip link add dev %s type veth peer name %s", IFACE_VETH0, IFACE_VETH1);
-	fixture->ifindex0 = nmtstp_assert_wait_for_link (NM_PLATFORM_GET, IFACE_VETH0, NM_LINK_TYPE_VETH, 100)->ifindex;
-	fixture->ifindex1 = nmtstp_assert_wait_for_link (NM_PLATFORM_GET, IFACE_VETH1, NM_LINK_TYPE_VETH, 100)->ifindex;
+	fixture->ifindex0 = nmtstp_link_veth_add (NM_PLATFORM_GET, -1, IFACE_VETH0, IFACE_VETH1)->ifindex;
+	fixture->ifindex1 = nmtstp_link_get_typed (NM_PLATFORM_GET, -1, IFACE_VETH1, NM_LINK_TYPE_VETH)->ifindex;
 
 	g_assert (nm_platform_link_set_up (NM_PLATFORM_GET, fixture->ifindex0, NULL));
 	g_assert (nm_platform_link_set_up (NM_PLATFORM_GET, fixture->ifindex1, NULL));
@@ -86,8 +85,8 @@ test_arping_common (test_fixture *fixture, TestInfo *info)
 	loop = g_main_loop_new (NULL, FALSE);
 	g_signal_connect (manager, NM_ARPING_MANAGER_PROBE_TERMINATED,
 	                  G_CALLBACK (arping_manager_probe_terminated), loop);
-	g_assert (nm_arping_manager_start_probe (manager, 100, NULL));
-	g_assert (nmtst_main_loop_run (loop, 1000));
+	g_assert (nm_arping_manager_start_probe (manager, 250, NULL));
+	g_assert (nmtst_main_loop_run (loop, 2000));
 
 	for (i = 0; info->addresses[i]; i++) {
 		g_assert_cmpint (nm_arping_manager_check_address (manager, info->addresses[i]),
@@ -124,6 +123,8 @@ fixture_teardown (test_fixture *fixture, gconstpointer user_data)
 	nm_platform_link_delete (NM_PLATFORM_GET, fixture->ifindex0);
 	nm_platform_link_delete (NM_PLATFORM_GET, fixture->ifindex1);
 }
+
+NMTstpSetupFunc const _nmtstp_setup_platform_func = nm_linux_platform_setup;
 
 void
 _nmtstp_init_tests (int *argc, char ***argv)

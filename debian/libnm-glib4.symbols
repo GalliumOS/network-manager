@@ -10,7 +10,7 @@ libnm-glib.so.4 libnm-glib4 #MINVER#
  nm_access_point_get_flags@Base 0.7.999
  nm_access_point_get_frequency@Base 0.7.999
  nm_access_point_get_hw_address@Base 0.7.999
- nm_access_point_get_last_seen@Base 1.1.90
+ nm_access_point_get_last_seen@Base 1.0.6
  nm_access_point_get_max_bitrate@Base 0.7.999
  nm_access_point_get_mode@Base 0.7.999
  nm_access_point_get_rsn_flags@Base 0.7.999

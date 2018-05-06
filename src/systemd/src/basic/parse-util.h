@@ -30,6 +30,7 @@
 #define MODE_INVALID ((mode_t) -1)
 
 int parse_boolean(const char *v) _pure_;
+int parse_dev(const char *s, dev_t *ret);
 int parse_pid(const char *s, pid_t* ret_pid);
 int parse_mode(const char *s, mode_t *ret);
 int parse_ifindex(const char *s, int *ret);
@@ -90,6 +91,25 @@ static inline int safe_atoli(const char *s, long int *ret_u) {
 }
 #endif
 
+#if SIZE_MAX == UINT_MAX
+static inline int safe_atozu(const char *s, size_t *ret_u) {
+        assert_cc(sizeof(size_t) == sizeof(unsigned));
+        return safe_atou(s, (unsigned *) ret_u);
+}
+#else
+static inline int safe_atozu(const char *s, size_t *ret_u) {
+        assert_cc(sizeof(size_t) == sizeof(long unsigned));
+        return safe_atolu(s, ret_u);
+}
+#endif
+
 int safe_atod(const char *s, double *ret_d);
 
 int parse_fractional_part_u(const char **s, size_t digits, unsigned *res);
+
+int parse_percent_unbounded(const char *p);
+int parse_percent(const char *p);
+
+int parse_nice(const char *p, int *ret);
+
+int parse_ip_port(const char *s, uint16_t *ret);

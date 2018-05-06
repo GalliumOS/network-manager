@@ -25,7 +25,7 @@ def _network_interfaces():
        interfaces.append(device)
 
     return interfaces
-                
+
 def _device_details(device):
     details = command_output(['udevadm', 'info', '--query=all', '--path', '/sys/class/net/%s' % device])
 
@@ -37,7 +37,7 @@ def _device_details(device):
 def add_info(report, ui=None):
     attach_network(report)
     attach_wifi(report)
-    
+
     #this is the old config file (still read by NM if available)
     attach_file_if_exists(report, '/etc/NetworkManager/nm-system-settings.conf', 'nm-system-settings.conf')
 

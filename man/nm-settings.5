@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: nm-settings
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 05/11/2016
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 03/12/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.2.2
+.\"    Source: NetworkManager 1.10.6
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.2\&.2" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.10\&.6" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -46,8 +46,8 @@ objects\&.
 Setting
 .RS 4
 A group of related key/value pairs describing a specific piece of a
-\fIConnection (profile)\fR\&. Settings keys and allowed values are described in the tables below\&. Keys are also referred to as properties\&. Developers can find the setting objects and their properties in the libnm\-util sources\&. Look for the
-\fBclass_init\fR
+\fIConnection (profile)\fR\&. Settings keys and allowed values are described in the tables below\&. Keys are also referred to as properties\&. Developers can find the setting objects and their properties in the libnm\-core sources\&. Look for the
+\fB*_class_init\fR
 functions near the bottom of each setting source file\&.
 .RE
 .PP
@@ -58,12 +58,9 @@ that allows direct configuration of the settings and properties according to a c
 connection editor has also a built\-in
 \fIdescribe\fR
 command that can display description of particular settings and properties of this page\&.
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&1.\ \&802-1x setting
+.SS "connection setting"
+.PP
+General Connection Profile Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -77,6 +74,244 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+auth\-retries
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+The number of retries for the authentication\&. Zero means to try indefinitely; \-1 means to use a global default\&. If the global default is not set, the authentication retries for 3 times before failing the connection\&. Currently this only applies to 802\-1x authentication\&.
+T}
+T{
+autoconnect
+T}:T{
+boolean
+T}:T{
+TRUE
+T}:T{
+Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&.
+T}
+T{
+autoconnect\-priority
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+The autoconnect priority\&. If the connection is set to autoconnect, connections with higher priority will be preferred\&. Defaults to 0\&. The higher number means higher priority\&.
+T}
+T{
+autoconnect\-retries
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+The number of times a connection should be tried when autoactivating before giving up\&. Zero means forever, \-1 means the global default (4 times if not overridden)\&. Setting this to 1 means to try activation only once before blocking autoconnect\&. Note that after a timeout, NetworkManager will try to autoconnect again\&.
+T}
+T{
+autoconnect\-slaves
+T}:T{
+NMSettingConnectionAutoconnectSlaves (int32)
+T}:T{
+\ \&
+T}:T{
+Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for master connections\&. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
+T}
+T{
+gateway\-ping\-timeout
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+If greater than zero, delay success of IP addressing until either the timeout is reached, or an IP gateway replies to a ping\&.
+T}
+T{
+id
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+A human readable unique identifier for the connection, like "Work Wi\-Fi" or "T\-Mobile 3G"\&.
+T}
+T{
+interface\-name
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The name of the network interface this connection is bound to\&. If not set, then the connection can be attached to any interface of the appropriate type (subject to restrictions imposed by other settings)\&. For software devices this specifies the name of the created device\&. For connection types where interface names cannot easily be made persistent (e\&.g\&. mobile broadband or USB Ethernet), this property should not be used\&. Setting this property restricts the interfaces a connection can be used with, and if interface names change or are reordered the connection may be applied to the wrong interface\&.
+T}
+T{
+lldp
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Whether LLDP is enabled for the connection\&.
+T}
+T{
+master
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Interface name of the master device or UUID of the master connection\&.
+T}
+T{
+metered
+T}:T{
+NMMetered (int32)
+T}:T{
+\ \&
+T}:T{
+Whether the connection is metered\&. When updating this property on a currently activated connection, the change takes effect immediately\&.
+T}
+T{
+name
+T}:T{
+string
+T}:T{
+connection
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+permissions
+T}:T{
+array of string
+T}:T{
+[]
+T}:T{
+An array of strings defining what access a given user has to this connection\&.  If this is NULL or empty, all users are allowed to access this connection; otherwise users are allowed if and only if they are in this list\&.  When this is not empty, the connection can be active only when one of the specified users is logged into an active session\&.  Each entry is of the form "[type]:[id]:[reserved]"; for example, "user:dcbw:blah"\&. At this time only the "user" [type] is allowed\&.  Any other values are ignored and reserved for future use\&.  [id] is the username that this permission refers to, which may not contain the ":" character\&. Any [reserved] information present must be ignored and is reserved for future use\&.  All of [type], [id], and [reserved] must be valid UTF\-8\&.
+T}
+T{
+read\-only
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+FALSE if the connection can be modified using the provided settings service\*(Aqs D\-Bus interface with the right privileges, or TRUE if the connection is read\-only and cannot be modified\&.
+T}
+T{
+secondaries
+T}:T{
+array of string
+T}:T{
+[]
+T}:T{
+List of connection UUIDs that should be activated when the base connection itself is activated\&. Currently only VPN connections are supported\&.
+T}
+T{
+slave\-type
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Setting name of the device type of this slave\*(Aqs master connection (eg, "bond"), or NULL if this connection is not a slave\&.
+T}
+T{
+stable\-id
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Token to generate stable IDs for the connection\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. Note that also the interface name of the activating connection and a per\-host secret key is included into the address generation so that the same stable\-id on different hosts/devices yields different addresses\&. If the value is unset, an ID unique for the connection is used\&. Specifying a stable\-id allows multiple connections to generate the same addresses\&. Another use is to generate IDs at runtime via dynamic substitutions\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently supported are "${CONNECTION}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-boot, or every time\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}/${BOOT}" to create a unique id for this connection that changes with every reboot\&. Note that two connections only use the same effective id if their stable\-id is also identical before performing dynamic substitutions\&.
+T}
+T{
+timestamp
+T}:T{
+uint64
+T}:T{
+0
+T}:T{
+The time, in seconds since the Unix Epoch, that the connection was last _successfully_ fully activated\&. NetworkManager updates the connection timestamp periodically when the connection is active to ensure that an active connection has the latest timestamp\&. The property is only meant for reading (changes to this property will not be preserved)\&.
+T}
+T{
+type
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Base type of the connection\&. For hardware\-dependent connections, should contain the setting name of the hardware\-type specific setting (ie, "802\-3\-ethernet" or "802\-11\-wireless" or "bluetooth", etc), and for non\-hardware dependent connections like VPN or otherwise, should contain the setting name of that setting type (ie, "vpn" or "bridge", etc)\&.
+T}
+T{
+uuid
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+A universally unique identifier for the connection, for example generated with libuuid\&.  It should be assigned when the connection is created, and never changed as long as the connection still applies to the same network\&.  For example, it should not be changed when the "id" property or NMSettingIP4Config changes, but might need to be re\-created when the Wi\-Fi SSID, mobile broadband network provider, or "type" property changes\&. The UUID must be in the format "2815492f\-7e56\-435e\-b2e9\-246bd7cdc664" (ie, contains only hexadecimal characters and "\-")\&.
+T}
+T{
+zone
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The trust level of a the connection\&.  Free form case\-insensitive string (for example "Home", "Work", "Public")\&.  NULL or unspecified zone means the connection will be placed in the default zone as defined by the firewall\&. When updating this property on a currently activated connection, the change takes effect immediately\&.
+T}
+.TE
+.sp 1
+.SS "802\-1x setting"
+.PP
+IEEE 802\&.1x Authentication Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -131,6 +366,15 @@ T}:T{
 Anonymous identity string for EAP authentication methods\&.  Used as the unencrypted identity with EAP types that support different tunneled identity like EAP\-TTLS\&.
 T}
 T{
+auth\-timeout
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+A timeout for the authentication\&. Zero means the global default; if the global default is not set, the authentication timeout is 25 seconds\&.
+T}
+T{
 ca\-cert
 T}:T{
 byte array
@@ -138,6 +382,24 @@ T}:T{
 \ \&
 T}:T{
 Contains the CA certificate if used by the EAP method specified in the "eap" property\&. Certificate data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme (which is backwards compatible with NM 0\&.7\&.x) this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&.
+T}
+T{
+ca\-cert\-password
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The password used to access the CA certificate stored in "ca\-cert" property\&. Only makes sense if the certificate is stored on a PKCS#11 token that requires a login\&.
+T}
+T{
+ca\-cert\-password\-flags
+T}:T{
+NMSettingSecretFlags (uint32)
+T}:T{
+\ \&
+T}:T{
+Flags indicating how to handle the "ca\-cert\-password" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
 T}
 T{
 ca\-path
@@ -156,6 +418,24 @@ T}:T{
 \ \&
 T}:T{
 Contains the client certificate if used by the EAP method specified in the "eap" property\&. Certificate data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme (which is backwards compatible with NM 0\&.7\&.x) this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&.
+T}
+T{
+client\-cert\-password
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The password used to access the client certificate stored in "client\-cert" property\&. Only makes sense if the certificate is stored on a PKCS#11 token that requires a login\&.
+T}
+T{
+client\-cert\-password\-flags
+T}:T{
+NMSettingSecretFlags (uint32)
+T}:T{
+\ \&
+T}:T{
+Flags indicating how to handle the "client\-cert\-password" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
 T}
 T{
 domain\-suffix\-match
@@ -239,6 +519,15 @@ T}:T{
 Flags indicating how to handle the "password\-raw" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
 T}
 T{
+phase1\-auth\-flags
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+Specifies authentication flags to use in "phase 1" outer authentication using NMSetting8021xAuthFlags options\&. The individual TLS versions can be explicitly disabled\&. If a certain TLS disable flag is not set, it is up to the supplicant to allow or forbid it\&. The TLS options map to tls_disable_tlsv1_x settings\&. See the wpa_supplicant documentation for more details\&.
+T}
+T{
 phase1\-fast\-provisioning
 T}:T{
 string
@@ -302,6 +591,24 @@ T}:T{
 Contains the "phase 2" CA certificate if used by the EAP method specified in the "phase2\-auth" or "phase2\-autheap" properties\&. Certificate data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme (which is backwards compatible with NM 0\&.7\&.x) this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&.
 T}
 T{
+phase2\-ca\-cert\-password
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The password used to access the "phase2" CA certificate stored in "phase2\-ca\-cert" property\&. Only makes sense if the certificate is stored on a PKCS#11 token that requires a login\&.
+T}
+T{
+phase2\-ca\-cert\-password\-flags
+T}:T{
+NMSettingSecretFlags (uint32)
+T}:T{
+\ \&
+T}:T{
+Flags indicating how to handle the "phase2\-ca\-cert\-password" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
+T}
+T{
 phase2\-ca\-path
 T}:T{
 string
@@ -320,6 +627,24 @@ T}:T{
 Contains the "phase 2" client certificate if used by the EAP method specified in the "phase2\-auth" or "phase2\-autheap" properties\&. Certificate data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme (which is backwards compatible with NM 0\&.7\&.x) this property should be set to the certificate\*(Aqs DER encoded data\&. When using the path scheme, this property should be set to the full UTF\-8 encoded path of the certificate, prefixed with the string "file://" and ending with a terminating NUL byte\&. This property can be unset even if the EAP method supports CA certificates, but this allows man\-in\-the\-middle attacks and is NOT recommended\&.
 T}
 T{
+phase2\-client\-cert\-password
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The password used to access the "phase2" client certificate stored in "phase2\-client\-cert" property\&. Only makes sense if the certificate is stored on a PKCS#11 token that requires a login\&.
+T}
+T{
+phase2\-client\-cert\-password\-flags
+T}:T{
+NMSettingSecretFlags (uint32)
+T}:T{
+\ \&
+T}:T{
+Flags indicating how to handle the "phase2\-client\-cert\-password" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
+T}
+T{
 phase2\-domain\-suffix\-match
 T}:T{
 string
@@ -335,7 +660,7 @@ byte array
 T}:T{
 \ \&
 T}:T{
-Contains the "phase 2" inner private key when the "phase2\-auth" or "phase2\-autheap" property is set to "tls"\&. Key data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme and private keys, this property should be set to the key\*(Aqs encrypted PEM encoded data\&. When using private keys with the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte\&. When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the "phase2\-private\-key\-password" property must be set to password used to decrypt the PKCS#12 certificate and key\&. When using PKCS#12 files and the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and and ending with a terminating NUL byte, and as with the blob scheme the "phase2\-private\-key\-password" property must be set to the password used to decode the PKCS#12 private key and certificate\&.
+Contains the "phase 2" inner private key when the "phase2\-auth" or "phase2\-autheap" property is set to "tls"\&. Key data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme and private keys, this property should be set to the key\*(Aqs encrypted PEM encoded data\&. When using private keys with the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte\&. When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the "phase2\-private\-key\-password" property must be set to password used to decrypt the PKCS#12 certificate and key\&. When using PKCS#12 files and the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte, and as with the blob scheme the "phase2\-private\-key\-password" property must be set to the password used to decode the PKCS#12 private key and certificate\&.
 T}
 T{
 phase2\-private\-key\-password
@@ -389,7 +714,7 @@ byte array
 T}:T{
 \ \&
 T}:T{
-Contains the private key when the "eap" property is set to "tls"\&. Key data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme and private keys, this property should be set to the key\*(Aqs encrypted PEM encoded data\&. When using private keys with the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte\&. When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the "private\-key\-password" property must be set to password used to decrypt the PKCS#12 certificate and key\&. When using PKCS#12 files and the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and and ending with a terminating NUL byte, and as with the blob scheme the "private\-key\-password" property must be set to the password used to decode the PKCS#12 private key and certificate\&. WARNING: "private\-key" is not a "secret" property, and thus unencrypted private key data using the BLOB scheme may be readable by unprivileged users\&.  Private keys should always be encrypted with a private key password to prevent unauthorized access to unencrypted private key data\&.
+Contains the private key when the "eap" property is set to "tls"\&. Key data is specified using a "scheme"; two are currently supported: blob and path\&. When using the blob scheme and private keys, this property should be set to the key\*(Aqs encrypted PEM encoded data\&. When using private keys with the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte\&. When using PKCS#12 format private keys and the blob scheme, this property should be set to the PKCS#12 data and the "private\-key\-password" property must be set to password used to decrypt the PKCS#12 certificate and key\&. When using PKCS#12 files and the path scheme, this property should be set to the full UTF\-8 encoded path of the key, prefixed with the string "file://" and ending with a terminating NUL byte, and as with the blob scheme the "private\-key\-password" property must be set to the password used to decode the PKCS#12 private key and certificate\&. WARNING: "private\-key" is not a "secret" property, and thus unencrypted private key data using the BLOB scheme may be readable by unprivileged users\&.  Private keys should always be encrypted with a private key password to prevent unauthorized access to unencrypted private key data\&.
 T}
 T{
 private\-key\-password
@@ -429,12 +754,9 @@ When TRUE, overrides the "ca\-path" and "phase2\-ca\-path" properties using the 
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&2.\ \&adsl setting
+.SS "adsl setting"
+.PP
+ADSL Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -530,12 +852,9 @@ VPI of ADSL connection
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&3.\ \&bluetooth setting
+.SS "bluetooth setting"
+.PP
+Bluetooth Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -581,12 +900,9 @@ Either "dun" for Dial\-Up Networking connections or "panu" for Personal Area Net
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&4.\ \&bond setting
+.SS "bond setting"
+.PP
+Bonding Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -632,12 +948,9 @@ Dictionary of key/value pairs of bonding options\&.  Both keys and values must b
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&5.\ \&bridge setting
+.SS "bridge setting"
+.PP
+Bridging Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -651,6 +964,7 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -680,6 +994,15 @@ T}:T{
 The Spanning Tree Protocol (STP) forwarding delay, in seconds\&.
 T}
 T{
+group\-forward\-mask
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+A mask of group addresses to forward\&. Usually, group addresses in the range from 01:80:C2:00:00:00 to 01:80:C2:00:00:0F are not forwarded according to standards\&. This property is a mask of 16 bits, each corresponding to a group address in that range that must be forwarded\&. The mask can\*(Aqt have bits 0, 1 or 2 set because they are used for STP, MAC pause frames and LACP\&.
+T}
+T{
 hello\-time
 T}:T{
 uint32
@@ -704,7 +1027,7 @@ byte array
 T}:T{
 \ \&
 T}:T{
-If specified, the MAC address of bridge\&. When creating a new bridge, this MAC address will be set\&. When matching an existing (outside NetworkManager created) bridge, this MAC address must match\&.
+If specified, the MAC address of bridge\&. When creating a new bridge, this MAC address will be set\&. If this field is left unspecified, the "ethernet\&.cloned\-mac\-address" is referred instead to generate the initial MAC address\&. Note that setting "ethernet\&.cloned\-mac\-address" anyway overwrites the MAC address of the bridge later while activating the bridge\&. Hence, this property is deprecated\&.
 T}
 T{
 max\-age
@@ -753,12 +1076,9 @@ Controls whether Spanning Tree Protocol (STP) is enabled for this bridge\&.
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&6.\ \&bridge-port setting
+.SS "bridge\-port setting"
+.PP
+Bridge Port Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -783,7 +1103,7 @@ boolean
 T}:T{
 FALSE
 T}:T{
-Enables or disabled "hairpin mode" for the port, which allows frames to be sent back out through the port the frame was received on\&.
+Enables or disables "hairpin mode" for the port, which allows frames to be sent back out through the port the frame was received on\&.
 T}
 T{
 name
@@ -814,12 +1134,9 @@ The Spanning Tree Protocol (STP) priority of this bridge port\&.
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&7.\ \&cdma setting
+.SS "cdma setting"
+.PP
+CDMA\-based Mobile Broadband Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -837,7 +1154,17 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
+T{
+mtu
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames\&.
+T}
 T{
 name
 T}:T{
@@ -885,213 +1212,9 @@ The username used to authenticate with the network, if required\&.  Many provide
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&8.\ \&connection setting
-.TS
-allbox tab(:);
-lB lB lB lB.
-T{
-Key Name
-T}:T{
-Value Type
-T}:T{
-Default Value
-T}:T{
-Value Description
-T}
-.T&
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l
-l l l l.
-T{
-autoconnect
-T}:T{
-boolean
-T}:T{
-TRUE
-T}:T{
-Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&.
-T}
-T{
-autoconnect\-priority
-T}:T{
-int32
-T}:T{
-0
-T}:T{
-The autoconnect priority\&. If the connection is set to autoconnect, connections with higher priority will be preferred\&. Defaults to 0\&. The higher number means higher priority\&.
-T}
-T{
-autoconnect\-slaves
-T}:T{
-NMSettingConnectionAutoconnectSlaves (int32)
-T}:T{
-\ \&
-T}:T{
-Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for master connections\&. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
-T}
-T{
-gateway\-ping\-timeout
-T}:T{
-uint32
-T}:T{
-0
-T}:T{
-If greater than zero, delay success of IP addressing until either the timeout is reached, or an IP gateway replies to a ping\&.
-T}
-T{
-id
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-A human readable unique identifier for the connection, like "Work Wi\-Fi" or "T\-Mobile 3G"\&.
-T}
-T{
-interface\-name
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-The name of the network interface this connection is bound to\&. If not set, then the connection can be attached to any interface of the appropriate type (subject to restrictions imposed by other settings)\&. For software devices this specifies the name of the created device\&. For connection types where interface names cannot easily be made persistent (e\&.g\&. mobile broadband or USB Ethernet), this property should not be used\&. Setting this property restricts the interfaces a connection can be used with, and if interface names change or are reordered the connection may be applied to the wrong interface\&.
-T}
-T{
-lldp
-T}:T{
-int32
-T}:T{
-\-1
-T}:T{
-Whether LLDP is enabled for the connection\&.
-T}
-T{
-master
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-Interface name of the master device or UUID of the master connection\&.
-T}
-T{
-metered
-T}:T{
-NMMetered (int32)
-T}:T{
-\ \&
-T}:T{
-Whether the connection is metered\&. When updating this property on a currently activated connection, the change takes effect immediately\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-connection
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
-T{
-permissions
-T}:T{
-array of string
-T}:T{
-[]
-T}:T{
-An array of strings defining what access a given user has to this connection\&.  If this is NULL or empty, all users are allowed to access this connection\&.  Otherwise a user is allowed to access this connection if and only if they are in this list\&. Each entry is of the form "[type]:[id]:[reserved]"; for example, "user:dcbw:blah"\&. At this time only the "user" [type] is allowed\&.  Any other values are ignored and reserved for future use\&.  [id] is the username that this permission refers to, which may not contain the ":" character\&. Any [reserved] information present must be ignored and is reserved for future use\&.  All of [type], [id], and [reserved] must be valid UTF\-8\&.
-T}
-T{
-read\-only
-T}:T{
-boolean
-T}:T{
-FALSE
-T}:T{
-FALSE if the connection can be modified using the provided settings service\*(Aqs D\-Bus interface with the right privileges, or TRUE if the connection is read\-only and cannot be modified\&.
-T}
-T{
-secondaries
-T}:T{
-array of string
-T}:T{
-[]
-T}:T{
-List of connection UUIDs that should be activated when the base connection itself is activated\&. Currently only VPN connections are supported\&.
-T}
-T{
-slave\-type
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-Setting name of the device type of this slave\*(Aqs master connection (eg, "bond"), or NULL if this connection is not a slave\&.
-T}
-T{
-timestamp
-T}:T{
-uint64
-T}:T{
-0
-T}:T{
-The time, in seconds since the Unix Epoch, that the connection was last _successfully_ fully activated\&. NetworkManager updates the connection timestamp periodically when the connection is active to ensure that an active connection has the latest timestamp\&. The property is only meant for reading (changes to this property will not be preserved)\&.
-T}
-T{
-type
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-Base type of the connection\&. For hardware\-dependent connections, should contain the setting name of the hardware\-type specific setting (ie, "802\-3\-ethernet" or "802\-11\-wireless" or "bluetooth", etc), and for non\-hardware dependent connections like VPN or otherwise, should contain the setting name of that setting type (ie, "vpn" or "bridge", etc)\&.
-T}
-T{
-uuid
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-A universally unique identifier for the connection, for example generated with libuuid\&.  It should be assigned when the connection is created, and never changed as long as the connection still applies to the same network\&.  For example, it should not be changed when the "id" property or NMSettingIP4Config changes, but might need to be re\-created when the Wi\-Fi SSID, mobile broadband network provider, or "type" property changes\&. The UUID must be in the format "2815492f\-7e56\-435e\-b2e9\-246bd7cdc664" (ie, contains only hexadecimal characters and "\-")\&.
-T}
-T{
-zone
-T}:T{
-string
-T}:T{
-\ \&
-T}:T{
-The trust level of a the connection\&.  Free form case\-insensitive string (for example "Home", "Work", "Public")\&.  NULL or unspecified zone means the connection will be placed in the default zone as defined by the firewall\&. When updating this property on a currently activated connection, the change takes effect immediately\&.
-T}
-.TE
-.sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&9.\ \&dcb setting
+.SS "dcb setting"
+.PP
+Data Center Bridging Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1200,7 +1323,7 @@ array of uint32
 T}:T{
 [0, 0, 0, 0, 0, 0, 0, 0]
 T}:T{
-An array of 8 uint values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates the percentage of bandwidth of the priority\*(Aqs assigned group that the priority may use\&.  The sum of all percentages for priorities which belong to the same group must total 100 percent\&.
+An array of 8 uint values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates the percentage of bandwidth of the priority\*(Aqs assigned group that the priority may use\&.  The sum of all percentages for priorities which belong to the same group must total 100 percents\&.
 T}
 T{
 priority\-flow\-control
@@ -1227,7 +1350,7 @@ array of uint32
 T}:T{
 [0, 0, 0, 0, 0, 0, 0, 0]
 T}:T{
-An array of 8 uint values, where the array index corresponds to the Priority Group ID (0 \- 7) and the value indicates the percentage of link bandwidth allocated to that group\&.  Allowed values are 0 \- 100, and the sum of all values must total 100 percent\&.
+An array of 8 uint values, where the array index corresponds to the Priority Group ID (0 \- 7) and the value indicates the percentage of link bandwidth allocated to that group\&.  Allowed values are 0 \- 100, and the sum of all values must total 100 percents\&.
 T}
 T{
 priority\-group\-flags
@@ -1267,12 +1390,37 @@ An array of 8 uint values, where the array index corresponds to the User Priorit
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&10.\ \&generic setting
+.SS "dummy setting"
+.PP
+Dummy Link Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l.
+T{
+name
+T}:T{
+string
+T}:T{
+dummy
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+.TE
+.sp 1
+.SS "generic setting"
+.PP
+Generic Link Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1298,12 +1446,9 @@ The setting\*(Aqs name, which uniquely identifies the setting within the connect
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&11.\ \&gsm setting
+.SS "gsm setting"
+.PP
+GSM\-based Mobile Broadband Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1317,6 +1462,7 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1356,6 +1502,15 @@ T}:T{
 FALSE
 T}:T{
 When TRUE, only connections to the home network will be allowed\&. Connections to roaming networks will not be made\&.
+T}
+T{
+mtu
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames\&.
 T}
 T{
 name
@@ -1436,7 +1591,7 @@ string
 T}:T{
 \ \&
 T}:T{
-A MCC/MNC string like "310260" or "21601" identifying the specific mobile network operator which this connection applies to\&.  If given, the connection will apply to any device also allowed by "device\-id" and "sim\-id" which contains a SIM card provisioined by the given operator\&.
+A MCC/MNC string like "310260" or "21601" identifying the specific mobile network operator which this connection applies to\&.  If given, the connection will apply to any device also allowed by "device\-id" and "sim\-id" which contains a SIM card provisioned by the given operator\&.
 T}
 T{
 username
@@ -1449,12 +1604,9 @@ The username used to authenticate with the network, if required\&.  Many provide
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&12.\ \&infiniband setting
+.SS "infiniband setting"
+.PP
+Infiniband Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1530,12 +1682,9 @@ The IP\-over\-InfiniBand transport mode\&. Either "datagram" or "connected"\&.
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&13.\ \&ipv4 setting
+.SS "ipv4 setting"
+.PP
+IPv4 Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1549,6 +1698,8 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1604,7 +1755,7 @@ string
 T}:T{
 \ \&
 T}:T{
-A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options\&.
+A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options\&. When the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary client ID, in which case the first byte is assumed to be the \*(Aqtype\*(Aq field as per RFC 2132 section 9\&.14 and the remaining bytes may be an hardware address (e\&.g\&. \*(Aq01:xx:xx:xx:xx:xx:xx\*(Aq where 1 is the Ethernet ARP type and the rest is a MAC address)\&. If the property is not a hex string it is considered as a non\-hardware\-address client ID and the \*(Aqtype\*(Aq field is set to 0\&.
 T}
 T{
 dhcp\-fqdn
@@ -1658,7 +1809,16 @@ array of string
 T}:T{
 []
 T}:T{
-Array of DNS options\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
+Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
+T}
+T{
+dns\-priority
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Intra\-connection DNS priority\&. The relative priority to be used when determining the order of DNS servers in resolv\&.conf\&.  A lower value means that servers will be on top of the file\&.  Zero selects the default value, which is 50 for VPNs and 100 for other connections\&.  Note that the priority is to order DNS settings for multiple active connections\&. It does not disambiguate multiple DNS servers within the same connection profile\&. For that, just specify the DNS servers in the desired order\&. When multiple devices have configurations with the same priority, the one with an active default route will be preferred\&. Note that when using dns=dnsmasq the order is meaningless since dnsmasq forwards queries to all known servers at the same time\&. Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used\&.
 T}
 T{
 dns\-search
@@ -1748,7 +1908,16 @@ int64
 T}:T{
 \-1
 T}:T{
-The default metric for routes that don\*(Aqt explicitly specify a metric\&. The default value \-1 means that the metric is choosen automatically based on the device type\&. The metric applies to dynamic routes, manual (static) routes that don\*(Aqt have an explicit metric setting, address prefix routes, and the default route\&. Note that for IPv6, the kernel accepts zero (0) but coerces it to 1024 (user default)\&. Hence, setting this property to zero effectively mean setting it to 1024\&. For IPv4, zero is a regular value for the metric\&.
+The default metric for routes that don\*(Aqt explicitly specify a metric\&. The default value \-1 means that the metric is chosen automatically based on the device type\&. The metric applies to dynamic routes, manual (static) routes that don\*(Aqt have an explicit metric setting, address prefix routes, and the default route\&. Note that for IPv6, the kernel accepts zero (0) but coerces it to 1024 (user default)\&. Hence, setting this property to zero effectively mean setting it to 1024\&. For IPv4, zero is a regular value for the metric\&.
+T}
+T{
+route\-table
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+Enable policy routing (source routing) and set the routing table used when adding routes\&. This affects all routes, including device\-routes, IPv4LL, DHCP, SLAAC, default\-routes and static routes\&. But note that static routes can individually overwrite the setting by explicitly specifying a non\-zero routing table\&. If the table setting is left at zero, it is eligible to be overwritten via global configuration\&. If the property is zero even after applying the global configuration value, policy routing is disabled for the address family of this connection\&. Policy routing disabled means that NetworkManager will add all routes to the main table (except static routes that explicitly configure a different table)\&. Additionally, NetworkManager will not delete any extraneous routes from tables except the main table\&. This is to preserve backward compatibility for users who manage routing tables outside of NetworkManager\&.
 T}
 T{
 routes
@@ -1761,12 +1930,9 @@ Deprecated in favor of the \*(Aqroute\-data\*(Aq property, but this can be used 
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&14.\ \&ipv6 setting
+.SS "ipv6 setting"
+.PP
+IPv6 Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1800,6 +1966,9 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
 addr\-gen\-mode
@@ -1808,7 +1977,7 @@ int32
 T}:T{
 1
 T}:T{
-Configure method for creating the address for use with RFC4862 IPv6 Stateless Address Autoconfiguration\&. The permitted values are: "eui64", or "stable\-privacy"\&. If the property is set to "eui64", the addresses will be generated using the interface tokens derived from  hardware address\&. This makes the host part of the address to stay constant, making it possible to track host\*(Aqs presence when it changes networks\&. The address changes when the interface hardware is replaced\&. The value of "stable\-privacy" enables use of cryptographically secure hash of a secret host\-specific key along with the connection identification and the network address as specified by RFC7217\&. This makes it impossible to use the address track host\*(Aqs presence, and makes the address stable when the network interface hardware is replaced\&. On D\-Bus, the absence of an addr\-gen\-mode setting equals enabling "stable\-privacy"\&. For keyfile plugin, the absence of the setting on disk means "eui64" so that the property doesn\*(Aqt change on upgrade from older versions\&. Note that this setting is distinct from the Privacy Extensions as configured by "ip6\-privacy" property and it does not affect the temporary addresses configured with this option\&.
+Configure method for creating the address for use with RFC4862 IPv6 Stateless Address Autoconfiguration\&. The permitted values are: NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 (0) or NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY (1)\&. If the property is set to EUI64, the addresses will be generated using the interface tokens derived from hardware address\&. This makes the host part of the address to stay constant, making it possible to track host\*(Aqs presence when it changes networks\&. The address changes when the interface hardware is replaced\&. The value of stable\-privacy enables use of cryptographically secure hash of a secret host\-specific key along with the connection\*(Aqs stable\-id and the network address as specified by RFC7217\&. This makes it impossible to use the address track host\*(Aqs presence, and makes the address stable when the network interface hardware is replaced\&. On D\-Bus, the absence of an addr\-gen\-mode setting equals enabling stable\-privacy\&. For keyfile plugin, the absence of the setting on disk means EUI64 so that the property doesn\*(Aqt change on upgrade from older versions\&. Note that this setting is distinct from the Privacy Extensions as configured by "ip6\-privacy" property and it does not affect the temporary addresses configured with this option\&.
 T}
 T{
 address\-data
@@ -1880,7 +2049,16 @@ array of string
 T}:T{
 []
 T}:T{
-Array of DNS options\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
+Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
+T}
+T{
+dns\-priority
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Intra\-connection DNS priority\&. The relative priority to be used when determining the order of DNS servers in resolv\&.conf\&.  A lower value means that servers will be on top of the file\&.  Zero selects the default value, which is 50 for VPNs and 100 for other connections\&.  Note that the priority is to order DNS settings for multiple active connections\&. It does not disambiguate multiple DNS servers within the same connection profile\&. For that, just specify the DNS servers in the desired order\&. When multiple devices have configurations with the same priority, the one with an active default route will be preferred\&. Note that when using dns=dnsmasq the order is meaningless since dnsmasq forwards queries to all known servers at the same time\&. Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used\&.
 T}
 T{
 dns\-search
@@ -1979,7 +2157,16 @@ int64
 T}:T{
 \-1
 T}:T{
-The default metric for routes that don\*(Aqt explicitly specify a metric\&. The default value \-1 means that the metric is choosen automatically based on the device type\&. The metric applies to dynamic routes, manual (static) routes that don\*(Aqt have an explicit metric setting, address prefix routes, and the default route\&. Note that for IPv6, the kernel accepts zero (0) but coerces it to 1024 (user default)\&. Hence, setting this property to zero effectively mean setting it to 1024\&. For IPv4, zero is a regular value for the metric\&.
+The default metric for routes that don\*(Aqt explicitly specify a metric\&. The default value \-1 means that the metric is chosen automatically based on the device type\&. The metric applies to dynamic routes, manual (static) routes that don\*(Aqt have an explicit metric setting, address prefix routes, and the default route\&. Note that for IPv6, the kernel accepts zero (0) but coerces it to 1024 (user default)\&. Hence, setting this property to zero effectively mean setting it to 1024\&. For IPv4, zero is a regular value for the metric\&.
+T}
+T{
+route\-table
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+Enable policy routing (source routing) and set the routing table used when adding routes\&. This affects all routes, including device\-routes, IPv4LL, DHCP, SLAAC, default\-routes and static routes\&. But note that static routes can individually overwrite the setting by explicitly specifying a non\-zero routing table\&. If the table setting is left at zero, it is eligible to be overwritten via global configuration\&. If the property is zero even after applying the global configuration value, policy routing is disabled for the address family of this connection\&. Policy routing disabled means that NetworkManager will add all routes to the main table (except static routes that explicitly configure a different table)\&. Additionally, NetworkManager will not delete any extraneous routes from tables except the main table\&. This is to preserve backward compatibility for users who manage routing tables outside of NetworkManager\&.
 T}
 T{
 routes
@@ -1990,14 +2177,20 @@ T}:T{
 T}:T{
 Deprecated in favor of the \*(Aqroute\-data\*(Aq property, but this can be used for backward\-compatibility with older daemons\&. Note that if you send this property the daemon will ignore \*(Aqroute\-data\*(Aq\&.  Array of IPv6 route structures\&.  Each IPv6 route structure is composed of an IPv6 address, a prefix length (1 \- 128), an IPv6 next hop address (which may be zeroed out if there is no next hop), and a metric\&. If the metric is 0, NM will choose an appropriate default metric for the device\&.
 T}
+T{
+token
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Configure the token for draft\-chown\-6man\-tokenised\-ipv6\-identifiers\-02 IPv6 tokenized interface identifiers\&. Useful with eui64 addr\-gen\-mode\&.
+T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&15.\ \&ip-tunnel setting
+.SS "ip\-tunnel setting"
+.PP
+IP Tunneling Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2076,7 +2269,7 @@ uint32
 T}:T{
 0
 T}:T{
-None
+If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple fragments\&.
 T}
 T{
 name
@@ -2143,12 +2336,117 @@ The TTL to assign to tunneled packets\&. 0 is a special value meaning that packe
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&16.\ \&macvlan setting
+.SS "macsec setting"
+.PP
+MACSec Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+encrypt
+T}:T{
+boolean
+T}:T{
+TRUE
+T}:T{
+Whether the transmitted traffic must be encrypted\&.
+T}
+T{
+mka\-cak
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The pre\-shared CAK (Connectivity Association Key) for MACsec Key Agreement\&.
+T}
+T{
+mka\-cak\-flags
+T}:T{
+NMSettingSecretFlags (uint32)
+T}:T{
+\ \&
+T}:T{
+Flags indicating how to handle the "mka\-cak" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
+T}
+T{
+mka\-ckn
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The pre\-shared CKN (Connectivity\-association Key Name) for MACsec Key Agreement\&.
+T}
+T{
+mode
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Specifies how the CAK (Connectivity Association Key) for MKA (MACsec Key Agreement) is obtained\&.
+T}
+T{
+name
+T}:T{
+string
+T}:T{
+macsec
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+parent
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+If given, specifies the parent interface name or parent connection UUID from which this MACSEC interface should be created\&.  If this property is not specified, the connection must contain an "802\-3\-ethernet" setting with a "mac\-address" property\&.
+T}
+T{
+port
+T}:T{
+int32
+T}:T{
+1
+T}:T{
+The port component of the SCI (Secure Channel Identifier), between 1 and 65534\&.
+T}
+T{
+validation
+T}:T{
+int32
+T}:T{
+2
+T}:T{
+Specifies the validation mode for incoming frames\&.
+T}
+.TE
+.sp 1
+.SS "macvlan setting"
+.PP
+MAC VLAN Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2214,12 +2512,9 @@ Whether the interface should be a MACVTAP\&.
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&17.\ \&802-11-olpc-mesh setting
+.SS "802\-11\-olpc\-mesh setting"
+.PP
+OLPC Wireless Mesh Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2275,12 +2570,241 @@ SSID of the mesh network to join\&.
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&18.\ \&ppp setting
+.SS "ovs\-bridge setting"
+.PP
+OvsBridge Link Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+fail\-mode
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The bridge failure mode\&. One of "secure", "standalone" or empty\&.
+T}
+T{
+mcast\-snooping\-enable
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Enable or disable multicast snooping\&.
+T}
+T{
+name
+T}:T{
+string
+T}:T{
+ovs\-bridge
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+rstp\-enable
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Enable or disable RSTP\&.
+T}
+T{
+stp\-enable
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Enable or disable STP\&.
+T}
+.TE
+.sp 1
+.SS "ovs\-interface setting"
+.PP
+OpenVSwitch Interface Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l.
+T{
+name
+T}:T{
+string
+T}:T{
+ovs\-interface
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+type
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The interface type\&. Either "internal", or empty\&.
+T}
+.TE
+.sp 1
+.SS "ovs\-patch setting"
+.PP
+OvsPatch Link Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l.
+T{
+name
+T}:T{
+string
+T}:T{
+ovs\-patch
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+peer
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Specifies the unicast destination IP address of a remote OpenVSwitch bridge port to connect to\&.
+T}
+.TE
+.sp 1
+.SS "ovs\-port setting"
+.PP
+OvsPort Link Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+bond\-downdelay
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The time port must be inactive in order to be considered down\&.
+T}
+T{
+bond\-mode
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Bonding mode\&. One of "active\-backup", "balance\-slb", or "balance\-tcp"\&.
+T}
+T{
+bond\-updelay
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The time port must be active before it starts forwarding traffic\&.
+T}
+T{
+lacp
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+LACP mode\&. One of "active", "off", or "passive"\&.
+T}
+T{
+name
+T}:T{
+string
+T}:T{
+ovs\-port
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+tag
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The VLAN tag in the range 0\-4095\&.
+T}
+T{
+vlan\-mode
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The VLAN mode\&. One of "access", "native\-tagged", "native\-untagged", "trunk" or unset\&.
+T}
+.TE
+.sp 1
+.SS "ppp setting"
+.PP
+Point\-to\-Point Protocol Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2473,7 +2997,7 @@ boolean
 T}:T{
 FALSE
 T}:T{
-If TRUE, MPPE (Microsoft Point\-to\-Point Encrpytion) will be required for the PPP session\&.  If either 64\-bit or 128\-bit MPPE is not available the session will fail\&.  Note that MPPE is not used on mobile broadband connections\&.
+If TRUE, MPPE (Microsoft Point\-to\-Point Encryption) will be required for the PPP session\&.  If either 64\-bit or 128\-bit MPPE is not available the session will fail\&.  Note that MPPE is not used on mobile broadband connections\&.
 T}
 T{
 require\-mppe\-128
@@ -2482,16 +3006,13 @@ boolean
 T}:T{
 FALSE
 T}:T{
-If TRUE, 128\-bit MPPE (Microsoft Point\-to\-Point Encrpytion) will be required for the PPP session, and the "require\-mppe" property must also be set to TRUE\&.  If 128\-bit MPPE is not available the session will fail\&.
+If TRUE, 128\-bit MPPE (Microsoft Point\-to\-Point Encryption) will be required for the PPP session, and the "require\-mppe" property must also be set to TRUE\&.  If 128\-bit MPPE is not available the session will fail\&.
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&19.\ \&pppoe setting
+.SS "pppoe setting"
+.PP
+PPP\-over\-Ethernet Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2509,6 +3030,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 name
@@ -2518,6 +3040,15 @@ T}:T{
 pppoe
 T}:T{
 The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+parent
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+If given, specifies the parent interface name on which this PPPoE connection should be created\&.  If this property is not specified, the connection is activated on the interface specified in "interface\-name" of NMSettingConnection\&.
 T}
 T{
 password
@@ -2557,12 +3088,77 @@ Username used to authenticate with the PPPoE service\&.
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&20.\ \&serial setting
+.SS "proxy setting"
+.PP
+WWW Proxy Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+browser\-only
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Whether the proxy configuration is for browser only\&.
+T}
+T{
+method
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Method for proxy configuration, Default is NM_SETTING_PROXY_METHOD_NONE (0)
+T}
+T{
+name
+T}:T{
+string
+T}:T{
+proxy
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+pac\-script
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+PAC script for the connection\&.
+T}
+T{
+pac\-url
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+PAC URL for obtaining PAC file\&.
+T}
+.TE
+.sp 1
+.SS "serial setting"
+.PP
+Serial Link Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2638,12 +3234,9 @@ Number of stop bits for communication on the serial port\&.  Either 1 or 2\&. Th
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&21.\ \&team setting
+.SS "tc setting"
+.PP
+Linux Traffic Contril Settings\&.\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2657,6 +3250,69 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
+l l l l
+l l l l.
+T{
+name
+T}:T{
+string
+T}:T{
+tc
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+T{
+qdiscs
+T}:T{
+array of vardict
+T}:T{
+[]
+T}:T{
+Array of TC queuening disciplines\&.
+T}
+T{
+tfilters
+T}:T{
+array of vardict
+T}:T{
+[]
+T}:T{
+Array of TC traffic filters\&.
+T}
+.TE
+.sp 1
+.SS "team setting"
+.PP
+Teaming Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l.
@@ -2679,6 +3335,33 @@ T}:T{
 Deprecated in favor of connection\&.interface\-name, but can be used for backward\-compatibility with older daemons, to set the team\*(Aqs interface name\&.
 T}
 T{
+link\-watchers
+T}:T{
+array of vardict
+T}:T{
+[]
+T}:T{
+Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher\&. Available link watchers are \*(Aqethtool\*(Aq, \*(Aqnsna_ping\*(Aq and \*(Aqarp_ping\*(Aq and it is specified in the dictionary with the key \*(Aqname\*(Aq\&. Available keys are:   ethtool: \*(Aqdelay\-up\*(Aq, \*(Aqdelay\-down\*(Aq, \*(Aqinit\-wait\*(Aq; nsna_ping: \*(Aqinit\-wait\*(Aq, \*(Aqinterval\*(Aq, \*(Aqmissed\-max\*(Aq, \*(Aqtarget\-host\*(Aq; arp_ping: all the ones in nsna_ping and \*(Aqsource\-host\*(Aq, \*(Aqvalidate\-active\*(Aq, \*(Aqvalidate\-incative\*(Aq, \*(Aqsend\-always\*(Aq\&. See teamd\&.conf man for more details\&.
+T}
+T{
+mcast\-rejoin\-count
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Corresponds to the teamd mcast_rejoin\&.count\&.
+T}
+T{
+mcast\-rejoin\-interval
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Corresponds to the teamd mcast_rejoin\&.interval\&.
+T}
+T{
 name
 T}:T{
 string
@@ -2687,14 +3370,119 @@ team
 T}:T{
 The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
+T{
+notify\-peers\-count
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Corresponds to the teamd notify_peers\&.count\&.
+T}
+T{
+notify\-peers\-interval
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Corresponds to the teamd notify_peers\&.interval\&.
+T}
+T{
+runner
+T}:T{
+string
+T}:T{
+"roundrobin"
+T}:T{
+Corresponds to the teamd runner\&.name\&. Permitted values are: "roundrobin", "broadcast", "activebackup", "loadbalance", "lacp"\&. When setting the runner, all the properties specific to the runner will be reset to the default value; all the properties specific to other runners will be set to an empty value (or if not possible to a default value)\&.
+T}
+T{
+runner\-active
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Corresponds to the teamd runner\&.active\&.
+T}
+T{
+runner\-agg\-select\-policy
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Corresponds to the teamd runner\&.agg_select_policy\&.
+T}
+T{
+runner\-fast\-rate
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Corresponds to the teamd runner\&.fast_rate\&.
+T}
+T{
+runner\-hwaddr\-policy
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Corresponds to the teamd runner\&.hwaddr_policy\&.
+T}
+T{
+runner\-min\-ports
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Corresponds to the teamd runner\&.min_ports\&.
+T}
+T{
+runner\-sys\-prio
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Corresponds to the teamd runner\&.sys_prio\&.
+T}
+T{
+runner\-tx\-balancer
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Corresponds to the teamd runner\&.tx_balancer\&.name\&.
+T}
+T{
+runner\-tx\-balancer\-interval
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Corresponds to the teamd runner\&.tx_balancer\&.interval\&.
+T}
+T{
+runner\-tx\-hash
+T}:T{
+array of string
+T}:T{
+[]
+T}:T{
+Corresponds to the teamd runner\&.tx_hash\&.
+T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&22.\ \&team-port setting
+.SS "team\-port setting"
+.PP
+Team Port Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2709,6 +3497,12 @@ Value Description
 T}
 .T&
 l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
 config
@@ -2720,6 +3514,33 @@ T}:T{
 The JSON configuration for the team port\&. The property should contain raw JSON configuration data suitable for teamd, because the value is passed directly to teamd\&. If not specified, the default configuration is used\&. See man teamd\&.conf for the format details\&.
 T}
 T{
+lacp\-key
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Corresponds to the teamd ports\&.PORTIFNAME\&.lacp_key\&.
+T}
+T{
+lacp\-prio
+T}:T{
+int32
+T}:T{
+255
+T}:T{
+Corresponds to the teamd ports\&.PORTIFNAME\&.lacp_prio\&.
+T}
+T{
+link\-watchers
+T}:T{
+array of vardict
+T}:T{
+[]
+T}:T{
+Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher\&. Available link watchers are \*(Aqethtool\*(Aq, \*(Aqnsna_ping\*(Aq and \*(Aqarp_ping\*(Aq and it is specified in the dictionary with the key \*(Aqname\*(Aq\&. Available keys are:   ethtool: \*(Aqdelay\-up\*(Aq, \*(Aqdelay\-down\*(Aq, \*(Aqinit\-wait\*(Aq; nsna_ping: \*(Aqinit\-wait\*(Aq, \*(Aqinterval\*(Aq, \*(Aqmissed\-max\*(Aq, \*(Aqtarget\-host\*(Aq; arp_ping: all the ones in nsna_ping and \*(Aqsource\-host\*(Aq, \*(Aqvalidate\-active\*(Aq, \*(Aqvalidate\-incative\*(Aq, \*(Aqsend\-always\*(Aq\&. See teamd\&.conf man for more details\&.
+T}
+T{
 name
 T}:T{
 string
@@ -2728,14 +3549,38 @@ team\-port
 T}:T{
 The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
+T{
+prio
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Corresponds to the teamd ports\&.PORTIFNAME\&.prio\&.
+T}
+T{
+queue\-id
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Corresponds to the teamd ports\&.PORTIFNAME\&.queue_id\&. When set to \-1 means the parameter is skipped from the json config\&.
+T}
+T{
+sticky
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Corresponds to the teamd ports\&.PORTIFNAME\&.sticky\&.
+T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&23.\ \&tun setting
+.SS "tun setting"
+.PP
+Tunnel Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2821,12 +3666,47 @@ If TRUE the IFF_VNET_HDR the tunnel packets will include a virtio network header
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&24.\ \&vlan setting
+.SS "user setting"
+.PP
+General User Profile Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l.
+T{
+data
+T}:T{
+dict of string to string
+T}:T{
+{}
+T}:T{
+A dictionary of key/value pairs with user data\&. This data is ignored by NetworkManager and can be used at the users discretion\&. The keys only support a strict ascii format, but the values can be arbitrary UTF8 strings up to a certain length\&.
+T}
+T{
+name
+T}:T{
+string
+T}:T{
+user
+T}:T{
+The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+T}
+.TE
+.sp 1
+.SS "vlan setting"
+.PP
+VLAN Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2912,12 +3792,9 @@ If given, specifies the parent interface name or parent connection UUID from whi
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&25.\ \&vpn setting
+.SS "vpn setting"
+.PP
+VPN Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2990,7 +3867,7 @@ uint32
 T}:T{
 0
 T}:T{
-Timeout for the VPN service to establish the connection\&. Some services may take quite a long time to connect\&. Value of 0 means a default timeout, which is 60 seconds (unless overriden by vpn\&.timeout in configuration file)\&. Values greater than zero mean timeout in seconds\&.
+Timeout for the VPN service to establish the connection\&. Some services may take quite a long time to connect\&. Value of 0 means a default timeout, which is 60 seconds (unless overridden by vpn\&.timeout in configuration file)\&. Values greater than zero mean timeout in seconds\&.
 T}
 T{
 user\-name
@@ -3003,12 +3880,9 @@ If the VPN connection requires a user name for authentication, that name should 
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&26.\ \&vxlan setting
+.SS "vxlan setting"
+.PP
+VXLAN Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3064,7 +3938,7 @@ uint32
 T}:T{
 0
 T}:T{
-Specifies the VXLAN Network Identifer (or VXLAN Segment Identifier) to use\&.
+Specifies the VXLAN Network Identifier (or VXLAN Segment Identifier) to use\&.
 T}
 T{
 l2\-miss
@@ -3194,12 +4068,9 @@ Specifies the time\-to\-live value to use in outgoing packets\&.
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&27.\ \&wimax setting
+.SS "wimax setting"
+.PP
+WiMax Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3245,12 +4116,9 @@ Network Service Provider (NSP) name of the WiMAX network this connection should 
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&28.\ \&802-3-ethernet setting
+.SS "802\-3\-ethernet setting"
+.PP
+Wired Ethernet Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3277,15 +4145,26 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
 l l l l.
+T{
+assigned\-mac\-address
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The new field for the cloned MAC address\&. It can be either a hardware address in ASCII representation, or one of the special values "preserve", "permanent", "random" or "stable"\&. This field replaces the deprecated "cloned\-mac\-address" on D\-Bus, which can only contain explict hardware addresses\&. Note that this property only exists in D\-Bus API\&. libnm and nmcli continue to call this property "cloned\-mac\-address"\&.
+T}
 T{
 auto\-negotiate
 T}:T{
 boolean
 T}:T{
-TRUE
+FALSE
 T}:T{
-If TRUE, allow auto\-negotiation of port speed and duplex mode\&.  If FALSE, do not allow auto\-negotiation, in which case the "speed" and "duplex" properties should be set\&.
+If TRUE, enforce auto\-negotiation of port speed and duplex mode\&.  If FALSE, "speed" and "duplex" properties should be both set or link configuration will be skipped\&.
 T}
 T{
 cloned\-mac\-address
@@ -3294,7 +4173,7 @@ byte array
 T}:T{
 \ \&
 T}:T{
-If specified, request that the device use this MAC address instead of its permanent MAC address\&.  This is known as MAC cloning or spoofing\&.
+This D\-Bus field is deprecated in favor of "assigned\-mac\-address" which is more flexible and allows specifying special variants like "random"\&. For libnm and nmcli, this field is called "cloned\-mac\-address"\&.
 T}
 T{
 duplex
@@ -3303,7 +4182,16 @@ string
 T}:T{
 \ \&
 T}:T{
-If specified, request that the device only use the specified duplex mode\&. Either "half" or "full"\&.
+Can be specified only when "auto\-negotiate" is "off"\&. In that case, statically configures the device to use that specified duplex mode, either "half" or "full"\&. Must be set together with the "speed" property if specified\&. Before specifying a duplex mode be sure your device supports it\&.
+T}
+T{
+generate\-mac\-address\-mask
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+With "cloned\-mac\-address" setting "random" or "stable", by default all bits of the MAC address are scrambled and a locally\-administered, unicast MAC address is created\&. This property allows to specify that certain bits are fixed\&. Note that the least significant bit of the first MAC address will always be unset to create a unicast MAC address\&. If the property is NULL, it is eligible to be overwritten by a default connection setting\&. If the value is still NULL or an empty string, the default is to create a locally\-administered, unicast MAC address\&. If the value contains one MAC address, this address is used as mask\&. The set bits of the mask are to be filled with the current MAC address of the device, while the unset bits are subject to randomization\&. Setting "FE:FF:FF:00:00:00" means to preserve the OUI of the current MAC address and only randomize the lower 3 bytes using the "random" or "stable" algorithm\&. If the value contains one additional MAC address after the mask, this address is used instead of the current MAC address to fill the bits that shall not be randomized\&. For example, a value of "FE:FF:FF:00:00:00 68:F7:28:00:00:00" will set the OUI of the MAC address to 68:F7:28, while the lower bits are randomized\&. A value of "02:00:00:00:00:00 00:00:00:00:00:00" will create a fully scrambled globally\-administered, burned\-in MAC address\&. If the value contains more than one additional MAC addresses, one of them is chosen randomly\&. For example, "02:00:00:00:00:00 00:00:00:00:00:00 02:00:00:00:00:00" will create a fully scrambled MAC address, randomly locally or globally administered\&.
 T}
 T{
 mac\-address
@@ -3348,7 +4236,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Specific port type to use if multiple the device supports multiple attachment methods\&.  One of "tp" (Twisted Pair), "aui" (Attachment Unit Interface), "bnc" (Thin Ethernet) or "mii" (Media Independent Interface\&. If the device supports only one port type, this setting is ignored\&.
+Specific port type to use if the device supports multiple attachment methods\&.  One of "tp" (Twisted Pair), "aui" (Attachment Unit Interface), "bnc" (Thin Ethernet) or "mii" (Media Independent Interface)\&. If the device supports only one port type, this setting is ignored\&.
 T}
 T{
 s390\-nettype
@@ -3384,7 +4272,7 @@ uint32
 T}:T{
 0
 T}:T{
-If non\-zero, request that the device use only the specified speed\&.  In Mbit/s, ie 100 == 100Mbit/s\&.
+Can be set to a value greater than zero only when "auto\-negotiate" is "off"\&. In that case, statically configures the device to use that specified speed\&. In Mbit/s, ie 100 == 100Mbit/s\&. Must be set together with the "duplex" property when non\-zero\&. Before specifying a speed value be sure your device supports it\&.
 T}
 T{
 wake\-on\-lan
@@ -3406,12 +4294,9 @@ If specified, the password used with magic\-packet\-based Wake\-on\-LAN, represe
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&29.\ \&802-11-wireless setting
+.SS "802\-11\-wireless setting"
+.PP
+Wi\-Fi Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3441,7 +4326,18 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
 l l l l.
+T{
+assigned\-mac\-address
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The new field for the cloned MAC address\&. It can be either a hardware address in ASCII representation, or one of the special values "preserve", "permanent", "random" or "stable"\&. This field replaces the deprecated "cloned\-mac\-address" on D\-Bus, which can only contain explict hardware addresses\&. Note that this property only exists in D\-Bus API\&. libnm and nmcli continue to call this property "cloned\-mac\-address"\&.
+T}
 T{
 band
 T}:T{
@@ -3476,7 +4372,16 @@ byte array
 T}:T{
 \ \&
 T}:T{
-If specified, request that the Wi\-Fi device use this MAC address instead of its permanent MAC address\&.  This is known as MAC cloning or spoofing\&.
+This D\-Bus field is deprecated in favor of "assigned\-mac\-address" which is more flexible and allows specifying special variants like "random"\&. For libnm and nmcli, this field is called "cloned\-mac\-address"\&.
+T}
+T{
+generate\-mac\-address\-mask
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+With "cloned\-mac\-address" setting "random" or "stable", by default all bits of the MAC address are scrambled and a locally\-administered, unicast MAC address is created\&. This property allows to specify that certain bits are fixed\&. Note that the least significant bit of the first MAC address will always be unset to create a unicast MAC address\&. If the property is NULL, it is eligible to be overwritten by a default connection setting\&. If the value is still NULL or an empty string, the default is to create a locally\-administered, unicast MAC address\&. If the value contains one MAC address, this address is used as mask\&. The set bits of the mask are to be filled with the current MAC address of the device, while the unset bits are subject to randomization\&. Setting "FE:FF:FF:00:00:00" means to preserve the OUI of the current MAC address and only randomize the lower 3 bytes using the "random" or "stable" algorithm\&. If the value contains one additional MAC address after the mask, this address is used instead of the current MAC address to fill the bits that shall not be randomized\&. For example, a value of "FE:FF:FF:00:00:00 68:F7:28:00:00:00" will set the OUI of the MAC address to 68:F7:28, while the lower bits are randomized\&. A value of "02:00:00:00:00:00 00:00:00:00:00:00" will create a fully scrambled globally\-administered, burned\-in MAC address\&. If the value contains more than one additional MAC addresses, one of them is chosen randomly\&. For example, "02:00:00:00:00:00 00:00:00:00:00:00 02:00:00:00:00:00" will create a fully scrambled MAC address, randomly locally or globally administered\&.
 T}
 T{
 hidden
@@ -3512,7 +4417,7 @@ uint32
 T}:T{
 0
 T}:T{
-One of NM_SETTING_MAC_RANDOMIZATION_DEFAULT (0) (never randomize unless the user has set a global default to randomize and the supplicant supports randomization),  NM_SETTING_MAC_RANDOMIZATION_NEVER (1) (never randomize the MAC address), or NM_SETTING_MAC_RANDOMIZATION_ALWAYS (2) (always randomize the MAC address)\&.
+One of NM_SETTING_MAC_RANDOMIZATION_DEFAULT (0) (never randomize unless the user has set a global default to randomize and the supplicant supports randomization),  NM_SETTING_MAC_RANDOMIZATION_NEVER (1) (never randomize the MAC address), or NM_SETTING_MAC_RANDOMIZATION_ALWAYS (2) (always randomize the MAC address)\&. This property is deprecated for \*(Aqcloned\-mac\-address\*(Aq\&. Deprecated: 1
 T}
 T{
 mode
@@ -3597,12 +4502,9 @@ If non\-zero, directs the device to use the specified transmit power\&. Units ar
 T}
 .TE
 .sp 1
-.sp
-.it 1 an-trap
-.nr an-no-space-flag 1
-.nr an-break-flag 1
-.br
-.B Table\ \&30.\ \&802-11-wireless-security setting
+.SS "802\-11\-wireless\-security setting"
+.PP
+Wi\-Fi Security Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3616,6 +4518,8 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -3707,6 +4611,15 @@ T}:T{
 A list of pairwise encryption algorithms which prevents connections to Wi\-Fi networks that do not utilize one of the algorithms in the list\&. For maximum compatibility leave this property empty\&.  Each list element may be one of "tkip" or "ccmp"\&.
 T}
 T{
+pmf
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Indicates whether Protected Management Frames (802\&.11w) must be enabled for the connection\&.  One of NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT (0) (use global default value), NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE (1) (disable PMF), NM_SETTING_WIRELESS_SECURITY_PMF_OPTIONAL (2) (enable PMF if the supplicant and the access point support it) or NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED (3) (enable PMF and fail if not supported)\&.  When set to NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT (0) and no global default is set, PMF will be optionally enabled\&.
+T}
+T{
 proto
 T}:T{
 array of string
@@ -3796,11 +4709,20 @@ T}:T{
 T}:T{
 When static WEP is used (ie, key\-mgmt = "none") and a non\-default WEP key index is used by the AP, put that WEP key index here\&.  Valid values are 0 (default key) through 3\&.  Note that some consumer access points (like the Linksys WRT54G) number the keys 1 \- 4\&.
 T}
+T{
+wps\-method
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+Flags indicating which mode of WPS is to be used if any\&. There\*(Aqs little point in changing the default setting as NetworkManager will automatically determine whether it\*(Aqs feasible to start WPS enrollment from the Access Point capabilities\&. WPS can be disabled by setting this property to a value of 1\&.
+T}
 .TE
 .sp 1
 .SS "Secret flag types:"
 .PP
-Each secret property in a setting has an associated
+Each password or secret property in a setting has an associated
 \fIflags\fR
 property that describes how to handle that secret\&. The
 \fIflags\fR
@@ -3814,7 +4736,8 @@ property is a bitfield that contains zero or more of the following values logica
 .sp -1
 .IP \(bu 2.3
 .\}
-0x0 (none) \- the system is responsible for providing and storing this secret\&.
+0x0 (none) \- the system is responsible for providing and storing this secret\&. This may be required so that secrets are already available before the user logs in\&. It also commonly means that the secret will be stored in plain text on disk, accessible to root only\&. For example via the keyfile settings plugin as described in the "PLUGINS" section in
+\fBNetworkManager.conf\fR(5)\&.
 .RE
 .sp
 .RS 4

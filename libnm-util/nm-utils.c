@@ -470,7 +470,7 @@ value_dup (gpointer key, gpointer val, gpointer user_data)
 	GValue *dup_value;
 
 	dup_value = g_slice_new0 (GValue);
-	g_value_init (dup_value, G_VALUE_TYPE (val));
+	g_value_init (dup_value, G_VALUE_TYPE (value));
 	g_value_copy (value, dup_value);
 
 	g_hash_table_insert (table, g_strdup ((char *) key), dup_value);
@@ -517,24 +517,12 @@ nm_utils_slist_free (GSList *list, GDestroyNotify elem_destroy_fn)
 }
 
 gboolean
-_nm_utils_string_in_list (const char *str, const char **valid_strings)
-{
-	int i;
-
-	for (i = 0; valid_strings[i]; i++)
-		if (strcmp (str, valid_strings[i]) == 0)
-			break;
-
-	return valid_strings[i] != NULL;
-}
-
-gboolean
 _nm_utils_string_slist_validate (GSList *list, const char **valid_values)
 {
 	GSList *iter;
 
 	for (iter = list; iter; iter = iter->next) {
-		if (!_nm_utils_string_in_list ((char *) iter->data, valid_values))
+		if (!g_strv_contains (valid_values, (char *) iter->data))
 			return FALSE;
 	}
 
@@ -709,7 +697,7 @@ nm_utils_security_valid (NMUtilsSecurityType type,
 	case NMU_SEC_LEAP: /* require PRIVACY bit for LEAP? */
 		if (adhoc)
 			return FALSE;
-		/* Fall through */
+		/* fall through */
 	case NMU_SEC_STATIC_WEP:
 		g_assert (have_ap);
 		if (!(ap_flags & NM_802_11_AP_FLAGS_PRIVACY))
@@ -1114,7 +1102,7 @@ nm_utils_ip4_netmask_to_prefix (guint32 netmask)
 guint32
 nm_utils_ip4_prefix_to_netmask (guint32 prefix)
 {
-	return prefix < 32 ? ~htonl(0xFFFFFFFF >> prefix) : 0xFFFFFFFF;
+	return _nm_utils_ip4_prefix_to_netmask (prefix);
 }
 
 
@@ -1133,12 +1121,7 @@ nm_utils_ip4_prefix_to_netmask (guint32 prefix)
 guint32
 nm_utils_ip4_get_default_prefix (guint32 ip)
 {
-	if (((ntohl (ip) & 0xFF000000) >> 24) <= 127)
-		return 8;  /* Class A - 255.0.0.0 */
-	else if (((ntohl (ip) & 0xFF000000) >> 24) <= 191)
-		return 16;  /* Class B - 255.255.0.0 */
-
-	return 24;  /* Class C - 255.255.255.0 */
+	return _nm_utils_ip4_get_default_prefix (ip);
 }
 
 /**
@@ -1742,7 +1725,7 @@ nm_utils_file_is_pkcs12 (const char *filename)
 	return crypto_is_pkcs12_file (filename, NULL);
 }
 
-/**********************************************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_utils_file_search_in_paths:
@@ -1816,7 +1799,7 @@ NOT_FOUND:
 	return NULL;
 }
 
-/**********************************************************************************************/
+/*****************************************************************************/
 
 /* Band, channel/frequency stuff for wireless */
 struct cf_pair {
@@ -2589,7 +2572,7 @@ nm_utils_check_virtual_device_compatibility (GType virtual_type, GType other_typ
 	}
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 /* Unused prototypes to make the compiler happy */
 gconstpointer nm_utils_get_private (void);

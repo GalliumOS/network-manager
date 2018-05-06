@@ -20,7 +20,6 @@
 #include "nm-sd-adapt.h"
 
 #include <alloca.h>
-#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sched.h>
@@ -37,47 +36,36 @@
 #include <unistd.h>
 
 #include "alloc-util.h"
-#if 0 /* NM_IGNORED */
+#include "btrfs-util.h"
 #include "build.h"
+#include "cgroup-util.h"
 #include "def.h"
 #include "dirent-util.h"
-#endif /* NM_IGNORED */
 #include "fd-util.h"
 #include "fileio.h"
-#if 0 /* NM_IGNORED */
-#include "formats-util.h"
-#endif /* NM_IGNORED */
+#include "format-util.h"
 #include "hashmap.h"
 #include "hostname-util.h"
 #include "log.h"
 #include "macro.h"
-#if 0 /* NM_IGNORED */
 #include "missing.h"
-#endif /* NM_IGNORED */
 #include "parse-util.h"
 #include "path-util.h"
-#if 0 /* NM_IGNORED */
 #include "process-util.h"
-#endif /* NM_IGNORED */
 #include "set.h"
-#if 0 /* NM_IGNORED */
 #include "signal-util.h"
 #include "stat-util.h"
-#endif /* NM_IGNORED */
 #include "string-util.h"
 #include "strv.h"
 #include "time-util.h"
-#if 0 /* NM_IGNORED */
+#include "umask-util.h"
 #include "user-util.h"
-#endif /* NM_IGNORED */
 #include "util.h"
-
-/* Put this test here for a lack of better place */
-assert_cc(EAGAIN == EWOULDBLOCK);
 
 #if 0 /* NM_IGNORED */
 int saved_argc = 0;
 char **saved_argv = NULL;
+static int saved_in_initrd = -1;
 #endif /* NM_IGNORED */
 
 size_t page_size(void) {
@@ -95,146 +83,6 @@ size_t page_size(void) {
 }
 
 #if 0 /* NM_IGNORED */
-static int do_execute(char **directories, usec_t timeout, char *argv[]) {
-        _cleanup_hashmap_free_free_ Hashmap *pids = NULL;
-        _cleanup_set_free_free_ Set *seen = NULL;
-        char **directory;
-
-        /* We fork this all off from a child process so that we can
-         * somewhat cleanly make use of SIGALRM to set a time limit */
-
-        (void) reset_all_signal_handlers();
-        (void) reset_signal_mask();
-
-        assert_se(prctl(PR_SET_PDEATHSIG, SIGTERM) == 0);
-
-        pids = hashmap_new(NULL);
-        if (!pids)
-                return log_oom();
-
-        seen = set_new(&string_hash_ops);
-        if (!seen)
-                return log_oom();
-
-        STRV_FOREACH(directory, directories) {
-                _cleanup_closedir_ DIR *d;
-                struct dirent *de;
-
-                d = opendir(*directory);
-                if (!d) {
-                        if (errno == ENOENT)
-                                continue;
-
-                        return log_error_errno(errno, "Failed to open directory %s: %m", *directory);
-                }
-
-                FOREACH_DIRENT(de, d, break) {
-                        _cleanup_free_ char *path = NULL;
-                        pid_t pid;
-                        int r;
-
-                        if (!dirent_is_file(de))
-                                continue;
-
-                        if (set_contains(seen, de->d_name)) {
-                                log_debug("%1$s/%2$s skipped (%2$s was already seen).", *directory, de->d_name);
-                                continue;
-                        }
-
-                        r = set_put_strdup(seen, de->d_name);
-                        if (r < 0)
-                                return log_oom();
-
-                        path = strjoin(*directory, "/", de->d_name, NULL);
-                        if (!path)
-                                return log_oom();
-
-                        if (null_or_empty_path(path)) {
-                                log_debug("%s is empty (a mask).", path);
-                                continue;
-                        }
-
-                        pid = fork();
-                        if (pid < 0) {
-                                log_error_errno(errno, "Failed to fork: %m");
-                                continue;
-                        } else if (pid == 0) {
-                                char *_argv[2];
-
-                                assert_se(prctl(PR_SET_PDEATHSIG, SIGTERM) == 0);
-
-                                if (!argv) {
-                                        _argv[0] = path;
-                                        _argv[1] = NULL;
-                                        argv = _argv;
-                                } else
-                                        argv[0] = path;
-
-                                execv(path, argv);
-                                return log_error_errno(errno, "Failed to execute %s: %m", path);
-                        }
-
-                        log_debug("Spawned %s as " PID_FMT ".", path, pid);
-
-                        r = hashmap_put(pids, PID_TO_PTR(pid), path);
-                        if (r < 0)
-                                return log_oom();
-                        path = NULL;
-                }
-        }
-
-        /* Abort execution of this process after the timout. We simply
-         * rely on SIGALRM as default action terminating the process,
-         * and turn on alarm(). */
-
-        if (timeout != USEC_INFINITY)
-                alarm((timeout + USEC_PER_SEC - 1) / USEC_PER_SEC);
-
-        while (!hashmap_isempty(pids)) {
-                _cleanup_free_ char *path = NULL;
-                pid_t pid;
-
-                pid = PTR_TO_PID(hashmap_first_key(pids));
-                assert(pid > 0);
-
-                path = hashmap_remove(pids, PID_TO_PTR(pid));
-                assert(path);
-
-                wait_for_terminate_and_warn(path, pid, true);
-        }
-
-        return 0;
-}
-
-void execute_directories(const char* const* directories, usec_t timeout, char *argv[]) {
-        pid_t executor_pid;
-        int r;
-        char *name;
-        char **dirs = (char**) directories;
-
-        assert(!strv_isempty(dirs));
-
-        name = basename(dirs[0]);
-        assert(!isempty(name));
-
-        /* Executes all binaries in the directories in parallel and waits
-         * for them to finish. Optionally a timeout is applied. If a file
-         * with the same name exists in more than one directory, the
-         * earliest one wins. */
-
-        executor_pid = fork();
-        if (executor_pid < 0) {
-                log_error_errno(errno, "Failed to fork: %m");
-                return;
-
-        } else if (executor_pid == 0) {
-                r = do_execute(dirs, timeout, argv);
-                _exit(r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
-        }
-
-        wait_for_terminate_and_warn(name, executor_pid, true);
-}
-
 bool plymouth_running(void) {
         return access("/run/plymouth/pid", F_OK) >= 0;
 }
@@ -334,15 +182,12 @@ int block_get_whole_disk(dev_t d, dev_t *ret) {
 }
 
 bool kexec_loaded(void) {
-       bool loaded = false;
-       char *s;
+       _cleanup_free_ char *s = NULL;
 
-       if (read_one_line_file("/sys/kernel/kexec_loaded", &s) >= 0) {
-               if (s[0] == '1')
-                       loaded = true;
-               free(s);
-       }
-       return loaded;
+       if (read_one_line_file("/sys/kernel/kexec_loaded", &s) < 0)
+               return false;
+
+       return s[0] == '1';
 }
 
 int prot_from_flags(int flags) {
@@ -377,7 +222,7 @@ int fork_agent(pid_t *pid, const int except[], unsigned n_except, const char *pa
         /* Spawns a temporary TTY agent, making sure it goes away when
          * we go away */
 
-        parent_pid = getpid();
+        parent_pid = getpid_cached();
 
         /* First we temporarily block all signals, so that the new
          * child has them blocked initially. This way, we can be sure
@@ -436,13 +281,17 @@ int fork_agent(pid_t *pid, const int except[], unsigned n_except, const char *pa
                         _exit(EXIT_FAILURE);
                 }
 
-                if (!stdout_is_tty)
-                        dup2(fd, STDOUT_FILENO);
+                if (!stdout_is_tty && dup2(fd, STDOUT_FILENO) < 0) {
+                        log_error_errno(errno, "Failed to dup2 /dev/tty: %m");
+                        _exit(EXIT_FAILURE);
+                }
 
-                if (!stderr_is_tty)
-                        dup2(fd, STDERR_FILENO);
+                if (!stderr_is_tty && dup2(fd, STDERR_FILENO) < 0) {
+                        log_error_errno(errno, "Failed to dup2 /dev/tty: %m");
+                        _exit(EXIT_FAILURE);
+                }
 
-                if (fd > 2)
+                if (fd > STDERR_FILENO)
                         close(fd);
         }
 
@@ -466,11 +315,10 @@ int fork_agent(pid_t *pid, const int except[], unsigned n_except, const char *pa
 }
 
 bool in_initrd(void) {
-        static int saved = -1;
         struct statfs s;
 
-        if (saved >= 0)
-                return saved;
+        if (saved_in_initrd >= 0)
+                return saved_in_initrd;
 
         /* We make two checks here:
          *
@@ -478,15 +326,19 @@ bool in_initrd(void) {
          * 2. the root file system must be a memory file system
          *
          * The second check is extra paranoia, since misdetecting an
-         * initrd can have bad bad consequences due the initrd
+         * initrd can have bad consequences due the initrd
          * emptying when transititioning to the main systemd.
          */
 
-        saved = access("/etc/initrd-release", F_OK) >= 0 &&
-                statfs("/", &s) >= 0 &&
-                is_temporary_fs(&s);
+        saved_in_initrd = access("/etc/initrd-release", F_OK) >= 0 &&
+                          statfs("/", &s) >= 0 &&
+                          is_temporary_fs(&s);
 
-        return saved;
+        return saved_in_initrd;
+}
+
+void in_initrd_force(bool value) {
+        saved_in_initrd = value;
 }
 
 /* hey glibc, APIs with callbacks without a user pointer are so useless */
@@ -500,7 +352,7 @@ void *xbsearch_r(const void *key, const void *base, size_t nmemb, size_t size,
         u = nmemb;
         while (l < u) {
                 idx = (l + u) / 2;
-                p = (void *)(((const char *) base) + (idx * size));
+                p = (const char *) base + idx * size;
                 comparison = compar(key, p, arg);
                 if (comparison < 0)
                         u = idx;
@@ -515,31 +367,20 @@ void *xbsearch_r(const void *key, const void *base, size_t nmemb, size_t size,
 int on_ac_power(void) {
         bool found_offline = false, found_online = false;
         _cleanup_closedir_ DIR *d = NULL;
+        struct dirent *de;
 
         d = opendir("/sys/class/power_supply");
         if (!d)
                 return errno == ENOENT ? true : -errno;
 
-        for (;;) {
-                struct dirent *de;
+        FOREACH_DIRENT(de, d, return -errno) {
                 _cleanup_close_ int fd = -1, device = -1;
                 char contents[6];
                 ssize_t n;
 
-                errno = 0;
-                de = readdir(d);
-                if (!de && errno > 0)
-                        return -errno;
-
-                if (!de)
-                        break;
-
-                if (hidden_file(de->d_name))
-                        continue;
-
                 device = openat(dirfd(d), de->d_name, O_DIRECTORY|O_RDONLY|O_CLOEXEC|O_NOCTTY);
                 if (device < 0) {
-                        if (errno == ENOENT || errno == ENOTDIR)
+                        if (IN_SET(errno, ENOENT, ENOTDIR))
                                 continue;
 
                         return -errno;
@@ -586,47 +427,6 @@ int on_ac_power(void) {
         }
 
         return found_online || !found_offline;
-}
-
-bool id128_is_valid(const char *s) {
-        size_t i, l;
-
-        l = strlen(s);
-        if (l == 32) {
-
-                /* Simple formatted 128bit hex string */
-
-                for (i = 0; i < l; i++) {
-                        char c = s[i];
-
-                        if (!(c >= '0' && c <= '9') &&
-                            !(c >= 'a' && c <= 'z') &&
-                            !(c >= 'A' && c <= 'Z'))
-                                return false;
-                }
-
-        } else if (l == 36) {
-
-                /* Formatted UUID */
-
-                for (i = 0; i < l; i++) {
-                        char c = s[i];
-
-                        if ((i == 8 || i == 13 || i == 18 || i == 23)) {
-                                if (c != '-')
-                                        return false;
-                        } else {
-                                if (!(c >= '0' && c <= '9') &&
-                                    !(c >= 'a' && c <= 'z') &&
-                                    !(c >= 'A' && c <= 'Z'))
-                                        return false;
-                        }
-                }
-
-        } else
-                return false;
-
-        return true;
 }
 
 int container_get_leader(const char *machine, pid_t *pid) {
@@ -744,7 +544,7 @@ int namespace_enter(int pidns_fd, int mntns_fd, int netns_fd, int userns_fd, int
                 if (asprintf(&userns_fd_path, "/proc/self/fd/%d", userns_fd) < 0)
                         return -ENOMEM;
 
-                r = files_same(userns_fd_path, "/proc/self/ns/user");
+                r = files_same(userns_fd_path, "/proc/self/ns/user", 0);
                 if (r < 0)
                         return r;
                 if (r)
@@ -779,26 +579,140 @@ int namespace_enter(int pidns_fd, int mntns_fd, int netns_fd, int userns_fd, int
 }
 
 uint64_t physical_memory(void) {
-        long mem;
+        _cleanup_free_ char *root = NULL, *value = NULL;
+        uint64_t mem, lim;
+        size_t ps;
+        long sc;
 
-        /* We return this as uint64_t in case we are running as 32bit
-         * process on a 64bit kernel with huge amounts of memory */
+        /* We return this as uint64_t in case we are running as 32bit process on a 64bit kernel with huge amounts of
+         * memory.
+         *
+         * In order to support containers nicely that have a configured memory limit we'll take the minimum of the
+         * physically reported amount of memory and the limit configured for the root cgroup, if there is any. */
 
-        mem = sysconf(_SC_PHYS_PAGES);
-        assert(mem > 0);
+        sc = sysconf(_SC_PHYS_PAGES);
+        assert(sc > 0);
 
-        return (uint64_t) mem * (uint64_t) page_size();
+        ps = page_size();
+        mem = (uint64_t) sc * (uint64_t) ps;
+
+        if (cg_get_root_path(&root) < 0)
+                return mem;
+
+        if (cg_get_attribute("memory", root, "memory.limit_in_bytes", &value))
+                return mem;
+
+        if (safe_atou64(value, &lim) < 0)
+                return mem;
+
+        /* Make sure the limit is a multiple of our own page size */
+        lim /= ps;
+        lim *= ps;
+
+        return MIN(mem, lim);
 }
 
-int update_reboot_param_file(const char *param) {
-        int r = 0;
+uint64_t physical_memory_scale(uint64_t v, uint64_t max) {
+        uint64_t p, m, ps, r;
 
-        if (param) {
-                r = write_string_file(REBOOT_PARAM_FILE, param, WRITE_STRING_FILE_CREATE);
+        assert(max > 0);
+
+        /* Returns the physical memory size, multiplied by v divided by max. Returns UINT64_MAX on overflow. On success
+         * the result is a multiple of the page size (rounds down). */
+
+        ps = page_size();
+        assert(ps > 0);
+
+        p = physical_memory() / ps;
+        assert(p > 0);
+
+        m = p * v;
+        if (m / p != v)
+                return UINT64_MAX;
+
+        m /= max;
+
+        r = m * ps;
+        if (r / ps != m)
+                return UINT64_MAX;
+
+        return r;
+}
+
+uint64_t system_tasks_max(void) {
+
+#if SIZEOF_PID_T == 4
+#define TASKS_MAX ((uint64_t) (INT32_MAX-1))
+#elif SIZEOF_PID_T == 2
+#define TASKS_MAX ((uint64_t) (INT16_MAX-1))
+#else
+#error "Unknown pid_t size"
+#endif
+
+        _cleanup_free_ char *value = NULL, *root = NULL;
+        uint64_t a = TASKS_MAX, b = TASKS_MAX;
+
+        /* Determine the maximum number of tasks that may run on this system. We check three sources to determine this
+         * limit:
+         *
+         * a) the maximum value for the pid_t type
+         * b) the cgroups pids_max attribute for the system
+         * c) the kernel's configure maximum PID value
+         *
+         * And then pick the smallest of the three */
+
+        if (read_one_line_file("/proc/sys/kernel/pid_max", &value) >= 0)
+                (void) safe_atou64(value, &a);
+
+        if (cg_get_root_path(&root) >= 0) {
+                value = mfree(value);
+
+                if (cg_get_attribute("pids", root, "pids.max", &value) >= 0)
+                        (void) safe_atou64(value, &b);
+        }
+
+        return MIN3(TASKS_MAX,
+                    a <= 0 ? TASKS_MAX : a,
+                    b <= 0 ? TASKS_MAX : b);
+}
+
+uint64_t system_tasks_max_scale(uint64_t v, uint64_t max) {
+        uint64_t t, m;
+
+        assert(max > 0);
+
+        /* Multiply the system's task value by the fraction v/max. Hence, if max==100 this calculates percentages
+         * relative to the system's maximum number of tasks. Returns UINT64_MAX on overflow. */
+
+        t = system_tasks_max();
+        assert(t > 0);
+
+        m = t * v;
+        if (m / t != v) /* overflow? */
+                return UINT64_MAX;
+
+        return m / max;
+}
+
+int update_reboot_parameter_and_warn(const char *param) {
+        int r;
+
+        if (isempty(param)) {
+                if (unlink("/run/systemd/reboot-param") < 0) {
+                        if (errno == ENOENT)
+                                return 0;
+
+                        return log_warning_errno(errno, "Failed to unlink reboot parameter file: %m");
+                }
+
+                return 0;
+        }
+
+        RUN_WITH_UMASK(0022) {
+                r = write_string_file("/run/systemd/reboot-param", param, WRITE_STRING_FILE_CREATE);
                 if (r < 0)
-                        return log_error_errno(r, "Failed to write reboot param to "REBOOT_PARAM_FILE": %m");
-        } else
-                (void) unlink(REBOOT_PARAM_FILE);
+                        return log_warning_errno(r, "Failed to write reboot parameter file: %m");
+        }
 
         return 0;
 }
@@ -807,5 +721,135 @@ int version(void) {
         puts(PACKAGE_STRING "\n"
              SYSTEMD_FEATURES);
         return 0;
+}
+
+int get_block_device(const char *path, dev_t *dev) {
+        struct stat st;
+        struct statfs sfs;
+
+        assert(path);
+        assert(dev);
+
+        /* Get's the block device directly backing a file system. If
+         * the block device is encrypted, returns the device mapper
+         * block device. */
+
+        if (lstat(path, &st))
+                return -errno;
+
+        if (major(st.st_dev) != 0) {
+                *dev = st.st_dev;
+                return 1;
+        }
+
+        if (statfs(path, &sfs) < 0)
+                return -errno;
+
+        if (F_TYPE_EQUAL(sfs.f_type, BTRFS_SUPER_MAGIC))
+                return btrfs_get_block_device(path, dev);
+
+        return 0;
+}
+
+int get_block_device_harder(const char *path, dev_t *dev) {
+        _cleanup_closedir_ DIR *d = NULL;
+        _cleanup_free_ char *p = NULL, *t = NULL;
+        struct dirent *de, *found = NULL;
+        const char *q;
+        unsigned maj, min;
+        dev_t dt;
+        int r;
+
+        assert(path);
+        assert(dev);
+
+        /* Gets the backing block device for a file system, and
+         * handles LUKS encrypted file systems, looking for its
+         * immediate parent, if there is one. */
+
+        r = get_block_device(path, &dt);
+        if (r <= 0)
+                return r;
+
+        if (asprintf(&p, "/sys/dev/block/%u:%u/slaves", major(dt), minor(dt)) < 0)
+                return -ENOMEM;
+
+        d = opendir(p);
+        if (!d) {
+                if (errno == ENOENT)
+                        goto fallback;
+
+                return -errno;
+        }
+
+        FOREACH_DIRENT_ALL(de, d, return -errno) {
+
+                if (dot_or_dot_dot(de->d_name))
+                        continue;
+
+                if (!IN_SET(de->d_type, DT_LNK, DT_UNKNOWN))
+                        continue;
+
+                if (found) {
+                        _cleanup_free_ char *u = NULL, *v = NULL, *a = NULL, *b = NULL;
+
+                        /* We found a device backed by multiple other devices. We don't really support automatic
+                         * discovery on such setups, with the exception of dm-verity partitions. In this case there are
+                         * two backing devices: the data partition and the hash partition. We are fine with such
+                         * setups, however, only if both partitions are on the same physical device. Hence, let's
+                         * verify this. */
+
+                        u = strjoin(p, "/", de->d_name, "/../dev");
+                        if (!u)
+                                return -ENOMEM;
+
+                        v = strjoin(p, "/", found->d_name, "/../dev");
+                        if (!v)
+                                return -ENOMEM;
+
+                        r = read_one_line_file(u, &a);
+                        if (r < 0) {
+                                log_debug_errno(r, "Failed to read %s: %m", u);
+                                goto fallback;
+                        }
+
+                        r = read_one_line_file(v, &b);
+                        if (r < 0) {
+                                log_debug_errno(r, "Failed to read %s: %m", v);
+                                goto fallback;
+                        }
+
+                        /* Check if the parent device is the same. If not, then the two backing devices are on
+                         * different physical devices, and we don't support that. */
+                        if (!streq(a, b))
+                                goto fallback;
+                }
+
+                found = de;
+        }
+
+        if (!found)
+                goto fallback;
+
+        q = strjoina(p, "/", found->d_name, "/dev");
+
+        r = read_one_line_file(q, &t);
+        if (r == -ENOENT)
+                goto fallback;
+        if (r < 0)
+                return r;
+
+        if (sscanf(t, "%u:%u", &maj, &min) != 2)
+                return -EINVAL;
+
+        if (maj == 0)
+                goto fallback;
+
+        *dev = makedev(maj, min);
+        return 1;
+
+fallback:
+        *dev = dt;
+        return 1;
 }
 #endif /* NM_IGNORED */

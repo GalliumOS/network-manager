@@ -27,7 +27,6 @@
 #include "nm-utils.h"
 
 #include "nm-device-bridge.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 #include "nm-core-internal.h"
 
@@ -64,7 +63,7 @@ nm_device_bridge_get_hw_address (NMDeviceBridge *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_BRIDGE (device), NULL);
 
-	return NM_DEVICE_BRIDGE_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_BRIDGE_GET_PRIVATE (device)->hw_address);
 }
 
 /**
@@ -108,9 +107,14 @@ connection_compatible (NMDevice *device, NMConnection *connection, GError **erro
 		return FALSE;
 
 	if (!nm_connection_is_type (connection, NM_SETTING_BRIDGE_SETTING_NAME)) {
-		g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_INCOMPATIBLE_CONNECTION,
-		                     _("The connection was not a bridge connection."));
-		return FALSE;
+		if (   _nm_connection_get_setting_bluetooth_for_nap (connection)
+		    && nm_connection_is_type (connection, NM_SETTING_BLUETOOTH_SETTING_NAME)) {
+			/* a bluetooth NAP setting is a compatible connection for a bridge. */
+		} else {
+			g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_INCOMPATIBLE_CONNECTION,
+			                     _("The connection was not a bridge connection."));
+			return FALSE;
+		}
 	}
 
 	/* FIXME: check ports? */
@@ -130,14 +134,12 @@ get_hw_address (NMDevice *device)
 	return nm_device_bridge_get_hw_address (NM_DEVICE_BRIDGE (device));
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_bridge_init (NMDeviceBridge *device)
 {
 	NMDeviceBridgePrivate *priv = NM_DEVICE_BRIDGE_GET_PRIVATE (device);
-
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_BRIDGE);
 
 	priv->slaves = g_ptr_array_new ();
 }
@@ -212,8 +214,6 @@ nm_device_bridge_class_init (NMDeviceBridgeClass *bridge_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (bridge_class);
 
 	g_type_class_add_private (bridge_class, sizeof (NMDeviceBridgePrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_BRIDGE);
 
 	/* virtual methods */
 	object_class->dispose = dispose;

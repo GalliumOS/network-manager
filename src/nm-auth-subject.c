@@ -34,12 +34,7 @@
 #include <stdlib.h>
 
 #include "nm-bus-manager.h"
-#include "nm-enum-types.h"
 #include "NetworkManagerUtils.h"
-
-G_DEFINE_TYPE (NMAuthSubject, nm_auth_subject, G_TYPE_OBJECT)
-
-#define NM_AUTH_SUBJECT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_AUTH_SUBJECT, NMAuthSubjectPrivate))
 
 enum {
 	PROP_0,
@@ -61,7 +56,20 @@ typedef struct {
 	} unix_process;
 } NMAuthSubjectPrivate;
 
-/**************************************************************/
+struct _NMAuthSubject {
+	GObject parent;
+	NMAuthSubjectPrivate _priv;
+};
+
+struct _NMAuthSubjectClass {
+	GObjectClass parent;
+};
+
+G_DEFINE_TYPE (NMAuthSubject, nm_auth_subject, G_TYPE_OBJECT)
+
+#define NM_AUTH_SUBJECT_GET_PRIVATE(self) _NM_GET_PRIVATE(self, NMAuthSubject, NM_IS_AUTH_SUBJECT)
+
+/*****************************************************************************/
 
 #define CHECK_SUBJECT(self, error_value) \
 	NMAuthSubjectPrivate *priv; \
@@ -80,9 +88,9 @@ nm_auth_subject_to_string (NMAuthSubject *self, char *buf, gsize buf_len)
 	switch (priv->subject_type) {
 	case NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS:
 		g_snprintf (buf, buf_len, "unix-process[pid=%lu, uid=%lu, start=%llu]",
-		            (long unsigned) priv->unix_process.pid,
-		            (long unsigned) priv->unix_process.uid,
-		            (long long unsigned) priv->unix_process.start_time);
+		            (unsigned long) priv->unix_process.pid,
+		            (unsigned long) priv->unix_process.uid,
+		            (unsigned long long) priv->unix_process.start_time);
 		break;
 	case NM_AUTH_SUBJECT_TYPE_INTERNAL:
 		g_strlcat (buf, "internal", buf_len);
@@ -163,7 +171,7 @@ nm_auth_subject_get_unix_process_dbus_sender (NMAuthSubject *subject)
 	return priv->unix_process.dbus_sender;
 }
 
-/**************************************************************/
+/*****************************************************************************/
 
 static NMAuthSubject *
 _new_unix_process (GDBusMethodInvocation *context,
@@ -204,7 +212,7 @@ _new_unix_process (GDBusMethodInvocation *context,
 	g_return_val_if_fail (pid > 0 && pid <= MIN (G_MAXINT, G_MAXINT32), NULL);
 
 	self = NM_AUTH_SUBJECT (g_object_new (NM_TYPE_AUTH_SUBJECT,
-	                                      NM_AUTH_SUBJECT_SUBJECT_TYPE, NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS,
+	                                      NM_AUTH_SUBJECT_SUBJECT_TYPE, (int) NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS,
 	                                      NM_AUTH_SUBJECT_UNIX_PROCESS_DBUS_SENDER, dbus_sender,
 	                                      NM_AUTH_SUBJECT_UNIX_PROCESS_PID, (gulong) pid,
 	                                      NM_AUTH_SUBJECT_UNIX_PROCESS_UID, (gulong) uid,
@@ -243,20 +251,20 @@ NMAuthSubject *
 nm_auth_subject_new_internal (void)
 {
 	return NM_AUTH_SUBJECT (g_object_new (NM_TYPE_AUTH_SUBJECT,
-	                                      NM_AUTH_SUBJECT_SUBJECT_TYPE, NM_AUTH_SUBJECT_TYPE_INTERNAL,
+	                                      NM_AUTH_SUBJECT_SUBJECT_TYPE, (int) NM_AUTH_SUBJECT_TYPE_INTERNAL,
 	                                      NULL));
 }
 
-/**************************************************************/
+/*****************************************************************************/
 
 static void
 get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-	NMAuthSubjectPrivate *priv = NM_AUTH_SUBJECT_GET_PRIVATE (object);
+	NMAuthSubjectPrivate *priv = NM_AUTH_SUBJECT_GET_PRIVATE ((NMAuthSubject *) object);
 
 	switch (prop_id) {
 	case PROP_SUBJECT_TYPE:
-		g_value_set_enum (value, priv->subject_type);
+		g_value_set_int (value, priv->subject_type);
 		break;
 	case PROP_UNIX_PROCESS_DBUS_SENDER:
 		g_value_set_string (value, priv->unix_process.dbus_sender);
@@ -276,20 +284,23 @@ get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 static void
 set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-	NMAuthSubjectPrivate *priv = NM_AUTH_SUBJECT_GET_PRIVATE (object);
+	NMAuthSubjectPrivate *priv = NM_AUTH_SUBJECT_GET_PRIVATE ((NMAuthSubject *) object);
 	NMAuthSubjectType subject_type;
+	int i;
 	const char *str;
 	gulong id;
 
-	/* all properties are construct-only */
 	switch (prop_id) {
 	case PROP_SUBJECT_TYPE:
-		subject_type = g_value_get_enum (value);
-		g_return_if_fail (subject_type != NM_AUTH_SUBJECT_TYPE_INVALID);
+		/* construct-only */
+		i = g_value_get_int (value);
+		g_return_if_fail (NM_IN_SET (i, (int) NM_AUTH_SUBJECT_TYPE_INTERNAL, (int) NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS));
+		subject_type = i;
 		priv->subject_type |= subject_type;
 		g_return_if_fail (priv->subject_type == subject_type);
 		break;
 	case PROP_UNIX_PROCESS_DBUS_SENDER:
+		/* construct-only */
 		if ((str = g_value_get_string (value))) {
 			priv->subject_type |= NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS;
 			g_return_if_fail (priv->subject_type == NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS);
@@ -297,6 +308,7 @@ set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *p
 		}
 		break;
 	case PROP_UNIX_PROCESS_PID:
+		/* construct-only */
 		if ((id = g_value_get_ulong (value)) != G_MAXULONG) {
 			priv->subject_type |= NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS;
 			g_return_if_fail (priv->subject_type == NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS);
@@ -304,6 +316,7 @@ set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *p
 		}
 		break;
 	case PROP_UNIX_PROCESS_UID:
+		/* construct-only */
 		if ((id = g_value_get_ulong (value)) != G_MAXULONG) {
 			priv->subject_type |= NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS;
 			g_return_if_fail (priv->subject_type == NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS);
@@ -317,8 +330,10 @@ set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *p
 }
 
 static void
-_clear_private (NMAuthSubjectPrivate *priv)
+_clear_private (NMAuthSubject *self)
 {
+	NMAuthSubjectPrivate *priv = NM_AUTH_SUBJECT_GET_PRIVATE (self);
+
 	priv->subject_type = NM_AUTH_SUBJECT_TYPE_INVALID;
 	priv->unix_process.pid = G_MAXULONG;
 	priv->unix_process.uid = G_MAXULONG;
@@ -328,7 +343,7 @@ _clear_private (NMAuthSubjectPrivate *priv)
 static void
 nm_auth_subject_init (NMAuthSubject *self)
 {
-	_clear_private (NM_AUTH_SUBJECT_GET_PRIVATE (self));
+	_clear_private (self);
 }
 
 static void
@@ -363,7 +378,7 @@ constructed (GObject *object)
 			/* Is the process already gone? Then fail creation of the auth subject
 			 * by clearing the type. */
 			if (kill (priv->unix_process.pid, 0) != 0)
-				_clear_private (priv);
+				_clear_private (self);
 
 			/* Otherwise, although we didn't detect a start_time, the process is still around.
 			 * That could be due to procfs mounted with hidepid. So just accept the request.
@@ -378,16 +393,14 @@ constructed (GObject *object)
 		break;
 	}
 
-	_clear_private (priv);
+	_clear_private (self);
 	g_return_if_reached ();
 }
 
 static void
 finalize (GObject *object)
 {
-	NMAuthSubjectPrivate *priv = NM_AUTH_SUBJECT_GET_PRIVATE (object);
-
-	_clear_private (priv);
+	_clear_private ((NMAuthSubject *) object);
 
 	G_OBJECT_CLASS (nm_auth_subject_parent_class)->finalize (object);
 }
@@ -397,9 +410,6 @@ nm_auth_subject_class_init (NMAuthSubjectClass *config_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (config_class);
 
-	g_type_class_add_private (config_class, sizeof (NMAuthSubjectPrivate));
-
-	/* virtual methods */
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 	object_class->constructed = constructed;
@@ -407,12 +417,13 @@ nm_auth_subject_class_init (NMAuthSubjectClass *config_class)
 
 	g_object_class_install_property
 	    (object_class, PROP_SUBJECT_TYPE,
-	     g_param_spec_enum (NM_AUTH_SUBJECT_SUBJECT_TYPE, "", "",
-	                        NM_TYPE_AUTH_SUBJECT_TYPE,
-	                        NM_AUTH_SUBJECT_TYPE_INVALID,
-	                        G_PARAM_READWRITE |
-	                        G_PARAM_CONSTRUCT_ONLY |
-	                        G_PARAM_STATIC_STRINGS));
+	     g_param_spec_int (NM_AUTH_SUBJECT_SUBJECT_TYPE, "", "",
+	                       NM_AUTH_SUBJECT_TYPE_INVALID,
+	                       NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS,
+	                       NM_AUTH_SUBJECT_TYPE_INVALID,
+	                       G_PARAM_READWRITE |
+	                       G_PARAM_CONSTRUCT_ONLY |
+	                       G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property
 	    (object_class, PROP_UNIX_PROCESS_DBUS_SENDER,

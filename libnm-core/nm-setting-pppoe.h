@@ -27,7 +27,7 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-setting.h>
+#include "nm-setting.h"
 
 G_BEGIN_DECLS
 
@@ -40,6 +40,7 @@ G_BEGIN_DECLS
 
 #define NM_SETTING_PPPOE_SETTING_NAME "pppoe"
 
+#define NM_SETTING_PPPOE_PARENT         "parent"
 #define NM_SETTING_PPPOE_SERVICE        "service"
 #define NM_SETTING_PPPOE_USERNAME       "username"
 #define NM_SETTING_PPPOE_PASSWORD       "password"
@@ -47,6 +48,8 @@ G_BEGIN_DECLS
 
 /**
  * NMSettingPppoe:
+ *
+ * PPP-over-Ethernet Settings
  */
 struct _NMSettingPppoe {
 	NMSetting parent;
@@ -62,6 +65,8 @@ typedef struct {
 GType nm_setting_pppoe_get_type (void);
 
 NMSetting  *nm_setting_pppoe_new          (void);
+NM_AVAILABLE_IN_1_10
+const char *nm_setting_pppoe_get_parent   (NMSettingPppoe *setting);
 const char *nm_setting_pppoe_get_service  (NMSettingPppoe *setting);
 const char *nm_setting_pppoe_get_username (NMSettingPppoe *setting);
 const char *nm_setting_pppoe_get_password (NMSettingPppoe *setting);

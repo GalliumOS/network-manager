@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: NetworkManager.conf
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 05/11/2016
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 03/12/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.2.2
+.\"    Source: NetworkManager 1.10.6
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CON" "5" "" "NetworkManager 1\&.2\&.2" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.10\&.6" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -33,6 +33,7 @@ NetworkManager.conf \- NetworkManager configuration file
 .PP
 /etc/NetworkManager/NetworkManager\&.conf,
 /etc/NetworkManager/conf\&.d/\fIname\fR\&.conf,
+/run/NetworkManager/conf\&.d/\fIname\fR\&.conf,
 /usr/lib/NetworkManager/conf\&.d/\fIname\fR\&.conf,
 /var/lib/NetworkManager/NetworkManager\-intern\&.conf
 .SH "DESCRIPTION"
@@ -53,14 +54,23 @@ files to the
 /etc/NetworkManager/conf\&.d
 directory\&. These will be read in order, with later files overriding earlier ones\&. Packages might install further configuration snippets to
 /usr/lib/NetworkManager/conf\&.d\&. This directory is parsed first, even before
+NetworkManager\&.conf\&. Scripts can also put per\-boot configuration into
+/run/NetworkManager/conf\&.d\&. This directory is parsed second, also before
 NetworkManager\&.conf\&. The loading of a file
-/usr/lib/NetworkManager/conf\&.d/\fIname\fR\&.conf
+/run/NetworkManager/conf\&.d/\fIname\fR\&.conf
 can be prevented by adding a file
-/etc/NetworkManager/conf\&.d/\fIname\fR\&.conf\&. In this case, the file from the etc configuration shadows the file from the system configuration directory\&.
+/etc/NetworkManager/conf\&.d/\fIname\fR\&.conf\&. Likewise, a file
+/usr/lib/NetworkManager/conf\&.d/\fIname\fR\&.conf
+can be shadowed by putting a file of the same name to either
+/etc/NetworkManager/conf\&.d
+or
+/run/NetworkManager/conf\&.d\&.
 .PP
 NetworkManager can overwrite certain user configuration options via D\-Bus or other internal operations\&. In this case it writes those changes to
 /var/lib/NetworkManager/NetworkManager\-intern\&.conf\&. This file is not intended to be modified by the user, but it is read last and can shadow user configuration from
 NetworkManager\&.conf\&.
+.PP
+Certain settings from the configuration can be reloaded at runtime either by sending SIGHUP signal or via D\-Bus\*(Aq Reload call\&.
 .SH "FILE FORMAT"
 .PP
 The configuration file format is so\-called key file (sort of ini\-style format)\&. It consists of sections (groups) of key\-value pairs\&. Lines beginning with a \*(Aq#\*(Aq and blank lines are considered comments\&. Sections are started by a header line containing the section enclosed in \*(Aq[\*(Aq and \*(Aq]\*(Aq, and ended implicitly by the start of the next section or the end of the file\&. Each key\-value pair must be contained in a section\&.
@@ -133,7 +143,8 @@ options require the indicated clients to be installed\&. The
 internal
 option uses a built\-in DHCP client which is not currently as featureful as the external clients\&.
 .sp
-If this key is missing, available DHCP clients are looked for in this order:
+If this key is missing, it defaults to
+internal\&. It the chosen plugin is not available, clients are looked for in this order:
 dhclient,
 dhcpcd,
 internal\&.
@@ -146,7 +157,7 @@ Specify devices for which NetworkManager shouldn\*(Aqt create default wired conn
 to apply to all devices\&.
 .sp
 When the default wired connection is deleted or saved to a new persistent connection by a plugin, the device is added to a list in the file
-/var/run/NetworkManager/no\-auto\-default\&.state
+/run/NetworkManager/no\-auto\-default\&.state
 to prevent creating the default connection for that device again\&.
 .sp
 See
@@ -171,15 +182,12 @@ no\-auto\-default=*
 .PP
 \fIignore\-carrier\fR
 .RS 4
-Specify devices for which NetworkManager will (partially) ignore the carrier state\&. Normally, for device types that support carrier\-detect, such as Ethernet and InfiniBand, NetworkManager will only allow a connection to be activated on the device if carrier is present (ie, a cable is plugged in), and it will deactivate the device if carrier drops for more than a few seconds\&.
-.sp
-Listing a device here will allow activating connections on that device even when it does not have carrier, provided that the connection uses only statically\-configured IP addresses\&. Additionally, it will allow any active connection (whether static or dynamic) to remain active on the device when carrier is lost\&.
-.sp
-Note that the "carrier" property of NMDevices and device D\-Bus interfaces will still reflect the actual device state; it\*(Aqs just that NetworkManager will not make use of that information\&.
-.sp
-See
+This setting is deprecated for the per\-device setting
+ignore\-carrier
+which overwrites this setting if specified (See
+\fIignore\-carrier\fR)\&. Otherwise, it is a list of matches to specify for which device carrier should be ignored\&. See
 the section called \(lqDevice List Format\(rq
-for the syntax how to specify a device\&.
+for the syntax how to specify a device\&. Note that master types like bond, bridge, and team ignore carrier by default\&. You can however revert that default using the "except:" specifier (or better, use the per\-device setting instead of the deprecated setting)\&.
 .RE
 .PP
 \fIassume\-ipv6ll\-only\fR
@@ -197,40 +205,78 @@ When set to \*(Aqtrue\*(Aq, NetworkManager quits after performing initial networ
 true, network configuration for WiFi, WWAN, Bluetooth, ADSL, and PPPoE interfaces cannot be preserved due to their use of external services, and these devices will be deconfigured when NetworkManager quits even though other interface\*(Aqs configuration may be preserved\&. Also, to preserve DHCP addresses the \*(Aqdhcp\*(Aq option must be set to \*(Aqinternal\*(Aq\&. The default value of the \*(Aqconfigure\-and\-quit\*(Aq option is \*(Aqfalse\*(Aq, meaning that NetworkManager will continue running after initial network configuration and continue responding to system and hardware events, D\-Bus requests, and user commands\&.
 .RE
 .PP
+\fIhostname\-mode\fR
+.RS 4
+Set the management mode of the hostname\&. This parameter will affect only the transient hostname\&. If a valid static hostname is set, NetworkManager will skip the update of the hostname despite the value of this option\&. An hostname empty or equal to \*(Aqlocalhost\*(Aq, \*(Aqlocalhost6\*(Aq, \*(Aqlocalhost\&.localdomain\*(Aq or \*(Aqlocalhost6\&.localdomain\*(Aq is considered invalid\&.
+.sp
+default: NetworkManager will update the hostname with the one provided via DHCP on the main connection (the one with a default route)\&. If not present, the hostname will be updated to the last one set outside NetworkManager\&. If it is not valid, NetworkManager will try to recover the hostname from the reverse lookup of the IP address of the main connection\&. If this fails too, the hostname will be set to \*(Aqlocalhost\&.localdomain\*(Aq\&.
+.sp
+dhcp: NetworkManager will update the transient hostname only with information coming from DHCP\&. No fallback nor reverse lookup will be performed, but when the dhcp connection providing the hostname is deactivated, the hostname is reset to the last hostname set outside NetworkManager or \*(Aqlocalhost\*(Aq if none valid is there\&.
+.sp
+none: NetworkManager will not manage the transient hostname and will never set it\&.
+.RE
+.PP
 \fIdns\fR
 .RS 4
-Set the DNS (resolv\&.conf) processing mode\&.
+Set the DNS (resolv\&.conf) processing mode\&. If the key is unspecified,
+default
+is used, unless
+/etc/resolv\&.conf
+is a symlink to
+/run/systemd/resolve/resolv\&.conf,
+/lib/systemd/resolv\&.conf
+or
+/usr/lib/systemd/resolv\&.conf\&. In that case,
+systemd\-resolved
+is chosen automatically\&.
 .sp
-default: The default if the key is not specified\&. NetworkManager will update
-resolv\&.conf
+default: NetworkManager will update
+/etc/resolv\&.conf
 to reflect the nameservers provided by currently active connections\&.
 .sp
 dnsmasq: NetworkManager will run dnsmasq as a local caching nameserver, using a "split DNS" configuration if you are connected to a VPN, and then update
 resolv\&.conf
-to point to the local nameserver\&.
+to point to the local nameserver\&. It is possible to pass custom options to the dnsmasq instance by adding them to files in the "/etc/NetworkManager/dnsmasq\&.d/" directory\&. Note that when multiple upstream servers are available, dnsmasq will initially contact them in parallel and then use the fastest to respond, probing again other servers after some time\&. This behavior can be modified passing the \*(Aqall\-servers\*(Aq or \*(Aqstrict\-order\*(Aq options to dnsmasq (see the manual page for more details)\&.
 .sp
-unbound: NetworkManager will talk to unbound and dnssec\-triggerd, providing a "split DNS" configuration with DNSSEC support\&. The /etc/resolv\&.conf will be managed by dnssec\-trigger daemon\&.
+unbound: NetworkManager will talk to unbound and dnssec\-triggerd, providing a "split DNS" configuration with DNSSEC support\&.
+/etc/resolv\&.conf
+will be managed by dnssec\-trigger daemon\&.
 .sp
-none: NetworkManager will not modify resolv\&.conf\&.
+systemd\-resolved: NetworkManager will push the DNS configuration to systemd\-resolved
+.sp
+none: NetworkManager will not modify resolv\&.conf\&. This implies
+rc\-manager\ \&unmanaged
 .RE
 .PP
 \fIrc\-manager\fR
 .RS 4
 Set the
 resolv\&.conf
-management mode\&. The default value depends on how NetworkManager was built\&. Regardless of this setting, NetworkManager will always write resolv\&.conf to its runtime state directory\&.
+management mode\&. The default value depends on NetworkManager build options, and this version of NetworkManager was build with a default of "symlink"\&. Regardless of this setting, NetworkManager will always write resolv\&.conf to its runtime state directory
+/var/run/NetworkManager/resolv\&.conf\&.
 .sp
-none: NetworkManager will symlink
+symlink: If
 /etc/resolv\&.conf
-to its private resolv\&.conf file in the runtime state directory\&.
+is a regular file, NetworkManager will replace the file on update\&. If
+/etc/resolv\&.conf
+is instead a symlink, NetworkManager will leave it alone\&. Unless the symlink points to the internal file
+/var/run/NetworkManager/resolv\&.conf, in which case the symlink will be updated to emit an inotify notification\&. This allows the user to conveniently instruct NetworkManager not to manage
+/etc/resolv\&.conf
+by replacing it with a symlink\&.
 .sp
 file: NetworkManager will write
 /etc/resolv\&.conf
-as file\&.
+as file\&. If it finds a symlink, it will follow the symlink and update the target instead\&.
 .sp
 resolvconf: NetworkManager will run resolvconf to update the DNS configuration\&.
 .sp
 netconfig: NetworkManager will run netconfig to update the DNS configuration\&.
+.sp
+unmanaged: don\*(Aqt touch
+/etc/resolv\&.conf\&.
+.sp
+none: deprecated alias for
+symlink\&.
 .RE
 .PP
 \fIdebug\fR
@@ -242,6 +288,22 @@ RLIMIT_CORE: set ulimit \-c unlimited to write out core dumps\&. Beware, that a 
 .sp
 fatal\-warnings: set g_log_set_always_fatal() to core dump on warning messages from glib\&. This is equivalent to the \-\-g\-fatal\-warnings command line option\&.
 .RE
+.PP
+\fIautoconnect\-retries\-default\fR
+.RS 4
+The number of times a connection activation should be automatically tried before switching to another one\&. This value applies only to connections that can auto\-connect and have a
+connection\&.autoconnect\-retries
+property set to \-1\&. If not specified, connections will be tried 4 times\&. Setting this value to 1 means to try activation once, without retry\&.
+.RE
+.PP
+\fIslaves\-order\fR
+.RS 4
+This key specifies in which order slave connections are auto\-activated on boot or when the master activates them\&. Allowed values are
+name
+(order connection by interface name, the default), or
+index
+(order slaves by their kernel index)\&.
+.RE
 .SH "KEYFILE SECTION"
 .PP
 This section contains keyfile\-plugin\-specific options, and is normally only used when you are not using any other distro\-specific plugin\&.
@@ -249,12 +311,14 @@ This section contains keyfile\-plugin\-specific options, and is normally only us
 .PP
 \fIhostname\fR
 .RS 4
-This key is deprecated and has no effect since the hostname is now stored in /etc/hostname or other system configuration files according to build options\&.
+This key is deprecated and has no effect since the hostname is now stored in
+/etc/hostname
+or other system configuration files according to build options\&.
 .RE
 .PP
 \fIpath\fR
 .RS 4
-The location where keyfiles are read and stored\&. This defaults to "/etc/NetworkManager/conf\&.d"\&.
+The location where keyfiles are read and stored\&. This defaults to "/etc/NetworkManager/system\-connections"\&.
 .RE
 .PP
 \fIunmanaged\-devices\fR
@@ -321,7 +385,7 @@ TRACE\&. The ERR level logs only critical errors\&. WARN logs warnings that may 
 .PP
 \fIdomains\fR
 .RS 4
-The following log domains are available: PLATFORM, RFKILL, ETHER, WIFI, BT, MB, DHCP4, DHCP6, PPP, WIFI_SCAN, IP4, IP6, AUTOIP4, DNS, VPN, SHARING, SUPPLICANT, AGENTS, SETTINGS, SUSPEND, CORE, DEVICE, OLPC, WIMAX, INFINIBAND, FIREWALL, ADSL, BOND, VLAN, BRIDGE, DBUS_PROPS, TEAM, CONCHECK, DCB, DISPATCH, AUDIT\&.
+The following log domains are available: PLATFORM, RFKILL, ETHER, WIFI, BT, MB, DHCP4, DHCP6, PPP, WIFI_SCAN, IP4, IP6, AUTOIP4, DNS, VPN, SHARING, SUPPLICANT, AGENTS, SETTINGS, SUSPEND, CORE, DEVICE, OLPC, WIMAX, INFINIBAND, FIREWALL, ADSL, BOND, VLAN, BRIDGE, DBUS_PROPS, TEAM, CONCHECK, DCB, DISPATCH, AUDIT, SYSTEMD, VPN_PLUGIN, PROXY\&.
 .sp
 In addition, these special domains can be used: NONE, ALL, DEFAULT, DHCP, IP\&.
 .sp
@@ -377,7 +441,7 @@ DNS         : Domain Name System related operations
 VPN         : Virtual Private Network connections and operations
 .RE
 .RS 4
-SHARING     : Connection sharing
+SHARING     : Connection sharing\&. With TRACE level log queries for dnsmasq instance
 .RE
 .RS 4
 SUPPLICANT  : WPA supplicant related operations
@@ -440,6 +504,15 @@ DISPATCH    : Dispatcher scripts
 AUDIT       : Audit records
 .RE
 .RS 4
+SYSTEMD     : Messages from internal libsystemd
+.RE
+.RS 4
+VPN_PLUGIN  : logging messages from VPN plugins
+.RE
+.RS 4
+PROXY       : logging messages for proxy handling
+.RE
+.RS 4
  
 .RE
 .RS 4
@@ -463,11 +536,20 @@ IP          : shortcut for "IP4,IP6"
 .RS 4
 HW          : deprecated alias for "PLATFORM"
 .RE
+.PP
+In general, the logfile should not contain passwords or private data\&. However, you are always advised to check the file before posting it online or attaching to a bug report\&.
+VPN_PLUGIN
+is special as it might reveal private information of the VPN plugins with verbose levels\&. Therefore this domain will be excluded when setting
+ALL
+or
+DEFAULT
+to more verbose levels then
+INFO\&.
 .RE
 .PP
 \fIbackend\fR
 .RS 4
-The logging backend\&. Supported values are "debug", "syslog", "journal"\&. "debug" uses syslog and logs to standard error\&. If NetworkManager is started in debug mode (\-\-debug) this option is ignored and "debug" is always used\&. Otherwise, the default is "journal"\&.
+The logging backend\&. Supported values are "debug", "syslog", "journal"\&. "debug" uses syslog and logs to standard error\&. If NetworkManager is started in debug mode (\-\-debug) this option is ignored and "debug" is always used\&. Otherwise, the default is "syslog"\&.
 .RE
 .PP
 \fIaudit\fR
@@ -475,7 +557,7 @@ The logging backend\&. Supported values are "debug", "syslog", "journal"\&. "deb
 Whether the audit records are delivered to auditd, the audit daemon\&. If
 false, audit records will be sent only to the NetworkManager logging system\&. If set to
 true, they will be also sent to auditd\&. The default value is
-true\&.
+false\&.
 .RE
 .SH "CONNECTION SECTION"
 .PP
@@ -500,6 +582,11 @@ Not all properties can be overwritten, only the following properties are support
 \fBnm-settings\fR(5)
 for details)\&. A default value is only consulted if the corresponding per\-connection value explicitly allows for that\&.
 .PP
+\fIconnection\&.auth\-retries\fR
+.RS 4
+If left unspecified, the default value is 3 tries before failing the connection\&.
+.RE
+.PP
 \fIconnection\&.autoconnect\-slaves\fR
 .RS 4
 .RE
@@ -508,8 +595,36 @@ for details)\&. A default value is only consulted if the corresponding per\-conn
 .RS 4
 .RE
 .PP
+\fIconnection\&.stable\-id\fR
+.RS 4
+.RE
+.PP
+\fIethernet\&.cloned\-mac\-address\fR
+.RS 4
+If left unspecified, it defaults to "preserve"\&.
+.RE
+.PP
+\fIethernet\&.generate\-mac\-address\-mask\fR
+.RS 4
+.RE
+.PP
+\fIethernet\&.mtu\fR
+.RS 4
+If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints\&. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or the MTU is not reconfigured during activation\&.
+.RE
+.PP
 \fIethernet\&.wake\-on\-lan\fR
 .RS 4
+.RE
+.PP
+\fIinfiniband\&.mtu\fR
+.RS 4
+If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints\&. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or the MTU is left unspecified on activation\&.
+.RE
+.PP
+\fIip\-tunnel\&.mtu\fR
+.RS 4
+If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints\&. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or a default of 1500\&.
 .RE
 .PP
 \fIipv4\&.dad\-timeout\fR
@@ -525,6 +640,16 @@ If left unspecified, the default value for the interface type is used\&.
 .RS 4
 .RE
 .PP
+\fIipv4\&.route\-table\fR
+.RS 4
+If left unspecified, routes are only added to the main table\&. Note that this is different from explicitly selecting the main table 254, because of how NetworkManager removes extraneous routes from the tables\&.
+.RE
+.PP
+\fIipv6\&.dhcp\-timeout\fR
+.RS 4
+If left unspecified, the default value for the interface type is used\&.
+.RE
+.PP
 \fIipv6\&.ip6\-privacy\fR
 .RS 4
 If
@@ -536,19 +661,44 @@ is unset, use the content of "/proc/sys/net/ipv6/conf/default/use_tempaddr" as l
 .RS 4
 .RE
 .PP
+\fIipv6\&.route\-table\fR
+.RS 4
+If left unspecified, routes are only added to the main table\&. Note that this is different from explicitly selecting the main table 254, because of how NetworkManager removes extraneous routes from the tables\&.
+.RE
+.PP
 \fIvpn\&.timeout\fR
 .RS 4
 If left unspecified, default value of 60 seconds is used\&.
 .RE
 .PP
+\fIwifi\&.cloned\-mac\-address\fR
+.RS 4
+If left unspecified, it defaults to "preserve"\&.
+.RE
+.PP
+\fIwifi\&.generate\-mac\-address\-mask\fR
+.RS 4
+.RE
+.PP
 \fIwifi\&.mac\-address\-randomization\fR
 .RS 4
-If left unspecified, MAC address randomization is disabled\&.
+If left unspecified, MAC address randomization is disabled\&. This setting is deprecated for
+wifi\&.cloned\-mac\-address\&.
+.RE
+.PP
+\fIwifi\&.mtu\fR
+.RS 4
+If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints\&. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or a default of 1500\&.
 .RE
 .PP
 \fIwifi\&.powersave\fR
 .RS 4
 If left unspecified, the default value "ignore" will be used\&.
+.RE
+.PP
+\fIwifi\-sec\&.pmf\fR
+.RS 4
+If left unspecified, the default value "optional" will be used\&.
 .RE
 .SS "Sections"
 .PP
@@ -605,10 +755,95 @@ match\-device), further sections will not be considered even if the property in 
 would have
 stop\-match
 set to
-yes, its
+yes, the device
+wlan0
+would have
 ipv6\&.ip6\-privacy
-value would be unspecified\&.
+property unspecified\&. That is, the search for the property would not continue in the connection sections
+[connection\-wifi\-other]
+or
+[connection]\&.
 .RE
+.SH "DEVICE SECTION"
+.PP
+Contains per\-device persistent configuration\&.
+.PP
+Example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+[device]
+match\-device=interface\-name:eth3
+managed=1
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SS "Supported Properties"
+.PP
+The following properties can be configured per\-device\&.
+.PP
+\fImanaged\fR
+.RS 4
+Whether the device is managed or not\&. A device can be marked as managed via udev rules (ENV{NM_UNMANAGED}), or via setting plugins (keyfile\&.unmanaged\-devices)\&. This is yet another way\&. Note that this configuration can be overruled at runtime via D\-Bus\&. Also, it has higher priority then udev rules\&.
+.RE
+.PP
+\fIcarrier\-wait\-timeout\fR
+.RS 4
+Specify the timeout for waiting for carrier in milliseconds\&. When the device loses carrier, NetworkManager does not react immediately\&. Instead, it waits for this timeout before considering the link lost\&. Also, on startup, NetworkManager considers the device as busy for this time, as long as the device has no carrier\&. This delays startup\-complete signal and NetworkManager\-wait\-online\&. Configuring this too high means to block NetworkManager\-wait\-online longer then necessary\&. Configuring it too low, means that NetworkManager will declare startup\-complete, although carrier is about to come and auto\-activation to kick in\&. The default is 5000 milliseconds\&.
+.RE
+.PP
+\fIignore\-carrier\fR
+.RS 4
+Specify devices for which NetworkManager will (partially) ignore the carrier state\&. Normally, for device types that support carrier\-detect, such as Ethernet and InfiniBand, NetworkManager will only allow a connection to be activated on the device if carrier is present (ie, a cable is plugged in), and it will deactivate the device if carrier drops for more than a few seconds\&.
+.sp
+A device with carrier ignored will allow activating connections on that device even when it does not have carrier, provided that the connection uses only statically\-configured IP addresses\&. Additionally, it will allow any active connection (whether static or dynamic) to remain active on the device when carrier is lost\&.
+.sp
+Note that the "carrier" property of NMDevices and device D\-Bus interfaces will still reflect the actual device state; it\*(Aqs just that NetworkManager will not make use of that information\&.
+.sp
+Master types like bond, bridge and team ignore carrier by default, while other device types react on carrier changes by default\&.
+.sp
+This setting overwrites the deprecated
+main\&.ignore\-carrier
+setting above\&.
+.RE
+.PP
+\fIwifi\&.scan\-rand\-mac\-address\fR
+.RS 4
+Configures MAC address randomization of a Wi\-Fi device during scanning\&. This defaults to
+yes
+in which case a random, locally\-administered MAC address will be used\&. The setting
+wifi\&.scan\-generate\-mac\-address\-mask
+allows to influence the generated MAC address to use certain vendor OUIs\&. If disabled, the MAC address during scanning is left unchanged to whatever is configured\&. For the configured MAC address while the device is associated, see instead the per\-connection setting
+wifi\&.cloned\-mac\-address\&.
+.RE
+.PP
+\fIwifi\&.scan\-generate\-mac\-address\-mask\fR
+.RS 4
+Like the per\-connection settings
+ethernet\&.generate\-mac\-address\-mask
+and
+wifi\&.generate\-mac\-address\-mask, this allows to configure the generated MAC addresses during scanning\&. See
+\fBnm-settings\fR(5)
+for details\&.
+.RE
+.PP
+\fIsriov\-num\-vfs\fR
+.RS 4
+Specify the number of virtual functions (VF) to enable for a PCI physical device that supports single\-root I/O virtualization (SR\-IOV)\&.
+.RE
+.SS "Sections"
+.PP
+The
+[device]
+section works the same as the
+[connection]
+section\&. That is, multiple sections that all start with the prefix "device" can be specified\&. The settings "match\-device" and "stop\-match" are available to match a device section on a device\&. The order of multiple sections is also top\-down within the file and later files overwrite previous settings\&. See
+\(lqSections\(rq under the section called \(lqCONNECTION SECTION\(rq
+for details\&.
 .SH "CONNECTIVITY SECTION"
 .PP
 This section controls NetworkManager\*(Aqs optional connectivity checking functionality\&. This allows NetworkManager to detect whether or not the system can actually access the internet or whether it is behind a captive portal\&.
@@ -763,9 +998,12 @@ enable=nm\-version\-min:1\&.3,nm\-version\-min:1\&.2\&.6,nm\-version\-min:1\&.0\
 .RS 4
 The
 keyfile
-plugin is the generic plugin that supports all the connection types and capabilities that NetworkManager has\&. It writes files out in an \&.ini\-style format in /etc/NetworkManager/system\-connections\&.
+plugin is the generic plugin that supports all the connection types and capabilities that NetworkManager has\&. It writes files out in an \&.ini\-style format in
+/etc/NetworkManager/system\-connections\&.
 .sp
-The stored connection file may contain passwords and private keys, so it will be made readable only to root, and the plugin will ignore files that are readable or writable by any user or group other than root\&.
+The stored connection file may contain passwords, secrets and private keys in plain text, so it will be made readable only to root, and the plugin will ignore files that are readable or writable by any user or group other than root\&. See "Secret flag types" in
+\fBnm-settings\fR(5)
+for how to avoid storing passwords in plain text\&.
 .sp
 This plugin is always active, and will automatically be used to store any connections that aren\*(Aqt supported by any other active plugin\&.
 .RE
@@ -801,21 +1039,29 @@ plugin instead\&.
 .PP
 \fIibft\fR, \fIno\-ibft\fR
 .RS 4
-This plugin allows to read iBFT configuration (iSCSI Boot Firmware Table)\&. The configuration is read using /sbin/iscsiadm\&. Users are expected to configure iBFT connections via the firmware interfaces\&. If ibft support is available, it is automatically enabled after
+This plugin allows to read iBFT configuration (iSCSI Boot Firmware Table)\&. The configuration is read using
+/sbin/iscsiadm\&. Users are expected to configure iBFT connections via the firmware interfaces\&. If ibft support is available, it is automatically enabled after
 ifcfg\-rh\&. This can be disabled by
 no\-ibft\&. You can also explicitly specify
 ibft
 to load the plugin without
 ifcfg\-rh
 or to change the plugin order\&.
+.sp
+Note that ibft plugin uses
+/sbin/iscsiadm
+and thus requires CAP_SYS_ADMIN capability\&.
 .RE
 .SH "APPENDIX"
 .SS "Device List Format"
 .PP
 The configuration options
 main\&.no\-auto\-default,
-main\&.ignore\-carrier, and
-keyfile\&.unmanaged\-devices
+main\&.ignore\-carrier,
+keyfile\&.unmanaged\-devices,
+connection*\&.match\-device
+and
+device*\&.match\-device
 select devices based on a list of matchings\&. Devices can be specified using the following format:
 .PP
 .PP
@@ -831,7 +1077,7 @@ Case sensitive match of interface name of the device\&. Globbing is not supporte
 .PP
 HWADDR
 .RS 4
-Match the MAC address of the device\&. Globbing is not supported
+Match the permanent MAC address of the device\&. Globbing is not supported
 .RE
 .PP
 interface\-name:IFNAME, interface\-name:~IFNAME
@@ -851,7 +1097,7 @@ is taken literally\&.
 .PP
 mac:HWADDR
 .RS 4
-Match the MAC address of the device\&. Globbing is not supported
+Match the permanent MAC address of the device\&. Globbing is not supported
 .RE
 .PP
 s390\-subchannels:HWADDR
@@ -862,6 +1108,11 @@ Match the device based on the subchannel address\&. Globbing is not supported
 type:TYPE
 .RS 4
 Match the device type\&. Valid type names are as reported by "nmcli \-f GENERAL\&.TYPE device show"\&. Globbing is not supported\&.
+.RE
+.PP
+driver:DRIVER
+.RS 4
+Match the device driver as reported by "nmcli \-f GENERAL\&.DRIVER,GENERAL\&.DRIVER\-VERSION device show"\&. "DRIVER" must match the driver name exactly and does not support globbing\&. Optionally, a driver version may be specified separated by \*(Aq/\*(Aq\&. Globbing is supported for the version\&.
 .RE
 .PP
 except:SPEC

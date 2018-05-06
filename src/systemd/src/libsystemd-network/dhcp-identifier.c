@@ -19,9 +19,7 @@
 
 #include "nm-sd-adapt.h"
 
-#if 0 /* NM_IGNORED */
 #include "libudev.h"
-#endif /* NM_IGNORED */
 #include "sd-id128.h"
 
 #include "dhcp-identifier.h"
@@ -29,15 +27,47 @@
 #include "network-internal.h"
 #include "siphash24.h"
 #include "sparse-endian.h"
-#if 0 /* NM_IGNORED */
 #include "udev-util.h"
 #include "virt.h"
+
+#if 0 /* NM_IGNORED */
 #else /* NM_IGNORED */
 #include <net/if.h>
 #endif /* NM_IGNORED */
 
 #define SYSTEMD_PEN 43793
 #define HASH_KEY SD_ID128_MAKE(80,11,8c,c2,fe,4a,03,ee,3e,d6,0c,6f,36,39,14,09)
+
+int dhcp_validate_duid_len(uint16_t duid_type, size_t duid_len) {
+        struct duid d;
+
+        assert_cc(sizeof(d.raw) >= MAX_DUID_LEN);
+        if (duid_len > MAX_DUID_LEN)
+                return -EINVAL;
+
+        switch (duid_type) {
+        case DUID_TYPE_LLT:
+                if (duid_len <= sizeof(d.llt))
+                        return -EINVAL;
+                break;
+        case DUID_TYPE_EN:
+                if (duid_len != sizeof(d.en))
+                        return -EINVAL;
+                break;
+        case DUID_TYPE_LL:
+                if (duid_len <= sizeof(d.ll))
+                        return -EINVAL;
+                break;
+        case DUID_TYPE_UUID:
+                if (duid_len != sizeof(d.uuid))
+                        return -EINVAL;
+                break;
+        default:
+                /* accept unknown type in order to be forward compatible */
+                break;
+        }
+        return 0;
+}
 
 int dhcp_identifier_set_duid_en(struct duid *duid, size_t *len) {
         sd_id128_t machine_id;

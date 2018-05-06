@@ -30,11 +30,13 @@
 #include "nm-active-connection.h"
 #include "nm-dbus-helpers.h"
 
-#include "nmdbus-vpn-connection.h"
+#include "introspection/org.freedesktop.NetworkManager.VPN.Connection.h"
 
 G_DEFINE_TYPE (NMVpnConnection, nm_vpn_connection, NM_TYPE_ACTIVE_CONNECTION)
 
 #define NM_VPN_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_VPN_CONNECTION, NMVpnConnectionPrivate))
+
+G_STATIC_ASSERT (sizeof (NMVpnConnectionStateReason) == sizeof (NMActiveConnectionStateReason));
 
 typedef struct {
 	char *banner;
@@ -79,7 +81,7 @@ nm_vpn_connection_get_banner (NMVpnConnection *vpn)
 	if (priv->vpn_state != NM_VPN_CONNECTION_STATE_ACTIVATED)
 		return NULL;
 
-	return priv->banner;
+	return nm_str_not_empty (priv->banner);
 }
 
 /**
@@ -142,8 +144,9 @@ init_dbus (NMObject *object)
 	                                property_info);
 
 	proxy = _nm_object_get_proxy (object, NM_DBUS_INTERFACE_VPN_CONNECTION);
-	g_signal_connect (proxy, "vpn-state-changed",
-	                  G_CALLBACK (vpn_state_changed_proxy), object);
+	g_signal_connect_object (proxy, "vpn-state-changed",
+	                         G_CALLBACK (vpn_state_changed_proxy), object, 0);
+	g_object_unref (proxy);
 }
 
 static void
@@ -185,10 +188,6 @@ nm_vpn_connection_class_init (NMVpnConnectionClass *connection_class)
 
 	g_type_class_add_private (connection_class, sizeof (NMVpnConnectionPrivate));
 
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_VPN_CONNECTION);
-	_nm_dbus_register_proxy_type (NM_DBUS_INTERFACE_VPN_CONNECTION,
-	                              NMDBUS_TYPE_VPN_CONNECTION_PROXY);
-
 	/* virtual methods */
 	object_class->get_property = get_property;
 	object_class->finalize = finalize;
@@ -223,6 +222,7 @@ nm_vpn_connection_class_init (NMVpnConnectionClass *connection_class)
 		                      G_PARAM_STATIC_STRINGS));
 
 	/* signals */
+	G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 	signals[VPN_STATE_CHANGED] =
 		g_signal_new ("vpn-state-changed",
 		              G_OBJECT_CLASS_TYPE (object_class),
@@ -231,4 +231,5 @@ nm_vpn_connection_class_init (NMVpnConnectionClass *connection_class)
 		              NULL, NULL, NULL,
 		              G_TYPE_NONE, 2,
 		              G_TYPE_UINT, G_TYPE_UINT);
+	G_GNUC_END_IGNORE_DEPRECATIONS
 }

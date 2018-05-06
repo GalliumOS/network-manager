@@ -60,7 +60,7 @@ G_DEFINE_ABSTRACT_TYPE (NMSetting, nm_setting, G_TYPE_OBJECT)
 typedef struct {
 	const char *name;
 	GType type;
-	guint32 priority;
+	NMSettingPriority priority;
 } SettingInfo;
 
 typedef struct {
@@ -74,7 +74,7 @@ enum {
 	PROP_LAST
 };
 
-/*************************************************************/
+/*****************************************************************************/
 
 static GHashTable *registered_settings = NULL;
 static GHashTable *registered_settings_by_type = NULL;
@@ -115,63 +115,34 @@ _ensure_registered_constructor (void)
 		} \
 	} G_STMT_END
 
-/*************************************************************/
+/*****************************************************************************/
 
 /*
- * _nm_register_setting:
+ * _nm_register_setting_impl:
  * @name: the name of the #NMSetting object to register
  * @type: the #GType of the #NMSetting
- * @priority: the sort priority of the setting, see below
+ * @priority: the sort priority of the setting, see #NMSettingPriority
  *
  * INTERNAL ONLY: registers a setting's internal properties with libnm.
- *
- * A setting's priority should roughly follow the OSI layer model, but it also
- * controls which settings get asked for secrets first.  Thus settings which
- * relate to things that must be working first, like hardware, should get a
- * higher priority than things which layer on top of the hardware.  For example,
- * the GSM/CDMA settings should provide secrets before the PPP setting does,
- * because a PIN is required to unlock the device before PPP can even start.
- * Even settings without secrets should be assigned the right priority.
- *
- * 0: reserved for the Connection setting
- *
- * 1: hardware-related settings like Ethernet, Wi-Fi, InfiniBand, Bridge, etc.
- * These priority 1 settings are also "base types", which means that at least
- * one of them is required for the connection to be valid, and their name is
- * valid in the 'type' property of the Connection setting.
- *
- * 2: hardware-related auxiliary settings that require a base setting to be
- * successful first, like Wi-Fi security, 802.1x, etc.
- *
- * 3: hardware-independent settings that are required before IP connectivity
- * can be established, like PPP, PPPoE, etc.
- *
- * 4: IP-level stuff
  */
 void
-(_nm_register_setting) (const char *name,
-                        const GType type,
-                        const guint32 priority)
+_nm_register_setting_impl (const char *name,
+                           GType type,
+                           NMSettingPriority priority)
 {
 	SettingInfo *info;
 
-	g_return_if_fail (name != NULL && *name);
-	g_return_if_fail (type != G_TYPE_INVALID);
-	g_return_if_fail (type != G_TYPE_NONE);
-	g_return_if_fail (priority <= 4);
+	nm_assert (name && *name);
+	nm_assert (!NM_IN_SET (type, G_TYPE_INVALID, G_TYPE_NONE));
+	nm_assert (priority != NM_SETTING_PRIORITY_INVALID);
 
 	_ensure_registered ();
 
-	if (G_LIKELY ((info = g_hash_table_lookup (registered_settings, name)))) {
-		g_return_if_fail (info->type == type);
-		g_return_if_fail (info->priority == priority);
-		g_return_if_fail (g_strcmp0 (info->name, name) == 0);
-		return;
-	}
-	g_return_if_fail (g_hash_table_lookup (registered_settings_by_type, &type) == NULL);
+	nm_assert (!g_hash_table_lookup (registered_settings, name));
+	nm_assert (!g_hash_table_lookup (registered_settings_by_type, &type));
 
-	if (priority == 0)
-		g_assert_cmpstr (name, ==, NM_SETTING_CONNECTION_SETTING_NAME);
+	nm_assert (   priority != NM_SETTING_PRIORITY_CONNECTION
+	           || nm_streq (name, NM_SETTING_CONNECTION_SETTING_NAME));
 
 	info = g_slice_new0 (SettingInfo);
 	info->type = type;
@@ -188,7 +159,7 @@ _nm_setting_lookup_setting_by_type (GType type)
 	return g_hash_table_lookup (registered_settings_by_type, &type);
 }
 
-static guint32
+static NMSettingPriority
 _get_setting_type_priority (GType type)
 {
 	const SettingInfo *info;
@@ -199,7 +170,7 @@ _get_setting_type_priority (GType type)
 	return info->priority;
 }
 
-guint32
+NMSettingPriority
 _nm_setting_get_setting_priority (NMSetting *setting)
 {
 	NMSettingPrivate *priv;
@@ -210,21 +181,30 @@ _nm_setting_get_setting_priority (NMSetting *setting)
 	return priv->info->priority;
 }
 
-gboolean
-_nm_setting_type_is_base_type (GType type)
+NMSettingPriority
+_nm_setting_type_get_base_type_priority (GType type)
 {
+	NMSettingPriority priority;
+
 	/* Historical oddity: PPPoE is a base-type even though it's not
 	 * priority 1.  It needs to be sorted *after* lower-level stuff like
 	 * Wi-Fi security or 802.1x for secrets, but it's still allowed as a
 	 * base type.
 	 */
-	return _get_setting_type_priority (type) == 1 || (type == NM_TYPE_SETTING_PPPOE);
+	priority = _get_setting_type_priority (type);
+	if (   NM_IN_SET (priority,
+	                  NM_SETTING_PRIORITY_HW_BASE,
+	                  NM_SETTING_PRIORITY_HW_NON_BASE)
+	    || type == NM_TYPE_SETTING_PPPOE)
+		return priority;
+	else
+		return NM_SETTING_PRIORITY_INVALID;
 }
 
-gboolean
-_nm_setting_is_base_type (NMSetting *setting)
+NMSettingPriority
+_nm_setting_get_base_type_priority (NMSetting *setting)
 {
-	return _nm_setting_type_is_base_type (G_OBJECT_TYPE (setting));
+	return _nm_setting_type_get_base_type_priority (G_OBJECT_TYPE (setting));
 }
 
 /**
@@ -239,9 +219,9 @@ _nm_setting_is_base_type (NMSetting *setting)
 GType
 nm_setting_lookup_type (const char *name)
 {
-	SettingInfo *info;
+	const SettingInfo *info;
 
-	g_return_val_if_fail (name != NULL, G_TYPE_INVALID);
+	g_return_val_if_fail (name, G_TYPE_INVALID);
 
 	_ensure_registered ();
 
@@ -252,7 +232,7 @@ nm_setting_lookup_type (const char *name)
 gint
 _nm_setting_compare_priority (gconstpointer a, gconstpointer b)
 {
-	guint32 prio_a, prio_b;
+	NMSettingPriority prio_a, prio_b;
 
 	prio_a = _nm_setting_get_setting_priority ((NMSetting *) a);
 	prio_b = _nm_setting_get_setting_priority ((NMSetting *) b);
@@ -264,7 +244,7 @@ _nm_setting_compare_priority (gconstpointer a, gconstpointer b)
 	return 1;
 }
 
-/*************************************************************/
+/*****************************************************************************/
 
 gboolean
 _nm_setting_slave_type_is_valid (const char *slave_type, const char **out_port_type)
@@ -278,6 +258,10 @@ _nm_setting_slave_type_is_valid (const char *slave_type, const char **out_port_t
 		;
 	else if (!strcmp (slave_type, NM_SETTING_BRIDGE_SETTING_NAME))
 		port_type = NM_SETTING_BRIDGE_PORT_SETTING_NAME;
+	else if (!strcmp (slave_type, NM_SETTING_OVS_BRIDGE_SETTING_NAME))
+		port_type = NM_SETTING_OVS_PORT_SETTING_NAME;
+	else if (!strcmp (slave_type, NM_SETTING_OVS_PORT_SETTING_NAME))
+		port_type = NM_SETTING_OVS_INTERFACE_SETTING_NAME;
 	else if (!strcmp (slave_type, NM_SETTING_TEAM_SETTING_NAME))
 		port_type = NM_SETTING_TEAM_PORT_SETTING_NAME;
 	else
@@ -288,7 +272,7 @@ _nm_setting_slave_type_is_valid (const char *slave_type, const char **out_port_t
 	return found;
 }
 
-/*************************************************************/
+/*****************************************************************************/
 
 typedef struct {
 	const char *name;
@@ -304,8 +288,8 @@ typedef struct {
 	NMSettingPropertyTransformFromFunc from_dbus;
 } NMSettingProperty;
 
-static GQuark setting_property_overrides_quark;
-static GQuark setting_properties_quark;
+static NM_CACHED_QUARK_FCN ("nm-setting-property-overrides", setting_property_overrides_quark)
+static NM_CACHED_QUARK_FCN ("nm-setting-properties", setting_properties_quark)
 
 static NMSettingProperty *
 find_property (GArray *properties, const char *name)
@@ -341,7 +325,7 @@ add_property_override (NMSettingClass *setting_class,
 	GArray *overrides;
 	NMSettingProperty override;
 
-	g_return_if_fail (g_type_get_qdata (setting_type, setting_properties_quark) == NULL);
+	g_return_if_fail (g_type_get_qdata (setting_type, setting_properties_quark ()) == NULL);
 
 	memset (&override, 0, sizeof (override));
 	override.name = property_name;
@@ -354,10 +338,10 @@ add_property_override (NMSettingClass *setting_class,
 	override.to_dbus = to_dbus;
 	override.from_dbus = from_dbus;
 
-	overrides = g_type_get_qdata (setting_type, setting_property_overrides_quark);
+	overrides = g_type_get_qdata (setting_type, setting_property_overrides_quark ());
 	if (!overrides) {
 		overrides = g_array_new (FALSE, FALSE, sizeof (NMSettingProperty));
-		g_type_set_qdata (setting_type, setting_property_overrides_quark, overrides);
+		g_type_set_qdata (setting_type, setting_property_overrides_quark (), overrides);
 	}
 	g_return_if_fail (find_property (overrides, property_name) == NULL);
 
@@ -530,14 +514,14 @@ nm_setting_class_ensure_properties (NMSettingClass *setting_class)
 	GParamSpec **property_specs;
 	guint n_property_specs, i;
 
-	properties = g_type_get_qdata (type, setting_properties_quark);
+	properties = g_type_get_qdata (type, setting_properties_quark ());
 	if (properties)
 		return properties;
 
 	/* Build overrides array from @setting_class and its superclasses */
 	overrides = g_array_new (FALSE, FALSE, sizeof (NMSettingProperty));
 	for (otype = type; otype != G_TYPE_OBJECT; otype = g_type_parent (otype)) {
-		type_overrides = g_type_get_qdata (otype, setting_property_overrides_quark);
+		type_overrides = g_type_get_qdata (otype, setting_property_overrides_quark ());
 		if (type_overrides)
 			g_array_append_vals (overrides, (NMSettingProperty *)type_overrides->data, type_overrides->len);
 	}
@@ -568,7 +552,7 @@ nm_setting_class_ensure_properties (NMSettingClass *setting_class)
 	}
 	g_array_unref (overrides);
 
-	g_type_set_qdata (type, setting_properties_quark, properties);
+	g_type_set_qdata (type, setting_properties_quark (), properties);
 	return properties;
 }
 
@@ -592,7 +576,7 @@ nm_setting_class_find_property (NMSettingClass *setting_class, const char *prope
 	return find_property (properties, property_name);
 }
 
-/*************************************************************/
+/*****************************************************************************/
 
 static const GVariantType *
 variant_type_for_gtype (GType type)
@@ -945,7 +929,7 @@ _nm_setting_new_from_dbus (GType setting_type,
 		}
 	}
 
-	return nm_unauto (&setting);
+	return g_steal_pointer (&setting);
 }
 
 /**
@@ -1342,6 +1326,8 @@ nm_setting_diff (NMSetting *a,
 	NMSettingDiffResult a_result_default = NM_SETTING_DIFF_RESULT_IN_A_DEFAULT;
 	NMSettingDiffResult b_result_default = NM_SETTING_DIFF_RESULT_IN_B_DEFAULT;
 	gboolean results_created = FALSE;
+	gboolean compared_any = FALSE;
+	gboolean diff_found = FALSE;
 
 	g_return_val_if_fail (results != NULL, FALSE);
 	g_return_val_if_fail (NM_IS_SETTING (a), FALSE);
@@ -1389,6 +1375,8 @@ nm_setting_diff (NMSetting *a,
 			continue;
 		if (strcmp (prop_spec->name, NM_SETTING_NAME) == 0)
 			continue;
+
+		compared_any = TRUE;
 
 		if (b) {
 			gboolean different;
@@ -1438,6 +1426,7 @@ nm_setting_diff (NMSetting *a,
 		if (r != NM_SETTING_DIFF_RESULT_UNKNOWN) {
 			void *p;
 
+			diff_found = TRUE;
 			if (g_hash_table_lookup_extended (*results, prop_spec->name, NULL, &p)) {
 				if ((r & GPOINTER_TO_UINT (p)) != r)
 					g_hash_table_insert (*results, g_strdup (prop_spec->name), GUINT_TO_POINTER (r | GPOINTER_TO_UINT (p)));
@@ -1447,13 +1436,28 @@ nm_setting_diff (NMSetting *a,
 	}
 	g_free (property_specs);
 
-	/* Don't return an empty hash table */
-	if (results_created && !g_hash_table_size (*results)) {
-		g_hash_table_destroy (*results);
-		*results = NULL;
+	if (!compared_any && !b) {
+		/* special case: the setting has no properties, and the opposite
+		 * setting @b is not given. The settings differ, and we signal that
+		 * by returning an empty results hash. */
+		diff_found = TRUE;
 	}
 
-	return !(*results);
+	if (diff_found) {
+		/* if there is a difference, we always return FALSE. It also means, we might
+		 * have allocated a new @results hash, and return if to the caller. */
+		return FALSE;
+	} else {
+		if (results_created) {
+			/* the allocated hash is unused. Clear it again. */
+			g_hash_table_destroy (*results);
+			*results = NULL;
+		} else {
+			/* we found no diff, and return false. However, the input
+			 * @result is returned unmodified. */
+		}
+		return TRUE;
+	}
 }
 
 #define CMP_AND_RETURN(n_a, n_b, name) \
@@ -1994,11 +1998,6 @@ static void
 nm_setting_class_init (NMSettingClass *setting_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
-
-	if (!setting_property_overrides_quark)
-		setting_property_overrides_quark = g_quark_from_static_string ("nm-setting-property-overrides");
-	if (!setting_properties_quark)
-		setting_properties_quark = g_quark_from_static_string ("nm-setting-properties");
 
 	g_type_class_add_private (setting_class, sizeof (NMSettingPrivate));
 

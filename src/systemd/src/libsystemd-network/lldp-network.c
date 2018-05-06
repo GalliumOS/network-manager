@@ -49,6 +49,13 @@ int lldp_network_bind_raw_socket(int ifindex) {
                 .filter = (struct sock_filter*) filter,
         };
 
+        struct packet_mreq mreq = {
+                .mr_ifindex = ifindex,
+                .mr_type = PACKET_MR_MULTICAST,
+                .mr_alen = ETH_ALEN,
+                .mr_address = { 0x01, 0x80, 0xC2, 0x00, 0x00, 0x00 }
+        };
+
         union sockaddr_union saddrll = {
                 .ll.sll_family = AF_PACKET,
                 .ll.sll_ifindex = ifindex,
@@ -59,11 +66,26 @@ int lldp_network_bind_raw_socket(int ifindex) {
 
         assert(ifindex > 0);
 
-        fd = socket(PF_PACKET, SOCK_RAW|SOCK_CLOEXEC|SOCK_NONBLOCK, htons(ETHERTYPE_LLDP));
+        fd = socket(PF_PACKET, SOCK_RAW|SOCK_CLOEXEC|SOCK_NONBLOCK,
+                    htobe16(ETHERTYPE_LLDP));
         if (fd < 0)
                 return -errno;
 
         r = setsockopt(fd, SOL_SOCKET, SO_ATTACH_FILTER, &fprog, sizeof(fprog));
+        if (r < 0)
+                return -errno;
+
+        r = setsockopt(fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+        if (r < 0)
+                return -errno;
+
+        mreq.mr_address[ETH_ALEN - 1] = 0x03;
+        r = setsockopt(fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+        if (r < 0)
+                return -errno;
+
+        mreq.mr_address[ETH_ALEN - 1] = 0x0E;
+        r = setsockopt(fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
         if (r < 0)
                 return -errno;
 

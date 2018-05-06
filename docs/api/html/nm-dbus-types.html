@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NetworkManager D-Bus API Types: NetworkManager Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="up" href="dbus-types.html" title="Types">
 <link rel="prev" href="dbus-types.html" title="Types">
-<link rel="next" href="nm-vpn-dbus-types.html" title="VPN Plugin D-Bus API Types">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<link rel="next" href="secret-agents.html" title="Part IV. Secret Agent D-Bus API Reference">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -17,7 +17,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="dbus-types.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="dbus-types.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="nm-vpn-dbus-types.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="secret-agents.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="nm-dbus-types"></a><div class="titlepage"></div>
@@ -29,12 +29,45 @@
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect2">
+<a name="NMCapability"></a><h3>enum NMCapability</h3>
+<p><a class="link" href="nm-dbus-types.html#NMCapability" title="enum NMCapability">NMCapability</a> names the numbers in the Capabilities property. Capabilities are positive numbers. They are part of stable API and a certain capability number is guaranteed not to change.</p>
+<p>The range 0x7000 - 0x7FFF of capabilities is guaranteed not to be used by upstream NetworkManager. It could thus be used for downstream extensions.</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.15.2.3.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody><tr>
+<td class="enum_member_name">
+<p>NM_CAPABILITY_TEAM</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Teams can be managed</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMState"></a><h3>enum NMState</h3>
 <p><a class="link" href="nm-dbus-types.html#NMState" title="enum NMState">NMState</a> values indicate the current overall networking state.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.3.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.4.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -52,7 +85,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>networking state is unknown</p>
+<p>Networking state is unknown. This indicates a daemon error that makes it unable to reasonably assess the state. In such event the applications are expected to assume Internet connectivity might be present and not disable controls that require network access. The graphical shells may hide the network accessibility indicator altogether since no meaningful status indication can be provided.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -67,7 +100,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>networking is not enabled</p>
+<p>Networking is not enabled, the system is being suspended or resumed from suspend.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -82,7 +115,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>there is no active network connection</p>
+<p>There is no active network connection. The graphical shell should indicate  no network connectivity and the applications should not attempt to access the network.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -97,7 +130,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>network connections are being cleaned up</p>
+<p>Network connections are being cleaned up. The applications should tear down their network sessions.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -112,7 +145,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>a network connection is being started</p>
+<p>A network connection is being started The graphical shell should indicate the network is being connected while the applications should still make no attempts to connect the network.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -127,7 +160,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>there is only local IPv4 and/or IPv6 connectivity</p>
+<p>There is only local IPv4 and/or IPv6 connectivity, but no default route to access the Internet. The graphical shell should indicate no network connectivity.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -142,7 +175,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>there is only site-wide IPv4 and/or IPv6 connectivity</p>
+<p>There is only site-wide IPv4 and/or IPv6 connectivity. This means a default route is available, but the Internet connectivity check (see "Connectivity" property) did not succeed. The graphical shell should indicate limited network connectivity.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -157,7 +190,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>there is global IPv4 and/or IPv6 Internet connectivity</p>
+<p>There is global IPv4 and/or IPv6 Internet connectivity This means the Internet connectivity check succeeded, the graphical shell should indicate full network connectivity.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -171,8 +204,8 @@
 <a name="NMConnectivityState"></a><h3>enum NMConnectivityState</h3>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.4.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.5.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -186,11 +219,11 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">1</code></p>
+<p>= <code class="literal">0</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>Network connectivity is unknown.</p>
+<p>Network connectivity is unknown. This means the connectivity checks are disabled (e.g. on server installations) or has not run yet. The graphical shell should assume the Internet connection might be available and not present a captive portal window.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -201,11 +234,11 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">2</code></p>
+<p>= <code class="literal">1</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>The host is not connected to any network.</p>
+<p>The host is not connected to any network. There's no active connection that contains a default route to the internet and thus it makes no sense to even attempt a connectivity check. The graphical shell should use this state to indicate the network connection is unavailable.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -216,11 +249,11 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">3</code></p>
+<p>= <code class="literal">2</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>The host is behind a captive portal and cannot reach the full Internet.</p>
+<p>The Internet connection is hijacked by a captive portal gateway. The graphical shell may open a sandboxed web browser window (because the captive portals typically attempt a man-in-the-middle attacks agains the https connections) for the purpose of authenticating to a gateway and retrigger the connectivity check with CheckConnectivity() when the browser window is dismissed.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -231,11 +264,11 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">4</code></p>
+<p>= <code class="literal">3</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>The host is connected to a network, but does not appear to be able to reach the full Internet.</p>
+<p>The host is connected to a network, does not appear to be able to reach the full Internet, but a captive portal has not been detected.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -246,7 +279,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">5</code></p>
+<p>= <code class="literal">4</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -265,8 +298,8 @@
 <p><a class="link" href="nm-dbus-types.html#NMDeviceType" title="enum NMDeviceType">NMDeviceType</a> values indicate the type of hardware represented by a device object.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.5.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.6.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -589,6 +622,96 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_MACSEC</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">21</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a MACsec interface</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_DUMMY</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">22</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a dummy interface</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_PPP</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">23</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a PPP interface</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_OVS_INTERFACE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">24</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a OpenVSwitch interface</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_OVS_PORT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">25</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a OpenVSwitch port</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_OVS_BRIDGE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">26</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a OpenVSwitch bridge</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -599,8 +722,8 @@
 <p>General device capability flags.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.6.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.7.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -668,6 +791,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_CAP_SRIOV</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00000008</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>this device supports single-root I/O virtualization</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -678,8 +816,8 @@
 <p>802.11 specific device encryption and authentication capabilities.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.7.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.8.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -877,8 +1015,8 @@
 <p>802.11 access point flags.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.8.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.9.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -916,6 +1054,51 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_802_11_AP_FLAGS_WPS</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00000002</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>access point supports some WPS method</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_802_11_AP_FLAGS_WPS_PBC</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00000004</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>access point supports push-button WPS</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_802_11_AP_FLAGS_WPS_PIN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00000008</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>access point supports PIN-based WPS</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -926,8 +1109,8 @@
 <p>802.11 access point security and authentication flags.  These flags describe the current security requirements of an access point as determined from the access point's beacon.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.9.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.10.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -1110,8 +1293,8 @@
 <p>Indicates the 802.11 mode an access point or device is currently in.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.10.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.11.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -1189,8 +1372,8 @@
 <p><a class="link" href="nm-dbus-types.html#NMBluetoothCapabilities" title="enum NMBluetoothCapabilities">NMBluetoothCapabilities</a> values indicate the usable capabilities of a Bluetooth device.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.11.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.12.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -1253,8 +1436,8 @@
 <p><a class="link" href="nm-dbus-types.html#NMDeviceModemCapabilities" title="enum NMDeviceModemCapabilities">NMDeviceModemCapabilities</a> values indicate the generic radio access technology families a modem device supports.  For more information on the specific access technologies the device supports use the ModemManager D-Bus API.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.12.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.13.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -1347,8 +1530,8 @@
 <p>WiMAX network type.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.13.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.14.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -1425,8 +1608,8 @@
 <a name="NMDeviceState"></a><h3>enum NMDeviceState</h3>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.14.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.15.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -1639,8 +1822,8 @@
 <p>Device state change reason codes</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.15.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.16.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -2593,6 +2776,51 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_OVSDB_FAILED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">63</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>problem communicating with OpenVSwitch database</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_IP_ADDRESS_DUPLICATE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">64</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a duplicate IP address was detected</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">65</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The selected IP method is not supported</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -2603,8 +2831,8 @@
 <p>Since: 1.2</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.16.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.17.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -2697,8 +2925,8 @@
 <p><a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a> values indicate the state of a connection to a specific network while it is starting, connected, or disconnecting from that network.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.17.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.18.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -2787,12 +3015,257 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMActiveConnectionStateReason"></a><h3>enum NMActiveConnectionStateReason</h3>
+<p>Active connection state reasons.</p>
+<p>Since: 1.8</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.15.2.19.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_UNKNOWN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The reason for the active connection state change is unknown.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>No reason was given for the active connection state change.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_USER_DISCONNECTED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The active connection changed state because the user disconnected it.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">3</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The active connection changed state because the device it was using was disconnected.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_STOPPED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">4</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The service providing the VPN connection was stopped.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_IP_CONFIG_INVALID</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">5</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The IP config of the active connection was invalid.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_CONNECT_TIMEOUT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">6</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The connection attempt to the VPN service timed out.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_TIMEOUT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">7</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>A timeout occurred while starting the service providing the VPN connection.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_FAILED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">8</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Starting the service providing the VPN connection failed.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_NO_SECRETS</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">9</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Necessary secrets for the connection were not provided.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_LOGIN_FAILED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">10</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Authentication to the server failed.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_CONNECTION_REMOVED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">11</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The connection was deleted from settings.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_DEPENDENCY_FAILED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">12</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Master connection of this connection failed to activate.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_REALIZE_FAILED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">13</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>Could not create the software device link.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_REMOVED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">14</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The device this connection depended on disappeared.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSecretAgentGetSecretsFlags"></a><h3>enum NMSecretAgentGetSecretsFlags</h3>
 <p><a class="link" href="nm-dbus-types.html#NMSecretAgentGetSecretsFlags" title="enum NMSecretAgentGetSecretsFlags">NMSecretAgentGetSecretsFlags</a> values modify the behavior of a GetSecrets request.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.18.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.20.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -2862,6 +3335,21 @@
 </tr>
 <tr>
 <td class="enum_member_name">
+<p>NM_SECRET_AGENT_GET_SECRETS_FLAG_WPS_PBC_ACTIVE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x8</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>indicates that WPS enrollment is active with PBC method. The agent may suggest that the user pushes a button on the router instead of supplying a PSK.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
 <p>NM_SECRET_AGENT_GET_SECRETS_FLAG_ONLY_SYSTEM</p>
 <p></p>
 </td>
@@ -2900,8 +3388,8 @@
 <p><a class="link" href="nm-dbus-types.html#NMSecretAgentCapabilities" title="enum NMSecretAgentCapabilities">NMSecretAgentCapabilities</a> indicate various capabilities of the agent.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.19.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.21.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -2950,8 +3438,8 @@
 <p>Since: 1.2</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.4.2.20.4"></a><h4>Values</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="id-1.4.15.2.22.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col width="100px" class="enum_members_value">
@@ -3113,8 +3601,417 @@
 </table></div>
 </div>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMCheckpointCreateFlags"></a><h3>enum NMCheckpointCreateFlags</h3>
+<p>The flags for CheckpointCreate call</p>
+<p>Since: 1.4</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.15.2.23.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_CHECKPOINT_CREATE_FLAG_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>no flags</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CHECKPOINT_CREATE_FLAG_DESTROY_ALL</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x01</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>when creating a new checkpoint, destroy all existing ones.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x02</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>upon rollback, delete any new connection added after the checkpoint (Since: 1.6)</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x04</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>upon rollback, disconnect any new device appeared after the checkpoint (Since: 1.6)</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMRollbackResult"></a><h3>enum NMRollbackResult</h3>
+<p>The result of a checkpoint Rollback() operation for a specific device.</p>
+<p>Since: 1.4</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.15.2.24.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_ROLLBACK_RESULT_OK</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the rollback succeeded.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ROLLBACK_RESULT_ERR_NO_DEVICE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the device no longer exists.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ROLLBACK_RESULT_ERR_DEVICE_UNMANAGED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the device is now unmanaged.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ROLLBACK_RESULT_ERR_FAILED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">3</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>other errors during rollback.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMActivationStateFlags"></a><h3>enum NMActivationStateFlags</h3>
+<p>Flags describing the current activation state.</p>
+<p>Since: 1.10</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.15.2.25.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVATION_STATE_FLAG_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>an alias for numeric zero, no flags set.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVATION_STATE_FLAG_IS_MASTER</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the device is a master.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVATION_STATE_FLAG_IS_SLAVE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the device is a slave.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVATION_STATE_FLAG_LAYER2_READY</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>layer2 is activated and ready.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVATION_STATE_FLAG_IP4_READY</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>IPv4 setting is completed.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVATION_STATE_FLAG_IP6_READY</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>IPv6 setting is completed.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The master has any slave devices attached. This only makes sense if the device is a master.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingsUpdate2Flags"></a><h3>enum NMSettingsUpdate2Flags</h3>
+<p>Since: 1.10.2</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.15.2.26.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_UPDATE2_FLAG_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>an alias for numeric zero, no flags set.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_UPDATE2_FLAG_TO_DISK</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>to persist the connection to disk.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>to make the connection in-memory only. If the connection was previously persistent, the corresponding file on disk is not deleted but merely the connection is decoupled from the file on disk. If you later delete an in-memory connection, the connection on disk will be deleted as well.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on disk, the association between the connection and the file is forgotten but the file is not modified. The difference to %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY is if you later save the connection again to disk, a new file name will be chosen without overwriting the remaining file on disk. Also, if you delete the connection later, the file on disk will not be deleted.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on disk, the file on disk will be deleted.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_UPDATE2_FLAG_VOLATILE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>This can be specified with either %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED or %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY. After making the connection in-memory only, the connection is marked as volatile. That means, if the connection is currently not active it will be deleted right away. Otherwise, it is marked to for deletion once the connection deactivates. A volatile connection cannot autoactivate again (because it's about to be deleted), but a manual activation will clear the volatile flag.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">(1LL</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>usually, when the connection has autoconnect enabled and is modified, it becomes elegible to autoconnect right away. Setting this flag, disables autoconnect until the connection is manually activated.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

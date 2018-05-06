@@ -81,7 +81,7 @@ _nm_ssid_demarshal (GValue *value, GByteArray **dest)
 	return TRUE;
 }
 
-/*****************************/
+/*****************************************************************************/
 
 static gpointer
 _nm_uint_array_copy (GArray *src)
@@ -133,7 +133,7 @@ _nm_uint_array_demarshal (GValue *value, GArray **dest)
 	return TRUE;
 }
 
-/*****************************/
+/*****************************************************************************/
 
 static gpointer
 _nm_string_array_copy (GPtrArray *src)
@@ -194,7 +194,7 @@ _nm_string_array_demarshal (GValue *value, GPtrArray **dest)
 	return TRUE;
 }
 
-/*****************************/
+/*****************************************************************************/
 
 static gpointer
 _nm_object_array_copy (GPtrArray *src)
@@ -230,53 +230,7 @@ nm_object_array_get_type (void)
 	return our_type;
 }
 
-gboolean
-_nm_object_array_demarshal (GValue *value,
-                            GPtrArray **dest,
-                            DBusGConnection *connection,
-                            NMObjectCreatorFunc func)
-{
-	GPtrArray *temp = NULL;
-	GPtrArray *array;
-
-	if (!G_VALUE_HOLDS (value, DBUS_TYPE_G_ARRAY_OF_OBJECT_PATH))
-		return FALSE;
-
-	array = (GPtrArray *) g_value_get_boxed (value);
-	if (array && array->len) {
-		int i;
-
-		temp = g_ptr_array_sized_new (array->len);
-		for (i = 0; i < array->len; i++) {
-			const char *path;
-			GObject *object;
-
-			path = g_ptr_array_index (array, i);
-			object = G_OBJECT (_nm_object_cache_get (path));
-			if (object)
-				g_ptr_array_add (temp, object);
-			else {
-				object = (*func) (connection, path);
-				if (object)
-					g_ptr_array_add (temp, object);
-				else
-					g_warning ("%s: couldn't create object for %s", __func__, path);
-			}
-		}
-	} else
-		temp = g_ptr_array_new ();
-
-	/* Deallocate after to ensure that an object that might already
-	 * be in the array doesn't get destroyed due to refcounting.
-	 */
-	if (*dest)
-		g_boxed_free (NM_TYPE_OBJECT_ARRAY, *dest);
-	*dest = temp;
-
-	return TRUE;
-}
-
-/*****************************/
+/*****************************************************************************/
 
 static gpointer
 _nm_ip6_address_object_array_copy (GPtrArray *src)
@@ -312,7 +266,7 @@ nm_ip6_address_object_array_get_type (void)
 	return our_type;
 }
 
-/*****************************/
+/*****************************************************************************/
 
 static gpointer
 _nm_ip6_address_array_copy (GPtrArray *src)
@@ -384,7 +338,7 @@ _nm_ip6_address_array_demarshal (GValue *value, GSList **dest)
 	return TRUE;
 }
 
-/*****************************/
+/*****************************************************************************/
 
 static gpointer
 _nm_ip6_route_object_array_copy (GPtrArray *src)

@@ -25,33 +25,32 @@
 #include <stdlib.h>
 #include <gmodule.h>
 
-#include "nm-bluez-manager.h"
-#include "nm-device-factory.h"
+#include "devices/nm-device-factory.h"
+#include "devices/nm-device-bridge.h"
 #include "nm-setting-bluetooth.h"
+#include "settings/nm-settings.h"
 #include "nm-bluez4-manager.h"
 #include "nm-bluez5-manager.h"
 #include "nm-bluez-device.h"
 #include "nm-bluez-common.h"
-#include "nm-connection-provider.h"
 #include "nm-device-bt.h"
 #include "nm-core-internal.h"
-#include "nm-platform.h"
+#include "platform/nm-platform.h"
 #include "nm-dbus-compat.h"
 
-#define _NMLOG_DOMAIN        LOGD_BT
-#define _NMLOG_PREFIX_NAME   "bluez"
-#define _NMLOG(level, ...) \
-    G_STMT_START { \
-        nm_log ((level), _NMLOG_DOMAIN, \
-                "%s" _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
-                _NMLOG_PREFIX_NAME": " \
-                _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
-    } G_STMT_END
+/*****************************************************************************/
+
+#define NM_TYPE_BLUEZ_MANAGER            (nm_bluez_manager_get_type ())
+#define NM_BLUEZ_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_BLUEZ_MANAGER, NMBluezManager))
+#define NM_BLUEZ_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_BLUEZ_MANAGER, NMBluezManagerClass))
+#define NM_IS_BLUEZ_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_BLUEZ_MANAGER))
+#define NM_IS_BLUEZ_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_BLUEZ_MANAGER))
+#define NM_BLUEZ_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_BLUEZ_MANAGER, NMBluezManagerClass))
 
 typedef struct {
 	int bluez_version;
 
-	NMConnectionProvider *provider;
+	NMSettings *settings;
 	NMBluez4Manager *manager4;
 	NMBluez5Manager *manager5;
 
@@ -61,18 +60,27 @@ typedef struct {
 	GCancellable *async_cancellable;
 } NMBluezManagerPrivate;
 
-#define NM_BLUEZ_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_BLUEZ_MANAGER, NMBluezManagerPrivate))
+typedef struct {
+	NMDeviceFactory parent;
+	NMBluezManagerPrivate _priv;
+} NMBluezManager;
+
+typedef struct {
+	NMDeviceFactoryClass parent;
+} NMBluezManagerClass;
 
 static GType nm_bluez_manager_get_type (void);
 
-static void device_factory_interface_init (NMDeviceFactoryInterface *factory_iface);
+G_DEFINE_TYPE (NMBluezManager, nm_bluez_manager, NM_TYPE_DEVICE_FACTORY);
 
-G_DEFINE_TYPE_EXTENDED (NMBluezManager, nm_bluez_manager, G_TYPE_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_DEVICE_FACTORY, device_factory_interface_init))
+#define NM_BLUEZ_MANAGER_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMBluezManager, NM_IS_BLUEZ_MANAGER)
 
-static void check_bluez_and_try_setup (NMBluezManager *self);
+/*****************************************************************************/
 
-/**************************************************************************/
+NM_DEVICE_FACTORY_DECLARE_TYPES (
+	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES    (NM_LINK_TYPE_BNEP)
+	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_BLUETOOTH_SETTING_NAME)
+)
 
 G_MODULE_EXPORT NMDeviceFactory *
 nm_device_factory_create (GError **error)
@@ -80,7 +88,16 @@ nm_device_factory_create (GError **error)
 	return (NMDeviceFactory *) g_object_new (NM_TYPE_BLUEZ_MANAGER, NULL);
 }
 
-/************************************************************************/
+/*****************************************************************************/
+
+#define _NMLOG_DOMAIN      LOGD_BT
+#define _NMLOG(level, ...) __NMLOG_DEFAULT (level, _NMLOG_DOMAIN, "bluez", __VA_ARGS__)
+
+/*****************************************************************************/
+
+static void check_bluez_and_try_setup (NMBluezManager *self);
+
+/*****************************************************************************/
 
 struct AsyncData {
 	NMBluezManager *self;
@@ -118,10 +135,7 @@ cleanup_checking (NMBluezManager *self, gboolean do_unwatch_name)
 {
 	NMBluezManagerPrivate *priv = NM_BLUEZ_MANAGER_GET_PRIVATE (self);
 
-	if (priv->async_cancellable) {
-		g_cancellable_cancel (priv->async_cancellable);
-		g_clear_object (&priv->async_cancellable);
-	}
+	nm_clear_g_cancellable (&priv->async_cancellable);
 
 	g_clear_object (&priv->introspect_proxy);
 
@@ -133,7 +147,7 @@ cleanup_checking (NMBluezManager *self, gboolean do_unwatch_name)
 
 
 static void
-manager_bdaddr_added_cb (NMBluez4Manager *bluez_mgr,
+manager_bdaddr_added_cb (GObject *manager,
                          NMBluezDevice *bt_device,
                          const char *bdaddr,
                          const char *name,
@@ -167,6 +181,13 @@ manager_bdaddr_added_cb (NMBluez4Manager *bluez_mgr,
 }
 
 static void
+manager_network_server_added_cb (GObject *manager,
+                                 gpointer user_data)
+{
+	nm_device_factory_emit_component_added (NM_DEVICE_FACTORY (user_data), NULL);
+}
+
+static void
 setup_version_number (NMBluezManager *self, int bluez_version)
 {
 	NMBluezManagerPrivate *priv = NM_BLUEZ_MANAGER_GET_PRIVATE (self);
@@ -190,7 +211,7 @@ setup_bluez4 (NMBluezManager *self)
 	g_return_if_fail (!priv->manager4 && !priv->manager5 && !priv->bluez_version);
 
 	setup_version_number (self, 4);
-	priv->manager4 = manager = nm_bluez4_manager_new (priv->provider);
+	priv->manager4 = manager = nm_bluez4_manager_new (priv->settings);
 
 	g_signal_connect (manager,
 	                  NM_BLUEZ_MANAGER_BDADDR_ADDED,
@@ -209,11 +230,15 @@ setup_bluez5 (NMBluezManager *self)
 	g_return_if_fail (!priv->manager4 && !priv->manager5 && !priv->bluez_version);
 
 	setup_version_number (self, 5);
-	priv->manager5 = manager = nm_bluez5_manager_new (priv->provider);
+	priv->manager5 = manager = nm_bluez5_manager_new (priv->settings);
 
 	g_signal_connect (manager,
 	                  NM_BLUEZ_MANAGER_BDADDR_ADDED,
 	                  G_CALLBACK (manager_bdaddr_added_cb),
+	                  self);
+	g_signal_connect (manager,
+	                  NM_BLUEZ_MANAGER_NETWORK_SERVER_ADDED,
+	                  G_CALLBACK (manager_network_server_added_cb),
 	                  self);
 
 	nm_bluez5_manager_query_devices (manager);
@@ -251,7 +276,7 @@ check_bluez_and_try_setup_final_step (NMBluezManager *self, int bluez_version, c
 		cleanup_checking (self, FALSE);
 		if (!priv->watch_name_id) {
 			priv->watch_name_id = g_bus_watch_name (G_BUS_TYPE_SYSTEM,
-			                                        BLUEZ_SERVICE,
+			                                        NM_BLUEZ_SERVICE,
 			                                        G_BUS_NAME_WATCHER_FLAGS_NONE,
 			                                        watch_name_on_appeared,
 			                                        NULL,
@@ -304,7 +329,7 @@ check_bluez_and_try_setup_do_introspect (GObject *source_object,
 	/* might not be the best approach to detect the version, but it's good enough in practice. */
 	if (strstr (xml_data, "org.freedesktop.DBus.ObjectManager"))
 		bluez_version = 5;
-	else if (strstr (xml_data, BLUEZ4_MANAGER_INTERFACE))
+	else if (strstr (xml_data, NM_BLUEZ4_MANAGER_INTERFACE))
 		bluez_version = 4;
 	else
 		reason = "unexpected introspect result";
@@ -367,7 +392,7 @@ check_bluez_and_try_setup (NMBluezManager *self)
 	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
 	                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START,
 	                          NULL,
-	                          BLUEZ_SERVICE,
+	                          NM_BLUEZ_SERVICE,
 	                          "/",
 	                          DBUS_INTERFACE_INTROSPECTABLE,
 	                          priv->async_cancellable,
@@ -379,45 +404,6 @@ static void
 start (NMDeviceFactory *factory)
 {
 	check_bluez_and_try_setup (NM_BLUEZ_MANAGER (factory));
-}
-
-NM_DEVICE_FACTORY_DECLARE_TYPES (
-	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES    (NM_LINK_TYPE_BNEP)
-	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_BLUETOOTH_SETTING_NAME)
-)
-
-/*********************************************************************/
-
-static void
-dispose (GObject *object)
-{
-	NMBluezManager *self = NM_BLUEZ_MANAGER (object);
-	NMBluezManagerPrivate *priv = NM_BLUEZ_MANAGER_GET_PRIVATE (self);
-
-	if (priv->manager4) {
-		g_signal_handlers_disconnect_by_func (priv->manager4, manager_bdaddr_added_cb, self);
-		g_clear_object (&priv->manager4);
-	}
-	if (priv->manager5) {
-		g_signal_handlers_disconnect_by_func (priv->manager5, manager_bdaddr_added_cb, self);
-		g_clear_object (&priv->manager5);
-	}
-
-	cleanup_checking (self, TRUE);
-
-	priv->bluez_version = 0;
-
-	g_clear_object (&priv->provider);
-
-	G_OBJECT_CLASS (nm_bluez_manager_parent_class)->dispose (object);
-}
-
-static void
-nm_bluez_manager_init (NMBluezManager *self)
-{
-	NMBluezManagerPrivate *priv = NM_BLUEZ_MANAGER_GET_PRIVATE (self);
-
-	priv->provider = g_object_ref (nm_connection_provider_get ());
 }
 
 static NMDevice *
@@ -432,22 +418,64 @@ create_device (NMDeviceFactory *factory,
 	return NULL;
 }
 
-static void
-device_factory_interface_init (NMDeviceFactoryInterface *factory_iface)
+static gboolean
+match_connection (NMDeviceFactory *factory,
+                  NMConnection *connection)
 {
-	factory_iface->get_supported_types = get_supported_types;
-	factory_iface->create_device = create_device;
-	factory_iface->start = start;
+	const char *type = nm_connection_get_connection_type (connection);
+
+	nm_assert (nm_streq (type, NM_SETTING_BLUETOOTH_SETTING_NAME));
+
+	if (_nm_connection_get_setting_bluetooth_for_nap (connection))
+		return FALSE;    /* handled by the bridge factory */
+
+	return TRUE;
+}
+
+/*****************************************************************************/
+
+static void
+nm_bluez_manager_init (NMBluezManager *self)
+{
+	NMBluezManagerPrivate *priv = NM_BLUEZ_MANAGER_GET_PRIVATE (self);
+
+	priv->settings = g_object_ref (NM_SETTINGS_GET);
+}
+
+static void
+dispose (GObject *object)
+{
+	NMBluezManager *self = NM_BLUEZ_MANAGER (object);
+	NMBluezManagerPrivate *priv = NM_BLUEZ_MANAGER_GET_PRIVATE (self);
+
+	if (priv->manager4) {
+		g_signal_handlers_disconnect_by_func (priv->manager4, manager_bdaddr_added_cb, self);
+		g_clear_object (&priv->manager4);
+	}
+	if (priv->manager5) {
+		g_signal_handlers_disconnect_by_data (priv->manager5, self);
+		g_clear_object (&priv->manager5);
+	}
+
+	cleanup_checking (self, TRUE);
+
+	priv->bluez_version = 0;
+
+	G_OBJECT_CLASS (nm_bluez_manager_parent_class)->dispose (object);
+
+	g_clear_object (&priv->settings);
 }
 
 static void
 nm_bluez_manager_class_init (NMBluezManagerClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMDeviceFactoryClass *factory_class = NM_DEVICE_FACTORY_CLASS (klass);
 
-	g_type_class_add_private (klass, sizeof (NMBluezManagerPrivate));
-
-	/* virtual methods */
 	object_class->dispose = dispose;
-}
 
+	factory_class->get_supported_types = get_supported_types;
+	factory_class->create_device = create_device;
+	factory_class->match_connection = match_connection;
+	factory_class->start = start;
+}

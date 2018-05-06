@@ -23,13 +23,16 @@
 #include <string.h>
 #include <errno.h>
 
+/* need math.h for isinf() and INFINITY. No need to link with -lm */
+#include <math.h>
+
 #include "NetworkManagerUtils.h"
 #include "nm-core-internal.h"
 
-#include "nm-test-utils.h"
+#include "nm-test-utils-core.h"
 
 /* Reference implementation for nm_utils_ip6_address_clear_host_address.
- * Taken originally from set_address_masked(), src/rdisc/nm-lndp-rdisc.c
+ * Taken originally from set_address_masked(), src/ndisc/nm-lndp-ndisc.c
  **/
 static void
 ip6_address_clear_host_address_reference (struct in6_addr *dst, struct in6_addr *src, guint8 plen)
@@ -225,7 +228,7 @@ test_nm_utils_log_connection_diff (void)
 	 * early without doing anything. Hence, in the normal testing, this test does nothing.
 	 * It only gets interesting, when run verbosely with NMTST_DEBUG=debug ... */
 
-	nm_log (LOGL_DEBUG, LOGD_CORE, "START TEST test_nm_utils_log_connection_diff...");
+	nm_log (LOGL_DEBUG, LOGD_CORE, NULL, NULL, "START TEST test_nm_utils_log_connection_diff...");
 
 	connection = nm_simple_connection_new ();
 	nm_connection_add_setting (connection, nm_setting_connection_new ());
@@ -267,7 +270,33 @@ test_nm_utils_log_connection_diff (void)
 	g_clear_object (&connection);
 }
 
-/*******************************************/
+/*****************************************************************************/
+
+static void
+do_test_sysctl_ip_conf (int addr_family,
+                        const char *iface,
+                        const char *property)
+{
+	char path[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
+	const char *pp;
+
+	pp = nm_utils_sysctl_ip_conf_path (addr_family, path, iface, property);
+	g_assert (pp == path);
+	g_assert (path[0] == '/');
+
+	g_assert (nm_utils_sysctl_ip_conf_is_path (addr_family, path, iface, property));
+	g_assert (nm_utils_sysctl_ip_conf_is_path (addr_family, path, NULL, property));
+}
+
+static void
+test_nm_utils_sysctl_ip_conf_path (void)
+{
+	do_test_sysctl_ip_conf (AF_INET6, "a", "mtu");
+	do_test_sysctl_ip_conf (AF_INET6, "eth0", "mtu");
+	do_test_sysctl_ip_conf (AF_INET6, "e23456789012345", "mtu");
+}
+
+/*****************************************************************************/
 
 static NMConnection *
 _match_connection_new (void)
@@ -309,6 +338,30 @@ _match_connection_new (void)
 	return connection;
 }
 
+static NMConnection *
+_match_connection (GSList *connections,
+                   NMConnection *original,
+                   gboolean device_has_carrier,
+                   gint64 default_v4_metric,
+                   gint64 default_v6_metric)
+{
+	NMConnection **list;
+	guint i, len;
+
+	len = g_slist_length (connections);
+	g_assert (len < 10);
+
+	list = g_alloca ((len + 1) * sizeof (NMConnection *));
+	for (i = 0; i < len; i++, connections = connections->next) {
+		g_assert (connections);
+		g_assert (connections->data);
+		list[i] = connections->data;
+	}
+	list[i] = NULL;
+
+	return nm_utils_match_connection (list, original, FALSE, device_has_carrier, default_v4_metric, default_v6_metric, NULL, NULL);
+}
+
 static void
 test_connection_match_basic (void)
 {
@@ -320,7 +373,7 @@ test_connection_match_basic (void)
 	copy = nm_simple_connection_new_clone (orig);
 	connections = g_slist_append (connections, copy);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == copy);
 
 	/* Now change a material property like IPv4 method and ensure matching fails */
@@ -329,7 +382,7 @@ test_connection_match_basic (void)
 	g_object_set (G_OBJECT (s_ip4),
 	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL,
 	              NULL);
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == NULL);
 
 	g_slist_free (connections);
@@ -365,7 +418,7 @@ test_connection_match_ip6_method (void)
 	              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == copy);
 
 	g_slist_free (connections);
@@ -399,7 +452,7 @@ test_connection_match_ip6_method_ignore (void)
 	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == copy);
 
 	g_slist_free (connections);
@@ -433,7 +486,7 @@ test_connection_match_ip6_method_ignore_auto (void)
 	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == copy);
 
 	g_slist_free (connections);
@@ -469,11 +522,11 @@ test_connection_match_ip4_method (void)
 	              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, FALSE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, FALSE, 0, 0);
 	g_assert (matched == copy);
 
 	/* Ensure when carrier=true matching fails */
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == NULL);
 
 	g_slist_free (connections);
@@ -507,7 +560,7 @@ test_connection_match_interface_name (void)
 	              NM_SETTING_CONNECTION_INTERFACE_NAME, NULL,
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == copy);
 
 	g_slist_free (connections);
@@ -544,7 +597,7 @@ test_connection_match_wired (void)
 	              NM_SETTING_WIRED_S390_NETTYPE, "qeth",
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == copy);
 
 	g_slist_free (connections);
@@ -576,7 +629,7 @@ test_connection_match_wired2 (void)
 	 * the connections match. It can happen if assuming VLAN devices. */
 	nm_connection_remove_setting (orig, NM_TYPE_SETTING_WIRED);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == copy);
 
 	g_slist_free (connections);
@@ -601,7 +654,7 @@ test_connection_match_cloned_mac (void)
 	              NM_SETTING_WIRED_CLONED_MAC_ADDRESS, "52:54:00:ab:db:23",
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == fuzzy);
 
 	exact = nm_simple_connection_new_clone (orig);
@@ -612,14 +665,14 @@ test_connection_match_cloned_mac (void)
 	              NM_SETTING_WIRED_CLONED_MAC_ADDRESS, "52:54:00:ab:db:23",
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == exact);
 
 	g_object_set (G_OBJECT (s_wired),
 	              NM_SETTING_WIRED_CLONED_MAC_ADDRESS, "52:54:00:ab:db:24",
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched == fuzzy);
 
 	g_slist_free (connections);
@@ -679,7 +732,7 @@ test_connection_no_match_ip4_addr (void)
 	nm_setting_ip_config_add_address (s_ip4, nm_addr);
 	nm_ip_address_unref (nm_addr);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched != copy);
 
 	g_slist_free (connections);
@@ -725,7 +778,7 @@ test_connection_no_match_vlan (void)
 	              NM_SETTING_VLAN_FLAGS, 0,
 	              NULL);
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched != copy);
 
 	/* Check that the connections do not match if VLAN priorities differ */
@@ -735,7 +788,7 @@ test_connection_no_match_vlan (void)
 	g_object_set (G_OBJECT (s_vlan_copy), NM_SETTING_VLAN_FLAGS, 0, NULL);
 	nm_setting_vlan_add_priority_str (s_vlan_copy, NM_VLAN_INGRESS_MAP, "4:2");
 
-	matched = nm_utils_match_connection (connections, orig, TRUE, 0, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, TRUE, 0, 0);
 	g_assert (matched != copy);
 
 	g_slist_free (connections);
@@ -775,7 +828,7 @@ test_connection_match_ip4_routes1 (void)
 	nmtst_setting_ip_config_add_route (s_ip4, "172.25.17.0", 24, "10.0.0.3", 20);
 
 	/* Try to match the connections */
-	matched = nm_utils_match_connection (connections, orig, FALSE, 100, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, FALSE, 100, 0);
 	g_assert (matched == NULL);
 }
 
@@ -812,9 +865,9 @@ test_connection_match_ip4_routes2 (void)
 	nmtst_setting_ip_config_add_route (s_ip4, "172.25.16.0", 24, "10.0.0.2", 100);
 
 	/* Try to match the connections using different default metrics */
-	matched = nm_utils_match_connection (connections, orig, FALSE, 100, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, FALSE, 100, 0);
 	g_assert (matched == copy);
-	matched = nm_utils_match_connection (connections, orig, FALSE, 500, 0, NULL, NULL);
+	matched = _match_connection (connections, orig, FALSE, 500, 0);
 	g_assert (matched == NULL);
 }
 
@@ -849,9 +902,9 @@ test_connection_match_ip6_routes (void)
 	nmtst_setting_ip_config_add_route (s_ip6, "2001:db8:a:b:0:0:0:0", 64, "fd01::16", 50);
 
 	/* Try to match the connections */
-	matched = nm_utils_match_connection (connections, orig, FALSE, 0, 100, NULL, NULL);
+	matched = _match_connection (connections, orig, FALSE, 0, 100);
 	g_assert (matched == NULL);
-	matched = nm_utils_match_connection (connections, orig, FALSE, 0, 50, NULL, NULL);
+	matched = _match_connection (connections, orig, FALSE, 0, 50);
 	g_assert (matched == copy);
 }
 
@@ -868,6 +921,12 @@ _create_connection_autoconnect (const char *id, gboolean autoconnect, int autoco
 	              NULL);
 	nmtst_connection_normalize (c);
 	return c;
+}
+
+static int
+_cmp_autoconnect_priority_p_with_data (gconstpointer pa, gconstpointer pb, gpointer user_data)
+{
+	return nm_utils_cmp_connection_by_autoconnect_priority (*((NMConnection **) pa), *((NMConnection **) pb));
 }
 
 static void
@@ -892,12 +951,12 @@ _test_connection_sort_autoconnect_priority_one (NMConnection **list, gboolean sh
 	}
 
 	/* sort it... */
-	g_ptr_array_sort (connections, (GCompareFunc) nm_utils_cmp_connection_by_autoconnect_priority);
+	g_ptr_array_sort_with_data (connections, _cmp_autoconnect_priority_p_with_data, NULL);
 
 	for (i = 0; i < count; i++) {
 		if (list[i] == connections->pdata[i])
 			continue;
-		if (shuffle && nm_utils_cmp_connection_by_autoconnect_priority (&list[i], (NMConnection **) &connections->pdata[i]) == 0)
+		if (shuffle && nm_utils_cmp_connection_by_autoconnect_priority (list[i], connections->pdata[i]) == 0)
 			continue;
 		g_message ("After sorting, the order of connections is not as expected!! Offending index: %d", i);
 		for (j = 0; j < count; j++)
@@ -953,43 +1012,52 @@ test_connection_sort_autoconnect_priority (void)
 	_test_connection_sort_autoconnect_priority_free (c2);
 }
 
-/*******************************************/
+/*****************************************************************************/
 
-static const char *_test_match_spec_all[] = {
-	"e",
-	"em",
-	"em*",
-	"em\\",
-	"em\\*",
-	"em\\1",
-	"em\\11",
-	"em\\2",
-	"em1",
-	"em11",
-	"em2",
-	"=em*",
-	NULL
-};
+#define MATCH_S390 "S390:"
+#define MATCH_DRIVER "DRIVER:"
 
-static gboolean
-_test_match_spec_contains (const char **matches, const char *match)
+static NMMatchSpecMatchType
+_test_match_spec_device (const GSList *specs, const char *match_str)
 {
-	guint i;
+	if (match_str && g_str_has_prefix (match_str, MATCH_S390))
+		return nm_match_spec_device (specs, NULL, NULL, NULL, NULL, NULL, &match_str[NM_STRLEN (MATCH_S390)]);
+	if (match_str && g_str_has_prefix (match_str, MATCH_DRIVER)) {
+		gs_free char *s = g_strdup (&match_str[NM_STRLEN (MATCH_DRIVER)]);
+		char *t;
 
-	for (i = 0; matches && matches[i]; i++) {
-		if (strcmp (match, matches[i]) == 0)
-			return TRUE;
+		t = strchr (s, '|');
+		if (t) {
+			t[0] = '\0';
+			t++;
+		}
+		return nm_match_spec_device (specs, NULL, NULL, s, t, NULL, NULL);
 	}
-	return FALSE;
+	return nm_match_spec_device (specs, match_str, NULL, NULL, NULL, NULL, NULL);
 }
 
 static void
-test_match_spec_ifname (const char *spec_str, const char **matches, const char **neg_matches)
+_do_test_match_spec_device (const char *spec_str, const char **matches, const char **no_matches, const char **neg_matches)
 {
-	const char *m;
-	GSList *specs, *specs_reverse = NULL, *specs_resplit, *specs_i, *specs_j;
+	GSList *specs, *specs_randperm = NULL, *specs_resplit, *specs_i, *specs_j;
 	guint i;
 	gs_free char *specs_joined = NULL;
+	const char *s;
+	static const char *no_matches_default[] = {
+		"e",
+		"em",
+		"em*",
+		"em\\",
+		"em\\*",
+		"em\\1",
+		"em\\11",
+		"em\\2",
+		"em1",
+		"em11",
+		"em2",
+		"=em*",
+		NULL
+	};
 
 	g_assert (spec_str);
 
@@ -1008,87 +1076,137 @@ test_match_spec_ifname (const char *spec_str, const char **matches, const char *
 	g_assert (!specs_j);
 	g_slist_free_full (specs_resplit, g_free);
 
-	/* also check the matches in the reverse order. They must yield the same result because
+	/* also check the matches in the random order. They must yield the same result because
 	 * matches are inclusive -- except "except:" which always wins. */
-	specs_reverse = g_slist_reverse (g_slist_copy (specs));
+	specs_randperm = nmtst_rand_perm_gslist (NULL, g_slist_copy (specs));
 
 	for (i = 0; matches && matches[i]; i++) {
-		g_assert (nm_match_spec_interface_name (specs, matches[i]) == NM_MATCH_SPEC_MATCH);
-		g_assert (nm_match_spec_interface_name (specs_reverse, matches[i]) == NM_MATCH_SPEC_MATCH);
+		g_assert (_test_match_spec_device (specs, matches[i]) == NM_MATCH_SPEC_MATCH);
+		g_assert (_test_match_spec_device (specs_randperm, matches[i]) == NM_MATCH_SPEC_MATCH);
 	}
 	for (i = 0; neg_matches && neg_matches[i]; i++) {
-		g_assert (nm_match_spec_interface_name (specs, neg_matches[i]) == NM_MATCH_SPEC_NEG_MATCH);
-		g_assert (nm_match_spec_interface_name (specs_reverse, neg_matches[i]) == NM_MATCH_SPEC_NEG_MATCH);
+		g_assert (_test_match_spec_device (specs, neg_matches[i]) == NM_MATCH_SPEC_NEG_MATCH);
+		g_assert (_test_match_spec_device (specs_randperm, neg_matches[i]) == NM_MATCH_SPEC_NEG_MATCH);
 	}
-	for (i = 0; (m = _test_match_spec_all[i]); i++) {
-		if (_test_match_spec_contains (matches, m))
-			continue;
-		if (_test_match_spec_contains (neg_matches, m))
-			continue;
-		g_assert (nm_match_spec_interface_name (specs, m) == NM_MATCH_SPEC_NO_MATCH);
-		g_assert (nm_match_spec_interface_name (specs_reverse, m) == NM_MATCH_SPEC_NO_MATCH);
+	for (i = 0; no_matches && no_matches[i]; i++) {
+		g_assert (_test_match_spec_device (specs, no_matches[i]) == NM_MATCH_SPEC_NO_MATCH);
+		g_assert (_test_match_spec_device (specs_randperm, no_matches[i]) == NM_MATCH_SPEC_NO_MATCH);
+	}
+	if (!no_matches) {
+		for (i = 0; (s = no_matches_default[i]); i++) {
+			if (   (matches && g_strv_contains (matches, s))
+			    || (neg_matches && g_strv_contains (neg_matches, s)))
+				continue;
+			g_assert (_test_match_spec_device (specs, s) == NM_MATCH_SPEC_NO_MATCH);
+			g_assert (_test_match_spec_device (specs_randperm, s) == NM_MATCH_SPEC_NO_MATCH);
+		}
 	}
 
-	g_slist_free (specs_reverse);
+	g_slist_free (specs_randperm);
 	g_slist_free_full (specs, g_free);
 }
 
 static void
-test_nm_match_spec_interface_name (void)
+test_match_spec_device (void)
 {
 #define S(...) ((const char *[]) { __VA_ARGS__, NULL } )
-	test_match_spec_ifname ("em1",
-	                        S ("em1"),
-	                        NULL);
-	test_match_spec_ifname ("em1,em2",
-	                        S ("em1", "em2"),
-	                        NULL);
-	test_match_spec_ifname ("em1,em2,interface-name:em2",
-	                        S ("em1", "em2"),
-	                        NULL);
-	test_match_spec_ifname ("interface-name:em1",
-	                        S ("em1"),
-	                        NULL);
-	test_match_spec_ifname ("interface-name:em*",
-	                        S ("em", "em*", "em\\", "em\\*", "em\\1", "em\\11", "em\\2", "em1", "em11", "em2", "em3"),
-	                        NULL);
-	test_match_spec_ifname ("interface-name:em\\*",
-	                        S ("em\\", "em\\*", "em\\1", "em\\11", "em\\2"),
-	                        NULL);
-	test_match_spec_ifname ("interface-name:~em\\*",
-	                        S ("em\\", "em\\*", "em\\1", "em\\11", "em\\2"),
-	                        NULL);
-	test_match_spec_ifname ("interface-name:=em*",
-	                        S ("em*"),
-	                        NULL);
-	test_match_spec_ifname ("interface-name:em*,except:interface-name:em1*",
-	                        S ("em", "em*", "em\\", "em\\*", "em\\1", "em\\11", "em\\2", "em2", "em3"),
-	                        S ("em1", "em11"));
-	test_match_spec_ifname ("interface-name:em*,except:interface-name:=em*",
-	                        S ("em", "em\\", "em\\*", "em\\1", "em\\11", "em\\2", "em1", "em11", "em2", "em3"),
-	                        S ("em*"));
-	test_match_spec_ifname ("aa,bb,cc\\,dd,e,,",
-	                        S ("aa", "bb", "cc,dd", "e"),
-	                        NULL);
-	test_match_spec_ifname ("aa;bb;cc\\;dd;e,;",
-	                        S ("aa", "bb", "cc;dd", "e"),
-	                        NULL);
-	test_match_spec_ifname ("interface-name:em\\;1,em\\,2,\\,,\\\\,,em\\\\x",
-	                        S ("em;1", "em,2", ",", "\\", "em\\x"),
-	                        NULL);
-	test_match_spec_ifname ("\\s\\s,\\sinterface-name:a,\\s,",
-	                        S ("  ", " ", " interface-name:a"),
-	                        NULL);
-	test_match_spec_ifname (" aa ;  bb   ; cc\\;dd  ;e , ; \t\\t  , ",
-	                        S ("aa", "bb", "cc;dd", "e", "\t"),
-	                        NULL);
+	_do_test_match_spec_device ("em1",
+	                            S ("em1"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("em1,em2",
+	                            S ("em1", "em2"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("em1,em2,interface-name:em2",
+	                            S ("em1", "em2"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("interface-name:em1",
+	                            S ("em1"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("interface-name:em*",
+	                            S ("em", "em*", "em\\", "em\\*", "em\\1", "em\\11", "em\\2", "em1", "em11", "em2", "em3"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("interface-name:em\\*",
+	                            S ("em\\", "em\\*", "em\\1", "em\\11", "em\\2"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("interface-name:~em\\*",
+	                            S ("em\\", "em\\*", "em\\1", "em\\11", "em\\2"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("except:*",
+	                            NULL,
+	                            S (NULL),
+	                            S ("a"));
+	_do_test_match_spec_device ("interface-name:=em*",
+	                            S ("em*"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("interface-name:em*,except:interface-name:em1*",
+	                            S ("em", "em*", "em\\", "em\\*", "em\\1", "em\\11", "em\\2", "em2", "em3"),
+	                            NULL,
+	                            S ("em1", "em11"));
+	_do_test_match_spec_device ("interface-name:em*,except:interface-name:=em*",
+	                            S ("em", "em\\", "em\\*", "em\\1", "em\\11", "em\\2", "em1", "em11", "em2", "em3"),
+	                            NULL,
+	                            S ("em*"));
+	_do_test_match_spec_device ("aa,bb,cc\\,dd,e,,",
+	                            S ("aa", "bb", "cc,dd", "e"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("aa;bb;cc\\;dd;e,;",
+	                            S ("aa", "bb", "cc;dd", "e"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("interface-name:em\\;1,em\\,2,\\,,\\\\,,em\\\\x",
+	                            S ("em;1", "em,2", ",", "\\", "em\\x"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device ("\\s\\s,\\sinterface-name:a,\\s,",
+	                            S ("  ", " ", " interface-name:a"),
+	                            NULL,
+	                            NULL);
+	_do_test_match_spec_device (" aa ;  bb   ; cc\\;dd  ;e , ; \t\\t  , ",
+	                            S ("aa", "bb", "cc;dd", "e", "\t"),
+	                            NULL,
+	                            NULL);
+
+	_do_test_match_spec_device ("s390-subchannels:0.0.1000\\,0.0.1001",
+	                            S (MATCH_S390"0.0.1000", MATCH_S390"0.0.1000,deadbeef", MATCH_S390"0.0.1000,0.0.1001", MATCH_S390"0.0.1000,0.0.1002"),
+	                            S (MATCH_S390"0.0.1001"),
+	                            NULL);
+	_do_test_match_spec_device ("*,except:s390-subchannels:0.0.1000\\,0.0.1001",
+	                            NULL,
+	                            S (NULL),
+	                            S (MATCH_S390"0.0.1000", MATCH_S390"0.0.1000,deadbeef", MATCH_S390"0.0.1000,0.0.1001", MATCH_S390"0.0.1000,0.0.1002"));
+
+	_do_test_match_spec_device ("driver:DRV",
+	                            S (MATCH_DRIVER"DRV", MATCH_DRIVER"DRV|1.6"),
+	                            S (MATCH_DRIVER"DR", MATCH_DRIVER"DR*"),
+	                            NULL);
+	_do_test_match_spec_device ("driver:DRV//",
+	                            S (MATCH_DRIVER"DRV/"),
+	                            S (MATCH_DRIVER"DRV/|1.6", MATCH_DRIVER"DR", MATCH_DRIVER"DR*"),
+	                            NULL);
+	_do_test_match_spec_device ("driver:DRV//*",
+	                            S (MATCH_DRIVER"DRV/", MATCH_DRIVER"DRV/|1.6"),
+	                            S (MATCH_DRIVER"DR", MATCH_DRIVER"DR*"),
+	                            NULL);
+	_do_test_match_spec_device ("driver:DRV//1.5*",
+	                            S (MATCH_DRIVER"DRV/|1.5", MATCH_DRIVER"DRV/|1.5.2"),
+	                            S (MATCH_DRIVER"DRV/", MATCH_DRIVER"DRV/|1.6", MATCH_DRIVER"DR", MATCH_DRIVER"DR*"),
+	                            NULL);
 #undef S
 }
 
-/*******************************************/
+/*****************************************************************************/
 
 static void
-_do_test_match_spec_match_config (const char *file, gint line, const char *spec_str, guint version, guint v_maj, guint v_min, guint v_mic, NMMatchSpecMatchType expected)
+_do_test_match_spec_config (const char *file, gint line, const char *spec_str, guint version, guint v_maj, guint v_min, guint v_mic, NMMatchSpecMatchType expected)
 {
 	GSList *specs;
 	NMMatchSpecMatchType match_result;
@@ -1103,7 +1221,7 @@ _do_test_match_spec_match_config (const char *file, gint line, const char *spec_
 
 	specs = nm_match_spec_split (spec_str);
 
-	match_result = nm_match_spec_match_config (specs, version, NULL);
+	match_result = nm_match_spec_config (specs, version, NULL);
 
 	if (expected != match_result)
 		g_error ("%s:%d: faild comparing \"%s\" with %u.%u.%u. Expected %d, but got %d", file, line, spec_str, v_maj, v_min, v_mic, (int) expected, (int) match_result);
@@ -1115,7 +1233,7 @@ _do_test_match_spec_match_config (const char *file, gint line, const char *spec_
 		NMMatchSpecMatchType match_result2;
 
 
-		match_result2 = nm_match_spec_match_config (specs2, version, NULL);
+		match_result2 = nm_match_spec_config (specs2, version, NULL);
 		if (match_result == NM_MATCH_SPEC_NO_MATCH)
 			g_assert_cmpint (match_result2, ==, NM_MATCH_SPEC_NO_MATCH);
 		else
@@ -1126,108 +1244,108 @@ _do_test_match_spec_match_config (const char *file, gint line, const char *spec_
 
 	g_slist_free_full (specs, g_free);
 }
-#define do_test_match_spec_match_config(spec, v_maj, v_min, v_mic, expected) \
-	_do_test_match_spec_match_config (__FILE__, __LINE__, (""spec), NM_ENCODE_VERSION ((v_maj), (v_min), (v_mic)), (v_maj), (v_min), (v_mic), (expected))
+#define do_test_match_spec_config(spec, v_maj, v_min, v_mic, expected) \
+	_do_test_match_spec_config (__FILE__, __LINE__, (""spec), NM_ENCODE_VERSION ((v_maj), (v_min), (v_mic)), (v_maj), (v_min), (v_mic), (expected))
 
 static void
-test_nm_match_spec_match_config (void)
+test_match_spec_config (void)
 {
-	do_test_match_spec_match_config ("", 1, 2, 3, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version:1.2.3", 1, 2, 2, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version:1.2.3", 1, 2, 3, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version:1.2.3", 1, 2, 4, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("", 1, 2, 3, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version:1.2.3", 1, 2, 2, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version:1.2.3", 1, 2, 3, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version:1.2.3", 1, 2, 4, NM_MATCH_SPEC_NO_MATCH);
 
-	do_test_match_spec_match_config ("nm-version:1.2", 1, 1, 2, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version:1.2", 1, 2, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version:1.2", 1, 2, 2, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version:1.2", 1, 2, 3, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version:1.2", 1, 2, 4, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version:1.2", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version:1.2", 1, 1, 2, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version:1.2", 1, 2, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version:1.2", 1, 2, 2, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version:1.2", 1, 2, 3, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version:1.2", 1, 2, 4, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version:1.2", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
 
-	do_test_match_spec_match_config ("nm-version-min:1.2.3", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2.3", 1, 1, 1, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2.3", 1, 2, 2, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2.3", 1, 2, 3, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2.3", 1, 2, 5, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2.3", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2.3", 1, 3, 30, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2.3", 1, 4, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2.3", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2.3", 1, 1, 1, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2.3", 1, 2, 2, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2.3", 1, 2, 3, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2.3", 1, 2, 5, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2.3", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2.3", 1, 3, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2.3", 1, 4, 30, NM_MATCH_SPEC_NO_MATCH);
 
-	do_test_match_spec_match_config ("nm-version-min:1.2", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2", 1, 1, 1, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2", 1, 2, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2", 1, 2, 3, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2", 1, 2, 5, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2", 1, 3, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2", 1, 3, 30, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.2", 1, 4, 30, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2", 1, 1, 1, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2", 1, 2, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2", 1, 2, 3, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2", 1, 2, 5, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2", 1, 3, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2", 1, 3, 30, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.2", 1, 4, 30, NM_MATCH_SPEC_MATCH);
 
-	do_test_match_spec_match_config ("nm-version-min:1", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1", 1, 1, 1, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1", 1, 2, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1", 1, 2, 3, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1", 1, 2, 5, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1", 1, 3, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1", 1, 3, 30, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1", 1, 4, 30, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1", 1, 1, 1, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1", 1, 2, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1", 1, 2, 3, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1", 1, 2, 5, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1", 1, 3, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1", 1, 3, 30, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1", 1, 4, 30, NM_MATCH_SPEC_MATCH);
 
 
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 1, 1, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 2, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 2, 1, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 2, 2, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 2, 3, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 2, 5, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 3, 30, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2.3", 1, 4, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 1, 1, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 2, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 2, 1, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 2, 2, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 2, 3, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 2, 5, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 3, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 4, 30, NM_MATCH_SPEC_NO_MATCH);
 
-	do_test_match_spec_match_config ("nm-version-max:1.2", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2", 1, 1, 1, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2", 1, 2, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2", 1, 2, 3, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2", 1, 2, 5, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2", 1, 3, 30, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1.2", 1, 4, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2", 1, 1, 1, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2", 1, 2, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2", 1, 2, 3, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2", 1, 2, 5, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2", 1, 3, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1.2", 1, 4, 30, NM_MATCH_SPEC_NO_MATCH);
 
-	do_test_match_spec_match_config ("nm-version-max:1", 0, 2, 30, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1", 1, 1, 1, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1", 1, 2, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1", 1, 2, 3, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1", 1, 2, 5, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1", 1, 3, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1", 1, 3, 30, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1", 1, 4, 30, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-max:1", 2, 4, 30, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 0, 2, 30, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 1, 1, 1, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 1, 2, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 1, 2, 3, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 1, 2, 5, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 1, 3, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 1, 3, 30, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 1, 4, 30, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-max:1", 2, 4, 30, NM_MATCH_SPEC_NO_MATCH);
 
-	do_test_match_spec_match_config ("except:nm-version:1.4.8", 1, 6, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,except:nm-version:1.4.8", 1, 6, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("except:nm-version:1.4.8", 1, 6, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,except:nm-version:1.4.8", 1, 6, 0, NM_MATCH_SPEC_MATCH);
 
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 15, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 16, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 17, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 20, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 15, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 16, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 17, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 2, 20, NM_MATCH_SPEC_MATCH);
 
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 5, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 6, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 7, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 8, NM_MATCH_SPEC_NEG_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 9, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 3, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 5, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 6, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 7, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 8, NM_MATCH_SPEC_NEG_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 4, 9, NM_MATCH_SPEC_MATCH);
 
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 5, 0, NM_MATCH_SPEC_NO_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 6, 0, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 6, 5, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 7, 7, NM_MATCH_SPEC_MATCH);
-	do_test_match_spec_match_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 8, 8, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 5, 0, NM_MATCH_SPEC_NO_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 6, 0, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 6, 5, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 7, 7, NM_MATCH_SPEC_MATCH);
+	do_test_match_spec_config ("nm-version-min:1.6,nm-version-min:1.4.6,nm-version-min:1.2.16,except:nm-version:1.4.8", 1, 8, 8, NM_MATCH_SPEC_MATCH);
 }
 
-/*******************************************/
+/*****************************************************************************/
 
 static void
 test_nm_utils_strbuf_append (void)
@@ -1265,7 +1383,7 @@ test_nm_utils_strbuf_append (void)
 					nm_utils_strbuf_append_c (&t_buf, &t_len, str[0]);
 					break;
 				}
-				/* fall-through */
+				/* fall through */
 			case 1:
 				nm_utils_strbuf_append_str (&t_buf, &t_len, str);
 				break;
@@ -1274,7 +1392,7 @@ test_nm_utils_strbuf_append (void)
 					nm_utils_strbuf_append (&t_buf, &t_len, "%c", str[0]);
 					break;
 				}
-				/* fall-through */
+				/* fall through */
 			case 3:
 				nm_utils_strbuf_append (&t_buf, &t_len, "%s", str);
 				break;
@@ -1361,6 +1479,254 @@ test_duplicate_decl_specifier (void)
 	v_result[0] = TEST_MAX (v_const[0], nmtst_get_rand_int () % 5) + v2;
 }
 
+static void
+test_reverse_dns_ip4 (void)
+{
+	guint32 addr;
+	GPtrArray *domains = g_ptr_array_new_full (8, g_free);
+
+	inet_pton (AF_INET, "7.2.3.0", &addr);
+	nm_utils_get_reverse_dns_domains_ip4 (addr, 27, domains);
+	g_assert_cmpuint (domains->len, ==, 32);
+	g_assert_cmpstr (domains->pdata[0], ==, "0.3.2.7.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[31], ==, "31.3.2.7.in-addr.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET, "10.155.16.0", &addr);
+	nm_utils_get_reverse_dns_domains_ip4 (addr, 22, domains);
+	g_assert_cmpuint (domains->len, ==, 4);
+	g_assert_cmpstr (domains->pdata[0], ==, "16.155.10.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[1], ==, "17.155.10.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[2], ==, "18.155.10.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[3], ==, "19.155.10.in-addr.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET, "4.5.6.7", &addr);
+	nm_utils_get_reverse_dns_domains_ip4 (addr, 32, domains);
+	g_assert_cmpuint (domains->len, ==, 1);
+	g_assert_cmpstr (domains->pdata[0], ==, "7.6.5.4.in-addr.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET, "4.5.6.7", &addr);
+	nm_utils_get_reverse_dns_domains_ip4 (addr, 8, domains);
+	g_assert_cmpuint (domains->len, ==, 1);
+	g_assert_cmpstr (domains->pdata[0], ==, "4.in-addr.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET, "4.180.6.7", &addr);
+	nm_utils_get_reverse_dns_domains_ip4 (addr, 9, domains);
+	g_assert_cmpuint (domains->len, ==, 128);
+	g_assert_cmpstr (domains->pdata[0], ==, "128.4.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[1], ==, "129.4.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[127], ==, "255.4.in-addr.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET, "172.16.0.0", &addr);
+	nm_utils_get_reverse_dns_domains_ip4 (addr, 12, domains);
+	g_assert_cmpuint (domains->len, ==, 16);
+	g_assert_cmpstr (domains->pdata[0],  ==, "16.172.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[1],  ==, "17.172.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[14], ==, "30.172.in-addr.arpa");
+	g_assert_cmpstr (domains->pdata[15], ==, "31.172.in-addr.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET, "1.2.3.4", &addr);
+	nm_utils_get_reverse_dns_domains_ip4 (addr, 0, domains);
+	g_assert_cmpuint (domains->len, ==, 0);
+
+	g_ptr_array_unref (domains);
+}
+
+static void
+test_reverse_dns_ip6 (void)
+{
+	struct in6_addr addr;
+	GPtrArray *domains = g_ptr_array_new_full (8, g_free);
+
+	inet_pton (AF_INET6, "1234::56", &addr);
+	nm_utils_get_reverse_dns_domains_ip6 (&addr, 16, domains);
+	g_assert_cmpuint (domains->len, ==, 1);
+	g_assert_cmpstr (domains->pdata[0], ==, "4.3.2.1.ip6.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET6, "1234::56", &addr);
+	nm_utils_get_reverse_dns_domains_ip6 (&addr, 17, domains);
+	g_assert_cmpuint (domains->len, ==, 8);
+	g_assert_cmpstr (domains->pdata[0], ==, "0.4.3.2.1.ip6.arpa");
+	g_assert_cmpstr (domains->pdata[1], ==, "1.4.3.2.1.ip6.arpa");
+	g_assert_cmpstr (domains->pdata[7], ==, "7.4.3.2.1.ip6.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET6, "2001:db8::", &addr);
+	nm_utils_get_reverse_dns_domains_ip6 (&addr, 29, domains);
+	g_assert_cmpuint (domains->len, ==, 8);
+	g_assert_cmpstr (domains->pdata[0], ==, "8.b.d.0.1.0.0.2.ip6.arpa");
+	g_assert_cmpstr (domains->pdata[1], ==, "9.b.d.0.1.0.0.2.ip6.arpa");
+	g_assert_cmpstr (domains->pdata[7], ==, "f.b.d.0.1.0.0.2.ip6.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET6, "0123:4567:89ab:cdef::", &addr);
+	nm_utils_get_reverse_dns_domains_ip6 (&addr, 63, domains);
+	g_assert_cmpuint (domains->len, ==, 2);
+	g_assert_cmpstr (domains->pdata[0], ==, "e.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0.ip6.arpa");
+	g_assert_cmpstr (domains->pdata[1], ==, "f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0.ip6.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET6, "fec0:1234:5678:9ab0::", &addr);
+	nm_utils_get_reverse_dns_domains_ip6 (&addr, 61, domains);
+	g_assert_cmpuint (domains->len, ==, 8);
+	g_assert_cmpstr (domains->pdata[0], ==, "0.b.a.9.8.7.6.5.4.3.2.1.0.c.e.f.ip6.arpa");
+	g_assert_cmpstr (domains->pdata[7], ==, "7.b.a.9.8.7.6.5.4.3.2.1.0.c.e.f.ip6.arpa");
+
+	g_ptr_array_set_size (domains, 0);
+
+	inet_pton (AF_INET6, "0123:4567:89ab:cdee::", &addr);
+	nm_utils_get_reverse_dns_domains_ip6 (&addr, 0, domains);
+	g_assert_cmpuint (domains->len, ==, 0);
+
+	g_ptr_array_unref (domains);
+}
+
+/*****************************************************************************/
+
+static void
+do_test_stable_id_parse (const char *stable_id,
+                         NMUtilsStableType expected_stable_type,
+                         const char *expected_generated)
+{
+	gs_free char *generated = NULL;
+	NMUtilsStableType stable_type;
+
+	if (expected_stable_type == NM_UTILS_STABLE_TYPE_GENERATED)
+		g_assert (expected_generated);
+	else
+		g_assert (!expected_generated);
+
+	if (expected_stable_type == NM_UTILS_STABLE_TYPE_UUID)
+		g_assert (!stable_id);
+	else
+		g_assert (stable_id);
+
+	stable_type = nm_utils_stable_id_parse (stable_id, "_CONNECTION", "_BOOT", &generated);
+
+	g_assert_cmpint (expected_stable_type, ==, stable_type);
+
+	if (stable_type == NM_UTILS_STABLE_TYPE_GENERATED) {
+		g_assert_cmpstr (expected_generated, ==, generated);
+		g_assert (generated);
+	} else
+		g_assert (!generated);
+}
+
+static void
+test_stable_id_parse (void)
+{
+#define _parse_stable_id(stable_id)                     do_test_stable_id_parse (""stable_id"", NM_UTILS_STABLE_TYPE_STABLE_ID, NULL)
+#define _parse_generated(stable_id, expected_generated) do_test_stable_id_parse (""stable_id"", NM_UTILS_STABLE_TYPE_GENERATED, ""expected_generated"")
+#define _parse_random(stable_id)                        do_test_stable_id_parse (""stable_id"", NM_UTILS_STABLE_TYPE_RANDOM, NULL)
+	do_test_stable_id_parse (NULL, NM_UTILS_STABLE_TYPE_UUID, NULL);
+	_parse_stable_id ("");
+	_parse_stable_id ("a");
+	_parse_stable_id ("a$");
+	_parse_stable_id ("a$x");
+	_parse_stable_id (" ${a$x");
+	_parse_stable_id ("${");
+	_parse_stable_id ("${=");
+	_parse_stable_id ("${a");
+	_parse_stable_id ("${a$x");
+	_parse_stable_id ("a$$");
+	_parse_stable_id ("a$$x");
+	_parse_stable_id ("a$${CONNECTION}");
+	_parse_stable_id ("a$${CONNECTION}x");
+	_parse_generated ("${CONNECTION}", "${CONNECTION}=11{_CONNECTION}");
+	_parse_generated ("${${CONNECTION}", "${${CONNECTION}=11{_CONNECTION}");
+	_parse_generated ("${CONNECTION}x", "${CONNECTION}=11{_CONNECTION}x");
+	_parse_generated ("x${CONNECTION}", "x${CONNECTION}=11{_CONNECTION}");
+	_parse_generated ("${BOOT}x", "${BOOT}=5{_BOOT}x");
+	_parse_generated ("x${BOOT}", "x${BOOT}=5{_BOOT}");
+	_parse_generated ("x${BOOT}${CONNECTION}", "x${BOOT}=5{_BOOT}${CONNECTION}=11{_CONNECTION}");
+	_parse_generated ("xX${BOOT}yY${CONNECTION}zZ", "xX${BOOT}=5{_BOOT}yY${CONNECTION}=11{_CONNECTION}zZ");
+	_parse_random ("${RANDOM}");
+	_parse_random (" ${RANDOM}");
+	_parse_random ("${BOOT}${RANDOM}");
+}
+
+/*****************************************************************************/
+
+static void
+test_stable_id_generated_complete (void)
+{
+#define ASSERT(str, expected) \
+	G_STMT_START { \
+		gs_free char *_s = NULL; \
+		\
+		_s = nm_utils_stable_id_generated_complete ((str)); \
+		g_assert_cmpstr ((expected), ==, _s); \
+	} G_STMT_END
+
+	ASSERT ("", "2jmj7l5rSw0yVb/vlWAYkK/YBwk");
+	ASSERT ("a", "hvfkN/qlp/zhXR3cuerq6jd2Z7g");
+	ASSERT ("password", "W6ph5Mm5Pz8GgiULbPgzG37mj9g");
+#undef ASSERT
+}
+
+/*****************************************************************************/
+
+static void
+test_nm_utils_exp10 (void)
+{
+#define FLOAT_CMP(a, b) \
+	G_STMT_START { \
+		double _a = (a); \
+		double _b = (b); \
+		\
+		if (isinf (_b)) \
+			g_assert (isinf (_a)); \
+		else if (_b >= 0.0 && _b <= 0.0) \
+			g_assert (_a - _b < G_MINFLOAT); \
+		else { \
+			double _x = (_a) - (_b); \
+			g_assert (_b > 0.0); \
+			if (_x < 0.0) \
+				_x = -_x; \
+			g_assert (_x / _b <  1E-10); \
+		} \
+	} G_STMT_END
+
+	FLOAT_CMP (nm_utils_exp10 (G_MININT16),  0.0);
+	FLOAT_CMP (nm_utils_exp10 (-310),        0.0);
+	FLOAT_CMP (nm_utils_exp10 (-309),        0.0);
+	FLOAT_CMP (nm_utils_exp10 (-308),        1e-308);
+	FLOAT_CMP (nm_utils_exp10 (-307),        1e-307);
+	FLOAT_CMP (nm_utils_exp10 (-1),          1e-1);
+	FLOAT_CMP (nm_utils_exp10 (-2),          1e-2);
+	FLOAT_CMP (nm_utils_exp10 (0),           1e0);
+	FLOAT_CMP (nm_utils_exp10 (1),           1e1);
+	FLOAT_CMP (nm_utils_exp10 (2),           1e2);
+	FLOAT_CMP (nm_utils_exp10 (3),           1e3);
+	FLOAT_CMP (nm_utils_exp10 (4),           1e4);
+	FLOAT_CMP (nm_utils_exp10 (5),           1e5);
+	FLOAT_CMP (nm_utils_exp10 (6),           1e6);
+	FLOAT_CMP (nm_utils_exp10 (7),           1e7);
+	FLOAT_CMP (nm_utils_exp10 (122),         1e122);
+	FLOAT_CMP (nm_utils_exp10 (200),         1e200);
+	FLOAT_CMP (nm_utils_exp10 (307),         1e307);
+	FLOAT_CMP (nm_utils_exp10 (308),         1e308);
+	FLOAT_CMP (nm_utils_exp10 (309),         INFINITY);
+	FLOAT_CMP (nm_utils_exp10 (310),         INFINITY);
+	FLOAT_CMP (nm_utils_exp10 (G_MAXINT16),  INFINITY);
+}
+
 /*****************************************************************************/
 
 NMTST_DEFINE ();
@@ -1375,6 +1741,10 @@ main (int argc, char **argv)
 	g_test_add_func ("/general/nm_utils_ip6_address_clear_host_address", test_nm_utils_ip6_address_clear_host_address);
 	g_test_add_func ("/general/nm_utils_ip6_address_same_prefix", test_nm_utils_ip6_address_same_prefix);
 	g_test_add_func ("/general/nm_utils_log_connection_diff", test_nm_utils_log_connection_diff);
+
+	g_test_add_func ("/general/nm_utils_sysctl_ip_conf_path", test_nm_utils_sysctl_ip_conf_path);
+
+	g_test_add_func ("/general/exp10", test_nm_utils_exp10);
 
 	g_test_add_func ("/general/connection-match/basic", test_connection_match_basic);
 	g_test_add_func ("/general/connection-match/ip6-method", test_connection_match_ip6_method);
@@ -1393,9 +1763,15 @@ main (int argc, char **argv)
 
 	g_test_add_func ("/general/connection-sort/autoconnect-priority", test_connection_sort_autoconnect_priority);
 
-	g_test_add_func ("/general/nm_match_spec_interface_name", test_nm_match_spec_interface_name);
-	g_test_add_func ("/general/nm_match_spec_match_config", test_nm_match_spec_match_config);
+	g_test_add_func ("/general/match-spec/device", test_match_spec_device);
+	g_test_add_func ("/general/match-spec/config", test_match_spec_config);
 	g_test_add_func ("/general/duplicate_decl_specifier", test_duplicate_decl_specifier);
+
+	g_test_add_func ("/general/reverse_dns/ip4", test_reverse_dns_ip4);
+	g_test_add_func ("/general/reverse_dns/ip6", test_reverse_dns_ip6);
+
+	g_test_add_func ("/general/stable-id/parse", test_stable_id_parse);
+	g_test_add_func ("/general/stable-id/generated-complete", test_stable_id_generated_complete);
 
 	return g_test_run ();
 }

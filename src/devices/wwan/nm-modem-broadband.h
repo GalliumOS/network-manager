@@ -23,8 +23,6 @@
 
 #include "nm-modem.h"
 
-G_BEGIN_DECLS
-
 #define NM_TYPE_MODEM_BROADBAND            (nm_modem_broadband_get_type ())
 #define NM_MODEM_BROADBAND(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_MODEM_BROADBAND, NMModemBroadband))
 #define NM_MODEM_BROADBAND_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_MODEM_BROADBAND, NMModemBroadbandClass))
@@ -32,25 +30,11 @@ G_BEGIN_DECLS
 #define NM_IS_MODEM_BROADBAND_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_MODEM_BROADBAND))
 #define NM_MODEM_BROADBAND_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_MODEM_BROADBAND, NMModemBroadbandClass))
 
-#define NM_MODEM_BROADBAND_MODEM "modem"
-
-typedef struct _NMModemBroadband        NMModemBroadband;
-typedef struct _NMModemBroadbandClass   NMModemBroadbandClass;
-typedef struct _NMModemBroadbandPrivate NMModemBroadbandPrivate;
-
-struct _NMModemBroadband {
-	NMModem parent;
-	NMModemBroadbandPrivate *priv;
-};
-
-struct _NMModemBroadbandClass {
-	NMModemClass parent;
-};
+typedef struct _NMModemBroadband NMModemBroadband;
+typedef struct _NMModemBroadbandClass NMModemBroadbandClass;
 
 GType nm_modem_broadband_get_type (void);
 
 NMModem *nm_modem_broadband_new (GObject *object, GError **error);
-
-G_END_DECLS
 
 #endif /* __NETWORKMANAGER_MODEM_BROADBAND_H__ */

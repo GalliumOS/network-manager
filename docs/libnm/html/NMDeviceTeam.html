@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMDeviceTeam: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceOlpcMesh.html" title="NMDeviceOlpcMesh">
 <link rel="next" href="NMDeviceTun.html" title="NMDeviceTun">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -36,7 +36,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMDeviceTeam.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -51,17 +51,24 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceTeam.html#nm-device-team-get-carrier" title="nm_device_team_get_carrier ()">nm_device_team_get_carrier</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">GPtrArray</span> *
+<td class="function_type">const <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMDeviceTeam.html#nm-device-team-get-slaves" title="nm_device_team_get_slaves ()">nm_device_team_get_slaves</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceTeam.html#nm-device-team-get-config" title="nm_device_team_get_config ()">nm_device_team_get_config</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 </tbody>
@@ -69,7 +76,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceTeam.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -77,19 +84,25 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMDeviceTeam.html#NMDeviceTeam--carrier" title="The “carrier” property">carrier</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<td class="property_name"><a class="link" href="NMDeviceTeam.html#NMDeviceTeam--config" title="The “config” property">config</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMDeviceTeam.html#NMDeviceTeam--hw-address" title="The “hw-address” property">hw-address</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">GPtrArray</span> *</td>
+<a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
 <td class="property_name"><a class="link" href="NMDeviceTeam.html#NMDeviceTeam--slaves" title="The “slaves” property">slaves</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -98,7 +111,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceTeam.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -117,6 +130,10 @@
 <td class="function_name"><a class="link" href="NMDeviceTeam.html#NM-DEVICE-TEAM-SLAVES:CAPS" title="NM_DEVICE_TEAM_SLAVES">NM_DEVICE_TEAM_SLAVES</a></td>
 </tr>
 <tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceTeam.html#NM-DEVICE-TEAM-CONFIG:CAPS" title="NM_DEVICE_TEAM_CONFIG">NM_DEVICE_TEAM_CONFIG</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword"> </td>
 <td class="function_name"><a class="link" href="NMDeviceTeam.html#NMDeviceTeam-struct" title="NMDeviceTeam">NMDeviceTeam</a></td>
 </tr>
@@ -125,7 +142,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceTeam.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
             <span class="lineart">╰──</span> NMDeviceTeam
@@ -135,7 +152,7 @@
 <a name="NMDeviceTeam.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
 <p>
 NMDeviceTeam implements
- GInitable and  GAsyncInitable.</p>
+ <a href="../gio/GInitable.html#GInitable-struct">GInitable</a> and  <a href="../gio/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMDeviceTeam.description"></a><h2>Description</h2>
@@ -148,8 +165,8 @@ NMDeviceTeam implements
 nm_device_team_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam"><span class="type">NMDeviceTeam</span></a> *device</code></em>);</pre>
 <p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam"><span class="type">NMDeviceTeam</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.14.9.2.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-device-team-get-hw-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -163,7 +180,7 @@ nm_device_team_get_hw_address (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.2.6"></a><h4>Returns</h4>
+<a name="nm-device-team-get-hw-address.returns"></a><h4>Returns</h4>
 <p> the hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -171,12 +188,12 @@ device, and must not be modified.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-device-team-get-carrier"></a><h3>nm_device_team_get_carrier ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_device_team_get_carrier (<em class="parameter"><code><a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam"><span class="type">NMDeviceTeam</span></a> *device</code></em>);</pre>
 <p>Whether the device has carrier.</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.3.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-device-team-get-carrier.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -190,20 +207,20 @@ nm_device_team_get_carrier (<em class="parameter"><code><a class="link" href="NM
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.3.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the device has carrier</p>
+<a name="nm-device-team-get-carrier.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the device has carrier</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-device-team-get-slaves"></a><h3>nm_device_team_get_slaves ()</h3>
-<pre class="programlisting">const <span class="returnvalue">GPtrArray</span> *
+<pre class="programlisting">const <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
 nm_device_team_get_slaves (<em class="parameter"><code><a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam"><span class="type">NMDeviceTeam</span></a> *device</code></em>);</pre>
 <p>Gets the devices currently enslaved to <em class="parameter"><code>device</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.5.14.9.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-device-team-get-slaves.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -217,13 +234,41 @@ nm_device_team_get_slaves (<em class="parameter"><code><a class="link" href="NMD
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.14.9.4.6"></a><h4>Returns</h4>
-<p> the <span class="type">GPtrArray</span> containing
-<a href="NMDevice.html"><span class="type">NMDevices</span></a> that are slaves of <em class="parameter"><code>device</code></em>
+<a name="nm-device-team-get-slaves.returns"></a><h4>Returns</h4>
+<p>the <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing
+<a href="NMDevice.html#NMDevice-struct"><span class="type">NMDevices</span></a> that are slaves of <em class="parameter"><code>device</code></em>
 . This is the internal
 copy used by the device, and must not be modified. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-team-get-config"></a><h3>nm_device_team_get_config ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_device_team_get_config (<em class="parameter"><code><a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam"><span class="type">NMDeviceTeam</span></a> *device</code></em>);</pre>
+<p>Gets the current JSON configuration of the <a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam"><span class="type">NMDeviceTeam</span></a></p>
+<div class="refsect3">
+<a name="nm-device-team-get-config.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam"><span class="type">NMDeviceTeam</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-team-get-config.returns"></a><h4>Returns</h4>
+<p> the current configuration. This is the internal string used by the
+device, and must not be modified.</p>
+</div>
+<p class="since">Since: 1.4</p>
 </div>
 </div>
 <div class="refsect1">
@@ -247,6 +292,12 @@ copy used by the device, and must not be modified. </p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-DEVICE-TEAM-CONFIG:CAPS"></a><h3>NM_DEVICE_TEAM_CONFIG</h3>
+<pre class="programlisting">#define NM_DEVICE_TEAM_CONFIG      "config"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMDeviceTeam-struct"></a><h3>NMDeviceTeam</h3>
 <pre class="programlisting">typedef struct _NMDeviceTeam NMDeviceTeam;</pre>
 </div>
@@ -255,15 +306,24 @@ copy used by the device, and must not be modified. </p>
 <a name="NMDeviceTeam.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMDeviceTeam--carrier"></a><h3>The <code class="literal">“carrier”</code> property</h3>
-<pre class="programlisting">  “carrier”                  <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “carrier”                  <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Whether the device has carrier.</p>
 <p>Flags: Read</p>
 <p>Default value: FALSE</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMDeviceTeam--config"></a><h3>The <code class="literal">“config”</code> property</h3>
+<pre class="programlisting">  “config”                   <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>The current JSON configuration of the device.</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.4</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMDeviceTeam--hw-address"></a><h3>The <code class="literal">“hw-address”</code> property</h3>
-<pre class="programlisting">  “hw-address”               <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “hw-address”               <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The hardware (MAC) address of the device.</p>
 <p>Flags: Read</p>
 <p>Default value: NULL</p>
@@ -271,7 +331,7 @@ copy used by the device, and must not be modified. </p>
 <hr>
 <div class="refsect2">
 <a name="NMDeviceTeam--slaves"></a><h3>The <code class="literal">“slaves”</code> property</h3>
-<pre class="programlisting">  “slaves”                   <span class="type">GPtrArray</span> *</pre>
+<pre class="programlisting">  “slaves”                   <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
 <p>The devices enslaved to the team device.</p>
 <p>Element-type: NMDevice</p>
 <p>Flags: Read</p>
@@ -279,6 +339,6 @@ copy used by the device, and must not be modified. </p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

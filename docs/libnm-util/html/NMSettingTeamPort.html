@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingTeamPort: libnm-util Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm-util Reference Manual">
 <link rel="up" href="ch01.html" title="libnm-util API Reference">
 <link rel="prev" href="NMSettingTeam.html" title="NMSettingTeam">
 <link rel="next" href="NMSettingGeneric.html" title="NMSettingGeneric">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingTeamPort.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -43,7 +43,7 @@
 <tbody>
 <tr>
 <td class="function_type">
-<span class="returnvalue">GQuark</span>
+<a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-error-quark" title="nm_setting_team_port_error_quark ()">nm_setting_team_port_error_quark</a> <span class="c_punctuation">()</span>
@@ -69,7 +69,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingTeamPort.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -77,7 +77,7 @@
 </colgroup>
 <tbody><tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--config" title="The “config” property">config</a></td>
 <td class="property_flags">Read / Write</td>
 </tr></tbody>
@@ -85,7 +85,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingTeamPort.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -112,9 +112,9 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingTeamPort.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GEnum
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">╰──</span> NMSettingTeamPortError
-    GObject
+    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingTeamPort
 </pre>
@@ -133,11 +133,11 @@ optional properties that apply to team ports.</p>
 <a name="NMSettingTeamPort.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="nm-setting-team-port-error-quark"></a><h3>nm_setting_team_port_error_quark ()</h3>
-<pre class="programlisting"><span class="returnvalue">GQuark</span>
+<pre class="programlisting"><a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 nm_setting_team_port_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Registers an error quark for <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> if necessary.</p>
 <div class="refsect3">
-<a name="id-1.2.17.9.2.5"></a><h4>Returns</h4>
+<a name="nm-setting-team-port-error-quark.returns"></a><h4>Returns</h4>
 <p> the error quark used for <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> errors.</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -149,8 +149,8 @@ nm_setting_team_port_error_quark (<em class="parameter"><code><span class="type"
 nm_setting_team_port_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.2.17.9.3.5"></a><h4>Returns</h4>
-<p> the new empty <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> object. </p>
+<a name="nm-setting-team-port-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -161,8 +161,8 @@ nm_setting_team_port_new (<em class="parameter"><code><span class="type">void</s
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_team_port_get_config (<em class="parameter"><code><a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort"><span class="type">NMSettingTeamPort</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.2.17.9.4.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-team-port-get-config.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -176,7 +176,7 @@ nm_setting_team_port_get_config (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.17.9.4.5"></a><h4>Returns</h4>
+<a name="nm-setting-team-port-get-config.returns"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--config" title="The “config” property"><span class="type">“config”</span></a> property of the setting</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -193,8 +193,8 @@ nm_setting_team_port_get_config (<em class="parameter"><code><a class="link" hre
 <div class="refsect2">
 <a name="NMSettingTeamPortError"></a><h3>enum NMSettingTeamPortError</h3>
 <div class="refsect3">
-<a name="id-1.2.17.10.3.3"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMSettingTeamPortError.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -244,7 +244,7 @@ is required</p>
 <a name="NMSettingTeamPort.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingTeamPort--config"></a><h3>The <code class="literal">“config”</code> property</h3>
-<pre class="programlisting">  “config”                   <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “config”                   <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The JSON configuration for the team port. The property should contain raw
 JSON configuration data suitable for teamd, because the value is passed
 directly to teamd. If not specified, the default configuration is
@@ -255,6 +255,6 @@ used. See man teamd.conf for the format details.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

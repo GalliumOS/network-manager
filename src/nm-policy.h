@@ -22,8 +22,6 @@
 #ifndef __NETWORKMANAGER_POLICY_H__
 #define __NETWORKMANAGER_POLICY_H__
 
-#include "nm-default.h"
-
 #define NM_TYPE_POLICY            (nm_policy_get_type ())
 #define NM_POLICY(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_POLICY, NMPolicy))
 #define NM_POLICY_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_POLICY, NMPolicyClass))
@@ -38,17 +36,7 @@
 #define NM_POLICY_ACTIVATING_IP4_DEVICE "activating-ip4-device"
 #define NM_POLICY_ACTIVATING_IP6_DEVICE "activating-ip6-device"
 
-struct _NMPolicyPrivate;
-
-struct _NMPolicy {
-	GObject parent;
-	struct _NMPolicyPrivate *priv;
-};
-
-typedef struct {
-	GObjectClass parent;
-
-} NMPolicyClass;
+typedef struct _NMPolicyClass NMPolicyClass;
 
 GType nm_policy_get_type (void);
 
@@ -58,5 +46,22 @@ NMDevice *nm_policy_get_default_ip4_device (NMPolicy *policy);
 NMDevice *nm_policy_get_default_ip6_device (NMPolicy *policy);
 NMDevice *nm_policy_get_activating_ip4_device (NMPolicy *policy);
 NMDevice *nm_policy_get_activating_ip6_device (NMPolicy *policy);
+
+/**
+ * NMPolicyHostnameMode
+ * @NM_POLICY_HOSTNAME_MODE_NONE: never update the transient hostname.
+ * @NM_POLICY_HOSTNAME_MODE_DHCP: only hostname from DHCP hostname
+ *   options are eligible to be set as transient hostname.
+ * @NM_POLICY_HOSTNAME_MODE_FULL: NM will try to update the hostname looking
+ *   to current static hostname, DHCP options, reverse IP lookup and externally
+ *   set hostnames.
+ *
+ * NMPolicy's hostname update policy
+ */
+typedef enum {
+	NM_POLICY_HOSTNAME_MODE_NONE,
+	NM_POLICY_HOSTNAME_MODE_DHCP,
+	NM_POLICY_HOSTNAME_MODE_FULL,
+} NMPolicyHostnameMode;
 
 #endif /* __NETWORKMANAGER_POLICY_H__ */

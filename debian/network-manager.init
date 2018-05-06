@@ -18,7 +18,7 @@ NAME="NetworkManager"
 
 DAEMON=/usr/sbin/$NAME
 
-PIDFILE=/var/run/$NAME/$NAME.pid
+PIDFILE=/run/$NAME/$NAME.pid
 
 SCRIPTNAME=/etc/init.d/network-manager
 
@@ -45,6 +45,10 @@ d_stop() {
 		--exec $DAEMON
 }
 
+d_reload() {
+	start-stop-daemon --stop --signal HUP --quiet --pidfile $PIDFILE \
+		--exec $DAEMON
+}
 
 case "$1" in
   start)
@@ -67,7 +71,12 @@ case "$1" in
 		*) log_end_msg 1 ;;
 	esac
 	;;
-  restart|force-reload)
+  reload|force-reload)
+	log_daemon_msg "Reloading $DESC" "$NAME"
+	d_reload
+	log_end_msg $?
+	;;
+  restart)
 	$0 stop
 	$0 start
 	;;
@@ -75,7 +84,7 @@ case "$1" in
 	status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
 	;;
   *)
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload|status}" >&2
 	exit 1
 	;;
 esac

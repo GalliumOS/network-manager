@@ -22,8 +22,13 @@ case "$1" in
         rm -rf /var/lib/NetworkManager
         ;;
     remove)
-        # Since we no longer run the ifblacklist_migrate.sh script
-        # we also don't need to clean up anymore afterwards.
+        # Replace /etc/resolv.conf symlink with an empty file on package
+        # removal to signal other packages that NetworkManager is no longer
+        # controlling the file. (See: #826366)
+        if [ "$(readlink /etc/resolv.conf)" = /run/NetworkManager/resolv.conf ] ; then
+            rm -f /etc/resolv.conf
+            touch /etc/resolv.conf
+        fi
         ;;
     upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         ;;

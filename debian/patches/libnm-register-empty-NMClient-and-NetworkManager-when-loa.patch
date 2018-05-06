@@ -1,0 +1,277 @@
+From: Lubomir Rintel <lkundrak@v3.sk>
+Date: Sat, 4 Nov 2017 20:41:45 +0100
+Subject: libnm: register empty NMClient and NetworkManager when loading libnm
+ with GIR
+
+Register empty "NMClient" and "NetworkManager" GIR modules as soon as libnm is
+loaded witch gnome-introspection. This prevents the real modules from being
+loaded because they would in turn load libnm-glib and abort() and crash.
+
+In particular this prevents the GNOME shell from crashing with
+libnm-glib abort and allows gracefully disabling the extensions which
+use the obsolete library.
+
+Test:
+
+  $ cat test.js
+  const NM = imports.gi.NM;
+  print (NM.SecretAgentGetSecretsFlags.ALLOW_INTERACTION);
+
+  const NMClient = imports.gi.NMClient;
+  print (NMClient.SecretAgentGetSecretsFlags.ALLOW_INTERACTION);
+
+Before:
+
+  $ gjs test.js
+  1
+
+  (gjs:16253): libnm-util-ERROR **: libnm symbols detected; Mixing libnm with libnm-util/libnm-glib is not supported
+  Trace/breakpoint trap (core dumped)
+  $
+
+After:
+
+  $ gjs test.js
+  1
+  Gjs-Message: JS WARNING: [test.js 5]: reference to undefined property "SecretAgentGetSecretsFlags"
+
+  (gjs:16228): Gjs-WARNING **: JS ERROR: TypeError: NMClient.SecretAgentGetSecretsFlags is undefined
+  @test.js:5:1
+
+  JS_EvaluateScript() failed
+
+(cherry picked from commit 4d1f090aedf05c0e2955d431638e311d1e18a52f)
+---
+ Makefile.am                               | 18 +++++++
+ configure.ac                              | 20 ++++++--
+ libnm/fake-typelib/NMClient.gir           |  9 ++++
+ libnm/fake-typelib/NetworkManager.gir     | 10 ++++
+ libnm/fake-typelib/typelibs.gresource.xml |  7 +++
+ libnm/nm-libnm-utils.c                    | 82 +++++++++++++++++++++++++++++++
+ 6 files changed, 143 insertions(+), 3 deletions(-)
+ create mode 100644 libnm/fake-typelib/NMClient.gir
+ create mode 100644 libnm/fake-typelib/NetworkManager.gir
+ create mode 100644 libnm/fake-typelib/typelibs.gresource.xml
+
+diff --git a/Makefile.am b/Makefile.am
+index 2ddc7bc..a741c6e 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -858,6 +858,7 @@ nodist_libnminclude_HEADERS += \
+ noinst_LTLIBRARIES += libnm/libnm-utils.la
+ 
+ libnm_libnm_utils_la_CPPFLAGS = \
++	$(INTROSPECTION_CFLAGS) \
+ 	$(libnm_lib_cppflags)
+ 
+ libnm_libnm_utils_la_SOURCES = \
+@@ -956,6 +957,23 @@ libnm/libnm.typelib: libnm/libnm.gir
+ 	$(INTROSPECTION_COMPILER) --includedir=$(srcdir)/libnm-core --includedir=$(builddir)/libnm-core --includedir=$(srcdir)/libnm --includedir=$(builddir)/libnm $< -o $@
+ 
+ INTROSPECTION_GIRS += libnm/NM-1.0.gir
++
++if WITH_FAKE_TYPELIBS
++
++libnm/fake-typelib/NetworkManager.typelib: libnm/fake-typelib/NetworkManager.gir
++	$(AM_V_GEN)  $(INTROSPECTION_COMPILER) $< -o $@
++
++libnm/fake-typelib/NMClient.typelib: libnm/fake-typelib/NMClient.gir
++	$(AM_V_GEN) $(INTROSPECTION_COMPILER) $< -o $@
++
++libnm/fake-typelib/typelibs.c: libnm/fake-typelib/typelibs.gresource.xml libnm/fake-typelib/NetworkManager.typelib libnm/fake-typelib/NMClient.typelib
++	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) $< --target=$@ --sourcedir=$(srcdir)/libnm/fake-typelib --generate-source --manual-register --internal
++
++libnm_libnm_utils_la_SOURCES += \
++	libnm/fake-typelib/typelibs.c
++
++endif
++
+ endif
+ 
+ if HAVE_INTROSPECTION
+diff --git a/configure.ac b/configure.ac
+index 8a066ad..6f561e2 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -322,9 +322,12 @@ GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_32 -DGLIB_V
+ AC_SUBST(GLIB_CFLAGS)
+ AC_SUBST(GLIB_LIBS)
+ 
++GOBJECT_INTROSPECTION_CHECK([0.9.6])
++
+ AC_ARG_WITH(libnm-glib,
+             AS_HELP_STRING([--without-libnm-glib],
+-                           [don't build legacy libraries]))
++                           [don"'"t build legacy libraries]))
++fake_typelibs=no
+ if test "$with_libnm_glib" != "no"; then
+ 	PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.1 dbus-glib-1 >= 0.94, :,
+ 	                  [AC_MSG_FAILURE([$DBUS_PKG_ERRORS
+@@ -333,13 +336,24 @@ Configure with --without-libnm-glib if you do not need the legacy libraries])
+ 	                  ])
+ 
+ 	with_libnm_glib=yes
++
++	if test "${found_introspection}" = "yes"; then
++		AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
++		if ! test x"$GLIB_COMPILE_RESOURCES" = x""; then
++			fake_typelibs=yes
++		fi
++	fi
+ fi
+ AM_CONDITIONAL(WITH_LEGACY_LIBRARIES, test "$with_libnm_glib" != "no")
++if test "$fake_typelibs" = "yes"; then
++	AC_DEFINE(WITH_FAKE_TYPELIBS, 1, [Define for libnm to prevent GIR from loading libnm-glib])
++else
++	AC_DEFINE(WITH_FAKE_TYPELIBS, 0, [Define for libnm to prevent GIR from loading libnm-glib])
++fi
++AM_CONDITIONAL(WITH_FAKE_TYPELIBS, test "${fake_typelibs}" = "yes")
+ 
+ PKG_CHECK_MODULES([LIBUDEV], [libudev >= 175])
+ 
+-GOBJECT_INTROSPECTION_CHECK([0.9.6])
+-
+ # Qt4
+ PKG_CHECK_MODULES(QT, [QtCore >= 4 QtDBus QtNetwork], [have_qt=yes],[have_qt=no])
+ AC_ARG_ENABLE(qt,
+diff --git a/libnm/fake-typelib/NMClient.gir b/libnm/fake-typelib/NMClient.gir
+new file mode 100644
+index 0000000..3002f8d
+--- /dev/null
++++ b/libnm/fake-typelib/NMClient.gir
+@@ -0,0 +1,9 @@
++<?xml version="1.0"?>
++<!-- A lame duck typelib which prevents GIR from loading the
++     real one (which would crash due to conflict with libnm) -->
++<repository version="1.2"
++            xmlns="http://www.gtk.org/introspection/core/1.0"
++            xmlns:c="http://www.gtk.org/introspection/c/1.0"
++            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
++	<namespace name="NMClient" version="0.0" />
++</repository>
+diff --git a/libnm/fake-typelib/NetworkManager.gir b/libnm/fake-typelib/NetworkManager.gir
+new file mode 100644
+index 0000000..d15d29a
+--- /dev/null
++++ b/libnm/fake-typelib/NetworkManager.gir
+@@ -0,0 +1,10 @@
++<?xml version="1.0"?>
++<!-- A lame duck typelib which prevents GIR from loading the
++     real one (which would crash due to conflict with libnm) -->
++<repository version="1.2"
++            xmlns="http://www.gtk.org/introspection/core/1.0"
++            xmlns:c="http://www.gtk.org/introspection/c/1.0"
++            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
++	<namespace name="NetworkManager" version="0.0">
++	</namespace>
++</repository>
+diff --git a/libnm/fake-typelib/typelibs.gresource.xml b/libnm/fake-typelib/typelibs.gresource.xml
+new file mode 100644
+index 0000000..9a71d97
+--- /dev/null
++++ b/libnm/fake-typelib/typelibs.gresource.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<gresources>
++	<gresource prefix="/org/freedesktop/libnm/fake-typelib">
++		<file>NetworkManager.typelib</file>
++		<file>NMClient.typelib</file>
++	</gresource>
++</gresources>
+diff --git a/libnm/nm-libnm-utils.c b/libnm/nm-libnm-utils.c
+index fbbfe2c..a01228d 100644
+--- a/libnm/nm-libnm-utils.c
++++ b/libnm/nm-libnm-utils.c
+@@ -23,6 +23,8 @@
+ 
+ #include "nm-libnm-utils.h"
+ 
++#include <girepository.h>
++
+ /*****************************************************************************/
+ 
+ char *
+@@ -160,3 +162,83 @@ next:
+ 	nm_assert (g_utf8_validate (desc_full, -1, NULL));
+ 	return desc_full;
+ }
++
++#if WITH_FAKE_TYPELIBS
++
++/*
++ * Here we register empty "NMClient" and "NetworkManager" GIR modules as soon
++ * as we are loaded (if gnome-introspection is being used). This prevents the
++ * real modules from being loaded because they would in turn load libnm-glib
++ * and abort() and crash.
++ *
++ * For the high level languages that utilize GIR the crash is highly inconvenient
++ * while the inability to resolve any methods and attributes is potentially
++ * recoverable.
++ */
++
++GResource *typelibs_get_resource (void);
++void typelibs_register_resource (void);
++
++static void __attribute__((constructor))
++_nm_libnm_utils_init (void)
++{
++	GITypelib *typelib;
++	GBytes *data;
++	const char *namespace;
++	GModule *self;
++	GITypelib *(*_g_typelib_new_from_const_memory) (const guint8 *memory,
++	                                                gsize len,
++	                                                GError **error) = NULL;
++	const char *(*_g_irepository_load_typelib) (GIRepository *repository,
++	                                            GITypelib *typelib,
++	                                            GIRepositoryLoadFlags flags,
++	                                            GError **error) = NULL;
++	const char *names[] = { "/org/freedesktop/libnm/fake-typelib/NetworkManager.typelib",
++	                        "/org/freedesktop/libnm/fake-typelib/NMClient.typelib" };
++	int i;
++
++	self = g_module_open (NULL, 0);
++	if (!self)
++		return;
++	g_module_symbol (self, "g_typelib_new_from_const_memory",
++	                 (gpointer *) &_g_typelib_new_from_const_memory);
++	if (_g_typelib_new_from_const_memory) {
++		g_module_symbol (self, "g_irepository_load_typelib",
++		                 (gpointer *) &_g_irepository_load_typelib);
++	}
++	g_module_close (self);
++
++	if (!_g_typelib_new_from_const_memory || !_g_irepository_load_typelib)
++		return;
++
++	typelibs_register_resource ();
++
++	for (i = 0; i < 2; i++) {
++		gs_free_error GError *error = NULL;
++
++		data = g_resource_lookup_data (typelibs_get_resource (),
++		                               names[i],
++		                               G_RESOURCE_LOOKUP_FLAGS_NONE,
++		                               &error);
++		if (!data) {
++			g_warning ("Fake typelib %s could not be loaded: %s", names[i], error->message);
++			return;
++		}
++
++		typelib = _g_typelib_new_from_const_memory (g_bytes_get_data (data, NULL),
++		                                            g_bytes_get_size (data),
++		                                            &error);
++		if (!typelib) {
++			g_warning ("Could not create fake typelib instance %s: %s", names[i], error->message);
++			return;
++		}
++
++		namespace = _g_irepository_load_typelib (NULL, typelib, 0, &error);
++		if (!namespace) {
++			g_warning ("Could not load fake typelib %s: %s", names[i], error->message);
++			return;
++		}
++	}
++}
++
++#endif /* WITH_FAKE_TYPELIBS */

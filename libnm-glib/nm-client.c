@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include "nm-utils.h"
+#include "nm-common-macros.h"
 
 #include "nm-device-ethernet.h"
 #include "nm-device-wifi.h"
@@ -126,7 +127,7 @@ static void proxy_name_owner_changed (DBusGProxy *proxy,
                                       const char *new_owner,
                                       gpointer user_data);
 
-/**********************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_client_error_quark:
@@ -147,7 +148,7 @@ nm_client_error_quark (void)
 	return quark;
 }
 
-/**********************************************************************/
+/*****************************************************************************/
 
 static void
 nm_client_init (NMClient *client)
@@ -208,18 +209,6 @@ register_properties (NMClient *client)
 	                                property_info);
 }
 
-#define NM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK     "org.freedesktop.NetworkManager.enable-disable-network"
-#define NM_AUTH_PERMISSION_ENABLE_DISABLE_WIFI        "org.freedesktop.NetworkManager.enable-disable-wifi"
-#define NM_AUTH_PERMISSION_ENABLE_DISABLE_WWAN        "org.freedesktop.NetworkManager.enable-disable-wwan"
-#define NM_AUTH_PERMISSION_ENABLE_DISABLE_WIMAX       "org.freedesktop.NetworkManager.enable-disable-wimax"
-#define NM_AUTH_PERMISSION_SLEEP_WAKE                 "org.freedesktop.NetworkManager.sleep-wake"
-#define NM_AUTH_PERMISSION_NETWORK_CONTROL            "org.freedesktop.NetworkManager.network-control"
-#define NM_AUTH_PERMISSION_WIFI_SHARE_PROTECTED       "org.freedesktop.NetworkManager.wifi.share.protected"
-#define NM_AUTH_PERMISSION_WIFI_SHARE_OPEN            "org.freedesktop.NetworkManager.wifi.share.open"
-#define NM_AUTH_PERMISSION_SETTINGS_MODIFY_SYSTEM     "org.freedesktop.NetworkManager.settings.modify.system"
-#define NM_AUTH_PERMISSION_SETTINGS_MODIFY_OWN        "org.freedesktop.NetworkManager.settings.modify.own"
-#define NM_AUTH_PERMISSION_SETTINGS_MODIFY_HOSTNAME   "org.freedesktop.NetworkManager.settings.modify.hostname"
-
 static NMClientPermission
 nm_permission_to_client (const char *nm)
 {
@@ -245,6 +234,14 @@ nm_permission_to_client (const char *nm)
 		return NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN;
 	else if (!strcmp (nm, NM_AUTH_PERMISSION_SETTINGS_MODIFY_HOSTNAME))
 		return NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME;
+	else if (!strcmp (nm, NM_AUTH_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS))
+		return NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS;
+	else if (!strcmp (nm, NM_AUTH_PERMISSION_RELOAD))
+		return NM_CLIENT_PERMISSION_RELOAD;
+	else if (!strcmp (nm, NM_AUTH_PERMISSION_CHECKPOINT_ROLLBACK))
+		return NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK;
+	else if (!strcmp (nm, NM_AUTH_PERMISSION_ENABLE_DISABLE_STATISTICS))
+		return NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS;
 
 	return NM_CLIENT_PERMISSION_NONE;
 }
@@ -1318,7 +1315,7 @@ nm_client_get_activating_connection (NMClient *client)
 	return NM_CLIENT_GET_PRIVATE (client)->activating_connection;
 }
 
-/****************************************************************/
+/*****************************************************************************/
 
 static void
 free_devices (NMClient *client, gboolean in_dispose)
@@ -1615,6 +1612,8 @@ nm_client_check_connectivity_async (NMClient *client,
 
 	simple = g_simple_async_result_new (G_OBJECT (client), callback, user_data,
 	                                    nm_client_check_connectivity_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 	g_simple_async_result_set_op_res_gpointer (simple, ccd, (GDestroyNotify) check_connectivity_data_free);
 
 	if (cancellable) {
@@ -1661,7 +1660,7 @@ nm_client_check_connectivity_finish (NMClient *client,
 	return ccd->connectivity;
 }
 
-/****************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_client_new:
@@ -1741,6 +1740,8 @@ nm_client_new_async (GCancellable *cancellable,
 	}
 
 	simple = g_simple_async_result_new (NULL, callback, user_data, nm_client_new_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 	g_async_initable_init_async (G_ASYNC_INITABLE (client), G_PRIORITY_DEFAULT,
 	                             cancellable, client_inited, simple);
 }
@@ -1779,7 +1780,7 @@ nm_client_new_finish (GAsyncResult *result, GError **error)
 }
 
 /*
- * constructor() shouldn't be overriden in most cases, rather constructed()
+ * constructor() shouldn't be overridden in most cases, rather constructed()
  * method is preferred and more useful.
  * But, this serves as a workaround for bindings (use) calling the constructor()
  * directly instead of nm_client_new() function, and neither providing
@@ -2004,6 +2005,8 @@ init_async (GAsyncInitable *initable, int io_priority,
 	init_data->client = NM_CLIENT (initable);
 	init_data->result = g_simple_async_result_new (G_OBJECT (initable), callback,
 	                                               user_data, init_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (init_data->result, cancellable);
 	g_simple_async_result_set_op_res_gboolean (init_data->result, TRUE);
 
 	/* Check if NM is running */

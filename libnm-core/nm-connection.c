@@ -16,13 +16,14 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2007 - 2013 Red Hat, Inc.
+ * Copyright 2007 - 2017 Red Hat, Inc.
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
 
 #include <string.h>
+#include <arpa/inet.h>
 
 #include "nm-connection.h"
 #include "nm-connection-private.h"
@@ -72,11 +73,7 @@ enum {
 
 static guint signals[LAST_SIGNAL] = { 0 };
 
-
-static NMSettingVerifyResult _nm_connection_verify (NMConnection *connection, GError **error);
-
-
-/*************************************************************/
+/*****************************************************************************/
 
 static void
 setting_changed_cb (NMSetting *setting,
@@ -96,9 +93,15 @@ _setting_release (gpointer key, gpointer value, gpointer user_data)
 static void
 _nm_connection_add_setting (NMConnection *connection, NMSetting *setting)
 {
-	NMConnectionPrivate *priv = NM_CONNECTION_GET_PRIVATE (connection);
-	const char *name = G_OBJECT_TYPE_NAME (setting);
+	NMConnectionPrivate *priv;
+	const char *name;
 	NMSetting *s_old;
+
+	nm_assert (NM_IS_CONNECTION (connection));
+	nm_assert (NM_IS_SETTING (setting));
+
+	priv = NM_CONNECTION_GET_PRIVATE (connection);
+	name = G_OBJECT_TYPE_NAME (setting);
 
 	if ((s_old = g_hash_table_lookup (priv->settings, (gpointer) name)))
 		g_signal_handlers_disconnect_by_func (s_old, setting_changed_cb, connection);
@@ -127,6 +130,28 @@ nm_connection_add_setting (NMConnection *connection, NMSetting *setting)
 	g_signal_emit (connection, signals[CHANGED], 0);
 }
 
+gboolean
+_nm_connection_remove_setting (NMConnection *connection, GType setting_type)
+{
+	NMConnectionPrivate *priv;
+	NMSetting *setting;
+	const char *setting_name;
+
+	g_return_val_if_fail (NM_IS_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (g_type_is_a (setting_type, NM_TYPE_SETTING), FALSE);
+
+	priv = NM_CONNECTION_GET_PRIVATE (connection);
+	setting_name = g_type_name (setting_type);
+	setting = g_hash_table_lookup (priv->settings, setting_name);
+	if (setting) {
+		g_signal_handlers_disconnect_by_func (setting, setting_changed_cb, connection);
+		g_hash_table_remove (priv->settings, setting_name);
+		g_signal_emit (connection, signals[CHANGED], 0);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /**
  * nm_connection_remove_setting:
  * @connection: a #NMConnection
@@ -138,21 +163,25 @@ nm_connection_add_setting (NMConnection *connection, NMSetting *setting)
 void
 nm_connection_remove_setting (NMConnection *connection, GType setting_type)
 {
-	NMConnectionPrivate *priv;
-	NMSetting *setting;
-	const char *setting_name;
+	_nm_connection_remove_setting (connection, setting_type);
+}
 
-	g_return_if_fail (NM_IS_CONNECTION (connection));
-	g_return_if_fail (g_type_is_a (setting_type, NM_TYPE_SETTING));
+static gpointer
+_connection_get_setting (NMConnection *connection, GType setting_type)
+{
+	nm_assert (NM_IS_CONNECTION (connection));
+	nm_assert (g_type_is_a (setting_type, NM_TYPE_SETTING));
 
-	priv = NM_CONNECTION_GET_PRIVATE (connection);
-	setting_name = g_type_name (setting_type);
-	setting = g_hash_table_lookup (priv->settings, setting_name);
-	if (setting) {
-		g_signal_handlers_disconnect_by_func (setting, setting_changed_cb, connection);
-		g_hash_table_remove (priv->settings, setting_name);
-		g_signal_emit (connection, signals[CHANGED], 0);
-	}
+	return g_hash_table_lookup (NM_CONNECTION_GET_PRIVATE (connection)->settings,
+	                            g_type_name (setting_type));
+}
+
+static gpointer
+_connection_get_setting_check (NMConnection *connection, GType setting_type)
+{
+	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
+
+	return _connection_get_setting (connection, setting_type);
 }
 
 /**
@@ -169,11 +198,9 @@ nm_connection_remove_setting (NMConnection *connection, GType setting_type)
 NMSetting *
 nm_connection_get_setting (NMConnection *connection, GType setting_type)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
 	g_return_val_if_fail (g_type_is_a (setting_type, NM_TYPE_SETTING), NULL);
 
-	return (NMSetting *) g_hash_table_lookup (NM_CONNECTION_GET_PRIVATE (connection)->settings,
-	                                          g_type_name (setting_type));
+	return _connection_get_setting_check (connection, setting_type);
 }
 
 /**
@@ -193,11 +220,9 @@ nm_connection_get_setting_by_name (NMConnection *connection, const char *name)
 	GType type;
 
 	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-	g_return_val_if_fail (name != NULL, NULL);
 
 	type = nm_setting_lookup_type (name);
-
-	return type ? nm_connection_get_setting (connection, type) : NULL;
+	return type ? _connection_get_setting (connection, type) : NULL;
 }
 
 static gboolean
@@ -491,7 +516,7 @@ nm_connection_compare (NMConnection *a,
 }
 
 
-static void
+static gboolean
 diff_one_connection (NMConnection *a,
                      NMConnection *b,
                      NMSettingCompareFlags flags,
@@ -501,6 +526,7 @@ diff_one_connection (NMConnection *a,
 	NMConnectionPrivate *priv = NM_CONNECTION_GET_PRIVATE (a);
 	GHashTableIter iter;
 	NMSetting *a_setting = NULL;
+	gboolean diff_found = FALSE;
 
 	g_hash_table_iter_init (&iter, priv->settings);
 	while (g_hash_table_iter_next (&iter, NULL, (gpointer) &a_setting)) {
@@ -516,11 +542,14 @@ diff_one_connection (NMConnection *a,
 		if (results)
 			new_results = FALSE;
 
-		if (!nm_setting_diff (a_setting, b_setting, flags, invert_results, &results)) {
-			if (new_results)
-				g_hash_table_insert (diffs, g_strdup (setting_name), results);
-		}
+		if (!nm_setting_diff (a_setting, b_setting, flags, invert_results, &results))
+			diff_found = TRUE;
+
+		if (new_results && results)
+			g_hash_table_insert (diffs, g_strdup (setting_name), results);
 	}
+
+	return diff_found;
 }
 
 /**
@@ -549,12 +578,11 @@ nm_connection_diff (NMConnection *a,
                     GHashTable **out_settings)
 {
 	GHashTable *diffs;
+	gboolean diff_found = FALSE;
 
 	g_return_val_if_fail (NM_IS_CONNECTION (a), FALSE);
-	g_return_val_if_fail (out_settings != NULL, FALSE);
-	g_return_val_if_fail (*out_settings == NULL, FALSE);
-	if (b)
-		g_return_val_if_fail (NM_IS_CONNECTION (b), FALSE);
+	g_return_val_if_fail (!out_settings || !*out_settings, FALSE);
+	g_return_val_if_fail (!b || NM_IS_CONNECTION (b), FALSE);
 
 	if (a == b)
 		return TRUE;
@@ -562,16 +590,22 @@ nm_connection_diff (NMConnection *a,
 	diffs = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_hash_table_destroy);
 
 	/* Diff A to B, then B to A to capture keys in B that aren't in A */
-	diff_one_connection (a, b, flags, FALSE, diffs);
-	if (b)
-		diff_one_connection (b, a, flags, TRUE, diffs);
+	if (diff_one_connection (a, b, flags, FALSE, diffs))
+		diff_found = TRUE;
+	if (   b
+	    && diff_one_connection (b, a, flags, TRUE, diffs))
+		diff_found = TRUE;
 
-	if (g_hash_table_size (diffs) == 0)
+	nm_assert (diff_found == (g_hash_table_size (diffs) != 0));
+
+	if (g_hash_table_size (diffs) == 0) {
 		g_hash_table_destroy (diffs);
-	else
-		*out_settings = diffs;
+		diffs = NULL;
+	}
 
-	return *out_settings ? FALSE : TRUE;
+	NM_SET_OUT (out_settings, diffs);
+
+	return !diff_found;
 }
 
 NMSetting *
@@ -580,19 +614,31 @@ _nm_connection_find_base_type_setting (NMConnection *connection)
 	NMConnectionPrivate *priv = NM_CONNECTION_GET_PRIVATE (connection);
 	GHashTableIter iter;
 	NMSetting *setting = NULL, *s_iter;
+	NMSettingPriority setting_prio, s_iter_prio;
 
 	g_hash_table_iter_init (&iter, priv->settings);
 	while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &s_iter)) {
-		if (!_nm_setting_is_base_type (s_iter))
+		s_iter_prio = _nm_setting_get_base_type_priority (s_iter);
+		if (s_iter_prio == NM_SETTING_PRIORITY_INVALID)
 			continue;
 
 		if (setting) {
-			/* FIXME: currently, if there is more than one matching base type,
-			 * we cannot detect the base setting.
-			 * See: https://bugzilla.gnome.org/show_bug.cgi?id=696936#c8 */
-			return NULL;
+			if (s_iter_prio > setting_prio) {
+				continue;
+			} else if (s_iter_prio == setting_prio) {
+				NMSettingConnection *s_con = nm_connection_get_setting_connection (connection);
+				const char *type;
+
+				if (s_con) {
+					type = nm_setting_connection_get_connection_type (s_con);
+					if (type)
+						return nm_connection_get_setting_by_name (connection, type);
+				}
+				return NULL;
+			}
 		}
 		setting = s_iter;
+		setting_prio = s_iter_prio;
 	}
 	return setting;
 }
@@ -601,17 +647,17 @@ static gboolean
 _normalize_connection_uuid (NMConnection *self)
 {
 	NMSettingConnection *s_con = nm_connection_get_setting_connection (self);
-	char *uuid;
+	char uuid[37];
 
-	g_assert (s_con);
+	nm_assert (s_con);
 
 	if (nm_setting_connection_get_uuid (s_con))
 		return FALSE;
 
-	uuid = nm_utils_uuid_generate ();
-	g_object_set (s_con, NM_SETTING_CONNECTION_UUID, uuid, NULL);
-	g_free (uuid);
-
+	g_object_set (s_con,
+	              NM_SETTING_CONNECTION_UUID,
+	              nm_utils_uuid_generate_buf (uuid),
+	              NULL);
 	return TRUE;
 }
 
@@ -647,6 +693,26 @@ _normalize_connection_type (NMConnection *self)
 }
 
 const char *
+_nm_connection_detect_bluetooth_type (NMConnection *self)
+{
+	NMSettingBluetooth *s_bt = nm_connection_get_setting_bluetooth (self);
+
+	if (   s_bt
+	    && nm_setting_bluetooth_get_connection_type (s_bt)) {
+		if (   nm_connection_get_setting_gsm (self)
+		    || nm_connection_get_setting_cdma (self))
+			return NM_SETTING_BLUETOOTH_TYPE_DUN;
+		if (nm_connection_get_setting_bridge (self))
+			return NM_SETTING_BLUETOOTH_TYPE_NAP;
+		return NM_SETTING_BLUETOOTH_TYPE_PANU;
+	}
+
+	/* NULL means the connection is not a bluetooth type, or it needs
+	 * no normalization, as the type is set explicitly. */
+	return NULL;
+}
+
+const char *
 _nm_connection_detect_slave_type (NMConnection *connection, NMSetting **out_s_port)
 {
 	NMConnectionPrivate *priv = NM_CONNECTION_GET_PRIVATE (connection);
@@ -663,6 +729,10 @@ _nm_connection_detect_slave_type (NMConnection *connection, NMSetting **out_s_po
 			i_slave_type = NM_SETTING_BRIDGE_SETTING_NAME;
 		else if (!strcmp (name, NM_SETTING_TEAM_PORT_SETTING_NAME))
 			i_slave_type = NM_SETTING_TEAM_SETTING_NAME;
+		else if (!strcmp (name, NM_SETTING_OVS_PORT_SETTING_NAME))
+			i_slave_type = NM_SETTING_OVS_BRIDGE_SETTING_NAME;
+		else if (!strcmp (name, NM_SETTING_OVS_INTERFACE_SETTING_NAME))
+			i_slave_type = NM_SETTING_OVS_PORT_SETTING_NAME;
 		else
 			continue;
 
@@ -717,13 +787,53 @@ _normalize_connection_slave_type (NMConnection *self)
 }
 
 static gboolean
+_normalize_ethernet_link_neg (NMConnection *self)
+{
+	NMSettingWired *s_wired = nm_connection_get_setting_wired (self);
+
+	if (s_wired) {
+		gboolean autoneg = nm_setting_wired_get_auto_negotiate (s_wired);
+		guint32 speed = nm_setting_wired_get_speed (s_wired);
+		const char *duplex = nm_setting_wired_get_duplex (s_wired);
+
+		if (   (autoneg && (speed || duplex))
+		    || (!autoneg && (   (speed && !duplex)
+		                     || (!speed && duplex)))) {
+			speed = 0;
+			duplex = NULL;
+			g_object_set (s_wired,
+			              NM_SETTING_WIRED_SPEED, (guint) speed,
+			              NM_SETTING_WIRED_DUPLEX, duplex,
+			              NULL);
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+static gboolean
+_without_ip_config (NMConnection *self)
+{
+	const char *connection_type = nm_connection_get_connection_type (self);
+
+	g_return_val_if_fail (connection_type, FALSE);
+	if (strcmp (connection_type, NM_SETTING_OVS_INTERFACE_SETTING_NAME) == 0)
+		return FALSE;
+
+	return !!nm_setting_connection_get_master (nm_connection_get_setting_connection (self));
+}
+
+static gboolean
 _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 {
-	NMSettingConnection *s_con = nm_connection_get_setting_connection (self);
 	const char *default_ip4_method = NM_SETTING_IP4_CONFIG_METHOD_AUTO;
 	const char *default_ip6_method = NULL;
 	NMSettingIPConfig *s_ip4, *s_ip6;
+	NMSettingProxy *s_proxy;
 	NMSetting *setting;
+	gboolean changed = FALSE;
+	guint num, i;
 
 	if (parameters)
 		default_ip6_method = g_hash_table_lookup (parameters, NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD);
@@ -732,8 +842,9 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 
 	s_ip4 = nm_connection_get_setting_ip4_config (self);
 	s_ip6 = nm_connection_get_setting_ip6_config (self);
+	s_proxy = nm_connection_get_setting_proxy (self);
 
-	if (nm_setting_connection_get_master (s_con)) {
+	if (_without_ip_config (self)) {
 		/* Slave connections don't have IP configuration. */
 
 		if (s_ip4)
@@ -742,7 +853,10 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 		if (s_ip6)
 			nm_connection_remove_setting (self, NM_TYPE_SETTING_IP6_CONFIG);
 
-		return s_ip4 || s_ip6;
+		if (s_proxy)
+			nm_connection_remove_setting (self, NM_TYPE_SETTING_PROXY);
+
+		return s_ip4 || s_ip6 || s_proxy;
 	} else {
 		/* Ensure all non-slave connections have IP4 and IP6 settings objects. If no
 		 * IP6 setting was specified, then assume that means IP6 config is allowed
@@ -756,6 +870,28 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 			              NM_SETTING_IP_CONFIG_METHOD, default_ip4_method,
 			              NULL);
 			nm_connection_add_setting (self, setting);
+		} else {
+			if (   nm_setting_ip_config_get_gateway (s_ip4)
+			    && nm_setting_ip_config_get_never_default (s_ip4)) {
+				g_object_set (s_ip4, NM_SETTING_IP_CONFIG_GATEWAY, NULL, NULL);
+				changed = TRUE;
+			}
+
+			if (   nm_streq0 (nm_setting_ip_config_get_method (s_ip4),
+			                  NM_SETTING_IP4_CONFIG_METHOD_DISABLED)
+			    && !nm_setting_ip_config_get_may_fail (s_ip4)) {
+				g_object_set (s_ip4, NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE, NULL);
+				changed = TRUE;
+			}
+
+			num = nm_setting_ip_config_get_num_addresses (s_ip4);
+			if (   num > 1
+			    && nm_streq0 (nm_setting_ip_config_get_method (s_ip4),
+			                  NM_SETTING_IP4_CONFIG_METHOD_SHARED)) {
+				for (i = num - 1; i > 0; i--)
+					nm_setting_ip_config_remove_address (s_ip4, i);
+				changed = TRUE;
+			}
 		}
 		if (!s_ip6) {
 			setting = nm_setting_ip6_config_new ();
@@ -765,8 +901,45 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 			              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
 			              NULL);
 			nm_connection_add_setting (self, setting);
+		} else {
+			const char *token;
+
+			token = nm_setting_ip6_config_get_token ((NMSettingIP6Config *) s_ip6);
+			if (   token
+			    && nm_setting_ip6_config_get_addr_gen_mode ((NMSettingIP6Config *) s_ip6) == NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64) {
+				struct in6_addr i6_token;
+				char normalized[NM_UTILS_INET_ADDRSTRLEN];
+
+				if (   inet_pton (AF_INET6, token, &i6_token) == 1
+				    && _nm_utils_inet6_is_token (&i6_token)) {
+					nm_utils_inet6_ntop (&i6_token, normalized);
+					if (g_strcmp0 (token, normalized)) {
+						g_object_set (s_ip6, NM_SETTING_IP6_CONFIG_TOKEN, normalized, NULL);
+						changed = TRUE;
+					}
+				}
+			}
+
+			if (   nm_setting_ip_config_get_gateway (s_ip6)
+			    && nm_setting_ip_config_get_never_default (s_ip6)) {
+				g_object_set (s_ip6, NM_SETTING_IP_CONFIG_GATEWAY, NULL, NULL);
+				changed = TRUE;
+			}
+
+			if (   nm_streq0 (nm_setting_ip_config_get_method (s_ip6),
+			                  NM_SETTING_IP6_CONFIG_METHOD_IGNORE)
+			    && !nm_setting_ip_config_get_may_fail (s_ip6)) {
+				g_object_set (s_ip6, NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE, NULL);
+				changed = TRUE;
+			}
 		}
-		return !s_ip4 || !s_ip6;
+
+		if (!s_proxy) {
+			setting = nm_setting_proxy_new ();
+			nm_connection_add_setting (self, setting);
+		}
+
+		return !s_ip4 || !s_ip6 || !s_proxy || changed;
 	}
 }
 
@@ -815,6 +988,193 @@ _normalize_bond_mode (NMConnection *self, GHashTable *parameters)
 	return FALSE;
 }
 
+static gboolean
+_normalize_bond_options (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingBond *s_bond = nm_connection_get_setting_bond (self);
+	gboolean changed = FALSE;
+	const char *name, *mode_str;
+	NMBondMode mode;
+	guint32 num, i;
+
+	/* Strip away unsupported options for current mode */
+	if (s_bond) {
+		mode_str = nm_setting_bond_get_option_by_name (s_bond, NM_SETTING_BOND_OPTION_MODE);
+		mode = _nm_setting_bond_mode_from_string (mode_str);
+		if (mode == NM_BOND_MODE_UNKNOWN)
+			return FALSE;
+again:
+		num = nm_setting_bond_get_num_options (s_bond);
+		for (i = 0; i < num; i++) {
+			if (   nm_setting_bond_get_option (s_bond, i, &name, NULL)
+			    && !_nm_setting_bond_option_supported (name, mode)) {
+				nm_setting_bond_remove_option (s_bond, name);
+				changed = TRUE;
+				goto again;
+			}
+		}
+	}
+
+	return changed;
+}
+
+static gboolean
+_normalize_wireless_mac_address_randomization (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingWireless *s_wifi = nm_connection_get_setting_wireless (self);
+	const char *cloned_mac_address;
+	NMSettingMacRandomization mac_address_randomization;
+
+	if (!s_wifi)
+		return FALSE;
+
+	mac_address_randomization = nm_setting_wireless_get_mac_address_randomization (s_wifi);
+	if (!NM_IN_SET (mac_address_randomization,
+	                NM_SETTING_MAC_RANDOMIZATION_DEFAULT,
+	                NM_SETTING_MAC_RANDOMIZATION_NEVER,
+	                NM_SETTING_MAC_RANDOMIZATION_ALWAYS))
+		return FALSE;
+
+	cloned_mac_address = nm_setting_wireless_get_cloned_mac_address (s_wifi);
+	if (cloned_mac_address) {
+		if (nm_streq (cloned_mac_address, "random")) {
+			if (mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_ALWAYS)
+				return FALSE;
+			mac_address_randomization = NM_SETTING_MAC_RANDOMIZATION_ALWAYS;
+		} else if (nm_streq (cloned_mac_address, "permanent")) {
+			if (mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_NEVER)
+				return FALSE;
+			mac_address_randomization = NM_SETTING_MAC_RANDOMIZATION_NEVER;
+		} else {
+			if (mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_DEFAULT)
+				return FALSE;
+			mac_address_randomization = NM_SETTING_MAC_RANDOMIZATION_DEFAULT;
+		}
+		g_object_set (s_wifi, NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION, mac_address_randomization, NULL);
+		return TRUE;
+	}
+	if (mac_address_randomization != NM_SETTING_MAC_RANDOMIZATION_DEFAULT) {
+		g_object_set (s_wifi,
+		              NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS,
+		              mac_address_randomization == NM_SETTING_MAC_RANDOMIZATION_ALWAYS
+		                  ? "random" : "permanent",
+		              NULL);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+static gboolean
+_normalize_team_config (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingTeam *s_team = nm_connection_get_setting_team (self);
+
+	if (s_team) {
+		const char *config = nm_setting_team_get_config (s_team);
+
+		if (config && !*config) {
+			g_object_set (s_team, NM_SETTING_TEAM_CONFIG, NULL, NULL);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+static gboolean
+_normalize_team_port_config (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingTeamPort *s_team_port = nm_connection_get_setting_team_port (self);
+
+	if (s_team_port) {
+		const char *config = nm_setting_team_port_get_config (s_team_port);
+
+		if (config && !*config) {
+			g_object_set (s_team_port, NM_SETTING_TEAM_PORT_CONFIG, NULL, NULL);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+static gboolean
+_normalize_bluetooth_type (NMConnection *self, GHashTable *parameters)
+{
+	const char *type = _nm_connection_detect_bluetooth_type (self);
+
+	if (type) {
+		g_object_set (nm_connection_get_setting_bluetooth (self),
+		              NM_SETTING_BLUETOOTH_TYPE, type,
+		              NULL);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+static gboolean
+_normalize_ovs_interface_type (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingOvsInterface *s_ovs_interface = nm_connection_get_setting_ovs_interface (self);
+	gboolean modified;
+	int v;
+
+	if (!s_ovs_interface)
+		return FALSE;
+
+	v = _nm_setting_ovs_interface_verify_interface_type (s_ovs_interface,
+	                                                     self,
+	                                                     TRUE,
+	                                                     &modified,
+	                                                     NULL);
+	if (v != TRUE)
+		g_return_val_if_reached (modified);
+
+	return modified;
+}
+
+static gboolean
+_normalize_required_settings (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingBluetooth *s_bt = nm_connection_get_setting_bluetooth (self);
+	NMSetting *s_bridge;
+	gboolean changed = FALSE;
+
+	if (nm_connection_get_setting_vlan (self)) {
+		if (!nm_connection_get_setting_wired (self)) {
+			nm_connection_add_setting (self, nm_setting_wired_new ());
+			changed = TRUE;
+		}
+	}
+	if (s_bt && nm_streq0 (nm_setting_bluetooth_get_connection_type (s_bt), NM_SETTING_BLUETOOTH_TYPE_NAP)) {
+		if (!nm_connection_get_setting_bridge (self)) {
+			s_bridge = nm_setting_bridge_new ();
+			g_object_set (s_bridge, NM_SETTING_BRIDGE_STP, FALSE, NULL);
+			nm_connection_add_setting (self, s_bridge);
+			changed = TRUE;
+		}
+	}
+	return changed;
+}
+
+static gboolean
+_normalize_invalid_slave_port_settings (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingConnection *s_con = nm_connection_get_setting_connection (self);
+	const char *slave_type;
+	gboolean changed = FALSE;
+
+	slave_type = nm_setting_connection_get_slave_type (s_con);
+
+	if (   !nm_streq0 (slave_type, NM_SETTING_BRIDGE_SETTING_NAME)
+	    && _nm_connection_remove_setting (self, NM_TYPE_SETTING_BRIDGE_PORT))
+		changed = TRUE;
+
+	if (   !nm_streq0 (slave_type, NM_SETTING_TEAM_SETTING_NAME)
+	    && _nm_connection_remove_setting (self, NM_TYPE_SETTING_TEAM_PORT))
+		changed = TRUE;
+
+	return changed;
+}
+
 /**
  * nm_connection_verify:
  * @connection: the #NMConnection to verify
@@ -846,17 +1206,17 @@ nm_connection_verify (NMConnection *connection, GError **error)
 	return result == NM_SETTING_VERIFY_SUCCESS || result == NM_SETTING_VERIFY_NORMALIZABLE;
 }
 
-static NMSettingVerifyResult
+NMSettingVerifyResult
 _nm_connection_verify (NMConnection *connection, GError **error)
 {
 	NMConnectionPrivate *priv;
 	NMSettingConnection *s_con;
 	NMSettingIPConfig *s_ip4, *s_ip6;
+	NMSettingProxy *s_proxy;
 	GHashTableIter iter;
 	gpointer value;
 	GSList *all_settings = NULL, *setting_i;
-	NMSettingVerifyResult success = NM_SETTING_VERIFY_ERROR;
-	GError *normalizable_error = NULL;
+	gs_free_error GError *normalizable_error = NULL;
 	NMSettingVerifyResult normalizable_error_type = NM_SETTING_VERIFY_SUCCESS;
 
 	g_return_val_if_fail (NM_IS_CONNECTION (connection), NM_SETTING_VERIFY_ERROR);
@@ -872,7 +1232,7 @@ _nm_connection_verify (NMConnection *connection, GError **error)
 		                     NM_CONNECTION_ERROR_MISSING_SETTING,
 		                     _("setting not found"));
 		g_prefix_error (error, "%s: ", NM_SETTING_CONNECTION_SETTING_NAME);
-		goto EXIT;
+		return NM_SETTING_VERIFY_ERROR;
 	}
 
 	/* Build up the list of settings */
@@ -917,8 +1277,8 @@ _nm_connection_verify (NMConnection *connection, GError **error)
 		} else if (verify_result != NM_SETTING_VERIFY_SUCCESS) {
 			g_propagate_error (error, verify_error);
 			g_slist_free (all_settings);
-			g_return_val_if_fail (verify_result == NM_SETTING_VERIFY_ERROR, success);
-			goto EXIT;
+			g_return_val_if_fail (verify_result == NM_SETTING_VERIFY_ERROR, NM_SETTING_VERIFY_ERROR);
+			return NM_SETTING_VERIFY_ERROR;
 		}
 		g_clear_error (&verify_error);
 	}
@@ -926,44 +1286,54 @@ _nm_connection_verify (NMConnection *connection, GError **error)
 
 	s_ip4 = nm_connection_get_setting_ip4_config (connection);
 	s_ip6 = nm_connection_get_setting_ip6_config (connection);
+	s_proxy = nm_connection_get_setting_proxy (connection);
 
-	if (nm_setting_connection_get_master (s_con)) {
-		if ((normalizable_error_type == NM_SETTING_VERIFY_SUCCESS ||
-		    (normalizable_error_type == NM_SETTING_VERIFY_NORMALIZABLE))  && (s_ip4 || s_ip6)) {
-			g_clear_error (&normalizable_error);
-			g_set_error_literal (&normalizable_error,
-			                     NM_CONNECTION_ERROR,
-			                     NM_CONNECTION_ERROR_INVALID_SETTING,
-			                     _("setting not allowed in slave connection"));
-			g_prefix_error (&normalizable_error, "%s: ",
-			                s_ip4 ? NM_SETTING_IP4_CONFIG_SETTING_NAME : NM_SETTING_IP6_CONFIG_SETTING_NAME);
-			/* having a slave with IP config *was* and is a verify() error. */
-			normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE_ERROR;
-		}
-	} else {
-		if (normalizable_error_type == NM_SETTING_VERIFY_SUCCESS && (!s_ip4 || !s_ip6)) {
-			g_set_error_literal (&normalizable_error,
-			                     NM_CONNECTION_ERROR,
-			                     NM_CONNECTION_ERROR_MISSING_SETTING,
-			                     _("setting is required for non-slave connections"));
-			g_prefix_error (&normalizable_error, "%s: ",
-			                !s_ip4 ? NM_SETTING_IP4_CONFIG_SETTING_NAME : NM_SETTING_IP6_CONFIG_SETTING_NAME);
-			/* having a master without IP config was not a verify() error, accept
-			 * it for backward compatibility. */
-			normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE;
+	nm_assert (normalizable_error_type != NM_SETTING_VERIFY_ERROR);
+	if (NM_IN_SET (normalizable_error_type, NM_SETTING_VERIFY_SUCCESS,
+	                                        NM_SETTING_VERIFY_NORMALIZABLE)) {
+		if (_without_ip_config (connection)) {
+			if (s_ip4 || s_ip6 || s_proxy) {
+				g_clear_error (&normalizable_error);
+				g_set_error_literal (&normalizable_error,
+				                     NM_CONNECTION_ERROR,
+				                     NM_CONNECTION_ERROR_INVALID_SETTING,
+				                     _("setting not allowed in slave connection"));
+				g_prefix_error (&normalizable_error, "%s: ",
+				                s_ip4
+				                ? NM_SETTING_IP4_CONFIG_SETTING_NAME
+				                : (s_ip6
+				                   ? NM_SETTING_IP6_CONFIG_SETTING_NAME
+				                   : NM_SETTING_PROXY_SETTING_NAME));
+				/* having a slave with IP config *was* and is a verify() error. */
+				normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE_ERROR;
+			}
+		} else {
+			if (   normalizable_error_type == NM_SETTING_VERIFY_SUCCESS
+			    && (!s_ip4 || !s_ip6 || !s_proxy)) {
+				g_set_error_literal (&normalizable_error,
+				                     NM_CONNECTION_ERROR,
+				                     NM_CONNECTION_ERROR_MISSING_SETTING,
+				                     _("setting is required for non-slave connections"));
+				g_prefix_error (&normalizable_error, "%s: ",
+				                !s_ip4
+				                ? NM_SETTING_IP4_CONFIG_SETTING_NAME
+				                : (!s_ip6
+				                   ? NM_SETTING_IP6_CONFIG_SETTING_NAME
+				                   : NM_SETTING_PROXY_SETTING_NAME));
+				/* having a master without IP config was not a verify() error, accept
+				 * it for backward compatibility. */
+				normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE;
+			}
 		}
 	}
 
 	if (normalizable_error_type != NM_SETTING_VERIFY_SUCCESS) {
 		g_propagate_error (error, normalizable_error);
 		normalizable_error = NULL;
-		success = normalizable_error_type;
-	} else
-		success = NM_SETTING_VERIFY_SUCCESS;
+		return normalizable_error_type;
+	}
 
-EXIT:
-	g_clear_error (&normalizable_error);
-	return success;
+	return NM_SETTING_VERIFY_SUCCESS;
 }
 
 /**
@@ -1054,9 +1424,18 @@ nm_connection_normalize (NMConnection *connection,
 	was_modified |= _normalize_connection_uuid (connection);
 	was_modified |= _normalize_connection_type (connection);
 	was_modified |= _normalize_connection_slave_type (connection);
+	was_modified |= _normalize_required_settings (connection, parameters);
+	was_modified |= _normalize_invalid_slave_port_settings (connection, parameters);
 	was_modified |= _normalize_ip_config (connection, parameters);
+	was_modified |= _normalize_ethernet_link_neg (connection);
 	was_modified |= _normalize_infiniband_mtu (connection, parameters);
 	was_modified |= _normalize_bond_mode (connection, parameters);
+	was_modified |= _normalize_bond_options (connection, parameters);
+	was_modified |= _normalize_wireless_mac_address_randomization (connection, parameters);
+	was_modified |= _normalize_team_config (connection, parameters);
+	was_modified |= _normalize_team_port_config (connection, parameters);
+	was_modified |= _normalize_bluetooth_type (connection, parameters);
+	was_modified |= _normalize_ovs_interface_type (connection, parameters);
 
 	/* Verify anew. */
 	success = _nm_connection_verify (connection, error);
@@ -1074,6 +1453,7 @@ nm_connection_normalize (NMConnection *connection,
 			                     NM_CONNECTION_ERROR_FAILED,
 			                     _("Unexpected failure to normalize the connection"));
 		}
+		g_warning ("connection did not verify after normalization: %s", error ? (*error)->message : "??");
 		g_return_val_if_reached (FALSE);
 	}
 
@@ -1196,10 +1576,8 @@ nm_connection_update_secrets (NMConnection *connection,
 		}
 	}
 
-	if (updated) {
+	if (updated)
 		g_signal_emit (connection, signals[SECRETS_UPDATED], 0, setting_name);
-		g_signal_emit (connection, signals[CHANGED], 0);
-	}
 
 	return success;
 }
@@ -1277,20 +1655,17 @@ nm_connection_clear_secrets (NMConnection *connection)
 {
 	GHashTableIter iter;
 	NMSetting *setting;
-	gboolean changed = FALSE;
 
 	g_return_if_fail (NM_IS_CONNECTION (connection));
 
 	g_hash_table_iter_init (&iter, NM_CONNECTION_GET_PRIVATE (connection)->settings);
 	while (g_hash_table_iter_next (&iter, NULL, (gpointer) &setting)) {
 		g_signal_handlers_block_by_func (setting, (GCallback) setting_changed_cb, connection);
-		changed |= _nm_setting_clear_secrets (setting);
+		_nm_setting_clear_secrets (setting);
 		g_signal_handlers_unblock_by_func (setting, (GCallback) setting_changed_cb, connection);
 	}
 
 	g_signal_emit (connection, signals[SECRETS_CLEARED], 0);
-	if (changed)
-		g_signal_emit (connection, signals[CHANGED], 0);
 }
 
 /**
@@ -1309,20 +1684,17 @@ nm_connection_clear_secrets_with_flags (NMConnection *connection,
 {
 	GHashTableIter iter;
 	NMSetting *setting;
-	gboolean changed = FALSE;
 
 	g_return_if_fail (NM_IS_CONNECTION (connection));
 
 	g_hash_table_iter_init (&iter, NM_CONNECTION_GET_PRIVATE (connection)->settings);
 	while (g_hash_table_iter_next (&iter, NULL, (gpointer) &setting)) {
 		g_signal_handlers_block_by_func (setting, (GCallback) setting_changed_cb, connection);
-		changed |= _nm_setting_clear_secrets_with_flags (setting, func, user_data);
+		_nm_setting_clear_secrets_with_flags (setting, func, user_data);
 		g_signal_handlers_unblock_by_func (setting, (GCallback) setting_changed_cb, connection);
 	}
 
 	g_signal_emit (connection, signals[SECRETS_CLEARED], 0);
-	if (changed)
-		g_signal_emit (connection, signals[CHANGED], 0);
 }
 
 /**
@@ -1388,19 +1760,9 @@ nm_connection_to_dbus (NMConnection *connection,
 gboolean
 nm_connection_is_type (NMConnection *connection, const char *type)
 {
-	NMSettingConnection *s_con;
-	const char *type2;
+	g_return_val_if_fail (type, FALSE);
 
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), FALSE);
-	g_return_val_if_fail (type != NULL, FALSE);
-
-	s_con = nm_connection_get_setting_connection (connection);
-	if (!s_con)
-		return FALSE;
-
-	type2 = nm_setting_connection_get_connection_type (s_con);
-
-	return (g_strcmp0 (type2, type) == 0);
+	return nm_streq0 (type, nm_connection_get_connection_type (connection));
 }
 
 static int
@@ -1417,6 +1779,60 @@ _for_each_sort (NMSetting **p_a, NMSetting **p_b, void *unused)
 }
 
 /**
+ * nm_connection_get_settings:
+ * @connection: the #NMConnection instance
+ * @out_length: (allow-none): (out): the length of the returned array
+ *
+ * Retrieves the settings in @connection.
+ *
+ * The returned array is %NULL-terminated.
+ *
+ * Returns: (array length=out_length) (transfer container): a
+ *   %NULL-terminated array containing every setting of
+ *   @connection.
+ *   If the connection has no settings, %NULL is returned.
+ *
+ * Since: 1.10
+ */
+NMSetting **
+nm_connection_get_settings (NMConnection *connection,
+                            guint *out_length)
+{
+	NMConnectionPrivate *priv;
+	NMSetting **arr;
+	GHashTableIter iter;
+	NMSetting *setting;
+	guint i, size;
+
+	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
+
+	priv = NM_CONNECTION_GET_PRIVATE (connection);
+
+	size = g_hash_table_size (priv->settings);
+
+	if (!size) {
+		NM_SET_OUT (out_length, 0);
+		return NULL;
+	}
+
+	arr = g_new (NMSetting *, size + 1);
+
+	g_hash_table_iter_init (&iter, priv->settings);
+	for (i = 0; g_hash_table_iter_next (&iter, NULL, (gpointer *) &setting); i++)
+		arr[i] = setting;
+	nm_assert (i == size);
+	arr[size] = NULL;
+
+	/* sort the settings. This has an effect on the order in which keyfile
+	 * prints them. */
+	if (size > 1)
+		g_qsort_with_data (arr, size, sizeof (NMSetting *), (GCompareDataFunc) _for_each_sort, NULL);
+
+	NM_SET_OUT (out_length, size);
+	return arr;
+}
+
+/**
  * nm_connection_for_each_setting_value:
  * @connection: the #NMConnection
  * @func: (scope call): user-supplied function called for each setting's property
@@ -1430,39 +1846,15 @@ nm_connection_for_each_setting_value (NMConnection *connection,
                                       NMSettingValueIterFn func,
                                       gpointer user_data)
 {
-	NMConnectionPrivate *priv;
-	gs_free NMSetting **arr_free = NULL;
-	NMSetting *arr_temp[20], **arr;
-	GHashTableIter iter;
-	gpointer value;
-	guint i, size;
+	gs_free NMSetting **settings = NULL;
+	guint i, length = 0;
 
 	g_return_if_fail (NM_IS_CONNECTION (connection));
-	g_return_if_fail (func != NULL);
+	g_return_if_fail (func);
 
-	priv = NM_CONNECTION_GET_PRIVATE (connection);
-
-	size = g_hash_table_size (priv->settings);
-	if (!size)
-		return;
-
-	if (size > G_N_ELEMENTS (arr_temp))
-		arr = arr_free = g_new (NMSetting *, size);
-	else
-		arr = arr_temp;
-
-	g_hash_table_iter_init (&iter, priv->settings);
-	for (i = 0; g_hash_table_iter_next (&iter, NULL, &value); i++)
-		arr[i] = NM_SETTING (value);
-	g_assert (i == size);
-
-	/* sort the settings. This has an effect on the order in which keyfile
-	 * prints them. */
-	if (size > 1)
-		g_qsort_with_data (arr, size, sizeof (NMSetting *), (GCompareDataFunc) _for_each_sort, NULL);
-
-	for (i = 0; i < size; i++)
-		nm_setting_enumerate_values (arr[i], func, user_data);
+	settings = nm_connection_get_settings (connection, &length);
+	for (i = 0; i < length; i++)
+		nm_setting_enumerate_values (settings[i], func, user_data);
 }
 
 /**
@@ -1512,10 +1904,7 @@ nm_connection_set_path (NMConnection *connection, const char *path)
 	priv = NM_CONNECTION_GET_PRIVATE (connection);
 
 	g_free (priv->path);
-	priv->path = NULL;
-
-	if (path)
-		priv->path = g_strdup (path);
+	priv->path = g_strdup (path);
 }
 
 /**
@@ -1553,10 +1942,7 @@ nm_connection_get_interface_name (NMConnection *connection)
 {
 	NMSettingConnection *s_con;
 
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
 	s_con = nm_connection_get_setting_connection (connection);
-
 	return s_con ? nm_setting_connection_get_interface_name (s_con) : NULL;
 }
 
@@ -1565,6 +1951,9 @@ _nm_connection_verify_required_interface_name (NMConnection *connection,
                                                GError **error)
 {
 	const char *interface_name;
+
+	if (!connection)
+		return TRUE;
 
 	interface_name = nm_connection_get_interface_name (connection);
 	if (interface_name)
@@ -1591,13 +1980,8 @@ nm_connection_get_uuid (NMConnection *connection)
 {
 	NMSettingConnection *s_con;
 
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
 	s_con = nm_connection_get_setting_connection (connection);
-	if (!s_con)
-		return NULL;
-
-	return nm_setting_connection_get_uuid (s_con);
+	return s_con ? nm_setting_connection_get_uuid (s_con) : NULL;
 }
 
 /**
@@ -1613,13 +1997,8 @@ nm_connection_get_id (NMConnection *connection)
 {
 	NMSettingConnection *s_con;
 
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
 	s_con = nm_connection_get_setting_connection (connection);
-	if (!s_con)
-		return NULL;
-
-	return nm_setting_connection_get_id (s_con);
+	return s_con ? nm_setting_connection_get_id (s_con) : NULL;
 }
 
 /**
@@ -1635,13 +2014,8 @@ nm_connection_get_connection_type (NMConnection *connection)
 {
 	NMSettingConnection *s_con;
 
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
 	s_con = nm_connection_get_setting_connection (connection);
-	if (!s_con)
-		return NULL;
-
-	return nm_setting_connection_get_connection_type (s_con);
+	return s_con ? nm_setting_connection_get_connection_type (s_con) : NULL;
 }
 
 /**
@@ -1659,15 +2033,21 @@ nm_connection_is_virtual (NMConnection *connection)
 	const char *type;
 
 	type = nm_connection_get_connection_type (connection);
-	g_return_val_if_fail (type != NULL, FALSE);
+	if (!type)
+		return FALSE;
 
 	if (   !strcmp (type, NM_SETTING_BOND_SETTING_NAME)
+	    || !strcmp (type, NM_SETTING_DUMMY_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_TEAM_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_BRIDGE_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_VLAN_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_TUN_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_IP_TUNNEL_SETTING_NAME)
+	    || !strcmp (type, NM_SETTING_MACSEC_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_MACVLAN_SETTING_NAME)
+	    || !strcmp (type, NM_SETTING_OVS_BRIDGE_SETTING_NAME)
+	    || !strcmp (type, NM_SETTING_OVS_INTERFACE_SETTING_NAME)
+	    || !strcmp (type, NM_SETTING_OVS_PORT_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_VXLAN_SETTING_NAME))
 		return TRUE;
 
@@ -1675,8 +2055,17 @@ nm_connection_is_virtual (NMConnection *connection)
 		NMSettingInfiniband *s_ib;
 
 		s_ib = nm_connection_get_setting_infiniband (connection);
-		g_return_val_if_fail (s_ib != NULL, FALSE);
-		return nm_setting_infiniband_get_virtual_interface_name (s_ib) != NULL;
+		return s_ib && nm_setting_infiniband_get_virtual_interface_name (s_ib);
+	}
+
+	if (nm_streq (type, NM_SETTING_BLUETOOTH_SETTING_NAME))
+		return !!_nm_connection_get_setting_bluetooth_for_nap (connection);
+
+	if (nm_streq (type, NM_SETTING_PPPOE_SETTING_NAME)) {
+		NMSettingPppoe *s_pppoe;
+
+		s_pppoe = nm_connection_get_setting_pppoe (connection);
+		return !!nm_setting_pppoe_get_parent (s_pppoe);
 	}
 
 	return FALSE;
@@ -1699,10 +2088,11 @@ nm_connection_get_virtual_device_description (NMConnection *connection)
 	const char *type;
 	const char *iface = NULL, *display_type = NULL;
 
-	iface = nm_connection_get_interface_name (connection);
-
 	type = nm_connection_get_connection_type (connection);
-	g_return_val_if_fail (type != NULL, FALSE);
+	if (!type)
+		return NULL;
+
+	iface = nm_connection_get_interface_name (connection);
 
 	if (!strcmp (type, NM_SETTING_BOND_SETTING_NAME))
 		display_type = _("Bond");
@@ -1715,7 +2105,8 @@ nm_connection_get_virtual_device_description (NMConnection *connection)
 	else if (!strcmp (type, NM_SETTING_INFINIBAND_SETTING_NAME)) {
 		display_type = _("InfiniBand");
 		iface = nm_setting_infiniband_get_virtual_interface_name (nm_connection_get_setting_infiniband (connection));
-	}
+	} else if (!strcmp (type, NM_SETTING_IP_TUNNEL_SETTING_NAME))
+		display_type = _("IP Tunnel");
 
 	if (!iface || !display_type)
 		return NULL;
@@ -1723,7 +2114,7 @@ nm_connection_get_virtual_device_description (NMConnection *connection)
 	return g_strdup_printf ("%s (%s)", display_type, iface);
 }
 
-/*************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_connection_get_setting_802_1x:
@@ -1736,9 +2127,7 @@ nm_connection_get_virtual_device_description (NMConnection *connection)
 NMSetting8021x *
 nm_connection_get_setting_802_1x (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSetting8021x *) nm_connection_get_setting (connection, NM_TYPE_SETTING_802_1X);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_802_1X);
 }
 
 /**
@@ -1752,9 +2141,7 @@ nm_connection_get_setting_802_1x (NMConnection *connection)
 NMSettingBluetooth *
 nm_connection_get_setting_bluetooth (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingBluetooth *) nm_connection_get_setting (connection, NM_TYPE_SETTING_BLUETOOTH);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_BLUETOOTH);
 }
 
 /**
@@ -1768,9 +2155,7 @@ nm_connection_get_setting_bluetooth (NMConnection *connection)
 NMSettingBond *
 nm_connection_get_setting_bond (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingBond *) nm_connection_get_setting (connection, NM_TYPE_SETTING_BOND);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_BOND);
 }
 
 /**
@@ -1784,9 +2169,7 @@ nm_connection_get_setting_bond (NMConnection *connection)
 NMSettingTeam *
 nm_connection_get_setting_team (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingTeam *) nm_connection_get_setting (connection, NM_TYPE_SETTING_TEAM);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_TEAM);
 }
 
 /**
@@ -1800,9 +2183,7 @@ nm_connection_get_setting_team (NMConnection *connection)
 NMSettingTeamPort *
 nm_connection_get_setting_team_port (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingTeamPort *) nm_connection_get_setting (connection, NM_TYPE_SETTING_TEAM_PORT);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_TEAM_PORT);
 }
 
 /**
@@ -1816,9 +2197,7 @@ nm_connection_get_setting_team_port (NMConnection *connection)
 NMSettingBridge *
 nm_connection_get_setting_bridge (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingBridge *) nm_connection_get_setting (connection, NM_TYPE_SETTING_BRIDGE);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_BRIDGE);
 }
 
 /**
@@ -1832,9 +2211,7 @@ nm_connection_get_setting_bridge (NMConnection *connection)
 NMSettingCdma *
 nm_connection_get_setting_cdma (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingCdma *) nm_connection_get_setting (connection, NM_TYPE_SETTING_CDMA);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_CDMA);
 }
 
 /**
@@ -1848,9 +2225,7 @@ nm_connection_get_setting_cdma (NMConnection *connection)
 NMSettingConnection *
 nm_connection_get_setting_connection (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingConnection *) nm_connection_get_setting (connection, NM_TYPE_SETTING_CONNECTION);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_CONNECTION);
 }
 
 /**
@@ -1864,9 +2239,23 @@ nm_connection_get_setting_connection (NMConnection *connection)
 NMSettingDcb *
 nm_connection_get_setting_dcb (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_DCB);
+}
 
-	return (NMSettingDcb *) nm_connection_get_setting (connection, NM_TYPE_SETTING_DCB);
+/**
+ * nm_connection_get_setting_dummy:
+ * @connection: the #NMConnection
+ *
+ * A shortcut to return any #NMSettingDummy the connection might contain.
+ *
+ * Returns: (transfer none): an #NMSettingDummy if the connection contains one, otherwise %NULL
+ *
+ * Since: 1.8
+ **/
+NMSettingDummy *
+nm_connection_get_setting_dummy (NMConnection *connection)
+{
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_DUMMY);
 }
 
 /**
@@ -1880,9 +2269,7 @@ nm_connection_get_setting_dcb (NMConnection *connection)
 NMSettingGeneric *
 nm_connection_get_setting_generic (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingGeneric *) nm_connection_get_setting (connection, NM_TYPE_SETTING_GENERIC);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_GENERIC);
 }
 
 /**
@@ -1896,9 +2283,7 @@ nm_connection_get_setting_generic (NMConnection *connection)
 NMSettingGsm *
 nm_connection_get_setting_gsm (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingGsm *) nm_connection_get_setting (connection, NM_TYPE_SETTING_GSM);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_GSM);
 }
 
 /**
@@ -1912,9 +2297,7 @@ nm_connection_get_setting_gsm (NMConnection *connection)
 NMSettingInfiniband *
 nm_connection_get_setting_infiniband (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingInfiniband *) nm_connection_get_setting (connection, NM_TYPE_SETTING_INFINIBAND);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_INFINIBAND);
 }
 
 /**
@@ -1933,9 +2316,7 @@ nm_connection_get_setting_infiniband (NMConnection *connection)
 NMSettingIPConfig *
 nm_connection_get_setting_ip4_config (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingIPConfig *) nm_connection_get_setting (connection, NM_TYPE_SETTING_IP4_CONFIG);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_IP4_CONFIG);
 }
 
 /**
@@ -1951,9 +2332,7 @@ nm_connection_get_setting_ip4_config (NMConnection *connection)
 NMSettingIPTunnel *
 nm_connection_get_setting_ip_tunnel (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingIPTunnel *) nm_connection_get_setting (connection, NM_TYPE_SETTING_IP_TUNNEL);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_IP_TUNNEL);
 }
 
 /**
@@ -1972,9 +2351,23 @@ nm_connection_get_setting_ip_tunnel (NMConnection *connection)
 NMSettingIPConfig *
 nm_connection_get_setting_ip6_config (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_IP6_CONFIG);
+}
 
-	return (NMSettingIPConfig *) nm_connection_get_setting (connection, NM_TYPE_SETTING_IP6_CONFIG);
+/**
+ * nm_connection_get_setting_macsec:
+ * @connection: the #NMConnection
+ *
+ * A shortcut to return any #NMSettingMacsec the connection might contain.
+ *
+ * Returns: (transfer none): an #NMSettingMacsec if the connection contains one, otherwise %NULL
+ *
+ * Since: 1.6
+ **/
+NMSettingMacsec *
+nm_connection_get_setting_macsec (NMConnection *connection)
+{
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_MACSEC);
 }
 
 /**
@@ -1990,9 +2383,7 @@ nm_connection_get_setting_ip6_config (NMConnection *connection)
 NMSettingMacvlan *
 nm_connection_get_setting_macvlan (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingMacvlan *) nm_connection_get_setting (connection, NM_TYPE_SETTING_MACVLAN);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_MACVLAN);
 }
 
 /**
@@ -2006,9 +2397,71 @@ nm_connection_get_setting_macvlan (NMConnection *connection)
 NMSettingOlpcMesh *
 nm_connection_get_setting_olpc_mesh (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_OLPC_MESH);
+}
 
-	return (NMSettingOlpcMesh *) nm_connection_get_setting (connection, NM_TYPE_SETTING_OLPC_MESH);
+/**
+ * nm_connection_get_setting_ovs_bridge:
+ * @connection: the #NMConnection
+ *
+ * A shortcut to return any #NMSettingOvsBridge the connection might contain.
+ *
+ * Returns: (transfer none): an #NMSettingOvsBridge if the connection contains one, otherwise %NULL
+ *
+ * Since: 1.10
+ **/
+NMSettingOvsBridge *
+nm_connection_get_setting_ovs_bridge (NMConnection *connection)
+{
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_OVS_BRIDGE);
+}
+
+/**
+ * nm_connection_get_setting_ovs_interface:
+ * @connection: the #NMConnection
+ *
+ * A shortcut to return any #NMSettingOvsInterface the connection might contain.
+ *
+ * Returns: (transfer none): an #NMSettingOvsInterface if the connection contains one, otherwise %NULL
+ *
+ * Since: 1.10
+ **/
+NMSettingOvsInterface *
+nm_connection_get_setting_ovs_interface (NMConnection *connection)
+{
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_OVS_INTERFACE);
+}
+
+/**
+ * nm_connection_get_setting_ovs_patch:
+ * @connection: the #NMConnection
+ *
+ * A shortcut to return any #NMSettingOvsPatch the connection might contain.
+ *
+ * Returns: (transfer none): an #NMSettingOvsPatch if the connection contains one, otherwise %NULL
+ *
+ * Since: 1.10
+ **/
+NMSettingOvsPatch *
+nm_connection_get_setting_ovs_patch (NMConnection *connection)
+{
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_OVS_PATCH);
+}
+ 
+/**
+ * nm_connection_get_setting_ovs_port:
+ * @connection: the #NMConnection
+ *
+ * A shortcut to return any #NMSettingOvsPort the connection might contain.
+ *
+ * Returns: (transfer none): an #NMSettingOvsPort if the connection contains one, otherwise %NULL
+ *
+ * Since: 1.10
+ **/
+NMSettingOvsPort *
+nm_connection_get_setting_ovs_port (NMConnection *connection)
+{
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_OVS_PORT);
 }
 
 /**
@@ -2022,9 +2475,7 @@ nm_connection_get_setting_olpc_mesh (NMConnection *connection)
 NMSettingPpp *
 nm_connection_get_setting_ppp (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingPpp *) nm_connection_get_setting (connection, NM_TYPE_SETTING_PPP);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_PPP);
 }
 
 /**
@@ -2038,9 +2489,23 @@ nm_connection_get_setting_ppp (NMConnection *connection)
 NMSettingPppoe *
 nm_connection_get_setting_pppoe (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_PPPOE);
+}
 
-	return (NMSettingPppoe *) nm_connection_get_setting (connection, NM_TYPE_SETTING_PPPOE);
+/**
+ * nm_connection_get_setting_proxy:
+ * @connection: the #NMConnection
+ *
+ * A shortcut to return any #NMSettingProxy the connection might contain.
+ *
+ * Returns: (transfer none): an #NMSettingProxy if the connection contains one, otherwise %NULL
+ *
+ * Since: 1.6
+ **/
+NMSettingProxy *
+nm_connection_get_setting_proxy (NMConnection *connection)
+{
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_PROXY);
 }
 
 /**
@@ -2054,9 +2519,23 @@ nm_connection_get_setting_pppoe (NMConnection *connection)
 NMSettingSerial *
 nm_connection_get_setting_serial (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_SERIAL);
+}
 
-	return (NMSettingSerial *) nm_connection_get_setting (connection, NM_TYPE_SETTING_SERIAL);
+/**
+ * nm_connection_get_setting_tc_config:
+ * @connection: the #NMConnection
+ *
+ * A shortcut to return any #NMSettingTCConfig the connection might contain.
+ *
+ * Returns: (transfer none): an #NMSettingTCConfig if the connection contains one, otherwise %NULL
+ *
+ * Since: 1.10.2
+ **/
+NMSettingTCConfig *
+nm_connection_get_setting_tc_config (NMConnection *connection)
+{
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_TC_CONFIG);
 }
 
 /**
@@ -2072,9 +2551,7 @@ nm_connection_get_setting_serial (NMConnection *connection)
 NMSettingTun *
 nm_connection_get_setting_tun (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingTun *) nm_connection_get_setting (connection, NM_TYPE_SETTING_TUN);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_TUN);
 }
 
 /**
@@ -2088,9 +2565,7 @@ nm_connection_get_setting_tun (NMConnection *connection)
 NMSettingVpn *
 nm_connection_get_setting_vpn (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingVpn *) nm_connection_get_setting (connection, NM_TYPE_SETTING_VPN);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_VPN);
 }
 
 /**
@@ -2106,9 +2581,7 @@ nm_connection_get_setting_vpn (NMConnection *connection)
 NMSettingVxlan *
 nm_connection_get_setting_vxlan (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingVxlan *) nm_connection_get_setting (connection, NM_TYPE_SETTING_VXLAN);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_VXLAN);
 }
 
 /**
@@ -2122,9 +2595,7 @@ nm_connection_get_setting_vxlan (NMConnection *connection)
 NMSettingWimax *
 nm_connection_get_setting_wimax (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingWimax *) nm_connection_get_setting (connection, NM_TYPE_SETTING_WIMAX);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_WIMAX);
 }
 
 /**
@@ -2138,9 +2609,7 @@ nm_connection_get_setting_wimax (NMConnection *connection)
 NMSettingWired *
 nm_connection_get_setting_wired (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingWired *) nm_connection_get_setting (connection, NM_TYPE_SETTING_WIRED);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_WIRED);
 }
 
 /**
@@ -2154,9 +2623,7 @@ nm_connection_get_setting_wired (NMConnection *connection)
 NMSettingAdsl *
 nm_connection_get_setting_adsl (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingAdsl *) nm_connection_get_setting (connection, NM_TYPE_SETTING_ADSL);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_ADSL);
 }
 
 /**
@@ -2170,9 +2637,7 @@ nm_connection_get_setting_adsl (NMConnection *connection)
 NMSettingWireless *
 nm_connection_get_setting_wireless (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingWireless *) nm_connection_get_setting (connection, NM_TYPE_SETTING_WIRELESS);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_WIRELESS);
 }
 
 /**
@@ -2186,9 +2651,7 @@ nm_connection_get_setting_wireless (NMConnection *connection)
 NMSettingWirelessSecurity *
 nm_connection_get_setting_wireless_security (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingWirelessSecurity *) nm_connection_get_setting (connection, NM_TYPE_SETTING_WIRELESS_SECURITY);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_WIRELESS_SECURITY);
 }
 
 /**
@@ -2202,9 +2665,7 @@ nm_connection_get_setting_wireless_security (NMConnection *connection)
 NMSettingBridgePort *
 nm_connection_get_setting_bridge_port (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingBridgePort *) nm_connection_get_setting (connection, NM_TYPE_SETTING_BRIDGE_PORT);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_BRIDGE_PORT);
 }
 
 /**
@@ -2218,12 +2679,21 @@ nm_connection_get_setting_bridge_port (NMConnection *connection)
 NMSettingVlan *
 nm_connection_get_setting_vlan (NMConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-
-	return (NMSettingVlan *) nm_connection_get_setting (connection, NM_TYPE_SETTING_VLAN);
+	return _connection_get_setting_check (connection, NM_TYPE_SETTING_VLAN);
 }
 
-/*************************************************************/
+NMSettingBluetooth *
+_nm_connection_get_setting_bluetooth_for_nap (NMConnection *connection)
+{
+	NMSettingBluetooth *s_bt = nm_connection_get_setting_bluetooth (connection);
+
+	if (   s_bt
+	    && nm_streq0 (nm_setting_bluetooth_get_connection_type (s_bt), NM_SETTING_BLUETOOTH_TYPE_NAP))
+		return s_bt;
+	return NULL;
+}
+
+/*****************************************************************************/
 
 static void
 nm_connection_private_free (NMConnectionPrivate *priv)
@@ -2240,16 +2710,15 @@ nm_connection_private_free (NMConnectionPrivate *priv)
 static NMConnectionPrivate *
 nm_connection_get_private (NMConnection *connection)
 {
-	static GQuark key = 0;
+	GQuark key;
 	NMConnectionPrivate *priv;
 
 	nm_assert (NM_IS_CONNECTION (connection));
 
-	if (G_UNLIKELY (key == 0))
-		key = g_quark_from_static_string ("NMConnectionPrivate");
+	key = NM_CACHED_QUARK ("NMConnectionPrivate");
 
 	priv = g_object_get_qdata ((GObject *) connection, key);
-	if (!priv) {
+	if (G_UNLIKELY (!priv)) {
 		priv = g_slice_new0 (NMConnectionPrivate);
 		g_object_set_qdata_full ((GObject *) connection, key,
 		                         priv, (GDestroyNotify) nm_connection_private_free);

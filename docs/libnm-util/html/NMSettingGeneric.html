@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingGeneric: libnm-util Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm-util Reference Manual">
 <link rel="up" href="ch01.html" title="libnm-util API Reference">
 <link rel="prev" href="NMSettingTeamPort.html" title="NMSettingTeamPort">
 <link rel="next" href="NMSettingInfiniband.html" title="NMSettingInfiniband">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -34,7 +34,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingGeneric.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -42,7 +42,7 @@
 <tbody>
 <tr>
 <td class="function_type">
-<span class="returnvalue">GQuark</span>
+<a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingGeneric.html#nm-setting-generic-error-quark" title="nm_setting_generic_error_quark ()">nm_setting_generic_error_quark</a> <span class="c_punctuation">()</span>
@@ -61,7 +61,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingGeneric.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -84,9 +84,9 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingGeneric.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GEnum
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">╰──</span> NMSettingGenericError
-    GObject
+    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingGeneric
 </pre>
@@ -102,17 +102,17 @@
 optional properties that apply to "generic" devices (ie, devices that
 NetworkManager does not specifically recognize).</p>
 <p>There are currently no properties on this object; it exists only to be
-the "connection type" setting on <a href="NMConnection.html"><span class="type">NMConnections</span></a> for generic devices.</p>
+the "connection type" setting on <a href="NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> for generic devices.</p>
 </div>
 <div class="refsect1">
 <a name="NMSettingGeneric.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="nm-setting-generic-error-quark"></a><h3>nm_setting_generic_error_quark ()</h3>
-<pre class="programlisting"><span class="returnvalue">GQuark</span>
+<pre class="programlisting"><a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 nm_setting_generic_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Registers an error quark for <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> if necessary.</p>
 <div class="refsect3">
-<a name="id-1.2.18.8.2.5"></a><h4>Returns</h4>
+<a name="nm-setting-generic-error-quark.returns"></a><h4>Returns</h4>
 <p> the error quark used for <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> errors.</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -124,8 +124,8 @@ nm_setting_generic_error_quark (<em class="parameter"><code><span class="type">v
 nm_setting_generic_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.2.18.8.3.5"></a><h4>Returns</h4>
-<p> the new empty <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> object. </p>
+<a name="nm-setting-generic-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric"><span class="type">NMSettingGeneric</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -142,8 +142,8 @@ nm_setting_generic_new (<em class="parameter"><code><span class="type">void</spa
 <div class="refsect2">
 <a name="NMSettingGenericError"></a><h3>enum NMSettingGenericError</h3>
 <div class="refsect3">
-<a name="id-1.2.18.9.3.3"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMSettingGenericError.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -186,6 +186,6 @@ is required</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

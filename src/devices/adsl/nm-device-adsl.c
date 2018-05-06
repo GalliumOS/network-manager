@@ -20,44 +20,35 @@
 
 #include "nm-default.h"
 
+#include "nm-device-adsl.h"
+
 #include <sys/socket.h>
 #include <linux/atmdev.h>
 #include <linux/atmbr2684.h>
-
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #include <stdlib.h>
 #include <string.h>
 
-#include "nm-device-adsl.h"
-#include "nm-device-private.h"
-#include "nm-enum-types.h"
-#include "nm-platform.h"
-
-#include "ppp-manager/nm-ppp-manager.h"
+#include "devices/nm-device-private.h"
+#include "platform/nm-platform.h"
+#include "ppp/nm-ppp-manager-call.h"
+#include "ppp/nm-ppp-status.h"
 #include "nm-setting-adsl.h"
 #include "nm-utils.h"
 
-#include "nmdbus-device-adsl.h"
+#include "introspection/org.freedesktop.NetworkManager.Device.Adsl.h"
 
-#include "nm-device-logging.h"
+#include "devices/nm-device-logging.h"
 _LOG_DECLARE_SELF (NMDeviceAdsl);
 
-G_DEFINE_TYPE (NMDeviceAdsl, nm_device_adsl, NM_TYPE_DEVICE)
+/*****************************************************************************/
 
-#define NM_DEVICE_ADSL_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DEVICE_ADSL, NMDeviceAdslPrivate))
-
-enum {
-	PROP_0,
+NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 	PROP_ATM_INDEX,
-
-	LAST_PROP
-};
-
-/**********************************************/
+);
 
 typedef struct {
 	guint         carrier_poll_id;
@@ -74,7 +65,20 @@ typedef struct {
 	guint         nas_update_count;
 } NMDeviceAdslPrivate;
 
-/**************************************************************/
+struct _NMDeviceAdsl {
+	NMDevice parent;
+	NMDeviceAdslPrivate _priv;
+};
+
+struct _NMDeviceAdslClass {
+	NMDeviceClass parent;
+};
+
+G_DEFINE_TYPE (NMDeviceAdsl, nm_device_adsl, NM_TYPE_DEVICE)
+
+#define NM_DEVICE_ADSL_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMDeviceAdsl, NM_IS_DEVICE_ADSL)
+
+/*****************************************************************************/
 
 static NMDeviceCapabilities
 get_generic_capabilities (NMDevice *dev)
@@ -125,7 +129,7 @@ complete_connection (NMDevice *device,
 	if (s_adsl && !nm_setting_verify (NM_SETTING (s_adsl), NULL, error))
 		return FALSE;
 
-	nm_utils_complete_generic (NM_PLATFORM_GET,
+	nm_utils_complete_generic (nm_device_get_platform (device),
 	                           connection,
 	                           NM_SETTING_ADSL_SETTING_NAME,
 	                           existing_connections,
@@ -138,7 +142,7 @@ complete_connection (NMDevice *device,
 	return TRUE;
 }
 
-/**************************************************************/
+/*****************************************************************************/
 
 static gboolean
 br2684_assign_vcc (NMDeviceAdsl *self, NMSettingAdsl *s_adsl)
@@ -154,7 +158,7 @@ br2684_assign_vcc (NMDeviceAdsl *self, NMSettingAdsl *s_adsl)
 	g_return_val_if_fail (priv->brfd == -1, FALSE);
 	g_return_val_if_fail (priv->nas_ifname != NULL, FALSE);
 
-	priv->brfd = socket (PF_ATMPVC, SOCK_DGRAM, ATM_AAL5);
+	priv->brfd = socket (PF_ATMPVC, SOCK_DGRAM | SOCK_CLOEXEC, ATM_AAL5);
 	if (priv->brfd < 0) {
 		errsv = errno;
 		_LOGE (LOGD_ADSL, "failed to open ATM control socket (%d)", errsv);
@@ -223,19 +227,21 @@ br2684_assign_vcc (NMDeviceAdsl *self, NMSettingAdsl *s_adsl)
 	return TRUE;
 
 error:
-	close (priv->brfd);
+	nm_close (priv->brfd);
 	priv->brfd = -1;
 	return FALSE;
 }
 
 static void
 link_changed_cb (NMPlatform *platform,
-                 NMPObjectType obj_type,
+                 int obj_type_i,
                  int ifindex,
                  NMPlatformLink *info,
-                 NMPlatformSignalChangeType change_type,
+                 int change_type_i,
                  NMDeviceAdsl *self)
 {
+	const NMPlatformSignalChangeType change_type = change_type_i;
+
 	if (change_type == NM_PLATFORM_SIGNAL_REMOVED) {
 		NMDeviceAdslPrivate *priv = NM_DEVICE_ADSL_GET_PRIVATE (self);
 		NMDevice *device = NM_DEVICE (self);
@@ -243,11 +249,11 @@ link_changed_cb (NMPlatform *platform,
 		/* This only gets called for PPPoE connections and "nas" interfaces */
 
 		if (priv->nas_ifindex > 0 && ifindex == priv->nas_ifindex) {
-				/* NAS device went away for some reason; kill the connection */
-				_LOGD (LOGD_ADSL, "br2684 interface disappeared");
-				nm_device_state_changed (device,
-				                         NM_DEVICE_STATE_FAILED,
-				                         NM_DEVICE_STATE_REASON_BR2684_FAILED);
+			/* NAS device went away for some reason; kill the connection */
+			_LOGD (LOGD_ADSL, "br2684 interface disappeared");
+			nm_device_state_changed (device,
+			                         NM_DEVICE_STATE_FAILED,
+			                         NM_DEVICE_STATE_REASON_BR2684_FAILED);
 		}
 	}
 }
@@ -267,14 +273,14 @@ pppoe_vcc_config (NMDeviceAdsl *self)
 		return FALSE;
 
 	/* Watch for the 'nas' interface going away */
-	g_signal_connect (NM_PLATFORM_GET, NM_PLATFORM_SIGNAL_LINK_CHANGED,
+	g_signal_connect (nm_device_get_platform (device), NM_PLATFORM_SIGNAL_LINK_CHANGED,
 	                  G_CALLBACK (link_changed_cb),
 	                  self);
 
 	_LOGD (LOGD_ADSL, "ATM setup successful");
 
 	/* otherwise we're good for stage3 */
-	nm_platform_link_set_up (NM_PLATFORM_GET, priv->nas_ifindex, NULL);
+	nm_platform_link_set_up (nm_device_get_platform (device), priv->nas_ifindex, NULL);
 
 	return TRUE;
 }
@@ -300,7 +306,7 @@ nas_update_cb (gpointer user_data)
 	}
 
 	g_warn_if_fail (priv->nas_ifindex < 0);
-	priv->nas_ifindex = nm_platform_link_get_ifindex (NM_PLATFORM_GET, priv->nas_ifname);
+	priv->nas_ifindex = nm_platform_link_get_ifindex (nm_device_get_platform (device), priv->nas_ifname);
 	if (priv->nas_ifindex < 0) {
 		/* Keep waiting for it to appear */
 		return G_SOURCE_CONTINUE;
@@ -323,12 +329,12 @@ nas_update_cb (gpointer user_data)
 static NMActStageReturn
 br2684_create_iface (NMDeviceAdsl *self,
                      NMSettingAdsl *s_adsl,
-                     NMDeviceStateReason *out_reason)
+                     NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceAdslPrivate *priv = NM_DEVICE_ADSL_GET_PRIVATE (self);
 	struct atm_newif_br2684 ni;
-	int err, fd, errsv;
-	NMActStageReturn ret = NM_ACT_STAGE_RETURN_FAILURE;
+	nm_auto_close int fd = -1;
+	int err, errsv;
 	guint num = 0;
 
 	g_return_val_if_fail (s_adsl != NULL, FALSE);
@@ -338,11 +344,11 @@ br2684_create_iface (NMDeviceAdsl *self,
 		nm_clear_g_source (&priv->nas_update_id);
 	}
 
-	fd = socket (PF_ATMPVC, SOCK_DGRAM, ATM_AAL5);
+	fd = socket (PF_ATMPVC, SOCK_DGRAM | SOCK_CLOEXEC, ATM_AAL5);
 	if (fd < 0) {
 		errsv = errno;
 		_LOGE (LOGD_ADSL, "failed to open ATM control socket (%d)", errsv);
-		*out_reason = NM_DEVICE_STATE_REASON_BR2684_FAILED;
+		NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_BR2684_FAILED);
 		return NM_ACT_STAGE_RETURN_FAILURE;
 	}
 
@@ -368,39 +374,36 @@ br2684_create_iface (NMDeviceAdsl *self,
 
 			priv->nas_update_count = 0;
 			priv->nas_update_id = g_timeout_add (100, nas_update_cb, self);
-			ret = NM_ACT_STAGE_RETURN_POSTPONE;
-			break;
-		} else if (errno != EEXIST) {
+			return NM_ACT_STAGE_RETURN_POSTPONE;
+		}
+		if (errno != EEXIST) {
 			errsv = errno;
 			_LOGW (LOGD_ADSL, "failed to create br2684 interface (%d)", errsv);
-			*out_reason = NM_DEVICE_STATE_REASON_BR2684_FAILED;
 			break;
 		}
 	}
 
-	close (fd);
-	return ret;
+	NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_BR2684_FAILED);
+	return NM_ACT_STAGE_RETURN_FAILURE;
 }
 
 static NMActStageReturn
-act_stage2_config (NMDevice *device, NMDeviceStateReason *out_reason)
+act_stage2_config (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceAdsl *self = NM_DEVICE_ADSL (device);
 	NMActStageReturn ret = NM_ACT_STAGE_RETURN_FAILURE;
 	NMSettingAdsl *s_adsl;
 	const char *protocol;
 
-	g_assert (out_reason);
-
 	s_adsl = nm_connection_get_setting_adsl (nm_device_get_applied_connection (device));
-	g_assert (s_adsl);
+	g_return_val_if_fail (s_adsl, NM_ACT_STAGE_RETURN_FAILURE);
 
 	protocol = nm_setting_adsl_get_protocol (s_adsl);
 	_LOGD (LOGD_ADSL, "using ADSL protocol '%s'", protocol);
 
 	if (g_strcmp0 (protocol, NM_SETTING_ADSL_PROTOCOL_PPPOE) == 0) {
 		/* PPPoE needs RFC2684 bridging before we can do PPP over it */
-		ret = br2684_create_iface (self, s_adsl, out_reason);
+		ret = br2684_create_iface (self, s_adsl, out_failure_reason);
 	} else if (g_strcmp0 (protocol, NM_SETTING_ADSL_PROTOCOL_PPPOA) == 0) {
 		/* PPPoA doesn't need anything special */
 		ret = NM_ACT_STAGE_RETURN_SUCCESS;
@@ -445,20 +448,19 @@ ppp_ip4_config (NMPPPManager *ppp_manager,
 static NMActStageReturn
 act_stage3_ip4_config_start (NMDevice *device,
                              NMIP4Config **out_config,
-                             NMDeviceStateReason *reason)
+                             NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceAdsl *self = NM_DEVICE_ADSL (device);
 	NMDeviceAdslPrivate *priv = NM_DEVICE_ADSL_GET_PRIVATE (self);
 	NMSettingAdsl *s_adsl;
 	NMActRequest *req;
 	GError *err = NULL;
-	NMActStageReturn ret = NM_ACT_STAGE_RETURN_FAILURE;
 	const char *ppp_iface;
 
 	req = nm_device_get_act_request (device);
-	g_assert (req);
+	g_return_val_if_fail (req, NM_ACT_STAGE_RETURN_FAILURE);
 	s_adsl = (NMSettingAdsl *) nm_device_get_applied_setting (device, NM_TYPE_SETTING_ADSL);
-	g_assert (s_adsl);
+	g_return_val_if_fail (s_adsl, NM_ACT_STAGE_RETURN_FAILURE);
 
 	/* PPPoE uses the NAS interface, not the ATM interface */
 	if (g_strcmp0 (nm_setting_adsl_get_protocol (s_adsl), NM_SETTING_ADSL_PROTOCOL_PPPOE) == 0) {
@@ -471,25 +473,36 @@ act_stage3_ip4_config_start (NMDevice *device,
 		_LOGD (LOGD_ADSL, "starting PPPoA");
 	}
 
-	priv->ppp_manager = nm_ppp_manager_new (ppp_iface);
-	if (nm_ppp_manager_start (priv->ppp_manager, req, nm_setting_adsl_get_username (s_adsl), 30, &err)) {
-		g_signal_connect (priv->ppp_manager, NM_PPP_MANAGER_STATE_CHANGED,
-		                  G_CALLBACK (ppp_state_changed),
-		                  self);
-		g_signal_connect (priv->ppp_manager, "ip4-config",
-		                  G_CALLBACK (ppp_ip4_config),
-		                  self);
-		ret = NM_ACT_STAGE_RETURN_POSTPONE;
-	} else {
+	priv->ppp_manager = nm_ppp_manager_create (ppp_iface, &err);
+
+	if (priv->ppp_manager) {
+		nm_ppp_manager_set_route_parameters (priv->ppp_manager,
+		                                     nm_device_get_route_table (device, AF_INET, TRUE),
+		                                     nm_device_get_route_metric (device, AF_INET),
+		                                     nm_device_get_route_table (device, AF_INET6, TRUE),
+		                                     nm_device_get_route_metric (device, AF_INET6));
+	}
+
+	if (   !priv->ppp_manager
+	    || !nm_ppp_manager_start (priv->ppp_manager, req,
+	                              nm_setting_adsl_get_username (s_adsl),
+	                              30, 0, &err)) {
 		_LOGW (LOGD_ADSL, "PPP failed to start: %s", err->message);
 		g_error_free (err);
 
-		nm_exported_object_clear_and_unexport (&priv->ppp_manager);
+		g_clear_object (&priv->ppp_manager);
 
-		*reason = NM_DEVICE_STATE_REASON_PPP_START_FAILED;
+		NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_PPP_START_FAILED);
+		return NM_ACT_STAGE_RETURN_FAILURE;
 	}
 
-	return ret;
+	g_signal_connect (priv->ppp_manager, NM_PPP_MANAGER_SIGNAL_STATE_CHANGED,
+	                  G_CALLBACK (ppp_state_changed),
+	                  self);
+	g_signal_connect (priv->ppp_manager, NM_PPP_MANAGER_SIGNAL_IP4_CONFIG,
+	                  G_CALLBACK (ppp_ip4_config),
+	                  self);
+	return NM_ACT_STAGE_RETURN_POSTPONE;
 }
 
 static void
@@ -500,15 +513,14 @@ adsl_cleanup (NMDeviceAdsl *self)
 	if (priv->ppp_manager) {
 		g_signal_handlers_disconnect_by_func (priv->ppp_manager, G_CALLBACK (ppp_state_changed), self);
 		g_signal_handlers_disconnect_by_func (priv->ppp_manager, G_CALLBACK (ppp_ip4_config), self);
-		nm_exported_object_clear_and_unexport (&priv->ppp_manager);
+		nm_ppp_manager_stop_sync (priv->ppp_manager);
+		g_clear_object (&priv->ppp_manager);
 	}
 
-	g_signal_handlers_disconnect_by_func (NM_PLATFORM_GET, G_CALLBACK (link_changed_cb), self);
+	g_signal_handlers_disconnect_by_func (nm_device_get_platform (NM_DEVICE (self)), G_CALLBACK (link_changed_cb), self);
 
-	if (priv->brfd >= 0) {
-		close (priv->brfd);
-		priv->brfd = -1;
-	}
+	nm_close (priv->brfd);
+	priv->brfd = -1;
 
 	nm_clear_g_source (&priv->nas_update_id);
 
@@ -526,7 +538,7 @@ deactivate (NMDevice *device)
 	adsl_cleanup (NM_DEVICE_ADSL (device));
 }
 
-/**************************************************************/
+/*****************************************************************************/
 
 static gboolean
 carrier_update_cb (gpointer user_data)
@@ -537,7 +549,7 @@ carrier_update_cb (gpointer user_data)
 
 	path  = g_strdup_printf ("/sys/class/atm/%s/carrier",
 	                         NM_ASSERT_VALID_PATH_COMPONENT (nm_device_get_iface (NM_DEVICE (self))));
-	carrier = (int) nm_platform_sysctl_get_int_checked (NM_PLATFORM_GET, path, 10, 0, 1, -1);
+	carrier = (int) nm_platform_sysctl_get_int_checked (nm_device_get_platform (NM_DEVICE (self)), NMP_SYSCTL_PATHID_ABSOLUTE (path), 10, 0, 1, -1);
 	g_free (path);
 
 	if (carrier != -1)
@@ -545,7 +557,58 @@ carrier_update_cb (gpointer user_data)
 	return TRUE;
 }
 
-/**************************************************************/
+/*****************************************************************************/
+
+static void
+get_property (GObject *object, guint prop_id,
+              GValue *value, GParamSpec *pspec)
+{
+	switch (prop_id) {
+	case PROP_ATM_INDEX:
+		g_value_set_int (value, NM_DEVICE_ADSL_GET_PRIVATE ((NMDeviceAdsl *) object)->atm_index);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+		break;
+	}
+}
+
+static void
+set_property (GObject *object, guint prop_id,
+              const GValue *value, GParamSpec *pspec)
+{
+	switch (prop_id) {
+	case PROP_ATM_INDEX:
+		/* construct-only */
+		NM_DEVICE_ADSL_GET_PRIVATE ((NMDeviceAdsl *) object)->atm_index = g_value_get_int (value);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+		break;
+	}
+}
+
+/*****************************************************************************/
+
+static void
+nm_device_adsl_init (NMDeviceAdsl *self)
+{
+}
+
+static void
+constructed (GObject *object)
+{
+	NMDeviceAdsl *self = NM_DEVICE_ADSL (object);
+	NMDeviceAdslPrivate *priv = NM_DEVICE_ADSL_GET_PRIVATE (self);
+
+	G_OBJECT_CLASS (nm_device_adsl_parent_class)->constructed (object);
+
+	priv->carrier_poll_id = g_timeout_add_seconds (5, carrier_update_cb, self);
+
+	_LOGD (LOGD_ADSL, "ATM device index %d", priv->atm_index);
+
+	g_return_if_fail (priv->atm_index >= 0);
+}
 
 NMDevice *
 nm_device_adsl_new (const char *udi,
@@ -567,62 +630,13 @@ nm_device_adsl_new (const char *udi,
 }
 
 static void
-constructed (GObject *object)
-{
-	NMDeviceAdsl *self = NM_DEVICE_ADSL (object);
-	NMDeviceAdslPrivate *priv = NM_DEVICE_ADSL_GET_PRIVATE (self);
-
-	G_OBJECT_CLASS (nm_device_adsl_parent_class)->constructed (object);
-
-	priv->carrier_poll_id = g_timeout_add_seconds (5, carrier_update_cb, self);
-
-	_LOGD (LOGD_ADSL, "ATM device index %d", priv->atm_index);
-
-	g_return_if_fail (priv->atm_index >= 0);
-}
-
-static void
 dispose (GObject *object)
 {
 	adsl_cleanup (NM_DEVICE_ADSL (object));
 
-	nm_clear_g_source (&NM_DEVICE_ADSL_GET_PRIVATE (object)->carrier_poll_id);
+	nm_clear_g_source (&NM_DEVICE_ADSL_GET_PRIVATE ((NMDeviceAdsl *) object)->carrier_poll_id);
 
 	G_OBJECT_CLASS (nm_device_adsl_parent_class)->dispose (object);
-}
-
-static void
-get_property (GObject *object, guint prop_id,
-              GValue *value, GParamSpec *pspec)
-{
-	switch (prop_id) {
-	case PROP_ATM_INDEX:
-		g_value_set_int (value, NM_DEVICE_ADSL_GET_PRIVATE (object)->atm_index);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
-
-static void
-set_property (GObject *object, guint prop_id,
-              const GValue *value, GParamSpec *pspec)
-{
-	switch (prop_id) {
-	case PROP_ATM_INDEX:
-		/* construct only */
-		NM_DEVICE_ADSL_GET_PRIVATE (object)->atm_index = g_value_get_int (value);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
-
-static void
-nm_device_adsl_init (NMDeviceAdsl *self)
-{
 }
 
 static void
@@ -630,8 +644,6 @@ nm_device_adsl_class_init (NMDeviceAdslClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	NMDeviceClass *parent_class = NM_DEVICE_CLASS (klass);
-
-	g_type_class_add_private (object_class, sizeof (NMDeviceAdslPrivate));
 
 	object_class->constructed  = constructed;
 	object_class->dispose      = dispose;
@@ -647,13 +659,13 @@ nm_device_adsl_class_init (NMDeviceAdslClass *klass)
 	parent_class->act_stage3_ip4_config_start = act_stage3_ip4_config_start;
 	parent_class->deactivate = deactivate;
 
-	/* properties */
-	g_object_class_install_property
-		(object_class, PROP_ATM_INDEX,
-		 g_param_spec_int (NM_DEVICE_ADSL_ATM_INDEX, "", "",
-		                   -1, G_MAXINT, -1,
-		                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
-		                   G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_ATM_INDEX] =
+	     g_param_spec_int (NM_DEVICE_ADSL_ATM_INDEX, "", "",
+	                       -1, G_MAXINT, -1,
+	                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+	                       G_PARAM_STATIC_STRINGS);
+
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
 	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
 	                                        NMDBUS_TYPE_DEVICE_ADSL_SKELETON,

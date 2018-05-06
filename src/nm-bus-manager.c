@@ -21,6 +21,8 @@
 
 #include "nm-default.h"
 
+#include "nm-bus-manager.h"
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -28,38 +30,28 @@
 #include <string.h>
 
 #include "nm-dbus-interface.h"
-#include "nm-bus-manager.h"
 #include "nm-core-internal.h"
 #include "nm-dbus-compat.h"
 #include "nm-exported-object.h"
 #include "NetworkManagerUtils.h"
 
-#define _NMLOG_DOMAIN       LOGD_CORE
-#define _NMLOG_PREFIX_NAME  "bus-manager"
-#define _NMLOG(level, ...) \
-    G_STMT_START { \
-        nm_log ((level), _NMLOG_DOMAIN, \
-                "%s" _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
-                _NMLOG_PREFIX_NAME": " \
-                _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
-    } G_STMT_END
+/* The base path for our GDBusObjectManagerServers.  They do not contain
+ * "NetworkManager" because GDBusObjectManagerServer requires that all
+ * exported objects be *below* the base path, and eg the Manager object
+ * is the base path already.
+ */
+#define OBJECT_MANAGER_SERVER_BASE_PATH "/org/freedesktop"
+
+/*****************************************************************************/
 
 enum {
 	DBUS_CONNECTION_CHANGED = 0,
 	PRIVATE_CONNECTION_NEW,
 	PRIVATE_CONNECTION_DISCONNECTED,
-	NUMBER_OF_SIGNALS
+	NUMBER_OF_SIGNALS,
 };
 
 static guint signals[NUMBER_OF_SIGNALS];
-
-G_DEFINE_TYPE(NMBusManager, nm_bus_manager, G_TYPE_OBJECT)
-
-#define NM_BUS_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), \
-                                        NM_TYPE_BUS_MANAGER, \
-                                        NMBusManagerPrivate))
-
-typedef struct _PrivateServer PrivateServer;
 
 typedef struct {
 	GDBusConnection *connection;
@@ -74,16 +66,31 @@ typedef struct {
 	guint reconnect_id;
 } NMBusManagerPrivate;
 
+struct _NMBusManager {
+	GObject parent;
+	NMBusManagerPrivate _priv;
+};
+
+struct _NMBusManagerClass {
+	GObjectClass parent;
+};
+
+G_DEFINE_TYPE(NMBusManager, nm_bus_manager, G_TYPE_OBJECT)
+
+#define NM_BUS_MANAGER_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMBusManager, NM_IS_BUS_MANAGER)
+
+/*****************************************************************************/
+
+#define _NMLOG_DOMAIN      LOGD_CORE
+#define _NMLOG(level, ...) __NMLOG_DEFAULT (level, _NMLOG_DOMAIN, "bus-manager", __VA_ARGS__)
+
+/*****************************************************************************/
+
 static gboolean nm_bus_manager_init_bus (NMBusManager *self);
 static void nm_bus_manager_cleanup (NMBusManager *self);
 static void start_reconnection_timeout (NMBusManager *self);
 
-/* The base path for our GDBusObjectManagerServers.  They do not contain
- * "NetworkManager" because GDBusObjectManagerServer requires that all
- * exported objects be *below* the base path, and eg the Manager object
- * is the base path already.
- */
-#define OBJECT_MANAGER_SERVER_BASE_PATH "/org/freedesktop"
+/*****************************************************************************/
 
 NM_DEFINE_SINGLETON_REGISTER (NMBusManager);
 
@@ -113,9 +120,9 @@ nm_bus_manager_setup (NMBusManager *instance)
 	_LOGD ("setup %s singleton (%p)", "NMBusManager", singleton_instance);
 }
 
-/**************************************************************/
+/*****************************************************************************/
 
-struct _PrivateServer {
+typedef struct {
 	const char *tag;
 	GQuark detail;
 	char *address;
@@ -133,7 +140,7 @@ struct _PrivateServer {
 	GHashTable *obj_managers;
 
 	NMBusManager *manager;
-};
+} PrivateServer;
 
 typedef struct {
 	GDBusConnection *connection;
@@ -164,7 +171,10 @@ close_connection_in_idle (gpointer user_data)
 
 	g_hash_table_iter_init (&iter, server->obj_managers);
 	while (g_hash_table_iter_next (&iter, (gpointer) &manager, NULL)) {
-		if (g_dbus_object_manager_server_get_connection (manager) == info->connection) {
+		gs_unref_object GDBusConnection *connection = NULL;
+
+		connection = g_dbus_object_manager_server_get_connection (manager);
+		if (connection == info->connection) {
 			g_hash_table_iter_remove (&iter);
 			break;
 		}
@@ -221,7 +231,11 @@ private_server_new_connection (GDBusServer *server,
 
 	_LOGD ("(%s) accepted connection %p on private socket", s->tag, conn);
 
-	/* Emit this for the manager */
+	/* Emit this for the manager.
+	 *
+	 * It is essential to do this from the "new-connection" signal handler, as
+	 * at that point no messages from the connection are yet processed
+	 * (which avoids races with registering objects). */
 	g_signal_emit (s->manager,
 	               signals[PRIVATE_CONNECTION_NEW],
 	               s->detail,
@@ -239,6 +253,7 @@ private_server_manager_destroy (GDBusObjectManagerServer *manager)
 		g_dbus_connection_close (connection, NULL, NULL, NULL);
 	g_dbus_object_manager_server_set_connection (manager, NULL);
 	g_object_unref (manager);
+	g_object_unref (connection);
 }
 
 static gboolean
@@ -357,7 +372,10 @@ private_server_get_connection_owner (PrivateServer *s, GDBusConnection *connecti
 
 	g_hash_table_iter_init (&iter, s->obj_managers);
 	while (g_hash_table_iter_next (&iter, (gpointer) &manager, (gpointer) &owner)) {
-		if (g_dbus_object_manager_server_get_connection (manager) == connection)
+		gs_unref_object GDBusConnection *c = NULL;
+
+		c = g_dbus_object_manager_server_get_connection (manager);
+		if (c == connection)
 			return owner;
 	}
 	return NULL;
@@ -378,7 +396,7 @@ private_server_get_connection_by_owner (PrivateServer *s, const char *owner)
 	return NULL;
 }
 
-/**************************************************************/
+/*****************************************************************************/
 
 static gboolean
 _bus_get_unix_pid (NMBusManager *self,
@@ -533,6 +551,54 @@ nm_bus_manager_get_caller_info_from_message (NMBusManager *self,
 	return _get_caller_info (self, NULL, connection, message, out_sender, out_uid, out_pid);
 }
 
+/**
+ * nm_bus_manager_ensure_uid:
+ *
+ * @self: bus manager instance
+ * @context: D-Bus method invocation
+ * @uid: a user-id
+ * @error_domain: error domain to return on failure
+ * @error_code: error code to return on failure
+ *
+ * Retrieves the uid of the D-Bus method caller and
+ * checks that it matches @uid, unless @uid is G_MAXULONG.
+ * In case of failure the function returns FALSE and finishes
+ * handling the D-Bus method with an error.
+ *
+ * Returns: %TRUE if the check succeeded, %FALSE otherwise
+ */
+gboolean
+nm_bus_manager_ensure_uid (NMBusManager          *self,
+                           GDBusMethodInvocation *context,
+                           gulong uid,
+                           GQuark error_domain,
+                           int error_code)
+{
+	gulong caller_uid;
+	GError *error = NULL;
+
+	g_return_val_if_fail (NM_IS_BUS_MANAGER (self), FALSE);
+	g_return_val_if_fail (G_IS_DBUS_METHOD_INVOCATION (context), FALSE);
+
+	if (!nm_bus_manager_get_caller_info (self, context, NULL, &caller_uid, NULL)) {
+		error = g_error_new_literal (error_domain,
+		                             error_code,
+		                             "Unable to determine request UID.");
+		g_dbus_method_invocation_take_error (context, error);
+		return FALSE;
+	}
+
+	if (uid != G_MAXULONG && caller_uid != uid) {
+		error = g_error_new_literal (error_domain,
+		                             error_code,
+		                             "Permission denied");
+		g_dbus_method_invocation_take_error (context, error);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 gboolean
 nm_bus_manager_get_unix_user (NMBusManager *self,
                               const char *sender,
@@ -547,7 +613,10 @@ nm_bus_manager_get_unix_user (NMBusManager *self,
 
 	/* Check if it's a private connection sender, which we fake */
 	for (iter = priv->private_servers; iter; iter = iter->next) {
-		if (private_server_get_connection_by_owner (iter->data, sender)) {
+		gs_unref_object GDBusConnection *connection = NULL;
+
+		connection = private_server_get_connection_by_owner (iter->data, sender);
+		if (connection) {
 			*out_uid = 0;
 			return TRUE;
 		}
@@ -564,82 +633,7 @@ nm_bus_manager_get_unix_user (NMBusManager *self,
 	return TRUE;
 }
 
-/**************************************************************/
-
-static void
-nm_bus_manager_init (NMBusManager *self)
-{
-	NMBusManagerPrivate *priv = NM_BUS_MANAGER_GET_PRIVATE (self);
-
-	priv->obj_manager = g_dbus_object_manager_server_new (OBJECT_MANAGER_SERVER_BASE_PATH);
-}
-
-static void
-nm_bus_manager_dispose (GObject *object)
-{
-	NMBusManager *self = NM_BUS_MANAGER (object);
-	NMBusManagerPrivate *priv = NM_BUS_MANAGER_GET_PRIVATE (self);
-	GList *exported, *iter;
-
-	g_slist_free_full (priv->private_servers, private_server_free);
-	priv->private_servers = NULL;
-
-	nm_bus_manager_cleanup (self);
-
-	if (priv->obj_manager) {
-		/* The ObjectManager owns the last reference to many exported
-		 * objects, and when that reference is dropped the objects unregister
-		 * themselves via nm_bus_manager_unregister_object().  By that time
-		 * priv->obj_manager is already NULL and that prints warnings.  Unregister
-		 * them before clearing the ObjectManager instead.
-		 */
-		exported = g_dbus_object_manager_get_objects ((GDBusObjectManager *) priv->obj_manager);
-		for (iter = exported; iter; iter = iter->next) {
-			nm_bus_manager_unregister_object (self, iter->data);
-			g_object_unref (iter->data);
-		}
-		g_list_free (exported);
-		g_clear_object (&priv->obj_manager);
-	}
-
-	nm_clear_g_source (&priv->reconnect_id);
-
-	G_OBJECT_CLASS (nm_bus_manager_parent_class)->dispose (object);
-}
-
-static void
-nm_bus_manager_class_init (NMBusManagerClass *klass)
-{
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-	g_type_class_add_private (klass, sizeof (NMBusManagerPrivate));
-
-	object_class->dispose = nm_bus_manager_dispose;
-
-	signals[DBUS_CONNECTION_CHANGED] =
-		g_signal_new (NM_BUS_MANAGER_DBUS_CONNECTION_CHANGED,
-		              G_OBJECT_CLASS_TYPE (object_class),
-		              G_SIGNAL_RUN_LAST,
-		              G_STRUCT_OFFSET (NMBusManagerClass, dbus_connection_changed),
-		              NULL, NULL, NULL,
-		              G_TYPE_NONE, 1, G_TYPE_POINTER);
-
-	signals[PRIVATE_CONNECTION_NEW] =
-		g_signal_new (NM_BUS_MANAGER_PRIVATE_CONNECTION_NEW,
-		              G_OBJECT_CLASS_TYPE (object_class),
-		              G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		              0, NULL, NULL, NULL,
-		              G_TYPE_NONE, 2, G_TYPE_DBUS_CONNECTION, G_TYPE_DBUS_OBJECT_MANAGER_SERVER);
-
-	signals[PRIVATE_CONNECTION_DISCONNECTED] =
-		g_signal_new (NM_BUS_MANAGER_PRIVATE_CONNECTION_DISCONNECTED,
-		              G_OBJECT_CLASS_TYPE (object_class),
-		              G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		              G_STRUCT_OFFSET (NMBusManagerClass, private_connection_disconnected),
-		              NULL, NULL, NULL,
-		              G_TYPE_NONE, 1, G_TYPE_POINTER);
-}
-
+/*****************************************************************************/
 
 /* Only cleanup a specific dbus connection, not all our private data */
 static void
@@ -953,3 +947,78 @@ nm_bus_manager_new_proxy (NMBusManager *self,
 	}
 	return proxy;
 }
+
+/*****************************************************************************/
+
+static void
+nm_bus_manager_init (NMBusManager *self)
+{
+	NMBusManagerPrivate *priv = NM_BUS_MANAGER_GET_PRIVATE (self);
+
+	priv->obj_manager = g_dbus_object_manager_server_new (OBJECT_MANAGER_SERVER_BASE_PATH);
+}
+
+static void
+dispose (GObject *object)
+{
+	NMBusManager *self = NM_BUS_MANAGER (object);
+	NMBusManagerPrivate *priv = NM_BUS_MANAGER_GET_PRIVATE (self);
+	GList *exported, *iter;
+
+	g_slist_free_full (priv->private_servers, private_server_free);
+	priv->private_servers = NULL;
+
+	nm_bus_manager_cleanup (self);
+
+	if (priv->obj_manager) {
+		/* The ObjectManager owns the last reference to many exported
+		 * objects, and when that reference is dropped the objects unregister
+		 * themselves via nm_bus_manager_unregister_object().  By that time
+		 * priv->obj_manager is already NULL and that prints warnings.  Unregister
+		 * them before clearing the ObjectManager instead.
+		 */
+		exported = g_dbus_object_manager_get_objects ((GDBusObjectManager *) priv->obj_manager);
+		for (iter = exported; iter; iter = iter->next) {
+			nm_bus_manager_unregister_object (self, iter->data);
+			g_object_unref (iter->data);
+		}
+		g_list_free (exported);
+		g_clear_object (&priv->obj_manager);
+	}
+
+	nm_clear_g_source (&priv->reconnect_id);
+
+	G_OBJECT_CLASS (nm_bus_manager_parent_class)->dispose (object);
+}
+
+static void
+nm_bus_manager_class_init (NMBusManagerClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+	object_class->dispose = dispose;
+
+	signals[DBUS_CONNECTION_CHANGED] =
+	    g_signal_new (NM_BUS_MANAGER_DBUS_CONNECTION_CHANGED,
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_LAST,
+	                  0, NULL, NULL, NULL,
+	                  G_TYPE_NONE, 1, G_TYPE_POINTER);
+
+	signals[PRIVATE_CONNECTION_NEW] =
+	    g_signal_new (NM_BUS_MANAGER_PRIVATE_CONNECTION_NEW,
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+	                  0, NULL, NULL, NULL,
+	                  G_TYPE_NONE, 2, G_TYPE_DBUS_CONNECTION, G_TYPE_DBUS_OBJECT_MANAGER_SERVER);
+
+	signals[PRIVATE_CONNECTION_DISCONNECTED] =
+	    g_signal_new (NM_BUS_MANAGER_PRIVATE_CONNECTION_DISCONNECTED,
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+	                  0, NULL, NULL, NULL,
+	                  G_TYPE_NONE, 1, G_TYPE_POINTER);
+}
+
+
+

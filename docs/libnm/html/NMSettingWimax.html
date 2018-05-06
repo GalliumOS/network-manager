@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingWimax: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingVxlan.html" title="NMSettingVxlan">
 <link rel="next" href="NMSettingWired.html" title="NMSettingWired">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingWimax.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -68,7 +68,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -77,13 +77,13 @@
 <tbody>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingWimax.html#NMSettingWimax--mac-address" title="The “mac-address” property">mac-address</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingWimax.html#NMSettingWimax--network-name" title="The “network-name” property">network-name</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -92,7 +92,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -119,7 +119,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingWimax
 </pre>
@@ -144,7 +144,7 @@ nm_setting_wimax_new (<em class="parameter"><code><span class="type">void</span>
 </div>
 <p>Creates a new <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.4.32.8.2.6"></a><h4>Returns</h4>
+<a name="nm-setting-wimax-new.returns"></a><h4>Returns</h4>
 <p> the new empty <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object</p>
 </div>
 </div>
@@ -160,8 +160,8 @@ nm_setting_wimax_get_network_name (<em class="parameter"><code><a class="link" h
 <p>Returns the WiMAX NSP name (ex "Sprint" or "CLEAR") which identifies the
 specific WiMAX network this setting describes a connection to.</p>
 <div class="refsect3">
-<a name="id-1.4.32.8.3.6"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-wimax-get-network-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -175,7 +175,7 @@ specific WiMAX network this setting describes a connection to.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.32.8.3.7"></a><h4>Returns</h4>
+<a name="nm-setting-wimax-get-network-name.returns"></a><h4>Returns</h4>
 <p> the WiMAX NSP name</p>
 </div>
 </div>
@@ -191,8 +191,8 @@ nm_setting_wimax_get_mac_address (<em class="parameter"><code><a class="link" hr
 <p>Returns the MAC address of a WiMAX device which this connection is locked
 to.</p>
 <div class="refsect3">
-<a name="id-1.4.32.8.4.6"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-wimax-get-mac-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -206,7 +206,7 @@ to.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.32.8.4.7"></a><h4>Returns</h4>
+<a name="nm-setting-wimax-get-mac-address.returns"></a><h4>Returns</h4>
 <p> the MAC address</p>
 </div>
 </div>
@@ -234,13 +234,14 @@ to.</p>
 <div class="refsect2">
 <a name="NMSettingWimax-struct"></a><h3>NMSettingWimax</h3>
 <pre class="programlisting">typedef struct _NMSettingWimax NMSettingWimax;</pre>
+<p>WiMax Settings</p>
 </div>
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingWimax--mac-address"></a><h3>The <code class="literal">“mac-address”</code> property</h3>
-<pre class="programlisting">  “mac-address”              <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “mac-address”              <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>If specified, this connection will only apply to the WiMAX device whose
 MAC address matches. This property does not change the MAC address of the
 device (known as MAC spoofing).</p>
@@ -254,7 +255,7 @@ device (known as MAC spoofing).</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWimax--network-name"></a><h3>The <code class="literal">“network-name”</code> property</h3>
-<pre class="programlisting">  “network-name”             <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “network-name”             <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Network Service Provider (NSP) name of the WiMAX network this connection
 should use.</p>
 <div class="warning">
@@ -267,6 +268,6 @@ should use.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

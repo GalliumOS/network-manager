@@ -20,10 +20,12 @@
 
 #include "nm-default.h"
 
+#include "nm-auth-utils.h"
+
 #include <string.h>
 
+#include "nm-utils/nm-hash-utils.h"
 #include "nm-setting-connection.h"
-#include "nm-auth-utils.h"
 #include "nm-auth-subject.h"
 #include "nm-auth-manager.h"
 #include "nm-session-monitor.h"
@@ -130,7 +132,7 @@ nm_auth_chain_new_subject (NMAuthSubject *subject,
 
 	self = g_slice_new0 (NMAuthChain);
 	self->refcount = 1;
-	self->data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, chain_data_free);
+	self->data = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, chain_data_free);
 	self->done_func = done_func;
 	self->user_data = user_data;
 	self->context = context ? g_object_ref (context) : NULL;
@@ -300,12 +302,10 @@ auth_call_cancel (gpointer user_data)
 {
 	AuthCall *call = user_data;
 
-	if (call->cancellable) {
+	if (nm_clear_g_cancellable (&call->cancellable)) {
 		/* we don't free call immediately. Instead we cancel the async operation
 		 * and set cancellable to NULL. pk_call_cb() will check for this and
 		 * do the final cleanup. */
-		g_cancellable_cancel (call->cancellable);
-		g_clear_object (&call->cancellable);
 	} else {
 		g_source_remove (call->call_idle_id);
 		auth_call_free (call);
@@ -318,7 +318,8 @@ pk_call_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
 	AuthCall *call = user_data;
 	GError *error = NULL;
-	gboolean is_authorized, is_challenge;
+	gboolean is_authorized = FALSE, is_challenge = FALSE;
+	guint call_result = NM_AUTH_CALL_RESULT_UNKNOWN;
 
 	nm_auth_manager_polkit_authority_check_authorization_finish (NM_AUTH_MANAGER (object),
 	                                                             result,
@@ -335,17 +336,11 @@ pk_call_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	}
 
 	if (error) {
+		/* Don't ruin the chain. Just leave the result unknown. */
 		nm_log_warn (LOGD_CORE, "error requesting auth for %s: %s",
 		             call->permission, error->message);
-
-		if (!call->chain->error) {
-			call->chain->error = error;
-			error = NULL;
-		} else
-			g_clear_error (&error);
+		g_clear_error (&error);
 	} else {
-		guint call_result = NM_AUTH_CALL_RESULT_UNKNOWN;
-
 		if (is_authorized) {
 			/* Caller has the permission */
 			call_result = NM_AUTH_CALL_RESULT_YES;
@@ -354,9 +349,9 @@ pk_call_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 			call_result = NM_AUTH_CALL_RESULT_AUTH;
 		} else
 			call_result = NM_AUTH_CALL_RESULT_NO;
-
-		nm_auth_chain_set_data (call->chain, call->permission, GUINT_TO_POINTER (call_result), NULL);
 	}
+
+	nm_auth_chain_set_data (call->chain, call->permission, GUINT_TO_POINTER (call_result), NULL);
 
 	auth_call_complete (call);
 }
@@ -398,8 +393,8 @@ nm_auth_chain_add_call (NMAuthChain *self,
 		                                                      call);
 #else
 		if (!call->chain->error) {
-			call->chain->error = g_error_new_literal (DBUS_GERROR,
-			                                          DBUS_GERROR_FAILED,
+			call->chain->error = g_error_new_literal (NM_MANAGER_ERROR,
+			                                          NM_MANAGER_ERROR_FAILED,
 			                                          "Polkit support is disabled at compile time");
 		}
 		call->call_idle_id = g_idle_add ((GSourceFunc) auth_call_complete, call);

@@ -19,12 +19,10 @@
 #ifndef NMT_EDITOR_PAGE_H
 #define NMT_EDITOR_PAGE_H
 
-#include <NetworkManager.h>
+#include "NetworkManager.h"
 
 #include "nmt-editor-grid.h"
 #include "nmt-editor-section.h"
-
-G_BEGIN_DECLS
 
 #define NMT_TYPE_EDITOR_PAGE            (nmt_editor_page_get_type ())
 #define NMT_EDITOR_PAGE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NMT_TYPE_EDITOR_PAGE, NmtEditorPage))
@@ -41,6 +39,7 @@ typedef struct {
 typedef struct {
 	GObjectClass parent;
 
+	void (*saved) (NmtEditorPage *page);
 } NmtEditorPageClass;
 
 GType nmt_editor_page_get_type (void);
@@ -49,10 +48,10 @@ NMConnection  *nmt_editor_page_get_connection    (NmtEditorPage *page);
 
 GSList        *nmt_editor_page_get_sections      (NmtEditorPage *page);
 
+void           nmt_editor_page_saved            (NmtEditorPage *page);
+
 /*< protected >*/
 void           nmt_editor_page_add_section       (NmtEditorPage *page,
                                                   NmtEditorSection *section);
-
-G_END_DECLS
 
 #endif /* NMT_EDITOR_PAGE_H */

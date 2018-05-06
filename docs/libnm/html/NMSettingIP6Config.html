@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingIP6Config: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIP4Config.html" title="NMSettingIP4Config">
 <link rel="next" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -65,12 +65,19 @@
 <a class="link" href="NMSettingIP6Config.html#nm-setting-ip6-config-get-addr-gen-mode" title="nm_setting_ip6_config_get_addr_gen_mode ()">nm_setting_ip6_config_get_addr_gen_mode</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIP6Config.html#nm-setting-ip6-config-get-token" title="nm_setting_ip6_config_get_token ()">nm_setting_ip6_config_get_token</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -78,7 +85,7 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="property_type"><span class="type">gint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--addr-gen-mode" title="The “addr-gen-mode” property">addr-gen-mode</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
@@ -87,12 +94,18 @@
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--ip6-privacy" title="The “ip6-privacy” property">ip6-privacy</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
+<tr>
+<td class="property_type">
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--token" title="The “token” property">token</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -109,6 +122,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE:CAPS" title="NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE">NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-TOKEN:CAPS" title="NM_SETTING_IP6_CONFIG_TOKEN">NM_SETTING_IP6_CONFIG_TOKEN</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -151,10 +168,10 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GEnum
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">├──</span> NMSettingIP6ConfigAddrGenMode
     <span class="lineart">╰──</span> NMSettingIP6ConfigPrivacy
-    GObject
+    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
             <span class="lineart">╰──</span> NMSettingIP6Config
@@ -185,8 +202,8 @@ supported.</p>
 nm_setting_ip6_config_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.4.18.8.2.5"></a><h4>Returns</h4>
-<p> the new empty <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> object. </p>
+<a name="nm-setting-ip6-config-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
@@ -198,8 +215,8 @@ nm_setting_ip6_config_get_ip6_privacy (<em class="parameter"><code><a class="lin
 <p>Returns the value contained in the <a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--ip6-privacy" title="The “ip6-privacy” property"><span class="type">“ip6-privacy”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.18.8.3.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip6-config-get-ip6-privacy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -213,7 +230,7 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.18.8.3.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip6-config-get-ip6-privacy.returns"></a><h4>Returns</h4>
 <p> IPv6 Privacy Extensions configuration value (<a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy" title="enum NMSettingIP6ConfigPrivacy"><span class="type">NMSettingIP6ConfigPrivacy</span></a>).</p>
 </div>
 </div>
@@ -226,8 +243,8 @@ nm_setting_ip6_config_get_addr_gen_mode
 <p>Returns the value contained in the <a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--addr-gen-mode" title="The “addr-gen-mode” property"><span class="type">“addr-gen-mode”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.18.8.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip6-config-get-addr-gen-mode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -241,10 +258,38 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.18.8.4.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip6-config-get-addr-gen-mode.returns"></a><h4>Returns</h4>
 <p> IPv6 Address Generation Mode.</p>
 </div>
 <p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip6-config-get-token"></a><h3>nm_setting_ip6_config_get_token ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip6_config_get_token (<em class="parameter"><code><a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> *setting</code></em>);</pre>
+<p>Returns the value contained in the <a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--token" title="The “token” property"><span class="type">“token”</span></a>
+property.</p>
+<div class="refsect3">
+<a name="nm-setting-ip6-config-get-token.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip6-config-get-token.returns"></a><h4>Returns</h4>
+<p> A string.</p>
+</div>
+<p class="since">Since: 1.4</p>
 </div>
 </div>
 <div class="refsect1">
@@ -264,6 +309,12 @@ property.</p>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE</h3>
 <pre class="programlisting">#define NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE "addr-gen-mode"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP6-CONFIG-TOKEN:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_TOKEN</h3>
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_TOKEN "token"
 </pre>
 </div>
 <hr>
@@ -326,8 +377,8 @@ supported for IPv6)</p>
 <p><a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy" title="enum NMSettingIP6ConfigPrivacy"><span class="type">NMSettingIP6ConfigPrivacy</span></a> values indicate if and how IPv6 Privacy
 Extensions are used (RFC4941).</p>
 <div class="refsect3">
-<a name="id-1.4.18.9.11.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMSettingIP6ConfigPrivacy.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -371,11 +422,11 @@ are enabled and temporary addresses are preferred over public addresses</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIP6ConfigAddrGenMode"></a><h3>enum NMSettingIP6ConfigAddrGenMode</h3>
-<p><a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigAddrGenMode" title="enum NMSettingIP6ConfigAddrGenMode"><span class="type">NMSettingIP6ConfigAddrGenMode</span></a> controls how the the Interface Identifier for
+<p><a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigAddrGenMode" title="enum NMSettingIP6ConfigAddrGenMode"><span class="type">NMSettingIP6ConfigAddrGenMode</span></a> controls how the Interface Identifier for
 RFC4862 Stateless Address Autoconfiguration is created.</p>
 <div class="refsect3">
-<a name="id-1.4.18.9.12.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMSettingIP6ConfigAddrGenMode.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -409,30 +460,32 @@ specified by RFC7217.</p>
 <div class="refsect2">
 <a name="NMSettingIP6Config-struct"></a><h3>NMSettingIP6Config</h3>
 <pre class="programlisting">typedef struct _NMSettingIP6Config NMSettingIP6Config;</pre>
+<p>IPv6 Settings</p>
 </div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingIP6Config--addr-gen-mode"></a><h3>The <code class="literal">“addr-gen-mode”</code> property</h3>
-<pre class="programlisting">  “addr-gen-mode”            <span class="type">gint</span></pre>
+<pre class="programlisting">  “addr-gen-mode”            <a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Configure method for creating the address for use with RFC4862 IPv6
-Stateless Address Autoconfiguration. The permitted values are: "eui64",
-or "stable-privacy".</p>
-<p>If the property is set to "eui64", the addresses will be generated
-using the interface tokens derived from  hardware address. This makes
+Stateless Address Autoconfiguration. The permitted values are:
+<a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE-EUI64:CAPS"><code class="literal">NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64</code></a> or
+<a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE-STABLE-PRIVACY:CAPS"><code class="literal">NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY</code></a>.</p>
+<p>If the property is set to EUI64, the addresses will be generated
+using the interface tokens derived from hardware address. This makes
 the host part of the address to stay constant, making it possible
 to track host's presence when it changes networks. The address changes
 when the interface hardware is replaced.</p>
-<p>The value of "stable-privacy" enables use of cryptographically
-secure hash of a secret host-specific key along with the connection
-identification and the network address as specified by RFC7217.
+<p>The value of stable-privacy enables use of cryptographically
+secure hash of a secret host-specific key along with the connection's
+stable-id and the network address as specified by RFC7217.
 This makes it impossible to use the address track host's presence,
 and makes the address stable when the network interface hardware is
 replaced.</p>
 <p>On D-Bus, the absence of an addr-gen-mode setting equals enabling
-"stable-privacy". For keyfile plugin, the absence of the setting
-on disk means "eui64" so that the property doesn't change on upgrade
+stable-privacy. For keyfile plugin, the absence of the setting
+on disk means EUI64 so that the property doesn't change on upgrade
 from older versions.</p>
 <p>Note that this setting is distinct from the Privacy Extensions as
 configured by "ip6-privacy" property and it does not affect the
@@ -462,9 +515,19 @@ setting as another way of avoiding host tracking with IPv6 addresses.</p>
 <p>Flags: Read / Write / Construct</p>
 <p>Default value: NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIP6Config--token"></a><h3>The <code class="literal">“token”</code> property</h3>
+<pre class="programlisting">  “token”                    <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02
+IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.4</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

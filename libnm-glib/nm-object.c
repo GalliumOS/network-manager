@@ -175,7 +175,22 @@ constructor (GType type,
 
 	priv = NM_OBJECT_GET_PRIVATE (object);
 
-	if (priv->connection == NULL || priv->path == NULL) {
+	if (priv->connection == NULL) {
+		GError *error = NULL;
+
+		priv->connection = _nm_dbus_new_connection (&error);
+
+		if (priv->connection == NULL) {
+			g_warning ("Error connecting to system bus: %s", error->message);
+			g_clear_error (&error);
+			g_object_unref (object);
+			return NULL;
+		}
+	}
+
+	g_assert (priv->connection != NULL);
+
+	if (priv->path == NULL) {
 		g_warn_if_reached ();
 		g_object_unref (object);
 		return NULL;
@@ -288,6 +303,8 @@ init_async (GAsyncInitable *initable, int io_priority,
 	GSimpleAsyncResult *simple;
 
 	simple = g_simple_async_result_new (G_OBJECT (initable), callback, user_data, init_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 
 	/* Check if NM is running */
 	dbus_g_proxy_begin_call (priv->bus_proxy, "NameHasOwner",
@@ -354,13 +371,11 @@ set_property (GObject *object, guint prop_id,
 
 	switch (prop_id) {
 	case PROP_DBUS_CONNECTION:
-		/* Construct only */
+		/* construct-only */
 		priv->connection = g_value_dup_boxed (value);
-		if (!priv->connection)
-			priv->connection = _nm_dbus_new_connection (NULL);
 		break;
 	case PROP_DBUS_PATH:
-		/* Construct only */
+		/* construct-only */
 		priv->path = g_value_dup_string (value);
 		break;
 	default:

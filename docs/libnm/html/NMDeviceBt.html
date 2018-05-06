@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMDeviceBt: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceBridge.html" title="NMDeviceBridge">
-<link rel="next" href="NMDeviceEthernet.html" title="NMDeviceEthernet">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<link rel="next" href="NMDeviceDummy.html" title="NMDeviceDummy">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -23,7 +23,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="NMDeviceBridge.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="NMDeviceEthernet.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="NMDeviceDummy.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NMDeviceBt"></a><div class="titlepage"></div>
@@ -36,7 +36,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMDeviceBt.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -69,7 +69,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceBt.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -83,13 +83,13 @@
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMDeviceBt.html#NMDeviceBt--hw-address" title="The “hw-address” property">hw-address</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMDeviceBt.html#NMDeviceBt--name" title="The “name” property">name</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -98,7 +98,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceBt.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -125,7 +125,7 @@
 </div>
 <div class="refsect1">
 <a name="NMDeviceBt.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
         <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
             <span class="lineart">╰──</span> NMDeviceBt
@@ -135,7 +135,7 @@
 <a name="NMDeviceBt.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
 <p>
 NMDeviceBt implements
- GInitable and  GAsyncInitable.</p>
+ <a href="../gio/GInitable.html#GInitable-struct">GInitable</a> and  <a href="../gio/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMDeviceBt.description"></a><h2>Description</h2>
@@ -148,8 +148,8 @@ NMDeviceBt implements
 nm_device_bt_get_hw_address (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
 <p>Gets the hardware (MAC) address of the <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a></p>
 <div class="refsect3">
-<a name="id-1.5.6.9.2.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-device-bt-get-hw-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -163,7 +163,7 @@ nm_device_bt_get_hw_address (<em class="parameter"><code><a class="link" href="N
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.6.9.2.6"></a><h4>Returns</h4>
+<a name="nm-device-bt-get-hw-address.returns"></a><h4>Returns</h4>
 <p> the hardware address. This is the internal string used by the
 device, and must not be modified.</p>
 </div>
@@ -175,8 +175,8 @@ device, and must not be modified.</p>
 nm_device_bt_get_name (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
 <p>Gets the name of the <a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.5.6.9.3.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-device-bt-get-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -190,7 +190,7 @@ nm_device_bt_get_name (<em class="parameter"><code><a class="link" href="NMDevic
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.6.9.3.6"></a><h4>Returns</h4>
+<a name="nm-device-bt-get-name.returns"></a><h4>Returns</h4>
 <p> the name of the device</p>
 </div>
 </div>
@@ -201,8 +201,8 @@ nm_device_bt_get_name (<em class="parameter"><code><a class="link" href="NMDevic
 nm_device_bt_get_capabilities (<em class="parameter"><code><a class="link" href="NMDeviceBt.html" title="NMDeviceBt"><span class="type">NMDeviceBt</span></a> *device</code></em>);</pre>
 <p>Returns the Bluetooth device's usable capabilities.</p>
 <div class="refsect3">
-<a name="id-1.5.6.9.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-device-bt-get-capabilities.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -216,7 +216,7 @@ nm_device_bt_get_capabilities (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.5.6.9.4.6"></a><h4>Returns</h4>
+<a name="nm-device-bt-get-capabilities.returns"></a><h4>Returns</h4>
 <p> a combination of <a class="link" href="libnm-nm-dbus-interface.html#NMBluetoothCapabilities" title="enum NMBluetoothCapabilities"><span class="type">NMBluetoothCapabilities</span></a></p>
 </div>
 </div>
@@ -257,7 +257,7 @@ nm_device_bt_get_capabilities (<em class="parameter"><code><a class="link" href=
 <hr>
 <div class="refsect2">
 <a name="NMDeviceBt--hw-address"></a><h3>The <code class="literal">“hw-address”</code> property</h3>
-<pre class="programlisting">  “hw-address”               <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “hw-address”               <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The hardware (MAC) address of the device.</p>
 <p>Flags: Read</p>
 <p>Default value: NULL</p>
@@ -265,7 +265,7 @@ nm_device_bt_get_capabilities (<em class="parameter"><code><a class="link" href=
 <hr>
 <div class="refsect2">
 <a name="NMDeviceBt--name"></a><h3>The <code class="literal">“name”</code> property</h3>
-<pre class="programlisting">  “name”                     <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “name”                     <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The name of the bluetooth device.</p>
 <p>Flags: Read</p>
 <p>Default value: NULL</p>
@@ -273,6 +273,6 @@ nm_device_bt_get_capabilities (<em class="parameter"><code><a class="link" href=
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

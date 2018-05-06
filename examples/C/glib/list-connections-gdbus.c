@@ -24,11 +24,12 @@
  * level because it uses libnm.
  *
  * Compile with:
- *   gcc -Wall `pkg-config --cflags libnm` `pkg-config --cflags --libs gio-2.0` list-connections-gdbus.c -o list-connections-gdbus
+ *   gcc -Wall list-connections-gdbus.c -o list-connections-gdbus `pkg-config --cflags --libs libnm`
  */
 
 #include <gio/gio.h>
-#include <NetworkManager.h>
+
+#include <nm-dbus-interface.h>
 
 static void
 list_connections (GDBusProxy *proxy)

@@ -539,7 +539,7 @@ nm_setting_wired_add_s390_option (NMSettingWired *setting,
 	g_return_val_if_fail (NM_IS_SETTING_WIRED (setting), FALSE);
 	g_return_val_if_fail (key != NULL, FALSE);
 	g_return_val_if_fail (strlen (key), FALSE);
-	g_return_val_if_fail (_nm_utils_string_in_list (key, valid_s390_opts), FALSE);
+	g_return_val_if_fail (g_strv_contains (valid_s390_opts, key), FALSE);
 	g_return_val_if_fail (value != NULL, FALSE);
 
 	value_len = strlen (value);
@@ -606,7 +606,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 	GSList* mac_blacklist_iter;
 	const char *key, *value;
 
-	if (priv->port && !_nm_utils_string_in_list (priv->port, valid_ports)) {
+	if (priv->port && !g_strv_contains (valid_ports, priv->port)) {
 		g_set_error (error,
 		             NM_SETTING_WIRED_ERROR,
 		             NM_SETTING_WIRED_ERROR_INVALID_PROPERTY,
@@ -616,7 +616,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		return FALSE;
 	}
 
-	if (priv->duplex && !_nm_utils_string_in_list (priv->duplex, valid_duplex)) {
+	if (priv->duplex && !g_strv_contains (valid_duplex, priv->duplex)) {
 		g_set_error (error,
 		             NM_SETTING_WIRED_ERROR,
 		             NM_SETTING_WIRED_ERROR_INVALID_PROPERTY,
@@ -660,7 +660,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		return FALSE;
 	}
 
-	if (priv->s390_nettype && !_nm_utils_string_in_list (priv->s390_nettype, valid_nettype)) {
+	if (priv->s390_nettype && !g_strv_contains (valid_nettype, priv->s390_nettype)) {
 		g_set_error_literal (error,
 		                     NM_SETTING_WIRED_ERROR,
 		                     NM_SETTING_WIRED_ERROR_INVALID_PROPERTY,
@@ -671,7 +671,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 
 	g_hash_table_iter_init (&iter, priv->s390_options);
 	while (g_hash_table_iter_next (&iter, (gpointer) &key, (gpointer) &value)) {
-		if (   !_nm_utils_string_in_list (key, valid_s390_opts)
+		if (   !g_strv_contains (valid_s390_opts, key)
 		    || !strlen (value)
 		    || (strlen (value) > 200)) {
 			g_set_error (error,
@@ -865,9 +865,9 @@ nm_setting_wired_class_init (NMSettingWiredClass *setting_class)
 	/**
 	 * NMSettingWired:port:
 	 *
-	 * Specific port type to use if multiple the device supports multiple
+	 * Specific port type to use if the device supports multiple
 	 * attachment methods.  One of "tp" (Twisted Pair), "aui" (Attachment Unit
-	 * Interface), "bnc" (Thin Ethernet) or "mii" (Media Independent Interface.
+	 * Interface), "bnc" (Thin Ethernet) or "mii" (Media Independent Interface).
 	 * If the device supports only one port type, this setting is ignored.
 	 **/
 	g_object_class_install_property

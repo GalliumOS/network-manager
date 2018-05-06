@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2011 - 2013 Red Hat, Inc.
+ * Copyright 2011 - 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -39,7 +39,7 @@
  **/
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingBridge, nm_setting_bridge, NM_TYPE_SETTING,
-                         _nm_register_setting (BRIDGE, 1))
+                         _nm_register_setting (BRIDGE, NM_SETTING_PRIORITY_HW_BASE))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_BRIDGE)
 
 #define NM_SETTING_BRIDGE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_BRIDGE, NMSettingBridgePrivate))
@@ -52,6 +52,7 @@ typedef struct {
 	guint16  hello_time;
 	guint16  max_age;
 	guint32  ageing_time;
+	guint16  group_forward_mask;
 	gboolean multicast_snooping;
 } NMSettingBridgePrivate;
 
@@ -64,6 +65,7 @@ enum {
 	PROP_HELLO_TIME,
 	PROP_MAX_AGE,
 	PROP_AGEING_TIME,
+	PROP_GROUP_FORWARD_MASK,
 	PROP_MULTICAST_SNOOPING,
 	LAST_PROP
 };
@@ -180,6 +182,22 @@ nm_setting_bridge_get_ageing_time (NMSettingBridge *setting)
 }
 
 /**
+ * nm_setting_bridge_get_group_forward_mask:
+ * @setting: the #NMSettingBridge
+ *
+ * Returns: the #NMSettingBridge:group-forward-mask property of the setting
+ *
+ * Since: 1.10
+ **/
+guint16
+nm_setting_bridge_get_group_forward_mask (NMSettingBridge *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_BRIDGE (setting), 0);
+
+	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->group_forward_mask;
+}
+
+/**
  * nm_setting_bridge_get_multicast_snooping:
  * @setting: the #NMSettingBridge
  *
@@ -194,20 +212,6 @@ nm_setting_bridge_get_multicast_snooping (NMSettingBridge *setting)
 
 	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->multicast_snooping;
 }
-
-/* IEEE 802.1D-1998 timer values */
-#define BR_MIN_HELLO_TIME    1
-#define BR_MAX_HELLO_TIME    10
-
-#define BR_MIN_FORWARD_DELAY 2
-#define BR_MAX_FORWARD_DELAY 30
-
-#define BR_MIN_MAX_AGE       6
-#define BR_MAX_MAX_AGE       40
-
-/* IEEE 802.1D-1998 Table 7.4 */
-#define BR_MIN_AGEING_TIME   0
-#define BR_MAX_AGEING_TIME   1000000
 
 static inline gboolean
 check_range (guint32 val,
@@ -247,36 +251,45 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	}
 
 	if (!check_range (priv->forward_delay,
-	                  BR_MIN_FORWARD_DELAY,
-	                  BR_MAX_FORWARD_DELAY,
+	                  NM_BR_MIN_FORWARD_DELAY,
+	                  NM_BR_MAX_FORWARD_DELAY,
 	                  !priv->stp,
 	                  NM_SETTING_BRIDGE_FORWARD_DELAY,
 	                  error))
 		return FALSE;
 
 	if (!check_range (priv->hello_time,
-	                  BR_MIN_HELLO_TIME,
-	                  BR_MAX_HELLO_TIME,
+	                  NM_BR_MIN_HELLO_TIME,
+	                  NM_BR_MAX_HELLO_TIME,
 	                  !priv->stp,
 	                  NM_SETTING_BRIDGE_HELLO_TIME,
 	                  error))
 		return FALSE;
 
 	if (!check_range (priv->max_age,
-	                  BR_MIN_MAX_AGE,
-	                  BR_MAX_MAX_AGE,
+	                  NM_BR_MIN_MAX_AGE,
+	                  NM_BR_MAX_MAX_AGE,
 	                  !priv->stp,
 	                  NM_SETTING_BRIDGE_MAX_AGE,
 	                  error))
 		return FALSE;
 
 	if (!check_range (priv->ageing_time,
-	                  BR_MIN_AGEING_TIME,
-	                  BR_MAX_AGEING_TIME,
+	                  NM_BR_MIN_AGEING_TIME,
+	                  NM_BR_MAX_AGEING_TIME,
 	                  !priv->stp,
 	                  NM_SETTING_BRIDGE_AGEING_TIME,
 	                  error))
 		return FALSE;
+
+	if (priv->group_forward_mask & 7) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("the mask can't contain bits 0 (STP), 1 (MAC) or 2 (LACP)"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_BRIDGE_SETTING_NAME, NM_SETTING_BRIDGE_GROUP_FORWARD_MASK);
+		return FALSE;
+	}
 
 	return _nm_connection_verify_required_interface_name (connection, error);
 }
@@ -326,6 +339,9 @@ set_property (GObject *object, guint prop_id,
 	case PROP_AGEING_TIME:
 		priv->ageing_time = g_value_get_uint (value);
 		break;
+	case PROP_GROUP_FORWARD_MASK:
+		priv->group_forward_mask = (guint16) g_value_get_uint (value);
+		break;
 	case PROP_MULTICAST_SNOOPING:
 		priv->multicast_snooping = g_value_get_boolean (value);
 		break;
@@ -364,6 +380,9 @@ get_property (GObject *object, guint prop_id,
 	case PROP_AGEING_TIME:
 		g_value_set_uint (value, priv->ageing_time);
 		break;
+	case PROP_GROUP_FORWARD_MASK:
+		g_value_set_uint (value, priv->group_forward_mask);
+		break;
 	case PROP_MULTICAST_SNOOPING:
 		g_value_set_boolean (value, priv->multicast_snooping);
 		break;
@@ -392,8 +411,13 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 * NMSettingBridge:mac-address:
 	 *
 	 * If specified, the MAC address of bridge. When creating a new bridge, this
-	 * MAC address will be set. When matching an existing (outside
-	 * NetworkManager created) bridge, this MAC address must match.
+	 * MAC address will be set.
+	 *
+	 * If this field is left unspecified, the "ethernet.cloned-mac-address" is
+	 * referred instead to generate the initial MAC address. Note that setting
+	 * "ethernet.cloned-mac-address" anyway overwrites the MAC address of
+	 * the bridge later while activating the bridge. Hence, this property
+	 * is deprecated.
 	 **/
 	/* ---keyfile---
 	 * property: mac-address
@@ -405,10 +429,10 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	 * ---end---
 	 * ---ifcfg-rh---
 	 * property: mac-address
-	 * variable: MACADDR(+)
+	 * variable: BRIDGE_MACADDR(+)
 	 * description: MAC address of the bridge. Note that this requires a recent
 	 *   kernel support, originally introduced in 3.15 upstream kernel)
-	 *   MACADDR for bridges is an NM extension.
+	 *   BRIDGE_MACADDR for bridges is an NM extension.
 	 * ---end---
 	 */
 	g_object_class_install_property
@@ -484,7 +508,7 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	g_object_class_install_property
 		(object_class, PROP_FORWARD_DELAY,
 		 g_param_spec_uint (NM_SETTING_BRIDGE_FORWARD_DELAY, "", "",
-		                    0, BR_MAX_FORWARD_DELAY, 15,
+		                    0, NM_BR_MAX_FORWARD_DELAY, 15,
 		                    G_PARAM_READWRITE |
 		                    G_PARAM_CONSTRUCT |
 		                    NM_SETTING_PARAM_INFERRABLE |
@@ -506,7 +530,7 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	g_object_class_install_property
 		(object_class, PROP_HELLO_TIME,
 		 g_param_spec_uint (NM_SETTING_BRIDGE_HELLO_TIME, "", "",
-		                    0, BR_MAX_HELLO_TIME, 2,
+		                    0, NM_BR_MAX_HELLO_TIME, 2,
 		                    G_PARAM_READWRITE |
 		                    G_PARAM_CONSTRUCT |
 		                    NM_SETTING_PARAM_INFERRABLE |
@@ -528,7 +552,7 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	g_object_class_install_property
 		(object_class, PROP_MAX_AGE,
 		 g_param_spec_uint (NM_SETTING_BRIDGE_MAX_AGE, "", "",
-		                    0, BR_MAX_MAX_AGE, 20,
+		                    0, NM_BR_MAX_MAX_AGE, 20,
 		                    G_PARAM_READWRITE |
 		                    G_PARAM_CONSTRUCT |
 		                    NM_SETTING_PARAM_INFERRABLE |
@@ -550,7 +574,28 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *setting_class)
 	g_object_class_install_property
 		(object_class, PROP_AGEING_TIME,
 		 g_param_spec_uint (NM_SETTING_BRIDGE_AGEING_TIME, "", "",
-		                    0, BR_MAX_AGEING_TIME, 300,
+		                    NM_BR_MIN_AGEING_TIME, NM_BR_MAX_AGEING_TIME, 300,
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_INFERRABLE |
+		                    G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingBridge:group-forward-mask:
+	 *
+	 * A mask of group addresses to forward. Usually, group addresses in
+	 * the range from 01:80:C2:00:00:00 to 01:80:C2:00:00:0F are not
+	 * forwarded according to standards. This property is a mask of 16 bits,
+	 * each corresponding to a group address in that range that must be
+	 * forwarded. The mask can't have bits 0, 1 or 2 set because they are
+	 * used for STP, MAC pause frames and LACP.
+	 *
+	 * Since: 1.10
+	 **/
+	g_object_class_install_property
+		(object_class, PROP_GROUP_FORWARD_MASK,
+		 g_param_spec_uint (NM_SETTING_BRIDGE_GROUP_FORWARD_MASK, "", "",
+		                    0, 0xFFFF, 0,
 		                    G_PARAM_READWRITE |
 		                    G_PARAM_CONSTRUCT |
 		                    NM_SETTING_PARAM_INFERRABLE |

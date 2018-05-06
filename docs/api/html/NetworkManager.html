@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NetworkManager: NetworkManager Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
-<link rel="up" href="manpages.html" title="Manual Pages">
-<link rel="prev" href="nmcli-examples.html" title="nmcli-examples">
-<link rel="next" href="spec.html" title="D-Bus API Reference">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<link rel="up" href="manpages.html" title="Part I. Manual Pages">
+<link rel="prev" href="manpages.html" title="Part I. Manual Pages">
+<link rel="next" href="NetworkManager.conf.html" title="NetworkManager.conf">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -16,8 +16,8 @@
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="nmcli-examples.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="spec.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="p" href="manpages.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="NetworkManager.conf.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NetworkManager"></a><div class="titlepage"></div>
@@ -33,7 +33,7 @@
 <div class="cmdsynopsis"><p><code class="command">NetworkManager [OPTIONS...]</code> </p></div>
 </div>
 <div class="refsect1">
-<a name="id-1.2.10.5"></a><h2>Description</h2>
+<a name="id-1.2.2.5"></a><h2>Description</h2>
 <p>
       The NetworkManager daemon attempts to make networking
       configuration and operation as painless and automatic as
@@ -48,10 +48,11 @@
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.2.10.6"></a><h2>Dispatcher scripts</h2>
+<a name="id-1.2.2.6"></a><h2>Dispatcher scripts</h2>
 <p>
       NetworkManager will execute scripts in the
-      /etc/NetworkManager/dispatcher.d directory or subdirectories in
+      <code class="filename">/etc/NetworkManager/dispatcher.d</code>
+      directory or subdirectories in
       alphabetical order in response to network events.  Each script should
       be a regular executable file owned by root.  Furthermore, it must not be
       writable by group or other, and not setuid.
@@ -61,7 +62,8 @@
       device an operation just happened on, and second the action. For device actions,
       the interface is the name of the kernel interface suitable for IP configuration.
       Thus it is either VPN_IP_IFACE, DEVICE_IP_IFACE, or DEVICE_IFACE, as applicable.
-      For the <code class="varname">hostname</code> action it is always "none".
+      For the <code class="varname">hostname</code> and <code class="varname">connectivity-change</code>
+      actions it is always "none".
     </p>
 <p>The actions are:</p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -74,8 +76,8 @@
 <td><p><span class="term"><code class="varname">pre-up</code></span></p></td>
 <td><p>The interface is connected to the network but is not
         yet fully activated.  Scripts acting on this event must be placed or
-        symlinked into the /etc/NetworkManager/dispatcher.d/pre-up.d directory,
-        and NetworkManager will wait for script execution to complete before
+        symlinked into the <code class="filename">/etc/NetworkManager/dispatcher.d/pre-up.d</code>
+        directory, and NetworkManager will wait for script execution to complete before
         indicating to applications that the interface is fully activated.
         </p></td>
 </tr>
@@ -87,7 +89,7 @@
 <td><p><span class="term"><code class="varname">pre-down</code></span></p></td>
 <td><p>The interface will be deactivated but has not yet been
         disconnected from the network.  Scripts acting on this event must be
-        placed or symlinked into the /etc/NetworkManager/dispatcher.d/pre-down.d
+        placed or symlinked into the <code class="filename">/etc/NetworkManager/dispatcher.d/pre-down.d</code>
         directory, and NetworkManager will wait for script execution to complete
         before disconnecting the interface from its network.  Note that this
         event is not emitted for forced disconnections, like when carrier is
@@ -105,8 +107,8 @@
 <td><p><span class="term"><code class="varname">vpn-pre-up</code></span></p></td>
 <td><p>The VPN is connected to the network but is not yet
         fully activated.  Scripts acting on this event must be placed or
-        symlinked into the /etc/NetworkManager/dispatcher.d/pre-up.d directory,
-        and NetworkManager will wait for script execution to complete before
+        symlinked into the <code class="filename">/etc/NetworkManager/dispatcher.d/pre-up.d</code>
+        directory, and NetworkManager will wait for script execution to complete before
         indicating to applications that the VPN is fully activated.
         </p></td>
 </tr>
@@ -120,7 +122,7 @@
 <td><p><span class="term"><code class="varname">vpn-pre-down</code></span></p></td>
 <td><p>The VPN will be deactivated but has not yet been
         disconnected from the network.  Scripts acting on this event must be
-        placed or symlinked into the /etc/NetworkManager/dispatcher.d/pre-down.d
+        placed or symlinked into the <code class="filename">/etc/NetworkManager/dispatcher.d/pre-down.d</code>
         directory, and NetworkManager will wait for script execution to complete
         before disconnecting the VPN from its network.  Note that this
         event is not emitted for forced disconnections, like when the VPN
@@ -153,6 +155,12 @@
 <td><p><span class="term"><code class="varname">dhcp6-change</code></span></p></td>
 <td><p>
           The DHCPv6 lease has changed (renewed, rebound, etc).
+        </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">connectivity-change</code></span></p></td>
+<td><p>
+          The network connectivity state has changed (no connectivity, went online, etc).
         </p></td>
 </tr>
 </tbody>
@@ -275,6 +283,15 @@
             and DHCP6_ instead.
           </p></td>
 </tr>
+<tr>
+<td><p><span class="term"><code class="varname">CONNECTIVITY_STATE</code></span></p></td>
+<td><p> The network connectivity state, which can
+          take the values defined by the NMConnectivityState type,
+          from the org.freedesktop.NetworkManager D-Bus API: unknown,
+          none, portal, limited or full. Note: this variable will only
+          be set for connectivity-change actions.
+          </p></td>
+</tr>
 </tbody>
 </table></div>
 <p>
@@ -288,7 +305,8 @@
       NetworkManager process, and will be killed if they run for too long. If your script
       might take arbitrarily long to complete, you should spawn a child process and have the
       parent return immediately. Scripts that are symbolic links pointing inside the
-      /etc/NetworkManager/dispatcher.d/no-wait.d/ directory are run immediately, without
+      <code class="filename">/etc/NetworkManager/dispatcher.d/no-wait.d/</code>
+      directory are run immediately, without
       waiting for the termination of previous scripts, and in parallel. Also beware that
       once a script is queued, it will always be run, even if a later event renders it
       obsolete. (Eg, if an interface goes up, and then back down again quickly, it is
@@ -296,7 +314,7 @@
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.2.10.7"></a><h2>Options</h2>
+<a name="id-1.2.2.7"></a><h2>Options</h2>
 <p>The following options are understood:</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -336,17 +354,19 @@
 <td><p><span class="term"><code class="option">--state-file</code></span></p></td>
 <td><p>Specify file for storing state of the
         NetworkManager persistently.  If not specified, the default
-        value of /var/lib/NetworkManager/NetworkManager.state is used.
+        value of <code class="filename">/var/lib/NetworkManager/NetworkManager.state</code>
+        is used.
         </p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option">--config</code></span></p></td>
 <td><p> Specify configuration file to set up various
         settings for NetworkManager.  If not specified, the default
-        value of /etc/NetworkManager/NetworkManager.conf is used with
+        value of <code class="filename">/etc/NetworkManager/NetworkManager.conf</code>
+        is used with
         a fallback to the older 'nm-system-settings.conf' if located
         in the same directory.  See
-        <span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span>
+        <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>
         for more information on configuration file.
         </p></td>
 </tr>
@@ -365,7 +385,7 @@
           Sets how much information NetworkManager sends to the log destination (usually
           syslog's "daemon" facility).  By default, only informational, warning, and error
           messages are logged. See the section on <code class="literal">logging</code> in
-          <span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span>
+          <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>
           for more information.
         </p></td>
 </tr>
@@ -375,7 +395,7 @@
           A comma-separated list specifying which operations are logged to the log
           destination (usually syslog). By default, most domains are logging-enabled.
           See the section on <code class="literal">logging</code> in
-          <span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span>
+          <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>
           for more information.
         </p></td>
 </tr>
@@ -389,7 +409,7 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="id-1.2.10.8"></a><h2>UDEV PROPERTIES</h2>
+<a name="id-1.2.2.8"></a><h2>Udev Properties</h2>
 <p>
       <span class="citerefentry"><span class="refentrytitle">udev</span>(7)</span>
       device manager is used for the network device discovery. The following
@@ -420,7 +440,7 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="id-1.2.10.9"></a><h2>SIGNALS</h2>
+<a name="id-1.2.2.9"></a><h2>SIGNALS</h2>
 <p>
       NetworkManager process handles the following signals:
       </p>
@@ -436,29 +456,50 @@
           The signal causes a reload of NetworkManager's configuration.
           Note that not all configuration parameters can be changed at
           runtime and therefore some changes may be applied only after
-          the next restart of the daemon. The signal also forces a
-          rewrite of DNS configuration.
+          the next restart of the daemon.
+          A SIGHUP also involves further reloading actions, like doing
+          a DNS update and restarting the DNS plugin. The latter can be
+          useful for example when using the dnsmasq plugin and changing
+          its configuration in <code class="filename">/etc/NetworkManager/dnsmasq.d</code>.
+          However, it also means this will shortly interrupt name resolution.
+          In the future, there may be further actions added.
+          A SIGHUP means to update NetworkManager configuration and reload
+          everything that is supported. Note that this does not reload
+          connections from disk. For that there is a D-Bus API and
+          nmcli's reload action
           </p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">SIGUSR1</code></span></p></td>
 <td><p>
-            The signal forces a rewrite of DNS configuration.
+            The signal forces a rewrite of DNS configuration. Contrary to
+            SIGHUP, this does not restart the DNS plugin and will not interrupt
+            name resolution.
+            In the future, further actions may be added. A SIGUSR1
+            means to write out data like resolv.conf, or refresh a cache.
+            It is a subset of what is done for SIGHUP without reloading
+            configuration from disk.
           </p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">SIGUSR2</code></span></p></td>
 <td><p>
-            The signal has no effect at the moment.
+            The signal has no effect at the moment but is reserved for future
+            use.
           </p></td>
 </tr>
 </tbody>
 </table></div>
 <p>
     </p>
+<p>
+      An alternative to a signal to reload configuration is the Reload D-Bus call.
+      It allows for more fine-grained selection of what to reload, it only returns
+      after the reload is complete, and it is guarded by PolicyKit.
+    </p>
 </div>
 <div class="refsect1">
-<a name="id-1.2.10.10"></a><h2>DEBUGGING</h2>
+<a name="id-1.2.2.10"></a><h2>Debugging</h2>
 <p>
       The following environment variables are supported to help
       debugging.  When used in conjunction with the
@@ -475,20 +516,28 @@
     </p>
 </div>
 <div class="refsect1">
-<a name="id-1.2.10.11"></a><h2>See Also</h2>
+<a name="id-1.2.2.11"></a><h2>Bugs</h2>
 <p>
-      <span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span>,
-      <span class="citerefentry"><span class="refentrytitle">nmcli</span>(1)</span>,
-      <span class="citerefentry"><span class="refentrytitle">nmcli-examples</span>(7)</span>,
-      <span class="citerefentry"><span class="refentrytitle">nm-online</span>(1)</span>,
-      <span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span>,
+      Please report any bugs you find in NetworkManager at the
+      <a class="ulink" href="https://bugzilla.gnome.org/enter_bug.cgi?product=NetworkManager" target="_top">NetworkManager bug tracker</a>.
+    </p>
+</div>
+<div class="refsect1">
+<a name="id-1.2.2.12"></a><h2>See Also</h2>
+<p>
+      <a class="ulink" href="https://wiki.gnome.org/Projects/NetworkManager" target="_top">NetworkManager home page</a>,
+      <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>,
+      <a class="link" href="nmcli.html" title="nmcli"><span class="citerefentry"><span class="refentrytitle">nmcli</span>(1)</span></a>,
+      <a class="link" href="nmcli-examples.html" title="nmcli-examples"><span class="citerefentry"><span class="refentrytitle">nmcli-examples</span>(7)</span></a>,
+      <a class="link" href="nm-online.html" title="nm-online"><span class="citerefentry"><span class="refentrytitle">nm-online</span>(1)</span></a>,
+      <a class="link" href="nm-settings.html" title="nm-settings"><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span></a>,
       <span class="citerefentry"><span class="refentrytitle">nm-applet</span>(1)</span>,
-      <span class="citerefentry"><span class="refentrytitle">nm-connection-editor</span>(1)</span>
+      <span class="citerefentry"><span class="refentrytitle">nm-connection-editor</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">udev</span>(7)</span>
     </p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

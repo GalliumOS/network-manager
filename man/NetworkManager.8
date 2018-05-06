@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: NetworkManager
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 05/11/2016
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 03/12/2018
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 1.2.2
+.\"    Source: NetworkManager 1.10.6
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.2\&.2" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.10\&.6" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -37,17 +37,23 @@ NetworkManager \- network management daemon
 The NetworkManager daemon attempts to make networking configuration and operation as painless and automatic as possible by managing the primary network connection and other network interfaces, like Ethernet, WiFi, and Mobile Broadband devices\&. NetworkManager will connect any network device when a connection for that device becomes available, unless that behavior is disabled\&. Information about networking is exported via a D\-Bus interface to any interested application, providing a rich API with which to inspect and control network settings and operation\&.
 .SH "DISPATCHER SCRIPTS"
 .PP
-NetworkManager will execute scripts in the /etc/NetworkManager/dispatcher\&.d directory or subdirectories in alphabetical order in response to network events\&. Each script should be a regular executable file owned by root\&. Furthermore, it must not be writable by group or other, and not setuid\&.
+NetworkManager will execute scripts in the
+/etc/NetworkManager/dispatcher\&.d
+directory or subdirectories in alphabetical order in response to network events\&. Each script should be a regular executable file owned by root\&. Furthermore, it must not be writable by group or other, and not setuid\&.
 .PP
 Each script receives two arguments, the first being the interface name of the device an operation just happened on, and second the action\&. For device actions, the interface is the name of the kernel interface suitable for IP configuration\&. Thus it is either VPN_IP_IFACE, DEVICE_IP_IFACE, or DEVICE_IFACE, as applicable\&. For the
 \fIhostname\fR
-action it is always "none"\&.
+and
+\fIconnectivity\-change\fR
+actions it is always "none"\&.
 .PP
 The actions are:
 .PP
 \fIpre\-up\fR
 .RS 4
-The interface is connected to the network but is not yet fully activated\&. Scripts acting on this event must be placed or symlinked into the /etc/NetworkManager/dispatcher\&.d/pre\-up\&.d directory, and NetworkManager will wait for script execution to complete before indicating to applications that the interface is fully activated\&.
+The interface is connected to the network but is not yet fully activated\&. Scripts acting on this event must be placed or symlinked into the
+/etc/NetworkManager/dispatcher\&.d/pre\-up\&.d
+directory, and NetworkManager will wait for script execution to complete before indicating to applications that the interface is fully activated\&.
 .RE
 .PP
 \fIup\fR
@@ -57,7 +63,9 @@ The interface has been activated\&.
 .PP
 \fIpre\-down\fR
 .RS 4
-The interface will be deactivated but has not yet been disconnected from the network\&. Scripts acting on this event must be placed or symlinked into the /etc/NetworkManager/dispatcher\&.d/pre\-down\&.d directory, and NetworkManager will wait for script execution to complete before disconnecting the interface from its network\&. Note that this event is not emitted for forced disconnections, like when carrier is lost or a wireless signal fades\&. It is only emitted when there is an opportunity to cleanly handle a network disconnection event\&.
+The interface will be deactivated but has not yet been disconnected from the network\&. Scripts acting on this event must be placed or symlinked into the
+/etc/NetworkManager/dispatcher\&.d/pre\-down\&.d
+directory, and NetworkManager will wait for script execution to complete before disconnecting the interface from its network\&. Note that this event is not emitted for forced disconnections, like when carrier is lost or a wireless signal fades\&. It is only emitted when there is an opportunity to cleanly handle a network disconnection event\&.
 .RE
 .PP
 \fIdown\fR
@@ -67,7 +75,9 @@ The interface has been deactivated\&.
 .PP
 \fIvpn\-pre\-up\fR
 .RS 4
-The VPN is connected to the network but is not yet fully activated\&. Scripts acting on this event must be placed or symlinked into the /etc/NetworkManager/dispatcher\&.d/pre\-up\&.d directory, and NetworkManager will wait for script execution to complete before indicating to applications that the VPN is fully activated\&.
+The VPN is connected to the network but is not yet fully activated\&. Scripts acting on this event must be placed or symlinked into the
+/etc/NetworkManager/dispatcher\&.d/pre\-up\&.d
+directory, and NetworkManager will wait for script execution to complete before indicating to applications that the VPN is fully activated\&.
 .RE
 .PP
 \fIvpn\-up\fR
@@ -77,7 +87,9 @@ A VPN connection has been activated\&.
 .PP
 \fIvpn\-pre\-down\fR
 .RS 4
-The VPN will be deactivated but has not yet been disconnected from the network\&. Scripts acting on this event must be placed or symlinked into the /etc/NetworkManager/dispatcher\&.d/pre\-down\&.d directory, and NetworkManager will wait for script execution to complete before disconnecting the VPN from its network\&. Note that this event is not emitted for forced disconnections, like when the VPN terminates unexpectedly or general connectivity is lost\&. It is only emitted when there is an opportunity to cleanly handle a VPN disconnection event\&.
+The VPN will be deactivated but has not yet been disconnected from the network\&. Scripts acting on this event must be placed or symlinked into the
+/etc/NetworkManager/dispatcher\&.d/pre\-down\&.d
+directory, and NetworkManager will wait for script execution to complete before disconnecting the VPN from its network\&. Note that this event is not emitted for forced disconnections, like when the VPN terminates unexpectedly or general connectivity is lost\&. It is only emitted when there is an opportunity to cleanly handle a VPN disconnection event\&.
 .RE
 .PP
 \fIvpn\-down\fR
@@ -98,6 +110,11 @@ The DHCPv4 lease has changed (renewed, rebound, etc)\&.
 \fIdhcp6\-change\fR
 .RS 4
 The DHCPv6 lease has changed (renewed, rebound, etc)\&.
+.RE
+.PP
+\fIconnectivity\-change\fR
+.RS 4
+The network connectivity state has changed (no connectivity, went online, etc)\&.
 .RE
 .PP
 The environment contains more information about the interface and the connection\&. The following variables are available for the use in the dispatcher scripts:
@@ -183,9 +200,16 @@ If the connection used DHCP for address configuration, the received DHCP configu
 The same variables as for IPv4 are available for IPv6, but the prefixes are IP6_ and DHCP6_ instead\&.
 .RE
 .PP
+\fICONNECTIVITY_STATE\fR
+.RS 4
+The network connectivity state, which can take the values defined by the NMConnectivityState type, from the org\&.freedesktop\&.NetworkManager D\-Bus API: unknown, none, portal, limited or full\&. Note: this variable will only be set for connectivity\-change actions\&.
+.RE
+.PP
 In case of VPN, VPN_IP_IFACE is set, and IP4_*, IP6_* variables with VPN prefix are exported too, like VPN_IP4_ADDRESS_0, VPN_IP4_NUM_ADDRESSES\&.
 .PP
-Dispatcher scripts are run one at a time, but asynchronously from the main NetworkManager process, and will be killed if they run for too long\&. If your script might take arbitrarily long to complete, you should spawn a child process and have the parent return immediately\&. Scripts that are symbolic links pointing inside the /etc/NetworkManager/dispatcher\&.d/no\-wait\&.d/ directory are run immediately, without waiting for the termination of previous scripts, and in parallel\&. Also beware that once a script is queued, it will always be run, even if a later event renders it obsolete\&. (Eg, if an interface goes up, and then back down again quickly, it is possible that one or more "up" scripts will be run after the interface has gone down\&.)
+Dispatcher scripts are run one at a time, but asynchronously from the main NetworkManager process, and will be killed if they run for too long\&. If your script might take arbitrarily long to complete, you should spawn a child process and have the parent return immediately\&. Scripts that are symbolic links pointing inside the
+/etc/NetworkManager/dispatcher\&.d/no\-wait\&.d/
+directory are run immediately, without waiting for the termination of previous scripts, and in parallel\&. Also beware that once a script is queued, it will always be run, even if a later event renders it obsolete\&. (Eg, if an interface goes up, and then back down again quickly, it is possible that one or more "up" scripts will be run after the interface has gone down\&.)
 .SH "OPTIONS"
 .PP
 The following options are understood:
@@ -217,12 +241,16 @@ Specify location of a PID file\&. The PID file is used for storing PID of the ru
 .PP
 \fB\-\-state\-file\fR
 .RS 4
-Specify file for storing state of the NetworkManager persistently\&. If not specified, the default value of /var/lib/NetworkManager/NetworkManager\&.state is used\&.
+Specify file for storing state of the NetworkManager persistently\&. If not specified, the default value of
+/var/lib/NetworkManager/NetworkManager\&.state
+is used\&.
 .RE
 .PP
 \fB\-\-config\fR
 .RS 4
-Specify configuration file to set up various settings for NetworkManager\&. If not specified, the default value of /etc/NetworkManager/NetworkManager\&.conf is used with a fallback to the older \*(Aqnm\-system\-settings\&.conf\*(Aq if located in the same directory\&. See
+Specify configuration file to set up various settings for NetworkManager\&. If not specified, the default value of
+/etc/NetworkManager/NetworkManager\&.conf
+is used with a fallback to the older \*(Aqnm\-system\-settings\&.conf\*(Aq if located in the same directory\&. See
 \fBNetworkManager.conf\fR(5)
 for more information on configuration file\&.
 .RE
@@ -274,18 +302,21 @@ NetworkManager process handles the following signals:
 .PP
 \fISIGHUP\fR
 .RS 4
-The signal causes a reload of NetworkManager\*(Aqs configuration\&. Note that not all configuration parameters can be changed at runtime and therefore some changes may be applied only after the next restart of the daemon\&. The signal also forces a rewrite of DNS configuration\&.
+The signal causes a reload of NetworkManager\*(Aqs configuration\&. Note that not all configuration parameters can be changed at runtime and therefore some changes may be applied only after the next restart of the daemon\&. A SIGHUP also involves further reloading actions, like doing a DNS update and restarting the DNS plugin\&. The latter can be useful for example when using the dnsmasq plugin and changing its configuration in
+/etc/NetworkManager/dnsmasq\&.d\&. However, it also means this will shortly interrupt name resolution\&. In the future, there may be further actions added\&. A SIGHUP means to update NetworkManager configuration and reload everything that is supported\&. Note that this does not reload connections from disk\&. For that there is a D\-Bus API and nmcli\*(Aqs reload action
 .RE
 .PP
 \fISIGUSR1\fR
 .RS 4
-The signal forces a rewrite of DNS configuration\&.
+The signal forces a rewrite of DNS configuration\&. Contrary to SIGHUP, this does not restart the DNS plugin and will not interrupt name resolution\&. In the future, further actions may be added\&. A SIGUSR1 means to write out data like resolv\&.conf, or refresh a cache\&. It is a subset of what is done for SIGHUP without reloading configuration from disk\&.
 .RE
 .PP
 \fISIGUSR2\fR
 .RS 4
-The signal has no effect at the moment\&.
+The signal has no effect at the moment but is reserved for future use\&.
 .RE
+.PP
+An alternative to a signal to reload configuration is the Reload D\-Bus call\&. It allows for more fine\-grained selection of what to reload, it only returns after the reload is complete, and it is guarded by PolicyKit\&.
 .SH "DEBUGGING"
 .PP
 The following environment variables are supported to help debugging\&. When used in conjunction with the
@@ -297,12 +328,29 @@ and
 to enable debug logging inside NetworkManager itself\&.
 .PP
 \fBNM_PPP_DEBUG\fR: When set to anything, causes NetworkManager to turn on PPP debugging in pppd, which logs all PPP and PPTP frames and client/server exchanges\&.
+.SH "BUGS"
+.PP
+Please report any bugs you find in NetworkManager at the
+\m[blue]\fBNetworkManager bug tracker\fR\m[]\&\s-2\u[1]\d\s+2\&.
 .SH "SEE ALSO"
 .PP
+\m[blue]\fBNetworkManager home page\fR\m[]\&\s-2\u[2]\d\s+2,
 \fBNetworkManager.conf\fR(5),
 \fBnmcli\fR(1),
 \fBnmcli-examples\fR(7),
 \fBnm-online\fR(1),
 \fBnm-settings\fR(5),
 \fBnm-applet\fR(1),
-\fBnm-connection-editor\fR(1)\fBudev\fR(7)
+\fBnm-connection-editor\fR(1),
+\fBudev\fR(7)
+.SH "NOTES"
+.IP " 1." 4
+NetworkManager bug tracker
+.RS 4
+\%https://bugzilla.gnome.org/enter_bug.cgi?product=NetworkManager
+.RE
+.IP " 2." 4
+NetworkManager home page
+.RS 4
+\%https://wiki.gnome.org/Projects/NetworkManager
+.RE

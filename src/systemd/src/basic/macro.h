@@ -19,7 +19,6 @@
   along with systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
 
-#include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <sys/param.h>
@@ -97,6 +96,15 @@
 
 #define UNIQ_T(x, uniq) CONCATENATE(__unique_prefix_, CONCATENATE(x, uniq))
 #define UNIQ __COUNTER__
+
+/* builtins */
+#if __SIZEOF_INT__ == 4
+#define BUILTIN_FFS_U32(x) __builtin_ffs(x);
+#elif __SIZEOF_LONG__ == 4
+#define BUILTIN_FFS_U32(x) __builtin_ffsl(x);
+#else
+#error "neither int nor long are four bytes long?!?"
+#endif
 
 /* Rounds up */
 

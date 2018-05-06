@@ -23,17 +23,18 @@
 
 #include "NetworkManagerUtils.h"
 
+#include "nm-common-macros.h"
 #include "nm-utils.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-ip6-config.h"
 #include "nm-core-internal.h"
 
-#include "nm-platform.h"
+#include "platform/nm-platform.h"
 #include "nm-exported-object.h"
 #include "nm-auth-utils.h"
 
-/******************************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_utils_get_shared_wifi_permission:
@@ -64,7 +65,7 @@ nm_utils_get_shared_wifi_permission (NMConnection *connection)
 	return NULL;
 }
 
-/******************************************************************************/
+/*****************************************************************************/
 
 static char *
 get_new_connection_name (const GSList *existing,
@@ -174,36 +175,77 @@ nm_utils_get_ip_config_method (NMConnection *connection,
 	if (ip_setting_type == NM_TYPE_SETTING_IP4_CONFIG) {
 		g_return_val_if_fail (s_con != NULL, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
 
-		if (nm_setting_connection_get_master (s_con))
+		s_ip4 = nm_connection_get_setting_ip4_config (connection);
+		if (!s_ip4)
 			return NM_SETTING_IP4_CONFIG_METHOD_DISABLED;
-		else {
-			s_ip4 = nm_connection_get_setting_ip4_config (connection);
-			if (!s_ip4)
-				return NM_SETTING_IP4_CONFIG_METHOD_DISABLED;
-			method = nm_setting_ip_config_get_method (s_ip4);
-			g_return_val_if_fail (method != NULL, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
+		method = nm_setting_ip_config_get_method (s_ip4);
+		g_return_val_if_fail (method != NULL, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
 
-			return method;
-		}
+		return method;
 
 	} else if (ip_setting_type == NM_TYPE_SETTING_IP6_CONFIG) {
 		g_return_val_if_fail (s_con != NULL, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
 
-		if (nm_setting_connection_get_master (s_con))
+		s_ip6 = nm_connection_get_setting_ip6_config (connection);
+		if (!s_ip6)
 			return NM_SETTING_IP6_CONFIG_METHOD_IGNORE;
-		else {
-			s_ip6 = nm_connection_get_setting_ip6_config (connection);
-			if (!s_ip6)
-				return NM_SETTING_IP6_CONFIG_METHOD_IGNORE;
-			method = nm_setting_ip_config_get_method (s_ip6);
-			g_return_val_if_fail (method != NULL, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
+		method = nm_setting_ip_config_get_method (s_ip6);
+		g_return_val_if_fail (method != NULL, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
 
-			return method;
-		}
+		return method;
 
 	} else
 		g_assert_not_reached ();
 }
+
+gboolean
+nm_utils_connection_has_default_route (NMConnection *connection,
+                                       int addr_family,
+                                       gboolean *out_is_never_default)
+{
+	const char *method;
+	NMSettingIPConfig *s_ip;
+	gboolean is_never_default = FALSE;
+	gboolean has_default_route = FALSE;
+
+	g_return_val_if_fail (NM_IS_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (NM_IN_SET (addr_family, AF_INET, AF_INET6), FALSE);
+
+	if (!connection)
+		goto out;
+
+	if (addr_family == AF_INET)
+		s_ip = nm_connection_get_setting_ip4_config (connection);
+	else
+		s_ip = nm_connection_get_setting_ip6_config (connection);
+	if (!s_ip)
+		goto out;
+	if (nm_setting_ip_config_get_never_default (s_ip)) {
+		is_never_default = TRUE;
+		goto out;
+	}
+
+	if (addr_family == AF_INET) {
+		method = nm_utils_get_ip_config_method (connection, NM_TYPE_SETTING_IP4_CONFIG);
+		if (NM_IN_STRSET (method, NULL,
+		                          NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
+		                          NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL))
+			goto out;
+	} else {
+		method = nm_utils_get_ip_config_method (connection, NM_TYPE_SETTING_IP6_CONFIG);
+		if (NM_IN_STRSET (method, NULL,
+		                          NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+		                          NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL))
+			goto out;
+	}
+
+	has_default_route = TRUE;
+out:
+	NM_SET_OUT (out_is_never_default, is_never_default);
+	return has_default_route;
+}
+
+/*****************************************************************************/
 
 void
 nm_utils_complete_generic (NMPlatform *platform,
@@ -216,7 +258,7 @@ nm_utils_complete_generic (NMPlatform *platform,
                            gboolean default_enable_ipv6)
 {
 	NMSettingConnection *s_con;
-	char *id, *uuid, *ifname;
+	char *id, *ifname;
 	GHashTable *parameters;
 
 	g_assert (fallback_id_prefix);
@@ -229,9 +271,9 @@ nm_utils_complete_generic (NMPlatform *platform,
 	g_object_set (G_OBJECT (s_con), NM_SETTING_CONNECTION_TYPE, ctype, NULL);
 
 	if (!nm_setting_connection_get_uuid (s_con)) {
-		uuid = nm_utils_uuid_generate ();
-		g_object_set (G_OBJECT (s_con), NM_SETTING_CONNECTION_UUID, uuid, NULL);
-		g_free (uuid);
+		char uuid[37];
+
+		g_object_set (G_OBJECT (s_con), NM_SETTING_CONNECTION_UUID, nm_utils_uuid_generate_buf (uuid), NULL);
 	}
 
 	/* Add a connection ID if absent */
@@ -249,7 +291,7 @@ nm_utils_complete_generic (NMPlatform *platform,
 	}
 
 	/* Normalize */
-	parameters = g_hash_table_new (g_str_hash, g_str_equal);
+	parameters = g_hash_table_new (nm_str_hash, g_str_equal);
 	g_hash_table_insert (parameters, NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD,
 	                     default_enable_ipv6 ? NM_SETTING_IP6_CONFIG_METHOD_AUTO : NM_SETTING_IP6_CONFIG_METHOD_IGNORE);
 	nm_connection_normalize (connection, parameters, NULL, NULL);
@@ -341,18 +383,19 @@ static int
 route_compare (NMIPRoute *route1, NMIPRoute *route2, gint64 default_metric)
 {
 	gint64 r, metric1, metric2;
+	int family;
+	guint plen;
+	NMIPAddr a1 = { 0 }, a2 = { 0 };
 
-	r = g_strcmp0 (nm_ip_route_get_dest (route1), nm_ip_route_get_dest (route2));
-	if (r)
-		return r;
-
-	r = nm_ip_route_get_prefix (route1) - nm_ip_route_get_prefix (route2);
+	family = nm_ip_route_get_family (route1);
+	r = family - nm_ip_route_get_family (route2);
 	if (r)
 		return r > 0 ? 1 : -1;
 
-	r = g_strcmp0 (nm_ip_route_get_next_hop (route1), nm_ip_route_get_next_hop (route2));
+	plen = nm_ip_route_get_prefix (route1);
+	r = plen - nm_ip_route_get_prefix (route2);
 	if (r)
-		return r;
+		return r > 0 ? 1 : -1;
 
 	metric1 = nm_ip_route_get_metric (route1) == -1 ? default_metric : nm_ip_route_get_metric (route1);
 	metric2 = nm_ip_route_get_metric (route2) == -1 ? default_metric : nm_ip_route_get_metric (route2);
@@ -361,17 +404,26 @@ route_compare (NMIPRoute *route1, NMIPRoute *route2, gint64 default_metric)
 	if (r)
 		return r > 0 ? 1 : -1;
 
-	r = nm_ip_route_get_family (route1) - nm_ip_route_get_family (route2);
+	r = g_strcmp0 (nm_ip_route_get_next_hop (route1), nm_ip_route_get_next_hop (route2));
 	if (r)
-		return r > 0 ? 1 : -1;
+		return r;
+
+	/* NMIPRoute validates family and dest. inet_pton() is not expected to fail. */
+	inet_pton (family, nm_ip_route_get_dest (route1), &a1);
+	inet_pton (family, nm_ip_route_get_dest (route2), &a2);
+	nm_utils_ipx_address_clear_host_address (family, &a1, &a1, plen);
+	nm_utils_ipx_address_clear_host_address (family, &a2, &a2, plen);
+	r = memcmp (&a1, &a2, sizeof (a1));
+	if (r)
+		return r;
 
 	return 0;
 }
 
 static int
-route_ptr_compare (const void *a, const void *b)
+route_ptr_compare (const void *a, const void *b, gpointer metric)
 {
-	return route_compare (*(NMIPRoute **) a, *(NMIPRoute **) b, -1);
+	return route_compare (*(NMIPRoute **) a, *(NMIPRoute **) b, *((gint64 *) metric));
 }
 
 static gboolean
@@ -381,11 +433,14 @@ check_ip_routes (NMConnection *orig,
                  gint64 default_metric,
                  gboolean v4)
 {
-	gs_free NMIPRoute **routes1 = NULL, **routes2 = NULL;
+	gs_free NMIPRoute **routes1 = NULL;
+	NMIPRoute **routes2;
 	NMSettingIPConfig *s_ip1, *s_ip2;
+	gint64 m;
 	const char *s_name;
 	GHashTable *props;
-	guint i, num;
+	guint i, i1, i2, num1, num2;
+	const guint8 PLEN = v4 ? 32 : 128;
 
 	s_name = v4 ? NM_SETTING_IP4_CONFIG_SETTING_NAME :
 	              NM_SETTING_IP6_CONFIG_SETTING_NAME;
@@ -402,23 +457,49 @@ check_ip_routes (NMConnection *orig,
 	if (!s_ip1 || !s_ip2)
 		return FALSE;
 
-	num = nm_setting_ip_config_get_num_routes (s_ip1);
-	if (num != nm_setting_ip_config_get_num_routes (s_ip2))
-		return FALSE;
+	num1 = nm_setting_ip_config_get_num_routes (s_ip1);
+	num2 = nm_setting_ip_config_get_num_routes (s_ip2);
 
-	routes1 = g_new (NMIPRoute *, num);
-	routes2 = g_new (NMIPRoute *, num);
+	routes1 = g_new (NMIPRoute *, (gsize) num1 + num2);
+	routes2 = &routes1[num1];
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num1; i++)
 		routes1[i] = nm_setting_ip_config_get_route (s_ip1, i);
+	for (i = 0; i < num2; i++)
 		routes2[i] = nm_setting_ip_config_get_route (s_ip2, i);
+
+	m = nm_setting_ip_config_get_route_metric (s_ip2);
+	if (m != -1)
+		default_metric = m;
+
+	g_qsort_with_data (routes1, num1, sizeof (NMIPRoute *), route_ptr_compare, &default_metric);
+	g_qsort_with_data (routes2, num2, sizeof (NMIPRoute *), route_ptr_compare, &default_metric);
+
+	for (i1 = 0, i2 = 0; i2 < num2; i1++) {
+		if (i1 >= num1)
+			return FALSE;
+		if (route_compare (routes1[i1], routes2[i2], default_metric) == 0) {
+			i2++;
+			continue;
+		}
+
+		/* if @orig (@routes1) contains /32 routes that are missing in @candidate,
+		 * we accept that.
+		 *
+		 * A /32 may have been added automatically, as a direct-route to the gateway.
+		 * The generated connection (@orig) would contain that route, so we shall ignore
+		 * it.
+		 *
+		 * Likeweise for /128 for IPv6. */
+		if (nm_ip_route_get_prefix (routes1[i1]) == PLEN)
+			continue;
+
+		return FALSE;
 	}
 
-	qsort (routes1, num, sizeof (NMIPRoute *), route_ptr_compare);
-	qsort (routes2, num, sizeof (NMIPRoute *), route_ptr_compare);
-
-	for (i = 0; i < num; i++) {
-		if (route_compare (routes1[i], routes2[i], default_metric))
+	/* check that @orig has no left-over (except host routes that we ignore). */
+	for (; i1 < num1; i1++) {
+		if (nm_ip_route_get_prefix (routes1[i1]) != PLEN)
 			return FALSE;
 	}
 
@@ -527,9 +608,42 @@ check_connection_mac_address (NMConnection *orig,
 }
 
 static gboolean
+check_connection_infiniband_mac_address (NMConnection *orig,
+                                         NMConnection *candidate,
+                                         GHashTable *settings)
+{
+	GHashTable *props;
+	const char *orig_mac = NULL, *cand_mac = NULL;
+	NMSettingInfiniband *s_infiniband_orig, *s_infiniband_cand;
+
+	props = check_property_in_hash (settings,
+	                                NM_SETTING_INFINIBAND_SETTING_NAME,
+	                                NM_SETTING_INFINIBAND_MAC_ADDRESS);
+	if (!props)
+		return TRUE;
+
+	/* If one of the MAC addresses is NULL, we accept that connection */
+	s_infiniband_orig = nm_connection_get_setting_infiniband (orig);
+	if (s_infiniband_orig)
+		orig_mac = nm_setting_infiniband_get_mac_address (s_infiniband_orig);
+
+	s_infiniband_cand = nm_connection_get_setting_infiniband (candidate);
+	if (s_infiniband_cand)
+		cand_mac = nm_setting_infiniband_get_mac_address (s_infiniband_cand);
+
+	if (!orig_mac || !cand_mac) {
+		remove_from_hash (settings, props,
+		                  NM_SETTING_INFINIBAND_SETTING_NAME,
+		                  NM_SETTING_INFINIBAND_MAC_ADDRESS);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+static gboolean
 check_connection_cloned_mac_address (NMConnection *orig,
-                              NMConnection *candidate,
-                              GHashTable *settings)
+                                     NMConnection *candidate,
+                                     GHashTable *settings)
 {
 	GHashTable *props;
 	const char *orig_mac = NULL, *cand_mac = NULL;
@@ -549,6 +663,12 @@ check_connection_cloned_mac_address (NMConnection *orig,
 	s_wired_cand = nm_connection_get_setting_wired (candidate);
 	if (s_wired_cand)
 		cand_mac = nm_setting_wired_get_cloned_mac_address (s_wired_cand);
+
+	/* special cloned mac address entries are accepted. */
+	if (NM_CLONED_MAC_IS_SPECIAL (orig_mac))
+		orig_mac = NULL;
+	if (NM_CLONED_MAC_IS_SPECIAL (cand_mac))
+		cand_mac = NULL;
 
 	if (!orig_mac || !cand_mac) {
 		remove_from_hash (settings, props,
@@ -633,6 +753,9 @@ check_possible_match (NMConnection *orig,
 	if (!check_connection_mac_address (orig, candidate, settings))
 		return NULL;
 
+	if (!check_connection_infiniband_mac_address (orig, candidate, settings))
+		return NULL;
+
 	if (!check_connection_cloned_mac_address (orig, candidate, settings))
 		return NULL;
 
@@ -650,6 +773,10 @@ check_possible_match (NMConnection *orig,
  * @connections: a (optionally pre-sorted) list of connections from which to
  * find a matching connection to @original based on "inferrable" properties
  * @original: the #NMConnection to find a match for from @connections
+ * @indicated: whether the match is already hinted/indicated. That is the
+ *   case when we found the connection in the state file from a previous run.
+ *   In this case, we perform a relexed check, as we have a good hint
+ *   that the connection actually matches.
  * @device_has_carrier: pass %TRUE if the device that generated @original has
  * a carrier, %FALSE if not
  * @match_filter_func: a function to check whether each connection from @connections
@@ -667,8 +794,9 @@ check_possible_match (NMConnection *orig,
  * matches well enough.
  */
 NMConnection *
-nm_utils_match_connection (GSList *connections,
+nm_utils_match_connection (NMConnection *const*connections,
                            NMConnection *original,
+                           gboolean indicated,
                            gboolean device_has_carrier,
                            gint64 default_v4_metric,
                            gint64 default_v6_metric,
@@ -676,10 +804,12 @@ nm_utils_match_connection (GSList *connections,
                            gpointer match_filter_data)
 {
 	NMConnection *best_match = NULL;
-	GSList *iter;
 
-	for (iter = connections; iter; iter = iter->next) {
-		NMConnection *candidate = NM_CONNECTION (iter->data);
+	if (!connections)
+		return NULL;
+
+	for (; *connections; connections++) {
+		NMConnection *candidate = NM_CONNECTION (*connections);
 		GHashTable *diffs = NULL;
 
 		if (match_filter_func) {
@@ -687,7 +817,24 @@ nm_utils_match_connection (GSList *connections,
 				continue;
 		}
 
-		if (!nm_connection_diff (original, candidate, NM_SETTING_COMPARE_FLAG_INFERRABLE, &diffs)) {
+		if (indicated) {
+			NMSettingConnection *s_orig, *s_cand;
+
+			s_orig = nm_connection_get_setting_connection (original);
+			s_cand = nm_connection_get_setting_connection (candidate);
+
+			/* It is indicated that this connection matches. Assume we have
+			 * a match, but check for particular differences that let us
+			 * reject the candidate. */
+			if (!nm_streq0 (nm_setting_connection_get_connection_type (s_orig),
+			                nm_setting_connection_get_connection_type (s_cand)))
+				continue;
+			if (!nm_streq0 (nm_setting_connection_get_slave_type (s_orig),
+			                nm_setting_connection_get_slave_type (s_cand)))
+				continue;
+
+			/* this is good enough for a match */
+		} else if (!nm_connection_diff (original, candidate, NM_SETTING_COMPARE_FLAG_INFERRABLE, &diffs)) {
 			if (!best_match) {
 				best_match = check_possible_match (original, candidate, diffs, device_has_carrier,
 				                                   default_v4_metric, default_v6_metric);
@@ -731,7 +878,7 @@ nm_utils_match_connection (GSList *connections,
 	return best_match;
 }
 
-/******************************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_utils_g_value_set_object_path:
@@ -787,4 +934,4 @@ nm_utils_g_value_set_object_path_array (GValue *value,
 	g_value_take_boxed (value, paths);
 }
 
-/******************************************************************************/
+/*****************************************************************************/

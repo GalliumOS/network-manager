@@ -21,14 +21,14 @@
 #ifndef NM_OBJECT_PRIVATE_H
 #define NM_OBJECT_PRIVATE_H
 
-#include "nm-default.h"
 #include "nm-object.h"
 
 void _nm_object_ensure_inited (NMObject *object);
 
-typedef gboolean (*PropertyMarshalFunc) (NMObject *, GParamSpec *, GValue *, gpointer);
-
-typedef GObject * (*NMObjectCreatorFunc) (DBusGConnection *, const char *);
+typedef gboolean (*PropertyMarshalFunc) (NMObject *object,
+                                         GParamSpec *pspec,
+                                         GValue *value,
+                                         gpointer field);
 
 typedef struct {
 	const char *name;
@@ -80,9 +80,12 @@ handle_ptr_array_return (GPtrArray *array)
 }
 
 /* object demarshalling support */
-typedef GType (*NMObjectTypeFunc) (DBusGConnection *, const char *);
-typedef void (*NMObjectTypeCallbackFunc) (GType, gpointer);
-typedef void (*NMObjectTypeAsyncFunc) (DBusGConnection *, const char *, NMObjectTypeCallbackFunc, gpointer);
+typedef GType (*NMObjectTypeFunc) (DBusGConnection *connection, const char *path);
+typedef void (*NMObjectTypeCallbackFunc) (GType type, gpointer user_data);
+typedef void (*NMObjectTypeAsyncFunc) (DBusGConnection *connection,
+                                       const char *path,
+                                       NMObjectTypeCallbackFunc callback,
+                                       gpointer user_data);
 
 void _nm_object_register_type_func (GType base_type, NMObjectTypeFunc type_func,
                                     NMObjectTypeAsyncFunc type_async_func);

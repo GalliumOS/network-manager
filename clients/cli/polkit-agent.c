@@ -21,13 +21,15 @@
 
 #if WITH_POLKIT_AGENT
 
+#include "polkit-agent.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "polkit-agent.h"
 #include "nm-polkit-listener.h"
+
 #include "common.h"
 
 static char *
@@ -55,7 +57,6 @@ polkit_request (const char *request,
 		g_free (tmp);
 	} else
 		response = nmc_readline_echo (echo_on, "%s", request);
-	g_print ("\n");
 
 	return response;
 }
@@ -126,7 +127,6 @@ nmc_start_polkit_agent_start_try (NmCli *nmc)
 #else
 /* polkit agent is not avalable; implement stub functions. */
 
-#include "nm-default.h"
 #include "nmcli.h"
 #include "polkit-agent.h"
 

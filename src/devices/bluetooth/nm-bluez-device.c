@@ -21,23 +21,46 @@
 
 #include "nm-default.h"
 
+#include "nm-bluez-device.h"
+
 #include <string.h>
 
 #include "nm-core-internal.h"
-
 #include "nm-bt-error.h"
 #include "nm-bluez-common.h"
-#include "nm-bluez-device.h"
-#include "nm-settings-connection.h"
+#include "settings/nm-settings.h"
+#include "settings/nm-settings-connection.h"
 #include "NetworkManagerUtils.h"
 
 #if WITH_BLUEZ5_DUN
 #include "nm-bluez5-dun.h"
 #endif
 
-G_DEFINE_TYPE (NMBluezDevice, nm_bluez_device, G_TYPE_OBJECT)
+/*****************************************************************************/
 
-#define NM_BLUEZ_DEVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_BLUEZ_DEVICE, NMBluezDevicePrivate))
+#define VARIANT_IS_OF_TYPE_BOOLEAN(v)      ((v) != NULL && ( g_variant_is_of_type ((v), G_VARIANT_TYPE_BOOLEAN) ))
+#define VARIANT_IS_OF_TYPE_STRING(v)       ((v) != NULL && ( g_variant_is_of_type ((v), G_VARIANT_TYPE_STRING) ))
+#define VARIANT_IS_OF_TYPE_OBJECT_PATH(v)  ((v) != NULL && ( g_variant_is_of_type ((v), G_VARIANT_TYPE_OBJECT_PATH) ))
+#define VARIANT_IS_OF_TYPE_STRING_ARRAY(v) ((v) != NULL && ( g_variant_is_of_type ((v), G_VARIANT_TYPE_STRING_ARRAY) ))
+
+/*****************************************************************************/
+
+NM_GOBJECT_PROPERTIES_DEFINE (NMBluezDevice,
+	PROP_PATH,
+	PROP_ADDRESS,
+	PROP_NAME,
+	PROP_CAPABILITIES,
+	PROP_USABLE,
+	PROP_CONNECTED,
+);
+
+enum {
+	INITIALIZED,
+	REMOVED,
+	LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL] = { 0 };
 
 typedef struct {
 	char *path;
@@ -54,57 +77,47 @@ typedef struct {
 	gboolean usable;
 	NMBluetoothCapabilities connection_bt_type;
 
+	guint check_emit_usable_id;
+
 	char *adapter_address;
 	char *address;
 	char *name;
 	guint32 capabilities;
 	gboolean connected;
+	gboolean paired;
 
 	char *b4_iface;
 #if WITH_BLUEZ5_DUN
 	NMBluez5DunContext *b5_dun_context;
 #endif
 
-	NMConnectionProvider *provider;
+	NMSettings *settings;
 	GSList *connections;
 
 	NMConnection *pan_connection;
 	gboolean pan_connection_no_autocreate;
 } NMBluezDevicePrivate;
 
-
-enum {
-	PROP_0,
-	PROP_PATH,
-	PROP_ADDRESS,
-	PROP_NAME,
-	PROP_CAPABILITIES,
-	PROP_USABLE,
-	PROP_CONNECTED,
-
-	LAST_PROP
+struct _NMBluezDevice {
+	GObject parent;
+	NMBluezDevicePrivate _priv;
 };
 
-/* Signals */
-enum {
-	INITIALIZED,
-	REMOVED,
-	LAST_SIGNAL
+struct _NMBluezDeviceClass {
+	GObjectClass parent;
 };
-static guint signals[LAST_SIGNAL] = { 0 };
 
+G_DEFINE_TYPE (NMBluezDevice, nm_bluez_device, G_TYPE_OBJECT)
 
-static void cp_connection_added (NMConnectionProvider *provider,
+#define NM_BLUEZ_DEVICE_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMBluezDevice, NM_IS_BLUEZ_DEVICE)
+
+/*****************************************************************************/
+
+static void cp_connection_added (NMSettings *settings,
                                  NMConnection *connection, NMBluezDevice *self);
 static gboolean connection_compatible (NMBluezDevice *self, NMConnection *connection);
 
-
-#define VARIANT_IS_OF_TYPE_BOOLEAN(v)      ((v) != NULL && ( g_variant_is_of_type ((v), G_VARIANT_TYPE_BOOLEAN) ))
-#define VARIANT_IS_OF_TYPE_STRING(v)       ((v) != NULL && ( g_variant_is_of_type ((v), G_VARIANT_TYPE_STRING) ))
-#define VARIANT_IS_OF_TYPE_OBJECT_PATH(v)  ((v) != NULL && ( g_variant_is_of_type ((v), G_VARIANT_TYPE_OBJECT_PATH) ))
-#define VARIANT_IS_OF_TYPE_STRING_ARRAY(v) ((v) != NULL && ( g_variant_is_of_type ((v), G_VARIANT_TYPE_STRING_ARRAY) ))
-
-/***********************************************************/
+/*****************************************************************************/
 
 const char *
 nm_bluez_device_get_path (NMBluezDevice *self)
@@ -171,7 +184,8 @@ pan_connection_check_create (NMBluezDevice *self)
 	NMConnection *connection;
 	NMConnection *added;
 	NMSetting *setting;
-	char *uuid, *id;
+	char *id;
+	char uuid[37];
 	GError *error = NULL;
 	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
 
@@ -193,7 +207,7 @@ pan_connection_check_create (NMBluezDevice *self)
 	connection = nm_simple_connection_new ();
 
 	/* Setting: Connection */
-	uuid = nm_utils_uuid_generate ();
+	nm_utils_uuid_generate_buf (uuid);
 	id = g_strdup_printf (_("%s Network"), priv->name);
 	setting = nm_setting_connection_new ();
 	g_object_set (setting,
@@ -231,9 +245,9 @@ pan_connection_check_create (NMBluezDevice *self)
 	/* Adding a new connection raises a signal which eventually calls check_emit_usable (again)
 	 * which then already finds the suitable connection in priv->connections. This is confusing,
 	 * so block the signal. check_emit_usable will succeed after this function call returns. */
-	g_signal_handlers_block_by_func (priv->provider, cp_connection_added, self);
-	added = nm_connection_provider_add_connection (priv->provider, connection, FALSE, &error);
-	g_signal_handlers_unblock_by_func (priv->provider, cp_connection_added, self);
+	g_signal_handlers_block_by_func (priv->settings, cp_connection_added, self);
+	added = NM_CONNECTION (nm_settings_add_connection (priv->settings, connection, FALSE, &error));
+	g_signal_handlers_unblock_by_func (priv->settings, cp_connection_added, self);
 
 	if (added) {
 		g_assert (!g_slist_find (priv->connections, added));
@@ -254,22 +268,22 @@ pan_connection_check_create (NMBluezDevice *self)
 	g_object_unref (connection);
 
 	g_free (id);
-	g_free (uuid);
 }
 
-static void
+static gboolean
 check_emit_usable (NMBluezDevice *self)
 {
 	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
 	gboolean new_usable;
 
 	/* only expect the supported capabilities set. */
-	g_assert ((priv->capabilities & ~(NM_BT_CAPABILITY_NAP | NM_BT_CAPABILITY_DUN)) == NM_BT_CAPABILITY_NONE );
+	nm_assert ((priv->capabilities & ~(NM_BT_CAPABILITY_NAP | NM_BT_CAPABILITY_DUN)) == NM_BT_CAPABILITY_NONE );
 
-	new_usable = (priv->initialized && priv->capabilities && priv->name &&
-	              ((priv->bluez_version == 4) ||
-	               (priv->bluez_version == 5 && priv->adapter5 && priv->adapter_powered) ) &&
-	              priv->dbus_connection && priv->address && priv->adapter_address);
+	new_usable = (   priv->initialized && priv->capabilities
+	              && priv->name && priv->paired
+	              && (   (priv->bluez_version == 4)
+	                  || (priv->bluez_version == 5 && priv->adapter5 && priv->adapter_powered))
+	              && priv->dbus_connection && priv->address && priv->adapter_address);
 
 	if (!new_usable)
 		goto END;
@@ -289,11 +303,22 @@ check_emit_usable (NMBluezDevice *self)
 END:
 	if (new_usable != priv->usable) {
 		priv->usable = new_usable;
-		g_object_notify (G_OBJECT (self), NM_BLUEZ_DEVICE_USABLE);
+		_notify (self, PROP_USABLE);
 	}
+
+	return G_SOURCE_REMOVE;
 }
 
-/********************************************************************/
+static void
+check_emit_usable_schedule (NMBluezDevice *self)
+{
+	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
+
+	if (priv->check_emit_usable_id == 0)
+		priv->check_emit_usable_id = g_idle_add ((GSourceFunc) check_emit_usable, self);
+}
+
+/*****************************************************************************/
 
 static gboolean
 connection_compatible (NMBluezDevice *self, NMConnection *connection)
@@ -320,6 +345,10 @@ connection_compatible (NMBluezDevice *self, NMConnection *connection)
 		return FALSE;
 
 	bt_type = nm_setting_bluetooth_get_connection_type (s_bt);
+
+	if (nm_streq (bt_type, NM_SETTING_BLUETOOTH_TYPE_NAP))
+		return FALSE;
+
 	if (   g_str_equal (bt_type, NM_SETTING_BLUETOOTH_TYPE_DUN)
 	    && !(priv->capabilities & NM_BT_CAPABILITY_DUN))
 		return FALSE;
@@ -331,72 +360,86 @@ connection_compatible (NMBluezDevice *self, NMConnection *connection)
 	return TRUE;
 }
 
-static void
-_internal_add_connection (NMBluezDevice *self, NMConnection *connection)
+static gboolean
+_internal_track_connection (NMBluezDevice *self, NMConnection *connection, gboolean tracked)
 {
 	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
+	gboolean was_tracked;
 
-	if (!g_slist_find (priv->connections, connection)) {
+	was_tracked = !!g_slist_find (priv->connections, connection);
+	if (was_tracked == !!tracked)
+		return FALSE;
+
+	if (tracked)
 		priv->connections = g_slist_prepend (priv->connections, g_object_ref (connection));
-		check_emit_usable (self);
-	}
-}
-
-static void
-cp_connection_added (NMConnectionProvider *provider,
-                     NMConnection *connection,
-                     NMBluezDevice *self)
-{
-	if (connection_compatible (self, connection))
-		_internal_add_connection (self, connection);
-}
-
-static void
-cp_connection_removed (NMConnectionProvider *provider,
-                       NMConnection *connection,
-                       NMBluezDevice *self)
-{
-	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
-
-	if (g_slist_find (priv->connections, connection)) {
+	else {
 		priv->connections = g_slist_remove (priv->connections, connection);
 		if (priv->pan_connection == connection)
 			priv->pan_connection = NULL;
 		g_object_unref (connection);
-		check_emit_usable (self);
+	}
+
+	return TRUE;
+}
+
+static void
+cp_connection_added (NMSettings *settings,
+                     NMConnection *connection,
+                     NMBluezDevice *self)
+{
+	if (connection_compatible (self, connection)) {
+		if (_internal_track_connection (self, connection, TRUE))
+			check_emit_usable (self);
 	}
 }
 
 static void
-cp_connection_updated (NMConnectionProvider *provider,
+cp_connection_removed (NMSettings *settings,
                        NMConnection *connection,
                        NMBluezDevice *self)
 {
-	if (connection_compatible (self, connection))
-		_internal_add_connection (self, connection);
-	else
-		cp_connection_removed (provider, connection, self);
+	if (_internal_track_connection (self, connection, FALSE))
+		check_emit_usable (self);
+}
+
+static void
+cp_connection_updated (NMSettings *settings,
+                       NMConnection *connection,
+                       gboolean by_user,
+                       NMBluezDevice *self)
+{
+	if (_internal_track_connection (self, connection,
+	                                connection_compatible (self, connection)))
+		check_emit_usable_schedule (self);
 }
 
 static void
 load_connections (NMBluezDevice *self)
 {
 	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
-	const GSList *connections, *iter;
+	NMSettingsConnection *const*connections;
+	guint i;
+	gboolean changed = FALSE;
 
-	connections = nm_connection_provider_get_connections (priv->provider);
-	for (iter = connections; iter; iter = g_slist_next (iter))
-		cp_connection_added (priv->provider, NM_CONNECTION (iter->data), self);
+	connections = nm_settings_get_connections (priv->settings, NULL);
+	for (i = 0; connections[i]; i++) {
+		NMConnection *connection = (NMConnection *) connections[i];
+
+		if (connection_compatible (self, connection))
+			changed |= _internal_track_connection (self, connection, TRUE);
+	}
+	if (changed)
+		check_emit_usable (self);
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 bluez_disconnect_cb (GDBusConnection *dbus_connection,
                      GAsyncResult *res,
                      gpointer user_data)
 {
-	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (user_data);
+	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE ((NMBluezDevice *) user_data);
 	GError *error = NULL;
 	GVariant *variant;
 
@@ -428,7 +471,7 @@ nm_bluez_device_disconnect (NMBluezDevice *self)
 			if (!priv->b4_iface)
 				goto out;
 			args = g_variant_new ("(s)", priv->b4_iface),
-			dbus_iface = BLUEZ4_SERIAL_INTERFACE;
+			dbus_iface = NM_BLUEZ4_SERIAL_INTERFACE;
 		} else if (priv->bluez_version == 5) {
 #if WITH_BLUEZ5_DUN
 			nm_bluez5_dun_cleanup (priv->b5_dun_context);
@@ -438,16 +481,16 @@ nm_bluez_device_disconnect (NMBluezDevice *self)
 		}
 	} else if (priv->connection_bt_type == NM_BT_CAPABILITY_NAP) {
 		if (priv->bluez_version == 4)
-			dbus_iface = BLUEZ4_NETWORK_INTERFACE;
+			dbus_iface = NM_BLUEZ4_NETWORK_INTERFACE;
 		else if (priv->bluez_version == 5)
-			dbus_iface = BLUEZ5_NETWORK_INTERFACE;
+			dbus_iface = NM_BLUEZ5_NETWORK_INTERFACE;
 		else
 			g_assert_not_reached ();
 	} else
 		g_assert_not_reached ();
 
 	g_dbus_connection_call (priv->dbus_connection,
-	                        BLUEZ_SERVICE,
+	                        NM_BLUEZ_SERVICE,
 	                        priv->path,
 	                        dbus_iface,
 	                        "Disconnect",
@@ -540,13 +583,13 @@ nm_bluez_device_connect_async (NMBluezDevice *self,
 	if (connection_bt_type == NM_BT_CAPABILITY_NAP) {
 		connect_type = BLUETOOTH_CONNECT_NAP;
 		if (priv->bluez_version == 4)
-			dbus_iface = BLUEZ4_NETWORK_INTERFACE;
+			dbus_iface = NM_BLUEZ4_NETWORK_INTERFACE;
 		else if (priv->bluez_version == 5)
-			dbus_iface = BLUEZ5_NETWORK_INTERFACE;
+			dbus_iface = NM_BLUEZ5_NETWORK_INTERFACE;
 	} else if (connection_bt_type == NM_BT_CAPABILITY_DUN) {
 		connect_type = BLUETOOTH_CONNECT_DUN;
 		if (priv->bluez_version == 4)
-			dbus_iface = BLUEZ4_SERIAL_INTERFACE;
+			dbus_iface = NM_BLUEZ4_SERIAL_INTERFACE;
 		else if (priv->bluez_version == 5) {
 #if WITH_BLUEZ5_DUN
 			if (priv->b5_dun_context == NULL)
@@ -565,7 +608,7 @@ nm_bluez_device_connect_async (NMBluezDevice *self,
 		g_assert_not_reached ();
 
 	g_dbus_connection_call (priv->dbus_connection,
-	                        BLUEZ_SERVICE,
+	                        NM_BLUEZ_SERVICE,
 	                        priv->path,
 	                        dbus_iface,
 	                        "Connect",
@@ -600,13 +643,13 @@ nm_bluez_device_connect_finish (NMBluezDevice *self,
 	device = (const char *) g_simple_async_result_get_op_res_gpointer (simple);
 	if (device && priv->bluez_version == 5) {
 		priv->connected = TRUE;
-		g_object_notify (G_OBJECT (self), NM_BLUEZ_DEVICE_CONNECTED);
+		_notify (self, PROP_CONNECTED);
 	}
 
 	return device;
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 set_adapter_address (NMBluezDevice *self, const char *address)
@@ -667,7 +710,7 @@ _set_property_capabilities (NMBluezDevice *self, const char **uuids)
 		            ((uint_val & NM_BT_CAPABILITY_DUN) && (uint_val &NM_BT_CAPABILITY_NAP)) ? " | " : "",
 		            uint_val & NM_BT_CAPABILITY_DUN ? "DUN" : "");
 		priv->capabilities = uint_val;
-		g_object_notify (G_OBJECT (self), NM_BLUEZ_DEVICE_CAPABILITIES);
+		_notify (self, PROP_CAPABILITIES);
 	}
 }
 
@@ -699,7 +742,7 @@ _set_property_address (NMBluezDevice *self, const char *addr)
 	}
 
 	priv->address = g_strdup (addr);
-	g_object_notify (G_OBJECT (self), NM_BLUEZ_DEVICE_ADDRESS);
+	_notify (self, PROP_ADDRESS);
 }
 
 static void
@@ -721,7 +764,7 @@ _take_variant_property_name (NMBluezDevice *self, GVariant *v)
 		if (g_strcmp0 (priv->name, str)) {
 			g_free (priv->name);
 			priv->name = g_strdup (str);
-			g_object_notify (G_OBJECT (self), NM_BLUEZ_DEVICE_NAME);
+			_notify (self, PROP_NAME);
 		}
 	}
 	if (v)
@@ -751,13 +794,24 @@ _take_variant_property_connected (NMBluezDevice *self, GVariant *v)
 
 		if (priv->connected != connected) {
 			priv->connected = connected;
-			g_object_notify (G_OBJECT (self), NM_BLUEZ_DEVICE_CONNECTED);
+			_notify (self, PROP_CONNECTED);
 		}
 	}
 	if (v)
 		g_variant_unref (v);
 }
 
+static void
+_take_variant_property_paired (NMBluezDevice *self, GVariant *v)
+{
+	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
+
+	if (VARIANT_IS_OF_TYPE_BOOLEAN (v))
+		priv->paired = g_variant_get_boolean (v);
+
+	if (v)
+		g_variant_unref (v);
+}
 
 static void
 adapter5_on_properties_changed (GDBusProxy *proxy,
@@ -827,6 +881,8 @@ _take_one_variant_property (NMBluezDevice *self, const char *property, GVariant 
 			_take_variant_property_address (self, v);
 		else if (!g_strcmp0 (property, "Connected"))
 			_take_variant_property_connected (self, v);
+		else if (!g_strcmp0 (property, "Paired"))
+			_take_variant_property_paired (self, v);
 		else if (!g_strcmp0 (property, "Name"))
 			_take_variant_property_name (self, v);
 		else if (!g_strcmp0 (property, "UUIDs"))
@@ -926,6 +982,7 @@ query_properties (NMBluezDevice *self)
 		g_object_freeze_notify (G_OBJECT (self));
 		_take_variant_property_address   (self, g_dbus_proxy_get_cached_property (priv->proxy, "Address"));
 		_take_variant_property_connected (self, g_dbus_proxy_get_cached_property (priv->proxy, "Connected"));
+		_take_variant_property_paired    (self, g_dbus_proxy_get_cached_property (priv->proxy, "Paired"));
 		_take_variant_property_name      (self, g_dbus_proxy_get_cached_property (priv->proxy, "Name"));
 		_take_variant_property_uuids     (self, g_dbus_proxy_get_cached_property (priv->proxy, "UUIDs"));
 		g_object_thaw_notify (G_OBJECT (self));
@@ -935,9 +992,9 @@ query_properties (NMBluezDevice *self)
 			g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
 			                          G_DBUS_PROXY_FLAGS_NONE,
 			                          NULL,
-			                          BLUEZ_SERVICE,
+			                          NM_BLUEZ_SERVICE,
 			                          g_variant_get_string (v, NULL),
-			                          BLUEZ5_ADAPTER_INTERFACE,
+			                          NM_BLUEZ5_ADAPTER_INTERFACE,
 			                          NULL,
 			                          (GAsyncReadyCallback) adapter5_on_acquired,
 			                          g_object_ref (self));
@@ -999,156 +1056,13 @@ on_bus_acquired (GObject *object, GAsyncResult *res, NMBluezDevice *self)
 	g_object_unref (self);
 }
 
-/********************************************************************/
-
-NMBluezDevice *
-nm_bluez_device_new (const char *path,
-                     const char *adapter_address,
-                     NMConnectionProvider *provider,
-                     int bluez_version)
-{
-	NMBluezDevice *self;
-	NMBluezDevicePrivate *priv;
-	const char *interface_name = NULL;
-
-	g_return_val_if_fail (path != NULL, NULL);
-	g_return_val_if_fail (NM_IS_CONNECTION_PROVIDER (provider), NULL);
-	g_return_val_if_fail (bluez_version == 4 || bluez_version == 5, NULL);
-
-	self = (NMBluezDevice *) g_object_new (NM_TYPE_BLUEZ_DEVICE,
-	                                       NM_BLUEZ_DEVICE_PATH, path,
-	                                       NULL);
-	if (!self)
-		return NULL;
-
-	nm_log_dbg (LOGD_BT, "bluez[%s] create NMBluezDevice", path);
-
-	priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
-
-	priv->bluez_version = bluez_version;
-	priv->provider = g_object_ref (provider);
-	g_return_val_if_fail (bluez_version == 5 || (bluez_version == 4 && adapter_address), NULL);
-	if (adapter_address)
-		set_adapter_address (self, adapter_address);
-
-	g_signal_connect (priv->provider,
-	                  NM_CP_SIGNAL_CONNECTION_ADDED,
-	                  G_CALLBACK (cp_connection_added),
-	                  self);
-
-	g_signal_connect (priv->provider,
-	                  NM_CP_SIGNAL_CONNECTION_REMOVED,
-	                  G_CALLBACK (cp_connection_removed),
-	                  self);
-
-	g_signal_connect (priv->provider,
-	                  NM_CP_SIGNAL_CONNECTION_UPDATED,
-	                  G_CALLBACK (cp_connection_updated),
-	                  self);
-
-	g_bus_get (G_BUS_TYPE_SYSTEM,
-	           NULL,
-	           (GAsyncReadyCallback) on_bus_acquired,
-	           g_object_ref (self));
-
-	switch (priv->bluez_version) {
-	case 4:
-		interface_name = BLUEZ4_DEVICE_INTERFACE;
-		break;
-	case 5:
-		interface_name = BLUEZ5_DEVICE_INTERFACE;
-		break;
-	}
-
-	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
-	                          G_DBUS_PROXY_FLAGS_NONE,
-	                          NULL,
-	                          BLUEZ_SERVICE,
-	                          priv->path,
-	                          interface_name,
-	                          NULL,
-	                          (GAsyncReadyCallback) on_proxy_acquired,
-	                          g_object_ref (self));
-	return self;
-}
-
-static void
-nm_bluez_device_init (NMBluezDevice *self)
-{
-}
-
-static void
-dispose (GObject *object)
-{
-	NMBluezDevice *self = NM_BLUEZ_DEVICE (object);
-	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
-	NMConnection *to_delete = NULL;
-
-	if (priv->pan_connection) {
-		/* Check whether we want to remove the created connection. If so, we take a reference
-		 * and delete it at the end of dispose(). */
-		if (nm_settings_connection_get_nm_generated (NM_SETTINGS_CONNECTION (priv->pan_connection)))
-			to_delete = g_object_ref (priv->pan_connection);
-
-		priv->pan_connection = NULL;
-	}
-
-#if WITH_BLUEZ5_DUN
-	if (priv->b5_dun_context) {
-		nm_bluez5_dun_free (priv->b5_dun_context);
-		priv->b5_dun_context = NULL;
-	}
-#endif
-
-	if (priv->provider) {
-		g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_added, self);
-		g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_removed, self);
-		g_signal_handlers_disconnect_by_func (priv->provider, cp_connection_updated, self);
-	}
-
-	g_slist_free_full (priv->connections, g_object_unref);
-	priv->connections = NULL;
-
-	g_clear_object (&priv->adapter5);
-	g_clear_object (&priv->dbus_connection);
-
-	G_OBJECT_CLASS (nm_bluez_device_parent_class)->dispose (object);
-
-	if (to_delete) {
-		nm_log_dbg (LOGD_BT, "bluez[%s] removing Bluetooth connection for NAP device: '%s' (%s)", priv->path,
-		            nm_connection_get_id (to_delete), nm_connection_get_uuid (to_delete));
-		nm_settings_connection_delete (NM_SETTINGS_CONNECTION (to_delete), NULL, NULL);
-		g_object_unref (to_delete);
-	}
-
-	g_clear_object (&priv->provider);
-}
-
-static void
-finalize (GObject *object)
-{
-	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (object);
-
-	nm_log_dbg (LOGD_BT, "bluez[%s]: finalize NMBluezDevice", priv->path);
-
-	g_free (priv->path);
-	g_free (priv->adapter_address);
-	g_free (priv->address);
-	g_free (priv->name);
-	g_free (priv->b4_iface);
-
-	if (priv->proxy)
-		g_signal_handlers_disconnect_by_data (priv->proxy, object);
-	g_clear_object (&priv->proxy);
-
-	G_OBJECT_CLASS (nm_bluez_device_parent_class)->finalize (object);
-}
+/*****************************************************************************/
 
 static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
-	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (object);
+	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE ((NMBluezDevice *) object);
 
 	switch (prop_id) {
 	case PROP_PATH:
@@ -1179,11 +1093,11 @@ static void
 set_property (GObject *object, guint prop_id,
               const GValue *value, GParamSpec *pspec)
 {
-	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (object);
+	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE ((NMBluezDevice *) object);
 
 	switch (prop_id) {
 	case PROP_PATH:
-		/* construct only */
+		/* construct-only */
 		priv->path = g_value_dup_string (value);
 		break;
 	default:
@@ -1192,74 +1106,206 @@ set_property (GObject *object, guint prop_id,
 	}
 }
 
+/*****************************************************************************/
+
+static void
+nm_bluez_device_init (NMBluezDevice *self)
+{
+}
+
+NMBluezDevice *
+nm_bluez_device_new (const char *path,
+                     const char *adapter_address,
+                     NMSettings *settings,
+                     int bluez_version)
+{
+	NMBluezDevice *self;
+	NMBluezDevicePrivate *priv;
+	const char *interface_name = NULL;
+
+	g_return_val_if_fail (path != NULL, NULL);
+	g_return_val_if_fail (NM_IS_SETTINGS (settings), NULL);
+	g_return_val_if_fail (bluez_version == 4 || bluez_version == 5, NULL);
+
+	self = (NMBluezDevice *) g_object_new (NM_TYPE_BLUEZ_DEVICE,
+	                                       NM_BLUEZ_DEVICE_PATH, path,
+	                                       NULL);
+	if (!self)
+		return NULL;
+
+	nm_log_dbg (LOGD_BT, "bluez[%s] create NMBluezDevice", path);
+
+	priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
+
+	priv->bluez_version = bluez_version;
+	priv->settings = g_object_ref (settings);
+	g_return_val_if_fail (bluez_version == 5 || (bluez_version == 4 && adapter_address), NULL);
+	if (adapter_address)
+		set_adapter_address (self, adapter_address);
+
+	g_signal_connect (priv->settings, NM_SETTINGS_SIGNAL_CONNECTION_ADDED,   G_CALLBACK (cp_connection_added),   self);
+	g_signal_connect (priv->settings, NM_SETTINGS_SIGNAL_CONNECTION_REMOVED, G_CALLBACK (cp_connection_removed), self);
+	g_signal_connect (priv->settings, NM_SETTINGS_SIGNAL_CONNECTION_UPDATED, G_CALLBACK (cp_connection_updated), self);
+
+	g_bus_get (G_BUS_TYPE_SYSTEM,
+	           NULL,
+	           (GAsyncReadyCallback) on_bus_acquired,
+	           g_object_ref (self));
+
+	switch (priv->bluez_version) {
+	case 4:
+		interface_name = NM_BLUEZ4_DEVICE_INTERFACE;
+		break;
+	case 5:
+		interface_name = NM_BLUEZ5_DEVICE_INTERFACE;
+		break;
+	}
+
+	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+	                          G_DBUS_PROXY_FLAGS_NONE,
+	                          NULL,
+	                          NM_BLUEZ_SERVICE,
+	                          priv->path,
+	                          interface_name,
+	                          NULL,
+	                          (GAsyncReadyCallback) on_proxy_acquired,
+	                          g_object_ref (self));
+	return self;
+}
+
+static void
+dispose (GObject *object)
+{
+	NMBluezDevice *self = NM_BLUEZ_DEVICE (object);
+	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE (self);
+	NMConnection *to_delete = NULL;
+
+	nm_clear_g_source (&priv->check_emit_usable_id);
+
+	if (priv->pan_connection) {
+		/* Check whether we want to remove the created connection. If so, we take a reference
+		 * and delete it at the end of dispose(). */
+		if (NM_FLAGS_HAS (nm_settings_connection_get_flags (NM_SETTINGS_CONNECTION (priv->pan_connection)),
+		                  NM_SETTINGS_CONNECTION_FLAGS_NM_GENERATED))
+			to_delete = g_object_ref (priv->pan_connection);
+
+		priv->pan_connection = NULL;
+	}
+
+#if WITH_BLUEZ5_DUN
+	if (priv->b5_dun_context) {
+		nm_bluez5_dun_free (priv->b5_dun_context);
+		priv->b5_dun_context = NULL;
+	}
+#endif
+
+	if (priv->settings) {
+		g_signal_handlers_disconnect_by_func (priv->settings, cp_connection_added, self);
+		g_signal_handlers_disconnect_by_func (priv->settings, cp_connection_removed, self);
+		g_signal_handlers_disconnect_by_func (priv->settings, cp_connection_updated, self);
+	}
+
+	g_slist_free_full (priv->connections, g_object_unref);
+	priv->connections = NULL;
+
+	if (priv->adapter5) {
+		g_signal_handlers_disconnect_by_func (priv->adapter5, adapter5_on_properties_changed, self);
+		g_clear_object (&priv->adapter5);
+	}
+
+	g_clear_object (&priv->dbus_connection);
+
+	G_OBJECT_CLASS (nm_bluez_device_parent_class)->dispose (object);
+
+	if (to_delete) {
+		nm_log_dbg (LOGD_BT, "bluez[%s] removing Bluetooth connection for NAP device: '%s' (%s)", priv->path,
+		            nm_connection_get_id (to_delete), nm_connection_get_uuid (to_delete));
+		nm_settings_connection_delete (NM_SETTINGS_CONNECTION (to_delete), NULL);
+		g_object_unref (to_delete);
+	}
+
+	g_clear_object (&priv->settings);
+}
+
+static void
+finalize (GObject *object)
+{
+	NMBluezDevicePrivate *priv = NM_BLUEZ_DEVICE_GET_PRIVATE ((NMBluezDevice *) object);
+
+	nm_log_dbg (LOGD_BT, "bluez[%s]: finalize NMBluezDevice", priv->path);
+
+	g_free (priv->path);
+	g_free (priv->adapter_address);
+	g_free (priv->address);
+	g_free (priv->name);
+	g_free (priv->b4_iface);
+
+	if (priv->proxy)
+		g_signal_handlers_disconnect_by_data (priv->proxy, object);
+	g_clear_object (&priv->proxy);
+
+	G_OBJECT_CLASS (nm_bluez_device_parent_class)->finalize (object);
+}
+
 static void
 nm_bluez_device_class_init (NMBluezDeviceClass *config_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (config_class);
 
-	g_type_class_add_private (config_class, sizeof (NMBluezDevicePrivate));
-
-	/* virtual methods */
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 	object_class->dispose = dispose;
 	object_class->finalize = finalize;
 
-	/* Properties */
-	g_object_class_install_property
-		(object_class, PROP_PATH,
-		 g_param_spec_string (NM_BLUEZ_DEVICE_PATH, "", "",
-		                      NULL,
-		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_PATH] =
+	     g_param_spec_string (NM_BLUEZ_DEVICE_PATH, "", "",
+	                          NULL,
+	                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_ADDRESS,
-		 g_param_spec_string (NM_BLUEZ_DEVICE_ADDRESS, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_ADDRESS] =
+	     g_param_spec_string (NM_BLUEZ_DEVICE_ADDRESS, "", "",
+	                          NULL,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_NAME,
-		 g_param_spec_string (NM_BLUEZ_DEVICE_NAME, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_NAME] =
+	     g_param_spec_string (NM_BLUEZ_DEVICE_NAME, "", "",
+	                          NULL,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_CAPABILITIES,
-		 g_param_spec_uint (NM_BLUEZ_DEVICE_CAPABILITIES, "", "",
-		                    0, G_MAXUINT, 0,
-		                    G_PARAM_READABLE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_CAPABILITIES] =
+	     g_param_spec_uint (NM_BLUEZ_DEVICE_CAPABILITIES, "", "",
+	                        0, G_MAXUINT, 0,
+	                        G_PARAM_READABLE |
+	                        G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_USABLE,
-		 g_param_spec_boolean (NM_BLUEZ_DEVICE_USABLE, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_USABLE] =
+	     g_param_spec_boolean (NM_BLUEZ_DEVICE_USABLE, "", "",
+	                           FALSE,
+	                           G_PARAM_READABLE |
+	                           G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_CONNECTED,
-		 g_param_spec_boolean (NM_BLUEZ_DEVICE_CONNECTED, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_CONNECTED] =
+	     g_param_spec_boolean (NM_BLUEZ_DEVICE_CONNECTED, "", "",
+	                           FALSE,
+	                           G_PARAM_READABLE |
+	                           G_PARAM_STATIC_STRINGS);
 
-	/* Signals */
-	signals[INITIALIZED] = g_signal_new ("initialized",
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
+
+	signals[INITIALIZED] = g_signal_new (NM_BLUEZ_DEVICE_INITIALIZED,
 	                                     G_OBJECT_CLASS_TYPE (object_class),
 	                                     G_SIGNAL_RUN_LAST,
-	                                     G_STRUCT_OFFSET (NMBluezDeviceClass, initialized),
+	                                     0,
 	                                     NULL, NULL, NULL,
 	                                     G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
 
 	signals[REMOVED] =     g_signal_new (NM_BLUEZ_DEVICE_REMOVED,
 	                                     G_OBJECT_CLASS_TYPE (object_class),
 	                                     G_SIGNAL_RUN_LAST,
-	                                     G_STRUCT_OFFSET (NMBluezDeviceClass, removed),
+	                                     0,
 	                                     NULL, NULL, NULL,
 	                                     G_TYPE_NONE, 0);
 }

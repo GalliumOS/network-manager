@@ -22,33 +22,41 @@
 
 #include <gmodule.h>
 
-#include "nm-device-factory.h"
+#include "devices/nm-device-factory.h"
 #include "nm-setting-wireless.h"
 #include "nm-setting-olpc-mesh.h"
 #include "nm-device-wifi.h"
 #include "nm-device-olpc-mesh.h"
-#include "nm-settings-connection.h"
-#include "nm-platform.h"
+#include "settings/nm-settings-connection.h"
+#include "platform/nm-platform.h"
 
-#define NM_TYPE_WIFI_FACTORY (nm_wifi_factory_get_type ())
-#define NM_WIFI_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_WIFI_FACTORY, NMWifiFactory))
+/*****************************************************************************/
+
+#define NM_TYPE_WIFI_FACTORY            (nm_wifi_factory_get_type ())
+#define NM_WIFI_FACTORY(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_WIFI_FACTORY, NMWifiFactory))
+#define NM_WIFI_FACTORY_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_WIFI_FACTORY, NMWifiFactoryClass))
+#define NM_IS_WIFI_FACTORY(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_WIFI_FACTORY))
+#define NM_IS_WIFI_FACTORY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_WIFI_FACTORY))
+#define NM_WIFI_FACTORY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_WIFI_FACTORY, NMWifiFactoryClass))
 
 typedef struct {
-	GObject parent;
+	NMDeviceFactory parent;
 } NMWifiFactory;
 
 typedef struct {
-	GObjectClass parent;
+	NMDeviceFactoryClass parent;
 } NMWifiFactoryClass;
 
 static GType nm_wifi_factory_get_type (void);
 
-static void device_factory_interface_init (NMDeviceFactoryInterface *factory_iface);
+G_DEFINE_TYPE (NMWifiFactory, nm_wifi_factory, NM_TYPE_DEVICE_FACTORY)
 
-G_DEFINE_TYPE_EXTENDED (NMWifiFactory, nm_wifi_factory, G_TYPE_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_DEVICE_FACTORY, device_factory_interface_init))
+/*****************************************************************************/
 
-/**************************************************************************/
+NM_DEVICE_FACTORY_DECLARE_TYPES (
+	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES    (NM_LINK_TYPE_WIFI, NM_LINK_TYPE_OLPC_MESH)
+	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_WIRELESS_SETTING_NAME, NM_SETTING_OLPC_MESH_SETTING_NAME)
+)
 
 G_MODULE_EXPORT NMDeviceFactory *
 nm_device_factory_create (GError **error)
@@ -56,7 +64,7 @@ nm_device_factory_create (GError **error)
 	return (NMDeviceFactory *) g_object_new (NM_TYPE_WIFI_FACTORY, NULL);
 }
 
-/**************************************************************************/
+/*****************************************************************************/
 
 static NMDevice *
 create_device (NMDeviceFactory *factory,
@@ -76,7 +84,7 @@ create_device (NMDeviceFactory *factory,
 	if (!nm_platform_wifi_get_capabilities (NM_PLATFORM_GET,
 	                                        plink->ifindex,
 	                                        &capabilities)) {
-		nm_log_warn (LOGD_HW | LOGD_WIFI, "(%s) failed to initialize Wi-Fi driver for ifindex %d", iface, plink->ifindex);
+		nm_log_warn (LOGD_PLATFORM | LOGD_WIFI, "(%s) failed to initialize Wi-Fi driver for ifindex %d", iface, plink->ifindex);
 		return NULL;
 	}
 
@@ -96,17 +104,7 @@ create_device (NMDeviceFactory *factory,
 		return nm_device_olpc_mesh_new (iface);
 }
 
-NM_DEVICE_FACTORY_DECLARE_TYPES (
-	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES    (NM_LINK_TYPE_WIFI, NM_LINK_TYPE_OLPC_MESH)
-	NM_DEVICE_FACTORY_DECLARE_SETTING_TYPES (NM_SETTING_WIRELESS_SETTING_NAME, NM_SETTING_OLPC_MESH_SETTING_NAME)
-)
-
-static void
-device_factory_interface_init (NMDeviceFactoryInterface *factory_iface)
-{
-	factory_iface->create_device = create_device;
-	factory_iface->get_supported_types = get_supported_types;
-}
+/*****************************************************************************/
 
 static void
 nm_wifi_factory_init (NMWifiFactory *self)
@@ -114,7 +112,10 @@ nm_wifi_factory_init (NMWifiFactory *self)
 }
 
 static void
-nm_wifi_factory_class_init (NMWifiFactoryClass *wf_class)
+nm_wifi_factory_class_init (NMWifiFactoryClass *klass)
 {
-}
+	NMDeviceFactoryClass *factory_class = NM_DEVICE_FACTORY_CLASS (klass);
 
+	factory_class->create_device = create_device;
+	factory_class->get_supported_types = get_supported_types;
+}

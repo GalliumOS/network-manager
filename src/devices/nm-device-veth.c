@@ -23,76 +23,56 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <linux/sockios.h>
-#include <sys/ioctl.h>
 
 #include "nm-device-veth.h"
 #include "nm-device-private.h"
 #include "nm-manager.h"
-#include "nm-platform.h"
+#include "platform/nm-platform.h"
 #include "nm-device-factory.h"
 
-#include "nmdbus-device-veth.h"
+#include "introspection/org.freedesktop.NetworkManager.Device.Veth.h"
 
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceVeth);
 
-G_DEFINE_TYPE (NMDeviceVeth, nm_device_veth, NM_TYPE_DEVICE_ETHERNET)
+/*****************************************************************************/
 
-#define NM_DEVICE_VETH_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DEVICE_VETH, NMDeviceVethPrivate))
-
-typedef struct {
-	NMDevice *peer;
-	gboolean ever_had_peer;
-} NMDeviceVethPrivate;
-
-enum {
-	PROP_0,
-	PROP_PEER,
-
-	LAST_PROP
+struct _NMDeviceVeth {
+	NMDeviceEthernet parent;
 };
 
-/**************************************************************/
+struct _NMDeviceVethClass {
+	NMDeviceEthernetClass parent;
+};
+
+NM_GOBJECT_PROPERTIES_DEFINE (NMDeviceVeth,
+	PROP_PEER,
+);
+
+/*****************************************************************************/
+
+G_DEFINE_TYPE (NMDeviceVeth, nm_device_veth, NM_TYPE_DEVICE_ETHERNET)
+
+/*****************************************************************************/
 
 static void
-set_peer (NMDeviceVeth *self, NMDevice *peer)
+update_properties (NMDevice *device)
 {
-	NMDeviceVethPrivate *priv = NM_DEVICE_VETH_GET_PRIVATE (self);
+	NMDevice *peer;
+	int ifindex, peer_ifindex;
 
-	if (!priv->peer) {
-		priv->ever_had_peer = TRUE;
-		priv->peer = peer;
-		g_object_add_weak_pointer (G_OBJECT (peer), (gpointer *) &priv->peer);
+	ifindex = nm_device_get_ifindex (device);
 
-		g_object_notify (G_OBJECT (self), NM_DEVICE_VETH_PEER);
-	}
-}
+	if (!nm_platform_link_veth_get_properties (nm_device_get_platform (device), ifindex, &peer_ifindex))
+		peer_ifindex = 0;
 
-static NMDevice *
-get_peer (NMDeviceVeth *self)
-{
-	NMDeviceVethPrivate *priv = NM_DEVICE_VETH_GET_PRIVATE (self);
-	NMDevice *device = NM_DEVICE (self), *peer = NULL;
-	int peer_ifindex;
+	nm_device_parent_set_ifindex (device, peer_ifindex);
 
-	if (priv->ever_had_peer)
-		return priv->peer;
-
-	if (!nm_platform_link_veth_get_properties (NM_PLATFORM_GET, nm_device_get_ifindex (device), &peer_ifindex)) {
-		_LOGW (LOGD_HW, "could not read veth properties");
-		return NULL;
-	}
-
-	if (peer_ifindex > 0)
-		peer = nm_manager_get_device_by_ifindex (nm_manager_get (), peer_ifindex);
-	if (peer && NM_IS_DEVICE_VETH (peer)) {
-		set_peer (self, peer);
-		set_peer (NM_DEVICE_VETH (peer), device);
-	}
-
-	return priv->peer;
+	peer = nm_device_parent_get_device (device);
+	if (   peer
+	    && NM_IS_DEVICE_VETH (peer)
+	    && nm_device_parent_get_ifindex (peer) <= 0)
+		update_properties (peer);
 }
 
 static gboolean
@@ -105,7 +85,15 @@ can_unmanaged_external_down (NMDevice *self)
 	return FALSE;
 }
 
-/**************************************************************/
+static void
+link_changed (NMDevice *device,
+              const NMPlatformLink *pllink)
+{
+	NM_DEVICE_CLASS (nm_device_veth_parent_class)->link_changed (device, pllink);
+	update_properties (device);
+}
+
+/*****************************************************************************/
 
 static void
 nm_device_veth_init (NMDeviceVeth *self)
@@ -113,17 +101,11 @@ nm_device_veth_init (NMDeviceVeth *self)
 }
 
 static void
-dispose (GObject *object)
+notify (GObject *object, GParamSpec *pspec)
 {
-	NMDeviceVeth *self = NM_DEVICE_VETH (object);
-	NMDeviceVethPrivate *priv = NM_DEVICE_VETH_GET_PRIVATE (self);
-
-	if (priv->peer) {
-		g_object_remove_weak_pointer (G_OBJECT (priv->peer), (gpointer *) &priv->peer);
-		priv->peer = NULL;
-	}
-
-	G_OBJECT_CLASS (nm_device_veth_parent_class)->dispose (object);
+	if (nm_streq (pspec->name, NM_DEVICE_PARENT))
+		_notify (NM_DEVICE_VETH (object), PROP_PEER);
+	G_OBJECT_CLASS (nm_device_veth_parent_class)->notify (object, pspec);
 }
 
 static void
@@ -135,7 +117,9 @@ get_property (GObject *object, guint prop_id,
 
 	switch (prop_id) {
 	case PROP_PEER:
-		peer = get_peer (self);
+		peer = nm_device_parent_get_device (NM_DEVICE (self));
+		if (peer && !NM_IS_DEVICE_VETH (peer))
+			peer = NULL;
 		nm_utils_g_value_set_object_path (value, peer);
 		break;
 	default:
@@ -150,32 +134,31 @@ nm_device_veth_class_init (NMDeviceVethClass *klass)
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (klass);
 
-	g_type_class_add_private (klass, sizeof (NMDeviceVethPrivate));
-
 	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NULL, NM_LINK_TYPE_VETH)
 
 	object_class->get_property = get_property;
-	object_class->dispose = dispose;
+	object_class->notify = notify;
 
 	device_class->can_unmanaged_external_down = can_unmanaged_external_down;
+	device_class->link_changed = link_changed;
 
-	/* properties */
-	g_object_class_install_property
-		(object_class, PROP_PEER,
-		 g_param_spec_string (NM_DEVICE_VETH_PEER, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_PEER] =
+	    g_param_spec_string (NM_DEVICE_VETH_PEER, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
+
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
 	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
 	                                        NMDBUS_TYPE_DEVICE_VETH_SKELETON,
 	                                        NULL);
 }
 
-/*************************************************************/
+/*****************************************************************************/
 
-#define NM_TYPE_VETH_FACTORY (nm_veth_factory_get_type ())
-#define NM_VETH_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_VETH_FACTORY, NMVethFactory))
+#define NM_TYPE_VETH_DEVICE_FACTORY (nm_veth_device_factory_get_type ())
+#define NM_VETH_DEVICE_FACTORY(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_VETH_DEVICE_FACTORY, NMVethDeviceFactory))
 
 static NMDevice *
 create_device (NMDeviceFactory *factory,
@@ -194,6 +177,5 @@ create_device (NMDeviceFactory *factory,
 
 NM_DEVICE_FACTORY_DEFINE_INTERNAL (VETH, Veth, veth,
 	NM_DEVICE_FACTORY_DECLARE_LINK_TYPES (NM_LINK_TYPE_VETH),
-	factory_iface->create_device = create_device;
-	)
-
+	factory_class->create_device = create_device;
+);

@@ -14,15 +14,32 @@
 # Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA.
 #
-# Copyright 2009 - 2014 Red Hat, Inc.
+# Copyright 2009 - 2017 Red Hat, Inc.
 
 from __future__ import print_function
 
+import os
 import gi
-gi.require_version('NM', '1.0')
-from gi.repository import NM, GObject
+gi.require_version('GIRepository', '2.0')
+from gi.repository import GIRepository
 import argparse, datetime, re, sys
 import xml.etree.ElementTree as ET
+
+try:
+    libs = os.environ['LD_LIBRARY_PATH'].split(':')
+    libs.reverse()
+    for lib in libs:
+        GIRepository.Repository.prepend_library_path(lib)
+except AttributeError:
+        # An old GI version, that has no prepend_library_path
+        # It's alright, it probably interprets LD_LIBRARY_PATH
+        # correctly.
+        pass
+except KeyError:
+        pass
+
+gi.require_version('NM', '1.0')
+from gi.repository import NM, GObject
 
 dbus_type_name_map = {
     'b': 'boolean',
@@ -37,10 +54,12 @@ dbus_type_name_map = {
     'ay': 'byte array',
     'a{ss}': 'dict of string to string',
     'a{sv}': 'vardict',
+    'aa{sv}': 'array of vardict',
     'aau': 'array of array of uint32',
     'aay': 'array of byte array',
     'a(ayuay)': 'array of legacy IPv6 address struct',
     'a(ayuayu)': 'array of legacy IPv6 route struct',
+    'aa{sv}': 'array of vardict',
 }
 
 ns_map = {
@@ -58,6 +77,12 @@ constants = {
     'G_MAXUINT32': 'G_MAXUINT32',
     'NULL': 'NULL' }
 setting_names = {}
+
+def get_setting_name_define(setting):
+    n = setting.attrib[symbol_prefix_key]
+    if n and n.startswith("setting_"):
+        return n[8:].upper()
+    raise Exception("Unexpected symbol_prefix_key \"%s\"" % (n))
 
 def init_constants(girxml, settings):
     for const in girxml.findall('./gi:namespace/gi:constant', ns_map):
@@ -81,8 +106,8 @@ def init_constants(girxml, settings):
 
     for setting in settings:
         setting_type_name = 'NM' + setting.attrib['name'];
-        setting_name_symbol = 'NM_' + setting.attrib[symbol_prefix_key].upper() + '_SETTING_NAME'
-        if constants.has_key(setting_name_symbol):
+        setting_name_symbol = 'NM_SETTING_' + get_setting_name_define(setting) + '_SETTING_NAME'
+        if setting_name_symbol in constants:
             setting_name = constants[setting_name_symbol]
             setting_names[setting_type_name] = setting_name
 
@@ -95,7 +120,7 @@ def get_prop_type(setting, pspec, propxml):
 
     return prop_type
 
-def get_docs(setting, pspec, propxml):
+def get_docs(propxml):
     doc_xml = propxml.find('gi:doc', ns_map)
     if doc_xml is None:
         return None
@@ -145,6 +170,11 @@ def get_default_value(setting, pspec, propxml):
 
     return default_value
 
+def settings_sort_key(x):
+    x_prefix = x.attrib['{%s}symbol-prefix' % ns_map['c']]
+    # always sort NMSettingConnection first
+    return (x_prefix != "setting_connection", x_prefix);
+
 def escape(val):
     return str(val).replace('"', '&quot;')
 
@@ -169,7 +199,7 @@ settings = girxml.findall('./gi:namespace/gi:class[@parent="Setting"]', ns_map)
 # Hack. Need a better way to do this
 ipxml = girxml.find('./gi:namespace/gi:class[@name="SettingIPConfig"]', ns_map)
 settings.extend(girxml.findall('./gi:namespace/gi:class[@parent="SettingIPConfig"]', ns_map))
-settings = sorted(settings, key=lambda setting: setting.attrib['{%s}symbol-prefix' % ns_map['c']])
+settings = sorted(settings, key=settings_sort_key)
 
 init_constants(girxml, settings)
 
@@ -184,13 +214,16 @@ outfile.write("""<?xml version=\"1.0\"?>
 """)
 
 for settingxml in settings:
-    if settingxml.attrib.has_key('abstract'):
+    if 'abstract' in settingxml.attrib:
         continue
 
     new_func = NM.__getattr__(settingxml.attrib['name'])
     setting = new_func()
 
-    outfile.write("  <setting name=\"%s\">\n" % setting.props.name)
+    class_desc = get_docs(settingxml)
+    if class_desc is None:
+        raise Exception("%s needs a gtk-doc block with one-line description" % setting.props.name)
+    outfile.write("  <setting name=\"%s\" description=\"%s\" name_upper=\"%s\" >\n" % (setting.props.name, class_desc, get_setting_name_define (settingxml)))
 
     setting_properties = { prop.name: prop for prop in GObject.list_properties(setting) }
     if args.overrides is None:
@@ -214,7 +247,7 @@ for settingxml in settings:
                 propxml = ipxml.find('./gi:property[@name="%s"]' % pspec.name, ns_map)
 
             value_type = get_prop_type(setting, pspec, propxml)
-            value_desc = get_docs(setting, pspec, propxml)
+            value_desc = get_docs(propxml)
             default_value = get_default_value(setting, pspec, propxml)
 
         if prop in setting_overrides:
@@ -224,12 +257,17 @@ for settingxml in settings:
             if override.attrib['description'] != '':
                 value_desc = override.attrib['description']
 
+        prop_upper = prop.upper().replace('-', '_')
+
+        if value_desc is None:
+            raise Exception("%s.%s needs a documentation description" % (setting.props.name, prop))
+
         if default_value is not None:
-            outfile.write("    <property name=\"%s\" type=\"%s\" default=\"%s\" description=\"%s\" />\n" %
-                          (prop, value_type, escape(default_value), escape(value_desc)))
+            outfile.write("    <property name=\"%s\" name_upper=\"%s\" type=\"%s\" default=\"%s\" description=\"%s\" />\n" %
+                          (prop, prop_upper, value_type, escape(default_value), escape(value_desc)))
         else:
-            outfile.write("    <property name=\"%s\" type=\"%s\" description=\"%s\" />\n" %
-                          (prop, value_type, escape(value_desc)))
+            outfile.write("    <property name=\"%s\" name_upper=\"%s\" type=\"%s\" description=\"%s\" />\n" %
+                          (prop, prop_upper, value_type, escape(value_desc)))
 
     outfile.write("  </setting>\n")
 

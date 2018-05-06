@@ -16,13 +16,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  * Copyright (C) 2011 Thomas Bechtold <thomasbechtold@jpberlin.de>
+ * Copyright (C) 2017 Red Hat, Inc.
  */
 
 #ifndef __NETWORKMANAGER_CONNECTIVITY_H__
 #define __NETWORKMANAGER_CONNECTIVITY_H__
 
-
-#include "nm-default.h"
 #include "nm-dbus-interface.h"
 
 #define NM_TYPE_CONNECTIVITY            (nm_connectivity_get_type ())
@@ -32,38 +31,23 @@
 #define NM_IS_CONNECTIVITY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_CONNECTIVITY))
 #define NM_CONNECTIVITY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_CONNECTIVITY, NMConnectivityClass))
 
-/* Properties */
-#define NM_CONNECTIVITY_URI       "uri"
-#define NM_CONNECTIVITY_INTERVAL  "interval"
-#define NM_CONNECTIVITY_RESPONSE  "response"
-#define NM_CONNECTIVITY_STATE     "state"
+#define NM_CONNECTIVITY_PERIODIC_CHECK  "nm-connectivity-periodic-check"
 
-struct _NMConnectivity {
-	GObject parent;
-};
-
-typedef struct {
-	GObjectClass parent;
-} NMConnectivityClass;
+typedef struct _NMConnectivityClass NMConnectivityClass;
 
 GType nm_connectivity_get_type (void);
 
+NMConnectivity *nm_connectivity_get (void);
+
 const char *nm_connectivity_state_to_string (NMConnectivityState state);
 
-NMConnectivity      *nm_connectivity_new (const char *uri,
-                                          guint interval,
-                                          const char *response);
-
-void                 nm_connectivity_set_online   (NMConnectivity       *self,
-                                                   gboolean              online);
-
-NMConnectivityState  nm_connectivity_get_state    (NMConnectivity       *self);
-
 void                 nm_connectivity_check_async  (NMConnectivity       *self,
+                                                   const char           *iface,
                                                    GAsyncReadyCallback   callback,
                                                    gpointer              user_data);
 NMConnectivityState  nm_connectivity_check_finish (NMConnectivity       *self,
                                                    GAsyncResult         *result,
                                                    GError              **error);
+gboolean nm_connectivity_check_enabled (NMConnectivity *self);
 
 #endif /* __NETWORKMANAGER_CONNECTIVITY_H__ */

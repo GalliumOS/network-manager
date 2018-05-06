@@ -26,7 +26,7 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 #include <dbus/dbus-glib.h>
-#include <NetworkManager.h>
+#include "NetworkManager.h"
 #include "nm-object.h"
 #include "nm-device.h"
 #include "nm-active-connection.h"
@@ -84,6 +84,13 @@ G_BEGIN_DECLS
  *  owned by the current user can be modified
  * @NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME: controls whether the
  *  persistent hostname can be changed
+ * @NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS: modify persistent global
+ *  DNS configuration
+ * @NM_CLIENT_PERMISSION_RELOAD: controls access to Reload.
+ *  persistent hostname can be changed
+ * @NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK: permission to create checkpoints.
+ * @NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS: controls whether device
+ *  statistics can be globally enabled or disabled
  * @NM_CLIENT_PERMISSION_LAST: a reserved boundary value
  *
  * #NMClientPermission values indicate various permissions that NetworkManager
@@ -102,8 +109,12 @@ typedef enum {
 	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM = 9,
 	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN = 10,
 	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME = 11,
+	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS = 12,
+	NM_CLIENT_PERMISSION_RELOAD = 13,
+	NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK = 14,
+	NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS = 15,
 
-	NM_CLIENT_PERMISSION_LAST = NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME
+	NM_CLIENT_PERMISSION_LAST = 15,
 } NMClientPermission;
 
 /**

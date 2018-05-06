@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingIPTunnel: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
-<link rel="next" href="NMSettingMacvlan.html" title="NMSettingMacvlan">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<link rel="next" href="NMSettingMacsec.html" title="NMSettingMacsec">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -22,7 +22,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="NMSettingIPConfig.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="NMSettingMacvlan.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="NMSettingMacsec.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NMSettingIPTunnel"></a><div class="titlepage"></div>
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingIPTunnel.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -80,7 +80,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-ttl" title="nm_setting_ip_tunnel_get_ttl ()">nm_setting_ip_tunnel_get_ttl</a> <span class="c_punctuation">()</span>
@@ -88,7 +88,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-tos" title="nm_setting_ip_tunnel_get_tos ()">nm_setting_ip_tunnel_get_tos</a> <span class="c_punctuation">()</span>
@@ -96,7 +96,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-path-mtu-discovery" title="nm_setting_ip_tunnel_get_path_mtu_discovery ()">nm_setting_ip_tunnel_get_path_mtu_discovery</a> <span class="c_punctuation">()</span>
@@ -118,7 +118,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-encapsulation-limit" title="nm_setting_ip_tunnel_get_encapsulation_limit ()">nm_setting_ip_tunnel_get_encapsulation_limit</a> <span class="c_punctuation">()</span>
@@ -126,7 +126,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-flow-label" title="nm_setting_ip_tunnel_get_flow_label ()">nm_setting_ip_tunnel_get_flow_label</a> <span class="c_punctuation">()</span>
@@ -134,7 +134,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPTunnel.html#nm-setting-ip-tunnel-get-mtu" title="nm_setting_ip_tunnel_get_mtu ()">nm_setting_ip_tunnel_get_mtu</a> <span class="c_punctuation">()</span>
@@ -145,7 +145,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIPTunnel.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -153,67 +153,67 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="property_type"><span class="type">guint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--encapsulation-limit" title="The “encapsulation-limit” property">encapsulation-limit</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">guint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--flow-label" title="The “flow-label” property">flow-label</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--input-key" title="The “input-key” property">input-key</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--local" title="The “local” property">local</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">guint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mode" title="The “mode” property">mode</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">guint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mtu" title="The “mtu” property">mtu</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--output-key" title="The “output-key” property">output-key</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--parent" title="The “parent” property">parent</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--path-mtu-discovery" title="The “path-mtu-discovery” property">path-mtu-discovery</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--remote" title="The “remote” property">remote</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">guint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--tos" title="The “tos” property">tos</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">guint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--ttl" title="The “ttl” property">ttl</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
@@ -222,7 +222,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIPTunnel.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -289,7 +289,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIPTunnel.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingIPTunnel
 </pre>
@@ -305,8 +305,8 @@
 nm_setting_ip_tunnel_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.2.5"></a><h4>Returns</h4>
-<p> the new empty <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> object. </p>
+<a name="nm-setting-ip-tunnel-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -318,8 +318,8 @@ nm_setting_ip_tunnel_new (<em class="parameter"><code><span class="type">void</s
 nm_setting_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--parent" title="The “parent” property"><span class="type">“parent”</span></a> property of the setting</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.3.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-parent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -333,7 +333,7 @@ nm_setting_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.3.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-parent.returns"></a><h4>Returns</h4>
 <p> the parent device</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -345,8 +345,8 @@ nm_setting_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" hre
 nm_setting_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mode" title="The “mode” property"><span class="type">“mode”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-mode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -360,7 +360,7 @@ nm_setting_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.4.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-mode.returns"></a><h4>Returns</h4>
 <p> the tunnel mode</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -372,8 +372,8 @@ nm_setting_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href=
 nm_setting_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--local" title="The “local” property"><span class="type">“local”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.5.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-local.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -387,7 +387,7 @@ nm_setting_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.5.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-local.returns"></a><h4>Returns</h4>
 <p> the local endpoint</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -399,8 +399,8 @@ nm_setting_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href
 nm_setting_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--remote" title="The “remote” property"><span class="type">“remote”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.6.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-remote.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -414,7 +414,7 @@ nm_setting_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.6.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-remote.returns"></a><h4>Returns</h4>
 <p> the remote endpoint</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -422,12 +422,12 @@ nm_setting_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" hre
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-tunnel-get-ttl"></a><h3>nm_setting_ip_tunnel_get_ttl ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--ttl" title="The “ttl” property"><span class="type">“ttl”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.7.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-ttl.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -441,7 +441,7 @@ nm_setting_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.7.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-ttl.returns"></a><h4>Returns</h4>
 <p> the Time-to-live value</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -449,12 +449,12 @@ nm_setting_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-tunnel-get-tos"></a><h3>nm_setting_ip_tunnel_get_tos ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_tos (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--tos" title="The “tos” property"><span class="type">“tos”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.8.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-tos.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -468,7 +468,7 @@ nm_setting_ip_tunnel_get_tos (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.8.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-tos.returns"></a><h4>Returns</h4>
 <p> the TOS value</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -476,13 +476,13 @@ nm_setting_ip_tunnel_get_tos (<em class="parameter"><code><a class="link" href="
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-tunnel-get-path-mtu-discovery"></a><h3>nm_setting_ip_tunnel_get_path_mtu_discovery ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_tunnel_get_path_mtu_discovery
                                (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--path-mtu-discovery" title="The “path-mtu-discovery” property"><span class="type">“path-mtu-discovery”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.9.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-path-mtu-discovery.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -496,7 +496,7 @@ nm_setting_ip_tunnel_get_path_mtu_discovery
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.9.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-path-mtu-discovery.returns"></a><h4>Returns</h4>
 <p> whether path MTU discovery is enabled</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -508,8 +508,8 @@ nm_setting_ip_tunnel_get_path_mtu_discovery
 nm_setting_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--input-key" title="The “input-key” property"><span class="type">“input-key”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.10.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-input-key.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -523,7 +523,7 @@ nm_setting_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.10.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-input-key.returns"></a><h4>Returns</h4>
 <p> the input key</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -535,8 +535,8 @@ nm_setting_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" 
 nm_setting_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--output-key" title="The “output-key” property"><span class="type">“output-key”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.11.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-output-key.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -550,7 +550,7 @@ nm_setting_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.11.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-output-key.returns"></a><h4>Returns</h4>
 <p> the output key</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -558,13 +558,13 @@ nm_setting_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link"
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-tunnel-get-encapsulation-limit"></a><h3>nm_setting_ip_tunnel_get_encapsulation_limit ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_encapsulation_limit
                                (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--encapsulation-limit" title="The “encapsulation-limit” property"><span class="type">“encapsulation-limit”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.12.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-encapsulation-limit.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -578,7 +578,7 @@ nm_setting_ip_tunnel_get_encapsulation_limit
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.12.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-encapsulation-limit.returns"></a><h4>Returns</h4>
 <p> the encapsulation limit value</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -586,12 +586,12 @@ nm_setting_ip_tunnel_get_encapsulation_limit
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-tunnel-get-flow-label"></a><h3>nm_setting_ip_tunnel_get_flow_label ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--flow-label" title="The “flow-label” property"><span class="type">“flow-label”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.13.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-flow-label.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -605,7 +605,7 @@ nm_setting_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.13.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-flow-label.returns"></a><h4>Returns</h4>
 <p> the flow label value</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -613,12 +613,12 @@ nm_setting_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link"
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-tunnel-get-mtu"></a><h3>nm_setting_ip_tunnel_get_mtu ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_mtu (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mtu" title="The “mtu” property"><span class="type">“mtu”</span></a> property of the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.20.8.14.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-tunnel-get-mtu.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -632,7 +632,7 @@ nm_setting_ip_tunnel_get_mtu (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.20.8.14.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-tunnel-get-mtu.returns"></a><h4>Returns</h4>
 <p> the MTU</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -721,13 +721,14 @@ nm_setting_ip_tunnel_get_mtu (<em class="parameter"><code><a class="link" href="
 <div class="refsect2">
 <a name="NMSettingIPTunnel-struct"></a><h3>NMSettingIPTunnel</h3>
 <pre class="programlisting">typedef struct _NMSettingIPTunnel NMSettingIPTunnel;</pre>
+<p>IP Tunneling Settings</p>
 </div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIPTunnel.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--encapsulation-limit"></a><h3>The <code class="literal">“encapsulation-limit”</code> property</h3>
-<pre class="programlisting">  “encapsulation-limit”      <span class="type">guint</span></pre>
+<pre class="programlisting">  “encapsulation-limit”      <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>How many additional levels of encapsulation are permitted to be prepended
 to packets. This property applies only to IPv6 tunnels.</p>
 <p>Flags: Read / Write / Construct</p>
@@ -738,7 +739,7 @@ to packets. This property applies only to IPv6 tunnels.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--flow-label"></a><h3>The <code class="literal">“flow-label”</code> property</h3>
-<pre class="programlisting">  “flow-label”               <span class="type">guint</span></pre>
+<pre class="programlisting">  “flow-label”               <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The flow label to assign to tunnel packets. This property applies only to
 IPv6 tunnels.</p>
 <p>Flags: Read / Write / Construct</p>
@@ -749,7 +750,7 @@ IPv6 tunnels.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--input-key"></a><h3>The <code class="literal">“input-key”</code> property</h3>
-<pre class="programlisting">  “input-key”                <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “input-key”                <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The key used for tunnel input packets; the property is valid only for
 certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <p>Flags: Read / Write</p>
@@ -759,7 +760,7 @@ certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--local"></a><h3>The <code class="literal">“local”</code> property</h3>
-<pre class="programlisting">  “local”                    <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “local”                    <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The local endpoint of the tunnel; the value can be empty, otherwise it
 must contain an IPv4 or IPv6 address.</p>
 <p>Flags: Read / Write</p>
@@ -769,7 +770,7 @@ must contain an IPv4 or IPv6 address.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--mode"></a><h3>The <code class="literal">“mode”</code> property</h3>
-<pre class="programlisting">  “mode”                     <span class="type">guint</span></pre>
+<pre class="programlisting">  “mode”                     <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The tunneling mode, for example <a class="link" href="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-IPIP:CAPS"><code class="literal">NM_IP_TUNNEL_MODE_IPIP</code></a> or
 <a class="link" href="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-GRE:CAPS"><code class="literal">NM_IP_TUNNEL_MODE_GRE</code></a>.</p>
 <p>Flags: Read / Write</p>
@@ -779,14 +780,17 @@ must contain an IPv4 or IPv6 address.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--mtu"></a><h3>The <code class="literal">“mtu”</code> property</h3>
-<pre class="programlisting">  “mtu”                      <span class="type">guint</span></pre>
+<pre class="programlisting">  “mtu”                      <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<p>If non-zero, only transmit packets of the specified size or smaller,
+breaking larger packets up into multiple fragments.</p>
 <p>Flags: Read / Write / Construct</p>
 <p>Default value: 0</p>
+<p class="since">Since: 1.2</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--output-key"></a><h3>The <code class="literal">“output-key”</code> property</h3>
-<pre class="programlisting">  “output-key”               <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “output-key”               <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The key used for tunnel output packets; the property is valid only for
 certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <p>Flags: Read / Write</p>
@@ -796,7 +800,7 @@ certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--parent"></a><h3>The <code class="literal">“parent”</code> property</h3>
-<pre class="programlisting">  “parent”                   <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “parent”                   <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>If given, specifies the parent interface name or parent connection UUID
 the new device will be bound to so that tunneled packets will only be
 routed via that interface.</p>
@@ -807,7 +811,7 @@ routed via that interface.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--path-mtu-discovery"></a><h3>The <code class="literal">“path-mtu-discovery”</code> property</h3>
-<pre class="programlisting">  “path-mtu-discovery”       <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “path-mtu-discovery”       <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Whether to enable Path MTU Discovery on this tunnel.</p>
 <p>Flags: Read / Write / Construct</p>
 <p>Default value: TRUE</p>
@@ -816,7 +820,7 @@ routed via that interface.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--remote"></a><h3>The <code class="literal">“remote”</code> property</h3>
-<pre class="programlisting">  “remote”                   <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “remote”                   <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The remote endpoint of the tunnel; the value must contain an IPv4 or IPv6
 address.</p>
 <p>Flags: Read / Write</p>
@@ -826,7 +830,7 @@ address.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--tos"></a><h3>The <code class="literal">“tos”</code> property</h3>
-<pre class="programlisting">  “tos”                      <span class="type">guint</span></pre>
+<pre class="programlisting">  “tos”                      <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The type of service (IPv4) or traffic class (IPv6) field to be set on
 tunneled packets.</p>
 <p>Flags: Read / Write / Construct</p>
@@ -837,7 +841,7 @@ tunneled packets.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--ttl"></a><h3>The <code class="literal">“ttl”</code> property</h3>
-<pre class="programlisting">  “ttl”                      <span class="type">guint</span></pre>
+<pre class="programlisting">  “ttl”                      <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The TTL to assign to tunneled packets. 0 is a special value meaning that
 packets inherit the TTL value.</p>
 <p>Flags: Read / Write / Construct</p>
@@ -848,6 +852,6 @@ packets inherit the TTL value.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

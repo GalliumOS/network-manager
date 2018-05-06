@@ -7,11 +7,10 @@ usr/lib/NetworkManager/nm-iface-helper
 usr/lib/NetworkManager/nm-dispatcher
 usr/lib/*/NetworkManager/libnm-settings-plugin-ifupdown.so
 usr/lib/*/NetworkManager/libnm-settings-plugin-ibft.so
-usr/lib/*/NetworkManager/libnm-settings-plugin-ofono.so
 usr/lib/*/NetworkManager/libnm-device-plugin-*.so
+usr/lib/*/NetworkManager/libnm-ppp-plugin.so
 usr/lib/*/NetworkManager/libnm-wwan.so
 usr/lib/pppd/*/*.so
-usr/share/doc/NetworkManager/examples/
 usr/share/locale/
 usr/share/man/
 usr/share/dbus-1/system-services/
@@ -26,5 +25,7 @@ lib/systemd/system/NetworkManager-dispatcher.service
 lib/systemd/system/NetworkManager-wait-online.service
 debian/NetworkManager.conf etc/NetworkManager/
 debian/org.freedesktop.NetworkManager.pkla var/lib/polkit-1/localauthority/10-vendor.d/
+debian/10-*.conf usr/lib/NetworkManager/conf.d/
 debian/60-network-manager.rules usr/share/polkit-1/rules.d/
+debian/01-ifupdown etc/NetworkManager/dispatcher.d/
 debian/source_network-manager.py /usr/share/apport/package-hooks/

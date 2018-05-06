@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>nm-settings-ifcfg-rh: NetworkManager Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
-<link rel="up" href="manpages.html" title="Manual Pages">
+<link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
-<link rel="next" href="nmcli-examples.html" title="nmcli-examples">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<link rel="next" href="nm-online.html" title="nm-online">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -17,7 +17,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="nm-settings-keyfile.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="nmcli-examples.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="nm-online.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="nm-settings-ifcfg-rh"></a><div class="titlepage"></div>
@@ -46,7 +46,7 @@
           The plugin currently supports reading and writing Ethernet, Wi-Fi, InfiniBand,
           VLAN, Bond, Bridge, and Team connections. Unsupported connection types (such as
           WWAN, PPPoE, VPN, or ADSL) are handled by <span class="emphasis"><em>keyfile</em></span> plugin
-          (<span class="citerefentry"><span class="refentrytitle">nm-settings-keyfile</span>(5)</span>).
+          (<a class="link" href="nm-settings-keyfile.html" title="nm-settings-keyfile"><span class="citerefentry"><span class="refentrytitle">nm-settings-keyfile</span>(5)</span></a>).
           The main reason for using <span class="emphasis"><em>ifcfg-rh</em></span> plugin is the compatibility
           with legacy configurations for <span class="emphasis"><em>ifup</em></span> and <span class="emphasis"><em>ifdown</em></span>
           (initscripts).
@@ -232,6 +232,9 @@ DEVICETYPE=TeamPort
                     connection sharing. When <span class="emphasis"><em>shared</em></span> is used, NetworkManager
                     assigns the interface 10.42.0.1, or it uses the first static address,
                     if configured.</p></li>
+<li class="listitem"><p><code class="literal">HWADDR</code> -
+                    initscripts compare the currently set hardware address of a device, while
+                    NetworkManager considers the permanent one.</p></li>
 </ul></div>
 </td>
 </tr>
@@ -249,8 +252,8 @@ DEVICETYPE=TeamPort
           are NetworkManager specific extensions not understood by traditional initscripts.
         </p>
 <div class="table">
-<a name="id-1.2.8.7.3"></a><p class="title"><b>Table 39. 802-1x setting</b></p>
-<div class="table-contents"><table summary="802-1x setting" border="1">
+<a name="id-1.2.9.7.3"></a><p class="title"><b>Table 34. 802-1x setting</b></p>
+<div class="table-contents"><table class="table" summary="802-1x setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -379,6 +382,17 @@ Example: </strong></span>IEEE_8021X_FAST_PROVISIONING="allow-auth allow-unauth"<
 Allowed values: </strong></span>space-separated list of these values [allow-auth, allow-unauth]</td>
 </tr>
 <tr>
+<td align="left">phase1-auth-flags</td>
+<td align="left">IEEE_8021X_PHASE1_AUTH_FLAGS<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Authentication flags for the supplicant<span class="bold"><strong>
+
+Example: </strong></span>IEEE_8021X_PHASE1_AUTH_FLAGS="tls-1-0-disable tls-1-1-disable"<span class="bold"><strong>
+
+Allowed values: </strong></span>space-separated list of authentication flags names</td>
+</tr>
+<tr>
 <td align="left">phase2-auth</td>
 <td align="left">IEEE_8021X_INNER_AUTH_METHODS<span class="emphasis"><em>(+)</em></span>
 </td>
@@ -448,9 +462,12 @@ Example: </strong></span>IEEE_8021X_INNER_CLIENT_CERT=/home/joe/mycert.crt</td>
 </tr>
 <tr>
 <td align="left">password-raw</td>
-<td align="left">(none)</td>
+<td align="left">IEEE_8021X_PASSWORD_RAW<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
-<td align="left">The property is not handled by ifcfg-rh plugin.</td>
+<td align="left">password used for EAP, encoded as a hexadecimal string. It can also go to "key-" lookaside file.<span class="bold"><strong>
+
+Example: </strong></span>IEEE_8021X_PASSWORD_RAW=041c8320083aa4bf</td>
 </tr>
 <tr>
 <td align="left">password-raw-flags</td>
@@ -520,12 +537,19 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 <td align="left"> </td>
 <td align="left">The property is not handled by ifcfg-rh plugin.</td>
 </tr>
+<tr>
+<td align="left">auth-timeout</td>
+<td align="left">IEEE_8021X_AUTH_TIMEOUT<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">0</td>
+<td align="left">Timeout in seconds for the 802.1X authentication. Zero means the global default or 25.</td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.4"></a><p class="title"><b>Table 40. bond setting</b></p>
-<div class="table-contents"><table summary="bond setting" border="1">
+<a name="id-1.2.9.7.4"></a><p class="title"><b>Table 35. bond setting</b></p>
+<div class="table-contents"><table class="table" summary="bond setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -549,8 +573,8 @@ Example: </strong></span>BONDING_OPTS="miimon=100 mode=broadcast"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.5"></a><p class="title"><b>Table 41. bridge-port setting</b></p>
-<div class="table-contents"><table summary="bridge-port setting" border="1">
+<a name="id-1.2.9.7.5"></a><p class="title"><b>Table 36. bridge-port setting</b></p>
+<div class="table-contents"><table class="table" summary="bridge-port setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -590,8 +614,8 @@ Allowed values: </strong></span>1 - 65535</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.6"></a><p class="title"><b>Table 42. bridge setting</b></p>
-<div class="table-contents"><table summary="bridge setting" border="1">
+<a name="id-1.2.9.7.6"></a><p class="title"><b>Table 37. bridge setting</b></p>
+<div class="table-contents"><table class="table" summary="bridge setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -607,10 +631,10 @@ Allowed values: </strong></span>1 - 65535</td>
 <tbody>
 <tr>
 <td align="left">mac-address</td>
-<td align="left">MACADDR<span class="emphasis"><em>(+)</em></span>
+<td align="left">BRIDGE_MACADDR<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">MAC address of the bridge. Note that this requires a recent kernel support, originally introduced in 3.15 upstream kernel) MACADDR for bridges is an NM extension.</td>
+<td align="left">MAC address of the bridge. Note that this requires a recent kernel support, originally introduced in 3.15 upstream kernel) BRIDGE_MACADDR for bridges is an NM extension.</td>
 </tr>
 <tr>
 <td align="left">stp</td>
@@ -670,8 +694,8 @@ Allowed values: </strong></span>0 or 1</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.7"></a><p class="title"><b>Table 43. connection setting</b></p>
-<div class="table-contents"><table summary="connection setting" border="1">
+<a name="id-1.2.9.7.7"></a><p class="title"><b>Table 38. connection setting</b></p>
+<div class="table-contents"><table class="table" summary="connection setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -697,7 +721,14 @@ Allowed values: </strong></span>0 or 1</td>
 <td align="left">UUID<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">UUID for the connection profile. When missing, NetworkManager creates the UUID itself (by hashing the file).</td>
+<td align="left">UUID for the connection profile. When missing, NetworkManager creates the UUID itself (by hashing the filename).</td>
+</tr>
+<tr>
+<td align="left">stable-id</td>
+<td align="left">STABLE_ID<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Token to generate stable IDs.</td>
 </tr>
 <tr>
 <td align="left">interface-name</td>
@@ -720,7 +751,7 @@ Allowed values: </strong></span>Ethernet, Wireless, InfiniBand, Bridge, Bond, Vl
 <td align="left">USERS<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">USERS restrict the access for this conenction to certain users only.<span class="bold"><strong>
+<td align="left">Restrict to certain users the access to this connection, and allow the connection to be active only when at least one of the specified users is logged into an active session.<span class="bold"><strong>
 
 Example: </strong></span>USERS="joe bob"</td>
 </tr>
@@ -742,6 +773,17 @@ Example: </strong></span>AUTOCONNECT_PRIORITY=20<span class="bold"><strong>
 Allowed values: </strong></span>-999 to 999</td>
 </tr>
 <tr>
+<td align="left">autoconnect-retries</td>
+<td align="left">AUTOCONNECT_RETRIES<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">The number of times a connection should be autoactivated before giving up and switching to the next one.<span class="bold"><strong>
+
+Example: </strong></span>AUTOCONNECT_RETRIES=1<span class="bold"><strong>
+
+Allowed values: </strong></span>-1 (use global default), 0 (forever) or a positive value</td>
+</tr>
+<tr>
 <td align="left">zone</td>
 <td align="left">ZONE<span class="emphasis"><em>(+)</em></span>
 </td>
@@ -752,19 +794,19 @@ Example: </strong></span>ZONE=Work</td>
 </tr>
 <tr>
 <td align="left">master</td>
-<td align="left">MASTER, TEAM_MASTER, BRIDGE</td>
+<td align="left">MASTER, MASTER_UUID, TEAM_MASTER, TEAM_MASTER_UUID, BRIDGE, BRIDGE_UUID</td>
 <td align="left"> </td>
-<td align="left">Reference to master connection. The variable used depends on the connection type.</td>
+<td align="left">Reference to master connection. The variable used depends on the connection type and the value. In general, if the *_UUID variant is present, the variant without *_UUID is ignored. NetworkManager attempts to write both for compatibility with legacy tooling.</td>
 </tr>
 <tr>
 <td align="left">slave-type</td>
-<td align="left">MASTER, TEAM_MASTER, DEVICETYPE, BRIDGE</td>
+<td align="left">MASTER, MASTER_UUID, TEAM_MASTER, TEAM_MASTER_UUID, DEVICETYPE, BRIDGE, BRIDGE_UUID</td>
 <td align="left"> </td>
-<td align="left">Slave type doesn't map directly to a variable, but it is recognized using different variables.  MASTER for bonding, TEAM_MASTER and DEVICETYPE for teaming, BRIDGE for bridging.</td>
+<td align="left">Slave type doesn't map directly to a variable, but it is recognized using different variables.  MASTER and MASTER_UUID for bonding, TEAM_MASTER, TEAM_MASTER_UUID and DEVICETYPE for teaming, BRIDGE and BRIDGE_UUID for bridging.</td>
 </tr>
 <tr>
 <td align="left">autoconnect-slaves</td>
-<td align="left">AUTOCONNECT-SLAVES<span class="emphasis"><em>(+)</em></span>
+<td align="left">AUTOCONNECT_SLAVES<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left">missing variable means global default</td>
 <td align="left">Whether slaves of this connection should be auto-connected when this connection is activated.</td>
@@ -787,7 +829,8 @@ Example: </strong></span>GATEWAY_PING_TIMEOUT=5</td>
 </tr>
 <tr>
 <td align="left">metered</td>
-<td align="left">CONNECTION_METERED</td>
+<td align="left">CONNECTION_METERED<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
 <td align="left">Whether the device is metered<span class="bold"><strong>
 
@@ -797,7 +840,8 @@ Allowed values: </strong></span>yes,no,unknown</td>
 </tr>
 <tr>
 <td align="left">lldp</td>
-<td align="left">LLDP</td>
+<td align="left">LLDP<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left">missing variable means global default</td>
 <td align="left">whether LLDP is enabled for the connection<span class="bold"><strong>
 
@@ -805,12 +849,19 @@ Example: </strong></span>LLDP=no<span class="bold"><strong>
 
 Allowed values: </strong></span>boolean value or 'rx'</td>
 </tr>
+<tr>
+<td align="left">auth-retries</td>
+<td align="left">AUTH_RETRIES<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">0</td>
+<td align="left">Number of retries for authentication.</td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.8"></a><p class="title"><b>Table 44. dcb setting</b></p>
-<div class="table-contents"><table summary="dcb setting" border="1">
+<a name="id-1.2.9.7.8"></a><p class="title"><b>Table 39. dcb setting</b></p>
+<div class="table-contents"><table class="table" summary="dcb setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -944,8 +995,8 @@ Example: </strong></span>DCB_PG_UP2TC=01623701</td>
           used explicitly to enable DCB so that the rest of the DCB_* variables can apply.
         </p>
 <div class="table">
-<a name="id-1.2.8.7.10"></a><p class="title"><b>Table 45. infiniband setting</b></p>
-<div class="table-contents"><table summary="infiniband setting" border="1">
+<a name="id-1.2.9.7.10"></a><p class="title"><b>Table 40. infiniband setting</b></p>
+<div class="table-contents"><table class="table" summary="infiniband setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -963,7 +1014,7 @@ Example: </strong></span>DCB_PG_UP2TC=01623701</td>
 <td align="left">mac-address</td>
 <td align="left">HWADDR</td>
 <td align="left"> </td>
-<td align="left">IBoIP 20-byte hardware address of the device (in traditional hex-digits-and-colons notation).<span class="bold"><strong>
+<td align="left">IBoIP 20-byte hardware address of the device (in traditional hex-digits-and-colons notation). Note that for initscripts this is the current MAC address of the device as found during ifup. For NetworkManager this is the permanent MAC address. Or in case no permanent MAC address exists, the MAC address initially configured on the device.<span class="bold"><strong>
 
 Example: </strong></span>HWADDR=01:02:03:04:05:06:07:08:09:0A:01:02:03:04:05:06:07:08:09:11</td>
 </tr>
@@ -999,26 +1050,8 @@ Example: </strong></span>PHYSDEV=ib0</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.11"></a><p class="title"><b>Table 46. ip-tunnel setting</b></p>
-<div class="table-contents"><table summary="ip-tunnel setting" border="1">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>Property</th>
-<th>Ifcfg-rh Variable</th>
-<th>Default</th>
-<th>Description</th>
-</tr></thead>
-<tbody></tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="id-1.2.8.7.12"></a><p class="title"><b>Table 47. ipv4 setting</b></p>
-<div class="table-contents"><table summary="ipv4 setting" border="1">
+<a name="id-1.2.9.7.11"></a><p class="title"><b>Table 41. ipv4 setting</b></p>
+<div class="table-contents"><table class="table" summary="ipv4 setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1072,7 +1105,7 @@ Example: </strong></span>GATEWAY=10.5.5.1</td>
 </tr>
 <tr>
 <td align="left">routes</td>
-<td align="left">ADDRESS1, NETMASK1, GATEWAY1, METRIC1, ...</td>
+<td align="left">ADDRESS1, NETMASK1, GATEWAY1, METRIC1, OPTIONS1, ...</td>
 <td align="left"> </td>
 <td align="left">List of static routes. They are not stored in ifcfg-* file, but in route-* file instead.</td>
 </tr>
@@ -1123,13 +1156,38 @@ Example: </strong></span>GATEWAY=10.5.5.1</td>
 <td align="left">IPV4_ROUTE_METRIC is the default IPv4 metric for routes on this connection. If set to -1, a default metric based on the device type is used.</td>
 </tr>
 <tr>
+<td align="left">route-table</td>
+<td align="left">IPV4_ROUTE_TABLE<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">0</td>
+<td align="left">IPV4_ROUTE_TABLE enables policy-routing and sets the default routing table.</td>
+</tr>
+<tr>
+<td align="left">dns-options</td>
+<td align="left">RES_OPTIONS<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">List of DNS options to be added to /etc/resolv.conf<span class="bold"><strong>
+
+Example: </strong></span>RES_OPTIONS=ndots:2 timeout:3</td>
+</tr>
+<tr>
+<td align="left">dns-priority</td>
+<td align="left">IPV4_DNS_PRIORITY<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">0</td>
+<td align="left">The priority for DNS servers of this connection. Lower values have higher priority. If zero, the default value will be used (50 for VPNs, 100 for other connections). A negative value prevents DNS from other connections with greater values to be used.<span class="bold"><strong>
+
+Example: </strong></span>IPV4_DNS_PRIORITY=20</td>
+</tr>
+<tr>
 <td align="left">dhcp-client-id</td>
 <td align="left">DHCP_CLIENT_ID<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">A string sent to the DHCP server to identify the local machine.<span class="bold"><strong>
+<td align="left">A string sent to the DHCP server to identify the local machine. A binary value can be specified using hex notation ('aa:bb:cc').<span class="bold"><strong>
 
-Example: </strong></span>DHCP_CLIENT_ID=ax-srv-1</td>
+Example: </strong></span>DHCP_CLIENT_ID=ax-srv-1; DHCP_CLIENT_ID=01:44:44:44:44:44:44"</td>
 </tr>
 <tr>
 <td align="left">dad-timeout</td>
@@ -1160,8 +1218,8 @@ Example: </strong></span>DHCP_FQDN=foo.bar.com</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.13"></a><p class="title"><b>Table 48. ipv6 setting</b></p>
-<div class="table-contents"><table summary="ipv6 setting" border="1">
+<a name="id-1.2.9.7.12"></a><p class="title"><b>Table 42. ipv6 setting</b></p>
+<div class="table-contents"><table class="table" summary="ipv6 setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1189,7 +1247,7 @@ Example: </strong></span>DHCP_FQDN=foo.bar.com</td>
 </tr>
 <tr>
 <td align="left">dns-search</td>
-<td align="left">DOMAIN</td>
+<td align="left">IPV6_DOMAIN</td>
 <td align="left"> </td>
 <td align="left">List of DNS search domains.</td>
 </tr>
@@ -1256,6 +1314,31 @@ Example: </strong></span>IPV6_DEFAULTGW=abbe::1</td>
 <td align="left">IPV6_ROUTE_METRIC is the default IPv6 metric for routes on this connection. If set to -1, a default metric based on the device type is used.</td>
 </tr>
 <tr>
+<td align="left">route-table</td>
+<td align="left">IPV6_ROUTE_TABLE<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">0</td>
+<td align="left">IPV6_ROUTE_TABLE enables policy-routing and sets the default routing table.</td>
+</tr>
+<tr>
+<td align="left">dns-priority</td>
+<td align="left">IPV6_DNS_PRIORITY<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">0</td>
+<td align="left">The priority for DNS servers of this connection. Lower values have higher priority. If zero, the default value will be used (50 for VPNs, 100 for other connections). A negative value prevents DNS from other connections with greater values to be used.<span class="bold"><strong>
+
+Example: </strong></span>IPV6_DNS_PRIORITY=20</td>
+</tr>
+<tr>
+<td align="left">dns-options</td>
+<td align="left">IPV6_RES_OPTIONS<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">List of DNS options to be added to /etc/resolv.conf<span class="bold"><strong>
+
+Example: </strong></span>IPV6_RES_OPTIONS=ndots:2 timeout:3</td>
+</tr>
+<tr>
 <td align="left">ip6-privacy</td>
 <td align="left">IPV6_PRIVACY, IPV6_PRIVACY_PREFER_PUBLIC_IP<span class="emphasis"><em>(+)</em></span>
 </td>
@@ -1276,12 +1359,20 @@ Example: </strong></span>IPV6_ADDR_GEN_MODE=stable-privacy<span class="bold"><st
 
 Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </tr>
+<tr>
+<td align="left">token</td>
+<td align="left">IPV6_TOKEN</td>
+<td align="left"> </td>
+<td align="left">The IPv6 tokenized interface identifier token<span class="bold"><strong>
+
+Example: </strong></span>IPV6_TOKEN=::53</td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.14"></a><p class="title"><b>Table 49. macvlan setting</b></p>
-<div class="table-contents"><table summary="macvlan setting" border="1">
+<a name="id-1.2.9.7.13"></a><p class="title"><b>Table 43. ovs-bridge setting</b></p>
+<div class="table-contents"><table class="table" summary="ovs-bridge setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1298,8 +1389,150 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.15"></a><p class="title"><b>Table 50. team-port setting</b></p>
-<div class="table-contents"><table summary="team-port setting" border="1">
+<a name="id-1.2.9.7.14"></a><p class="title"><b>Table 44. ovs-interface setting</b></p>
+<div class="table-contents"><table class="table" summary="ovs-interface setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.9.7.15"></a><p class="title"><b>Table 45. ovs-patch setting</b></p>
+<div class="table-contents"><table class="table" summary="ovs-patch setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.9.7.16"></a><p class="title"><b>Table 46. ovs-port setting</b></p>
+<div class="table-contents"><table class="table" summary="ovs-port setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.9.7.17"></a><p class="title"><b>Table 47. proxy setting</b></p>
+<div class="table-contents"><table class="table" summary="proxy setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">method</td>
+<td align="left">PROXY_METHOD<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">none</td>
+<td align="left">Method for proxy configuration. For "auto", WPAD is used for proxy configuration, or set the PAC file via PAC_URL or PAC_SCRIPT.<span class="bold"><strong>
+
+Allowed values: </strong></span>none, auto</td>
+</tr>
+<tr>
+<td align="left">browser-only</td>
+<td align="left">BROWSER_ONLY<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">no</td>
+<td align="left">Whether the proxy configuration is for browser only.</td>
+</tr>
+<tr>
+<td align="left">pac-url</td>
+<td align="left">PAC_URL<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">URL for PAC file.<span class="bold"><strong>
+
+Example: </strong></span>PAC_URL=http://wpad.mycompany.com/wpad.dat</td>
+</tr>
+<tr>
+<td align="left">pac-script</td>
+<td align="left">PAC_SCRIPT<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Path of the PAC script.<span class="bold"><strong>
+
+Example: </strong></span>PAC_SCRIPT=/home/joe/proxy.pac</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.9.7.18"></a><p class="title"><b>Table 48. tc setting</b></p>
+<div class="table-contents"><table class="table" summary="tc setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">qdiscs</td>
+<td align="left">QDISC1, QDISC2, ...</td>
+<td align="left"> </td>
+<td align="left">Queueing disciplines<span class="bold"><strong>
+
+Example: </strong></span>QDISC1=ingress, QDISC2="root handle 1234: fq_codel"</td>
+</tr>
+<tr>
+<td align="left">qdiscs</td>
+<td align="left">FILTER1, FILTER2, ...</td>
+<td align="left"> </td>
+<td align="left">Traffic filters<span class="bold"><strong>
+
+Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Input", ...</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.9.7.19"></a><p class="title"><b>Table 49. team-port setting</b></p>
+<div class="table-contents"><table class="table" summary="team-port setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1321,8 +1554,8 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.16"></a><p class="title"><b>Table 51. team setting</b></p>
-<div class="table-contents"><table summary="team setting" border="1">
+<a name="id-1.2.9.7.20"></a><p class="title"><b>Table 50. team setting</b></p>
+<div class="table-contents"><table class="table" summary="team setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1344,8 +1577,8 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.17"></a><p class="title"><b>Table 52. tun setting</b></p>
-<div class="table-contents"><table summary="tun setting" border="1">
+<a name="id-1.2.9.7.21"></a><p class="title"><b>Table 51. user setting</b></p>
+<div class="table-contents"><table class="table" summary="user setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1358,12 +1591,19 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 <th>Default</th>
 <th>Description</th>
 </tr></thead>
-<tbody></tbody>
+<tbody><tr>
+<td align="left">data</td>
+<td align="left">NM_USER_*</td>
+<td align="left"> </td>
+<td align="left">each key/value pair is stored as a separate variable with name composed by concatenating NM_USER_ with the encoded key. The key is encoded by substituting lowercase letters with uppercase and prepending uppercase letters with an underscore. A dot is encoded as a double underscore. Remaining characters are encoded as underscore followed by a 3 digit octal representation of the character.<span class="bold"><strong>
+
+Example: </strong></span>NM_USER_FOO__BAR=something</td>
+</tr></tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.18"></a><p class="title"><b>Table 53. vlan setting</b></p>
-<div class="table-contents"><table summary="vlan setting" border="1">
+<a name="id-1.2.9.7.22"></a><p class="title"><b>Table 52. vlan setting</b></p>
+<div class="table-contents"><table class="table" summary="vlan setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1425,26 +1665,8 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.19"></a><p class="title"><b>Table 54. vxlan setting</b></p>
-<div class="table-contents"><table summary="vxlan setting" border="1">
-<colgroup>
-<col>
-<col>
-<col>
-<col>
-</colgroup>
-<thead><tr>
-<th>Property</th>
-<th>Ifcfg-rh Variable</th>
-<th>Default</th>
-<th>Description</th>
-</tr></thead>
-<tbody></tbody>
-</table></div>
-</div>
-<br class="table-break"><div class="table">
-<a name="id-1.2.8.7.20"></a><p class="title"><b>Table 55. 802-3-ethernet setting</b></p>
-<div class="table-contents"><table summary="802-3-ethernet setting" border="1">
+<a name="id-1.2.9.7.23"></a><p class="title"><b>Table 53. 802-3-ethernet setting</b></p>
+<div class="table-contents"><table class="table" summary="802-3-ethernet setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1466,33 +1688,40 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </tr>
 <tr>
 <td align="left">speed</td>
-<td align="left">(none)</td>
+<td align="left">ETHTOOL_OPTS</td>
 <td align="left"> </td>
-<td align="left">The property is not saved by the plugin.</td>
+<td align="left">Fixed speed for the ethernet link. It is added as "speed" parameter in the ETHTOOL_OPTS variable.</td>
 </tr>
 <tr>
 <td align="left">duplex</td>
-<td align="left">(none)</td>
+<td align="left">ETHTOOL_OPTS</td>
 <td align="left"> </td>
-<td align="left">The property is not saved by the plugin.</td>
+<td align="left">Fixed duplex mode for the ethernet link. It is added as "duplex" parameter in the ETHOOL_OPTS variable.</td>
 </tr>
 <tr>
 <td align="left">auto-negotiate</td>
-<td align="left">(none)</td>
+<td align="left">ETHTOOL_OPTS</td>
 <td align="left"> </td>
-<td align="left">The property is not saved by the plugin.</td>
+<td align="left">Whether link speed and duplex autonegotiation is enabled. It is not saved only if disabled and no values are provided for the "speed" and "duplex" parameters (skips link configuration).</td>
 </tr>
 <tr>
 <td align="left">mac-address</td>
 <td align="left">HWADDR</td>
 <td align="left"> </td>
-<td align="left">Hardware address of the device in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:05).</td>
+<td align="left">Hardware address of the device in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:05). Note that for initscripts this is the current MAC address of the device as found during ifup. For NetworkManager this is the permanent MAC address. Or in case no permanent MAC address exists, the MAC address initially configured on the device.</td>
 </tr>
 <tr>
 <td align="left">cloned-mac-address</td>
 <td align="left">MACADDR</td>
 <td align="left"> </td>
 <td align="left">Cloned (spoofed) MAC address in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:99).</td>
+</tr>
+<tr>
+<td align="left">generate-mac-address-mask</td>
+<td align="left">GENERATE_MAC_ADDRESS_MASK<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">the MAC address mask for generating randomized and stable cloned-mac-address.</td>
 </tr>
 <tr>
 <td align="left">mac-address-blacklist</td>
@@ -1537,8 +1766,8 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.21"></a><p class="title"><b>Table 56. 802-11-wireless-security setting</b></p>
-<div class="table-contents"><table summary="802-11-wireless-security setting" border="1">
+<a name="id-1.2.9.7.24"></a><p class="title"><b>Table 54. 802-11-wireless-security setting</b></p>
+<div class="table-contents"><table class="table" summary="802-11-wireless-security setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1604,6 +1833,17 @@ Allowed values: </strong></span>CCMP, TKIP</td>
 <td align="left">Restrict group/broadcast encryption algorithms, specified as a space separated list.<span class="bold"><strong>
 
 Allowed values: </strong></span>CCMP, TKIP, WEP40, WEP104</td>
+</tr>
+<tr>
+<td align="left">pmf</td>
+<td align="left">PMF<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Enables or disables PMF (802.11w)<span class="bold"><strong>
+
+Example: </strong></span>PMF=required<span class="bold"><strong>
+
+Allowed values: </strong></span>default, disable, optional, required</td>
 </tr>
 <tr>
 <td align="left">leap-username</td>
@@ -1678,19 +1918,27 @@ Example: </strong></span>WPA_PSK_FLAGS=user</td>
 </tr>
 <tr>
 <td align="left">wep-key-type</td>
-<td align="left">KEY&lt;i&gt; or KEY_PASSPHRASE&lt;i&gt;<span class="emphasis"><em>(+)</em></span>
+<td align="left">KEY&lt;i&gt; or KEY_PASSPHRASE&lt;i&gt;<span class="emphasis"><em>(+)</em></span>; KEY_TYPE<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">KEY is used for "key" type (10 or 26 hexadecimal characters, or 5 or 13 character string prefixed with "s:"). KEY_PASSPHRASE is used for WEP passphrases.<span class="bold"><strong>
+<td align="left">KEY is used for "key" type (10 or 26 hexadecimal characters, or 5 or 13 character string prefixed with "s:"). KEY_PASSPHRASE is used for WEP passphrases. KEY_TYPE specifies the key type and can be either 'key' or 'passphrase'. KEY_TYPE is redundant and can be omitted.<span class="bold"><strong>
 
 Example: </strong></span>KEY1=s:ahoj, KEY1=0a1c45bc02, KEY_PASSPHRASE1=mysupersecretkey</td>
+</tr>
+<tr>
+<td align="left">wps-method</td>
+<td align="left">WPS_METHOD</td>
+<td align="left"> </td>
+<td align="left">Used to control the WPS methods to be used Valid values are "default", "auto", "disabled", "pin" and "pbc". If omitted, whatver the AP announces is used.<span class="bold"><strong>
+
+Example: </strong></span>WPS_METHOD=disabled, WPS_METHOD="pin pbc"</td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.7.22"></a><p class="title"><b>Table 57. 802-11-wireless setting</b></p>
-<div class="table-contents"><table summary="802-11-wireless setting" border="1">
+<a name="id-1.2.9.7.25"></a><p class="title"><b>Table 55. 802-11-wireless setting</b></p>
+<div class="table-contents"><table class="table" summary="802-11-wireless setting" border="1">
 <colgroup>
 <col>
 <col>
@@ -1764,13 +2012,20 @@ Example: </strong></span>BSSID=00:1E:BD:64:83:21</td>
 <td align="left">mac-address</td>
 <td align="left">HWADDR</td>
 <td align="left"> </td>
-<td align="left">Hardware address of the device in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:05).</td>
+<td align="left">Hardware address of the device in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:05). Note that for initscripts this is the current MAC address of the device as found during ifup. For NetworkManager this is the permanent MAC address. Or in case no permanent MAC address exists, the MAC address initially configured on the device.</td>
 </tr>
 <tr>
 <td align="left">cloned-mac-address</td>
 <td align="left">MACADDR</td>
 <td align="left"> </td>
 <td align="left">Cloned (spoofed) MAC address in traditional hex-digits-and-colons notation (e.g. 00:22:68:14:5A:99).</td>
+</tr>
+<tr>
+<td align="left">generate-mac-address-mask</td>
+<td align="left">GENERATE_MAC_ADDRESS_MASK<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">the MAC address mask for generating randomized and stable cloned-mac-address.</td>
 </tr>
 <tr>
 <td align="left">mac-address-blacklist</td>
@@ -1830,7 +2085,7 @@ Allowed values: </strong></span>default, never, always</td>
 </table></div>
 </div>
 <br class="table-break"><p>The following settings are not supported by <span class="emphasis"><em>ifcfg-rh</em></span> plugin:</p>
-<p>adsl, bluetooth, ppp, pppoe, serial, generic, gsm, cdma, 802-11-olpc-mesh, wimax, vpn</p>
+<p>802-11-olpc-mesh, adsl, bluetooth, cdma, dummy, generic, gsm, ip-tunnel, macsec, macvlan, ppp, pppoe, serial, tun, vpn, vxlan, wimax</p>
 <div class="refsect2">
 <a name="secrets-flags"></a><h3>Secret flags</h3>
 <p>
@@ -1862,15 +2117,15 @@ Allowed values: </strong></span>default, never, always</td>
 </div>
 <div class="refsect1">
 <a name="see_also"></a><h2>See Also</h2>
-<p><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span>,
-        <span class="citerefentry"><span class="refentrytitle">nm-settings-keyfile</span>(5)</span>,
-        <span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span>,
-        <span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span>,
-        <span class="citerefentry"><span class="refentrytitle">nmcli</span>(1)</span>,
-        <span class="citerefentry"><span class="refentrytitle">nmcli-examples</span>(7)</span></p>
+<p><a class="link" href="nm-settings.html" title="nm-settings"><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span></a>,
+        <a class="link" href="nm-settings-keyfile.html" title="nm-settings-keyfile"><span class="citerefentry"><span class="refentrytitle">nm-settings-keyfile</span>(5)</span></a>,
+        <a class="link" href="NetworkManager.html" title="NetworkManager"><span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span></a>,
+        <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>,
+        <a class="link" href="nmcli.html" title="nmcli"><span class="citerefentry"><span class="refentrytitle">nmcli</span>(1)</span></a>,
+        <a class="link" href="nmcli-examples.html" title="nmcli-examples"><span class="citerefentry"><span class="refentrytitle">nmcli-examples</span>(7)</span></a></p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

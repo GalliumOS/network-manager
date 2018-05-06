@@ -5,33 +5,31 @@ Subject: Don't make NetworkManager D-Bus activatable
 If the NetworkManager daemon has been stopped manually we don't want it
 to be autostarted by a client request.
 ---
- data/Makefile.am               | 7 -------
+ Makefile.am                    | 5 -----
  data/NetworkManager.service.in | 1 -
- 2 files changed, 8 deletions(-)
+ 2 files changed, 6 deletions(-)
 
-diff --git a/data/Makefile.am b/data/Makefile.am
-index ce059fc..4ab4106 100644
---- a/data/Makefile.am
-+++ b/data/Makefile.am
-@@ -19,13 +19,6 @@ endif
- NetworkManager-dispatcher.service: NetworkManager-dispatcher.service.in
- 	$(edit) $< >$@
+diff --git a/Makefile.am b/Makefile.am
+index 639921d..2ddc7bc 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -3689,11 +3689,6 @@ endif
+ data/NetworkManager-dispatcher.service: $(srcdir)/data/NetworkManager-dispatcher.service.in
+ 	$(AM_V_GEN) $(data_edit) $< >$@
  
--servicedir = $(datadir)/dbus-1/system-services
--service_in_files = org.freedesktop.NetworkManager.service.in
--service_DATA = $(service_in_files:.service.in=.service)
+-data/org.freedesktop.NetworkManager.service: $(srcdir)/data/org.freedesktop.NetworkManager.service.in
+-	$(AM_V_GEN) $(data_edit) $< >$@
 -
--$(service_DATA): $(service_in_files) Makefile
--	$(edit) $< >$@
+-service_DATA += data/org.freedesktop.NetworkManager.service
 -
- install-exec-local:
- 	install -d $(DESTDIR)$(systemdsystemunitdir)/network-online.target.wants
- 	ln -sf $(systemdsystemunitdir)/NetworkManager-wait-online.service $(DESTDIR)$(systemdsystemunitdir)/network-online.target.wants
+ endif
+ 
+ examples_DATA += data/server.conf
 diff --git a/data/NetworkManager.service.in b/data/NetworkManager.service.in
-index a974432..5a752b8 100644
+index 95d58f9..1502b89 100644
 --- a/data/NetworkManager.service.in
 +++ b/data/NetworkManager.service.in
-@@ -16,6 +16,5 @@ ProtectHome=read-only
+@@ -24,6 +24,5 @@ ProtectHome=read-only
  
  [Install]
  WantedBy=multi-user.target

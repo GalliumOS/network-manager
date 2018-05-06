@@ -34,7 +34,7 @@
 #include "nm-core-internal.h"
 #include "nm-simple-connection.h"
 
-#include "nmdbus-vpn-plugin.h"
+#include "introspection/org.freedesktop.NetworkManager.VPN.Plugin.h"
 
 #define NM_VPN_SERVICE_PLUGIN_QUIT_TIMER    180
 
@@ -217,7 +217,7 @@ nm_vpn_service_plugin_disconnect (NMVpnServicePlugin *plugin, GError **err)
 		break;
 	case NM_VPN_SERVICE_STATE_STARTING:
 		_emit_failure (plugin, NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED);
-		/* fallthru */
+		/* fall through */
 	case NM_VPN_SERVICE_STATE_STARTED:
 		nm_vpn_service_plugin_set_state (plugin, NM_VPN_SERVICE_STATE_STOPPING);
 		ret = NM_VPN_SERVICE_PLUGIN_GET_CLASS (plugin)->disconnect (plugin, err);
@@ -225,6 +225,7 @@ nm_vpn_service_plugin_disconnect (NMVpnServicePlugin *plugin, GError **err)
 		break;
 	case NM_VPN_SERVICE_STATE_INIT:
 		ret = TRUE;
+		nm_vpn_service_plugin_set_state (plugin, NM_VPN_SERVICE_STATE_STOPPED);
 		break;
 
 	default:
@@ -554,7 +555,7 @@ impl_vpn_service_plugin_connect_interactive (NMVpnServicePlugin *plugin,
 	_connect_generic (plugin, context, connection, details);
 }
 
-/***************************************************************/
+/*****************************************************************************/
 
 static void
 impl_vpn_service_plugin_need_secrets (NMVpnServicePlugin *plugin,
@@ -702,7 +703,7 @@ nm_vpn_service_plugin_secrets_required (NMVpnServicePlugin *plugin,
 	nmdbus_vpn_plugin_emit_secrets_required (priv->dbus_vpn_service_plugin, message, hints);
 }
 
-/***************************************************************/
+/*****************************************************************************/
 
 #define DATA_KEY_TAG "DATA_KEY="
 #define DATA_VAL_TAG "DATA_VAL="
@@ -868,7 +869,7 @@ nm_vpn_service_plugin_get_secret_flags (GHashTable *data,
 	return success;
 }
 
-/***************************************************************/
+/*****************************************************************************/
 
 static void
 impl_vpn_service_plugin_disconnect (NMVpnServicePlugin *plugin,
@@ -923,7 +924,7 @@ impl_vpn_service_plugin_set_failure (NMVpnServicePlugin *plugin,
 	g_dbus_method_invocation_return_value (context, NULL);
 }
 
-/*********************************************************************/
+/*****************************************************************************/
 
 static void
 sigterm_handler (int signum)
@@ -945,7 +946,7 @@ setup_unix_signal_handler (void)
 	sigaction (SIGTERM, &action, NULL);
 }
 
-/*********************************************************************/
+/*****************************************************************************/
 
 static void
 one_plugin_destroyed (gpointer data,
@@ -995,11 +996,6 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 		goto out;
 
 	priv->dbus_vpn_service_plugin = nmdbus_vpn_plugin_skeleton_new ();
-	if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (priv->dbus_vpn_service_plugin),
-	                                       connection,
-	                                       NM_VPN_DBUS_PLUGIN_PATH,
-	                                       error))
-		goto out;
 
 	_nm_dbus_bind_properties (plugin, priv->dbus_vpn_service_plugin);
 	_nm_dbus_bind_methods (plugin, priv->dbus_vpn_service_plugin,
@@ -1013,6 +1009,12 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 	                       "SetIp6Config", impl_vpn_service_plugin_set_ip6_config,
 	                       "SetFailure", impl_vpn_service_plugin_set_failure,
 	                       NULL);
+
+	if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (priv->dbus_vpn_service_plugin),
+	                                       connection,
+	                                       NM_VPN_DBUS_PLUGIN_PATH,
+	                                       error))
+		goto out;
 
 	nm_vpn_service_plugin_set_connection (plugin, connection);
 	nm_vpn_service_plugin_set_state (plugin, NM_VPN_SERVICE_STATE_INIT);
@@ -1046,11 +1048,11 @@ set_property (GObject *object, guint prop_id,
 
 	switch (prop_id) {
 	case PROP_DBUS_SERVICE_NAME:
-		/* Construct-only */
+		/* construct-only */
 		priv->dbus_service_name = g_value_dup_string (value);
 		break;
 	case PROP_DBUS_WATCH_PEER:
-		/* Construct-only */
+		/* construct-only */
 		priv->dbus_watch_peer = g_value_get_boolean (value);
 		break;
 	case PROP_STATE:
@@ -1106,6 +1108,11 @@ dispose (GObject *object)
 	if (err) {
 		g_warning ("Error disconnecting VPN connection: %s", err->message);
 		g_error_free (err);
+	}
+
+	if (priv->dbus_vpn_service_plugin) {
+		g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (priv->dbus_vpn_service_plugin));
+		g_clear_object (&priv->dbus_vpn_service_plugin);
 	}
 
 	G_OBJECT_CLASS (nm_vpn_service_plugin_parent_class)->dispose (object);
@@ -1306,3 +1313,11 @@ nm_vpn_service_plugin_initable_iface_init (GInitableIface *iface)
 {
 	iface->init = init_sync;
 }
+
+/*****************************************************************************/
+
+/* this header is intended to be copied to users of nm_vpn_editor_plugin_call(),
+ * to simplify invocation of generic functions. Include it here, to complile
+ * the code. */
+#include "nm-utils/nm-vpn-editor-plugin-call.h"
+

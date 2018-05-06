@@ -19,8 +19,6 @@
 /**
  * SECTION:nm-vpn-helpers
  * @short_description: VPN-related utilities
- *
- * Some functions should probably eventually move into libnm.
  */
 
 #include "nm-default.h"
@@ -28,44 +26,62 @@
 #include "nm-vpn-helpers.h"
 
 #include <string.h>
-#include <gmodule.h>
 
 #include "nm-utils.h"
 
-static gboolean plugins_loaded;
-static GSList *plugins = NULL;
+/*****************************************************************************/
 
 NMVpnEditorPlugin *
-nm_vpn_get_plugin_by_service (const char *service, GError **error)
+nm_vpn_get_editor_plugin (const char *service_type, GError **error)
 {
 	NMVpnEditorPlugin *plugin = NULL;
 	NMVpnPluginInfo *plugin_info;
-	char *type = NULL;
+	gs_free_error GError *local = NULL;
 
-	g_return_val_if_fail (service != NULL, NULL);
+	g_return_val_if_fail (service_type, NULL);
 	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-	if (G_UNLIKELY (!plugins_loaded))
-		nm_vpn_get_plugins ();
+	plugin_info = nm_vpn_plugin_info_list_find_by_service (nm_vpn_get_plugin_infos (), service_type);
 
-	if (!g_str_has_prefix (service, NM_DBUS_INTERFACE))
-		service = type = g_strdup_printf ("%s.%s", NM_DBUS_INTERFACE, service);
+	if (!plugin_info) {
+		g_set_error (error, NM_VPN_PLUGIN_ERROR, NM_VPN_PLUGIN_ERROR_FAILED,
+		             _("unknown VPN plugin \"%s\""), service_type);
+		return NULL;
+	}
+	plugin = nm_vpn_plugin_info_get_editor_plugin (plugin_info);
+	if (!plugin)
+		plugin = nm_vpn_plugin_info_load_editor_plugin (plugin_info, &local);
 
-	plugin_info = nm_vpn_plugin_info_list_find_by_service (plugins, service);
-	if (plugin_info) {
-		plugin = nm_vpn_plugin_info_get_editor_plugin (plugin_info);
-		if (!plugin)
-			plugin = nm_vpn_plugin_info_load_editor_plugin (plugin_info, error);
-	} else
-		g_set_error_literal (error, NM_VPN_PLUGIN_ERROR, NM_VPN_PLUGIN_ERROR_FAILED,
-		                     _("could not get VPN plugin info"));
-	g_free (type);
+	if (!plugin) {
+		if (   !nm_vpn_plugin_info_get_plugin (plugin_info)
+		    && nm_vpn_plugin_info_lookup_property (plugin_info, NM_VPN_PLUGIN_INFO_KF_GROUP_GNOME, "properties")) {
+			g_set_error (error, NM_VPN_PLUGIN_ERROR, NM_VPN_PLUGIN_ERROR_FAILED,
+			             _("cannot load legacy-only VPN plugin \"%s\" for \"%s\""),
+			             nm_vpn_plugin_info_get_name (plugin_info),
+			             nm_vpn_plugin_info_get_filename (plugin_info));
+		} else if (g_error_matches (local, G_FILE_ERROR, G_FILE_ERROR_NOENT)) {
+			g_set_error (error, NM_VPN_PLUGIN_ERROR, NM_VPN_PLUGIN_ERROR_FAILED,
+			             _("cannot load VPN plugin \"%s\" due to missing \"%s\". Missing client plugin?"),
+			             nm_vpn_plugin_info_get_name (plugin_info),
+			             nm_vpn_plugin_info_get_plugin (plugin_info));
+		} else {
+			g_set_error (error, NM_VPN_PLUGIN_ERROR, NM_VPN_PLUGIN_ERROR_FAILED,
+			             _("failed to load VPN plugin \"%s\": %s"),
+			             nm_vpn_plugin_info_get_name (plugin_info),
+			             local->message);
+		}
+		return NULL;
+	}
+
 	return plugin;
 }
 
 GSList *
-nm_vpn_get_plugins (void)
+nm_vpn_get_plugin_infos (void)
 {
+	static bool plugins_loaded;
+	static GSList *plugins = NULL;
+
 	if (G_LIKELY (plugins_loaded))
 		return plugins;
 	plugins_loaded = TRUE;
@@ -85,43 +101,58 @@ nm_vpn_supports_ipv6 (NMConnection *connection)
 	g_return_val_if_fail (s_vpn != NULL, FALSE);
 
 	service_type = nm_setting_vpn_get_service_type (s_vpn);
-	g_return_val_if_fail (service_type != NULL, FALSE);
+	if (!service_type)
+		return FALSE;
 
-	plugin = nm_vpn_get_plugin_by_service (service_type, NULL);
-	g_return_val_if_fail (plugin != NULL, FALSE);
+	plugin = nm_vpn_get_editor_plugin (service_type, NULL);
+	if (!plugin)
+		return FALSE;
 
 	capabilities = nm_vpn_editor_plugin_get_capabilities (plugin);
 	return NM_FLAGS_HAS (capabilities, NM_VPN_EDITOR_PLUGIN_CAPABILITY_IPV6);
 }
 
 const VpnPasswordName *
-nm_vpn_get_secret_names (const char *vpn_type)
+nm_vpn_get_secret_names (const char *service_type)
 {
+	static const VpnPasswordName const generic_vpn_secrets[] = {
+		{ "password", N_("Password") },
+		{ 0 }
+	};
+	static const VpnPasswordName const openvpn_secrets[] = {
+		{ "password", N_("Password") },
+		{ "cert-pass", N_("Certificate password") },
+		{ "http-proxy-password", N_("HTTP proxy password") },
+		{ 0 }
+	};
+	static const VpnPasswordName const vpnc_secrets[] = {
+		{ "Xauth password", N_("Password") },
+		{ "IPSec secret", N_("Group password") },
+		{ 0 }
+	};
+	static const VpnPasswordName const swan_secrets[] = {
+		{ "xauthpassword", N_("Password") },
+		{ "pskvalue", N_("Group password") },
+		{ 0 }
+	};
+	static const VpnPasswordName const openconnect_secrets[] = {
+		{ "gateway", N_("Gateway") },
+		{ "cookie", N_("Cookie") },
+		{ "gwcert", N_("Gateway certificate hash") },
+		{ 0 }
+	};
 	const char *type;
-	static VpnPasswordName generic_vpn_secrets[] = { {"password", N_("Password")}, {NULL, NULL} };
-	static VpnPasswordName openvpn_secrets[] = { {"password", N_("Password")},
-	                                             {"cert-pass", N_("Certificate password")},
-	                                             {"http-proxy-password", N_("HTTP proxy password")},
-	                                             {NULL, NULL} };
-	static VpnPasswordName vpnc_secrets[] = { {"Xauth password", N_("Password")},
-	                                          {"IPSec secret", N_("Group password")},
-	                                          {NULL, NULL} };
-	static VpnPasswordName swan_secrets[] = { {"xauthpassword", N_("Password")},
-	                                          {"pskvalue", N_("Group password")},
-	                                          {NULL, NULL} };
-	static VpnPasswordName openconnect_secrets[] = { {"gateway", N_("Gateway")},
-	                                                 {"cookie", N_("Cookie")},
-	                                                 {"gwcert", N_("Gateway certificate hash")},
-	                                                 {NULL, NULL} };
 
-	if (!vpn_type)
+	if (!service_type)
 		return NULL;
 
-	if (g_str_has_prefix (vpn_type, NM_DBUS_INTERFACE))
-		type = vpn_type + strlen (NM_DBUS_INTERFACE) + 1;
-	else
-		type = vpn_type;
+	if (   !g_str_has_prefix (service_type, NM_DBUS_INTERFACE)
+	    || service_type[NM_STRLEN (NM_DBUS_INTERFACE)] != '.') {
+		/* all our well-known, hard-coded vpn-types start with NM_DBUS_INTERFACE. */
+		return NULL;
+	}
 
+	type = service_type + (NM_STRLEN (NM_DBUS_INTERFACE) + 1);
 	if (   !g_strcmp0 (type, "pptp")
 	    || !g_strcmp0 (type, "iodine")
 	    || !g_strcmp0 (type, "ssh")

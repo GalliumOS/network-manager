@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2014 Red Hat, Inc.
+ * Copyright 2014 - 2017 Red Hat, Inc.
  */
 
 #ifndef __NM_CORE_TYPES_H__
@@ -23,9 +23,9 @@
 
 #include <glib-object.h>
 
-#include <nm-version.h>
-#include <nm-dbus-interface.h>
-#include <nm-core-enum-types.h>
+#include "nm-version.h"
+#include "nm-dbus-interface.h"
+#include "nm-core-enum-types.h"
 
 typedef struct _NMConnection              NMConnection;
 typedef struct _NMSetting                 NMSetting;
@@ -38,21 +38,30 @@ typedef struct _NMSettingBridgePort       NMSettingBridgePort;
 typedef struct _NMSettingCdma             NMSettingCdma;
 typedef struct _NMSettingConnection       NMSettingConnection;
 typedef struct _NMSettingDcb              NMSettingDcb;
+typedef struct _NMSettingDummy            NMSettingDummy;
 typedef struct _NMSettingGeneric          NMSettingGeneric;
 typedef struct _NMSettingGsm              NMSettingGsm;
 typedef struct _NMSettingInfiniband       NMSettingInfiniband;
 typedef struct _NMSettingIPConfig         NMSettingIPConfig;
 typedef struct _NMSettingIPTunnel         NMSettingIPTunnel;
+typedef struct _NMSettingProxy            NMSettingProxy;
 typedef struct _NMSettingIP4Config        NMSettingIP4Config;
 typedef struct _NMSettingIP6Config        NMSettingIP6Config;
+typedef struct _NMSettingMacsec           NMSettingMacsec;
 typedef struct _NMSettingMacvlan          NMSettingMacvlan;
 typedef struct _NMSettingOlpcMesh         NMSettingOlpcMesh;
+typedef struct _NMSettingOvsBridge        NMSettingOvsBridge;
+typedef struct _NMSettingOvsInterface     NMSettingOvsInterface;
+typedef struct _NMSettingOvsPatch         NMSettingOvsPatch;
+typedef struct _NMSettingOvsPort          NMSettingOvsPort;
 typedef struct _NMSettingPpp              NMSettingPpp;
 typedef struct _NMSettingPppoe            NMSettingPppoe;
 typedef struct _NMSettingSerial           NMSettingSerial;
+typedef struct _NMSettingTCConfig         NMSettingTCConfig;
 typedef struct _NMSettingTeam             NMSettingTeam;
 typedef struct _NMSettingTeamPort         NMSettingTeamPort;
 typedef struct _NMSettingTun              NMSettingTun;
+typedef struct _NMSettingUser             NMSettingUser;
 typedef struct _NMSettingVlan             NMSettingVlan;
 typedef struct _NMSettingVpn              NMSettingVpn;
 typedef struct _NMSettingVxlan            NMSettingVxlan;

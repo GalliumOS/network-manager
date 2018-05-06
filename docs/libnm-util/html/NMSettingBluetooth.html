@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingBluetooth: libnm-util Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm-util Reference Manual">
 <link rel="up" href="ch01.html" title="libnm-util API Reference">
 <link rel="prev" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">
 <link rel="next" href="NMSettingSerial.html" title="NMSettingSerial">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingBluetooth.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -43,7 +43,7 @@
 <tbody>
 <tr>
 <td class="function_type">
-<span class="returnvalue">GQuark</span>
+<a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingBluetooth.html#nm-setting-bluetooth-error-quark" title="nm_setting_bluetooth_error_quark ()">nm_setting_bluetooth_error_quark</a> <span class="c_punctuation">()</span>
@@ -58,7 +58,7 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">GByteArray</span> *
+<td class="function_type">const <a href="../glib/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingBluetooth.html#nm-setting-bluetooth-get-bdaddr" title="nm_setting_bluetooth_get_bdaddr ()">nm_setting_bluetooth_get_bdaddr</a> <span class="c_punctuation">()</span>
@@ -76,7 +76,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingBluetooth.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -91,7 +91,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingBluetooth.html#NMSettingBluetooth--type" title="The “type” property">type</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -100,7 +100,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingBluetooth.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -139,9 +139,9 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingBluetooth.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GEnum
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">╰──</span> NMSettingBluetoothError
-    GObject
+    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingBluetooth
 </pre>
@@ -162,11 +162,11 @@ Point (NAP) profiles.</p>
 <a name="NMSettingBluetooth.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="nm-setting-bluetooth-error-quark"></a><h3>nm_setting_bluetooth_error_quark ()</h3>
-<pre class="programlisting"><span class="returnvalue">GQuark</span>
+<pre class="programlisting"><a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 nm_setting_bluetooth_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Registers an error quark for <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> if necessary.</p>
 <div class="refsect3">
-<a name="id-1.2.8.9.2.5"></a><h4>Returns</h4>
+<a name="nm-setting-bluetooth-error-quark.returns"></a><h4>Returns</h4>
 <p> the error quark used for <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> errors.</p>
 </div>
 </div>
@@ -177,21 +177,21 @@ nm_setting_bluetooth_error_quark (<em class="parameter"><code><span class="type"
 nm_setting_bluetooth_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.2.8.9.3.5"></a><h4>Returns</h4>
-<p> the new empty <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> object. </p>
+<a name="nm-setting-bluetooth-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-bluetooth-get-bdaddr"></a><h3>nm_setting_bluetooth_get_bdaddr ()</h3>
-<pre class="programlisting">const <span class="returnvalue">GByteArray</span> *
+<pre class="programlisting">const <a href="../glib/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *
 nm_setting_bluetooth_get_bdaddr (<em class="parameter"><code><a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth"><span class="type">NMSettingBluetooth</span></a> *setting</code></em>);</pre>
 <p>Gets the Bluetooth address of the remote device which this setting
 describes a connection to.</p>
 <div class="refsect3">
-<a name="id-1.2.8.9.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bluetooth-get-bdaddr.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -205,7 +205,7 @@ describes a connection to.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.8.9.4.6"></a><h4>Returns</h4>
+<a name="nm-setting-bluetooth-get-bdaddr.returns"></a><h4>Returns</h4>
 <p> the Bluetooth address</p>
 </div>
 </div>
@@ -218,8 +218,8 @@ nm_setting_bluetooth_get_connection_type
 <p>Returns the connection method for communicating with the remote device (i.e.
 either DUN to a DUN-capable device or PANU to a NAP-capable device).</p>
 <div class="refsect3">
-<a name="id-1.2.8.9.5.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bluetooth-get-connection-type.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -233,7 +233,7 @@ either DUN to a DUN-capable device or PANU to a NAP-capable device).</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.8.9.5.6"></a><h4>Returns</h4>
+<a name="nm-setting-bluetooth-get-connection-type.returns"></a><h4>Returns</h4>
 <p> the type, either <a class="link" href="NMSettingBluetooth.html#NM-SETTING-BLUETOOTH-TYPE-PANU:CAPS" title="NM_SETTING_BLUETOOTH_TYPE_PANU"><code class="literal">NM_SETTING_BLUETOOTH_TYPE_PANU</code></a> or
 <a class="link" href="NMSettingBluetooth.html#NM-SETTING-BLUETOOTH-TYPE-DUN:CAPS" title="NM_SETTING_BLUETOOTH_TYPE_DUN"><code class="literal">NM_SETTING_BLUETOOTH_TYPE_DUN</code></a></p>
 </div>
@@ -250,8 +250,8 @@ either DUN to a DUN-capable device or PANU to a NAP-capable device).</p>
 <div class="refsect2">
 <a name="NMSettingBluetoothError"></a><h3>enum NMSettingBluetoothError</h3>
 <div class="refsect3">
-<a name="id-1.2.8.10.3.3"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMSettingBluetoothError.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -339,7 +339,7 @@ NAP (Network Access Point) protocol, which accepts connections via PANU.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingBluetooth--type"></a><h3>The <code class="literal">“type”</code> property</h3>
-<pre class="programlisting">  “type”                     <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “type”                     <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Either "dun" for Dial-Up Networking connections or "panu" for Personal
 Area Networking connections to devices supporting the NAP profile.</p>
 <p>Flags: Read / Write</p>
@@ -348,6 +348,6 @@ Area Networking connections to devices supporting the NAP profile.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2007 - 2014 Red Hat, Inc.
+ * Copyright 2007 - 2017 Red Hat, Inc.
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
@@ -54,7 +54,7 @@
  **/
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingWirelessSecurity, nm_setting_wireless_security, NM_TYPE_SETTING,
-                         _nm_register_setting (WIRELESS_SECURITY, 2))
+                         _nm_register_setting (WIRELESS_SECURITY, NM_SETTING_PRIORITY_HW_AUX))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_WIRELESS_SECURITY)
 
 #define NM_SETTING_WIRELESS_SECURITY_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_WIRELESS_SECURITY, NMSettingWirelessSecurityPrivate))
@@ -65,6 +65,7 @@ typedef struct {
 	GSList *proto; /* GSList of strings */
 	GSList *pairwise; /* GSList of strings */
 	GSList *group; /* GSList of strings */
+	NMSettingWirelessSecurityPmf pmf;
 
 	/* LEAP */
 	char *leap_username;
@@ -83,6 +84,9 @@ typedef struct {
 	/* WPA-PSK */
 	char *psk;
 	NMSettingSecretFlags psk_flags;
+
+	/* WPS */
+	NMSettingWirelessSecurityWpsMethod wps_method;
 } NMSettingWirelessSecurityPrivate;
 
 enum {
@@ -93,6 +97,7 @@ enum {
 	PROP_PROTO,
 	PROP_PAIRWISE,
 	PROP_GROUP,
+	PROP_PMF,
 	PROP_LEAP_USERNAME,
 	PROP_WEP_KEY0,
 	PROP_WEP_KEY1,
@@ -104,6 +109,7 @@ enum {
 	PROP_PSK_FLAGS,
 	PROP_LEAP_PASSWORD,
 	PROP_LEAP_PASSWORD_FLAGS,
+	PROP_WPS_METHOD,
 
 	LAST_PROP
 };
@@ -182,7 +188,7 @@ nm_setting_wireless_security_get_proto (NMSettingWirelessSecurity *setting, guin
  * by this connection only supports WPA2/RSN, the connection cannot be used
  * with the access point.
  *
- * Returns: %TRUE if the protocol was new and and was added to the allowed
+ * Returns: %TRUE if the protocol was new and was added to the allowed
  * protocol list, or %FALSE if it was already in the list
  **/
 gboolean
@@ -236,7 +242,7 @@ nm_setting_wireless_security_remove_proto (NMSettingWirelessSecurity *setting, g
  *
  * Removes a protocol from the allowed protocol list.
  *
- * Returns: %TRUE if the protocol was found and removed; %FALSE it it was not.
+ * Returns: %TRUE if the protocol was found and removed; %FALSE if it was not.
  **/
 gboolean
 nm_setting_wireless_security_remove_proto_by_value (NMSettingWirelessSecurity *setting,
@@ -382,7 +388,7 @@ nm_setting_wireless_security_remove_pairwise (NMSettingWirelessSecurity *setting
  * Removes an encryption algorithm from the allowed pairwise encryption
  * algorithm list.
  *
- * Returns: %TRUE if the encryption algorith was found and removed; %FALSE it it was not.
+ * Returns: %TRUE if the encryption algorith was found and removed; %FALSE if it was not.
  **/
 gboolean
 nm_setting_wireless_security_remove_pairwise_by_value (NMSettingWirelessSecurity *setting,
@@ -530,7 +536,7 @@ nm_setting_wireless_security_remove_group (NMSettingWirelessSecurity *setting, g
  * Removes an encryption algorithm from the allowed groupwise encryption
  * algorithm list.
  *
- * Returns: %TRUE if the algorithm was found and removed; %FALSE it it was not.
+ * Returns: %TRUE if the algorithm was found and removed; %FALSE if it was not.
  **/
 gboolean
 nm_setting_wireless_security_remove_group_by_value (NMSettingWirelessSecurity *setting,
@@ -571,6 +577,22 @@ nm_setting_wireless_security_clear_groups (NMSettingWirelessSecurity *setting)
 	g_slist_free_full (priv->group, g_free);
 	priv->group = NULL;
 	g_object_notify (G_OBJECT (setting), NM_SETTING_WIRELESS_SECURITY_GROUP);
+}
+
+/*
+ * nm_setting_wireless_security_get_pmf:
+ * @setting: the #NMSettingWirelessSecurity
+ *
+ * Returns: the #NMSettingWirelessSecurity:pmf property of the setting
+ *
+ * Since: 1.10
+ **/
+NMSettingWirelessSecurityPmf
+nm_setting_wireless_security_get_pmf (NMSettingWirelessSecurity *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_WIRELESS_SECURITY (setting), 0);
+
+	return NM_SETTING_WIRELESS_SECURITY_GET_PRIVATE (setting)->pmf;
 }
 
 /**
@@ -775,6 +797,23 @@ nm_setting_wireless_security_get_wep_key_type (NMSettingWirelessSecurity *settin
 	return NM_SETTING_WIRELESS_SECURITY_GET_PRIVATE (setting)->wep_key_type;
 }
 
+/**
+ * nm_setting_wireless_security_get_wps_method:
+ * @setting: the #NMSettingWirelessSecurity
+ *
+ * Returns: the #NMSettingWirelessSecurity:wps-method property of the setting
+ *
+ * Since: 1.10
+ **/
+NMSettingWirelessSecurityWpsMethod
+nm_setting_wireless_security_get_wps_method (NMSettingWirelessSecurity *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_WIRELESS_SECURITY (setting),
+	                      NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED);
+
+	return NM_SETTING_WIRELESS_SECURITY_GET_PRIVATE (setting)->wps_method;
+}
+
 static GPtrArray *
 need_secrets (NMSetting *setting)
 {
@@ -863,7 +902,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
-	if (!_nm_utils_string_in_list (priv->key_mgmt, valid_key_mgmt)) {
+	if (!g_strv_contains (valid_key_mgmt, priv->key_mgmt)) {
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
 		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -936,7 +975,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
-	if (priv->auth_alg && !_nm_utils_string_in_list (priv->auth_alg, valid_auth_algs)) {
+	if (priv->auth_alg && !g_strv_contains (valid_auth_algs, priv->auth_alg)) {
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
 		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -958,7 +997,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		const char *wpa_none[] = { "wpa-none", NULL };
 
 		/* For ad-hoc connections, pairwise must be "none" */
-		if (_nm_utils_string_in_list (priv->key_mgmt, wpa_none)) {
+		if (g_strv_contains (wpa_none, priv->key_mgmt)) {
 			GSList *iter;
 			gboolean found = FALSE;
 
@@ -1011,6 +1050,50 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 			g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME, NM_SETTING_WIRELESS_SECURITY_AUTH_ALG);
 			return FALSE;
 		}
+	}
+
+	G_STATIC_ASSERT_EXPR (((NMSettingWirelessSecurityPmf) -1) > 0);
+	if (priv->pmf > NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property is invalid"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME, NM_SETTING_WIRELESS_SECURITY_PMF);
+		return FALSE;
+	}
+
+	if (   NM_IN_SET (priv->pmf,
+	                  NM_SETTING_WIRELESS_SECURITY_PMF_OPTIONAL,
+	                  NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED)
+	    && !NM_IN_STRSET (priv->key_mgmt, "wpa-eap", "wpa-psk")) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("'%s' can only be used with '%s=%s' or '%s=%s'"),
+		             priv->pmf == NM_SETTING_WIRELESS_SECURITY_PMF_OPTIONAL ? "optional" : "required",
+		             NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-eap",
+		             NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-psk");
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME, NM_SETTING_WIRELESS_SECURITY_PMF);
+		return FALSE;
+	}
+
+	/* WPS */
+	if (priv->wps_method > NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_PIN) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property is invalid"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME, NM_SETTING_WIRELESS_SECURITY_WPS_METHOD);
+		return FALSE;
+	}
+
+	if (priv->wps_method & NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED && priv->wps_method != NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("can't be simultaneously disabled and enabled"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME, NM_SETTING_WIRELESS_SECURITY_WPS_METHOD);
+		return FALSE;
 	}
 
 	return TRUE;
@@ -1198,6 +1281,9 @@ set_property (GObject *object, guint prop_id,
 		g_slist_free_full (priv->group, g_free);
 		priv->group = _nm_utils_strv_to_slist (g_value_get_boxed (value), TRUE);
 		break;
+	case PROP_PMF:
+		priv->pmf = g_value_get_int (value);
+		break;
 	case PROP_LEAP_USERNAME:
 		g_free (priv->leap_username);
 		priv->leap_username = g_value_dup_string (value);
@@ -1238,6 +1324,9 @@ set_property (GObject *object, guint prop_id,
 	case PROP_WEP_KEY_TYPE:
 		priv->wep_key_type = g_value_get_enum (value);
 		break;
+	case PROP_WPS_METHOD:
+		priv->wps_method = g_value_get_uint (value);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1269,6 +1358,9 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_GROUP:
 		g_value_take_boxed (value, _nm_utils_slist_to_strv (priv->group, TRUE));
+		break;
+	case PROP_PMF:
+		g_value_set_int (value, nm_setting_wireless_security_get_pmf (setting));
 		break;
 	case PROP_LEAP_USERNAME:
 		g_value_set_string (value, priv->leap_username);
@@ -1302,6 +1394,9 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_WEP_KEY_TYPE:
 		g_value_set_enum (value, priv->wep_key_type);
+		break;
+	case PROP_WPS_METHOD:
+		g_value_set_uint (value, priv->wps_method);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1466,6 +1561,37 @@ nm_setting_wireless_security_class_init (NMSettingWirelessSecurityClass *setting
 		                     G_TYPE_STRV,
 		                     G_PARAM_READWRITE |
 		                     G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingWirelessSecurity:pmf:
+	 *
+	 * Indicates whether Protected Management Frames (802.11w) must be enabled
+	 * for the connection.  One of %NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT
+	 * (use global default value), %NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE
+	 * (disable PMF), %NM_SETTING_WIRELESS_SECURITY_PMF_OPTIONAL (enable PMF if
+	 * the supplicant and the access point support it) or
+	 * %NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED (enable PMF and fail if not
+	 * supported).  When set to %NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT and no
+	 * global default is set, PMF will be optionally enabled.
+	 *
+	 * Since: 1.10
+	 **/
+	/* ---ifcfg-rh---
+	 * property: pmf
+	 * variable: PMF(+)
+	 * values: default, disable, optional, required
+	 * description: Enables or disables PMF (802.11w)
+	 * example: PMF=required
+	 * ---end---
+	 */
+	g_object_class_install_property
+		(object_class, PROP_PMF,
+		 g_param_spec_int (NM_SETTING_WIRELESS_SECURITY_PMF, "", "",
+		                   G_MININT32, G_MAXINT32, 0,
+		                   G_PARAM_READWRITE |
+		                   G_PARAM_CONSTRUCT |
+		                   NM_SETTING_PARAM_FUZZY_IGNORE |
+		                   G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMSettingWirelessSecurity:leap-username:
@@ -1688,10 +1814,11 @@ nm_setting_wireless_security_class_init (NMSettingWirelessSecurityClass *setting
 	 **/
 	/* ---ifcfg-rh---
 	 * property: wep-key-type
-	 * variable: KEY<i> or KEY_PASSPHRASE<i>(+)
+	 * variable: KEY<i> or KEY_PASSPHRASE<i>(+); KEY_TYPE(+)
 	 * description: KEY is used for "key" type (10 or 26 hexadecimal characters,
 	 *   or 5 or 13 character string prefixed with "s:"). KEY_PASSPHRASE is used
-	 *   for WEP passphrases.
+	 *   for WEP passphrases. KEY_TYPE specifies the key type and can be either
+	 *   'key' or 'passphrase'. KEY_TYPE is redundant and can be omitted.
 	 * example: KEY1=s:ahoj, KEY1=0a1c45bc02, KEY_PASSPHRASE1=mysupersecretkey
 	 * ---end---
 	 */
@@ -1708,4 +1835,34 @@ nm_setting_wireless_security_class_init (NMSettingWirelessSecurityClass *setting
 	                                      G_VARIANT_TYPE_UINT32,
 	                                      wep_key_type_to_dbus,
 	                                      NULL);
+	/**
+	 * NMSettingWirelessSecurity:wps-method:
+	 *
+	 * Flags indicating which mode of WPS is to be used if any.
+	 *
+	 * There's little point in changing the default setting as NetworkManager will
+	 * automatically determine whether it's feasible to start WPS enrollment from
+	 * the Access Point capabilities.
+	 *
+	 * WPS can be disabled by setting this property to a value of 1.
+	 *
+	 * Since: 1.10
+	 **/
+	/* ---ifcfg-rh---
+	 * property: wps-method
+	 * variable: WPS_METHOD
+	 * description: Used to control the WPS methods to be used
+	 *    Valid values are "default", "auto", "disabled", "pin" and "pbc".
+	 *    If omitted, whatver the AP announces is used.
+	 * example: WPS_METHOD=disabled, WPS_METHOD="pin pbc"
+	 * ---end---
+	 */
+	g_object_class_install_property
+		(object_class, PROP_WPS_METHOD,
+		 g_param_spec_uint (NM_SETTING_WIRELESS_SECURITY_WPS_METHOD, "", "",
+		                    0, G_MAXUINT32, NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DEFAULT,
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_FUZZY_IGNORE |
+		                    G_PARAM_STATIC_STRINGS));
 }

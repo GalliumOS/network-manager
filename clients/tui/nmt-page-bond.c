@@ -29,6 +29,7 @@
 
 #include "nmt-page-bond.h"
 
+#include "nmt-mac-entry.h"
 #include "nmt-address-list.h"
 #include "nmt-slave-list.h"
 
@@ -336,6 +337,7 @@ nmt_page_bond_constructed (GObject *object)
 	NmtPageBondPrivate *priv = NMT_PAGE_BOND_GET_PRIVATE (bond);
 	NmtEditorSection *section;
 	NmtEditorGrid *grid;
+	NMSettingWired *s_wired;
 	NMSettingBond *s_bond;
 	NmtNewtWidget *widget, *label;
 	NMConnection *conn;
@@ -347,6 +349,12 @@ nmt_page_bond_constructed (GObject *object)
 		s_bond = nm_connection_get_setting_bond (conn);
 	}
 	priv->s_bond = s_bond;
+
+	s_wired = nm_connection_get_setting_wired (conn);
+	if (!s_wired) {
+		nm_connection_add_setting (conn, nm_setting_wired_new ());
+		s_wired = nm_connection_get_setting_wired (conn);
+	}
 
 	section = nmt_editor_section_new (_("BOND"), NULL, TRUE);
 	grid = nmt_editor_section_get_body (section);
@@ -413,6 +421,12 @@ nmt_page_bond_constructed (GObject *object)
 	nmt_editor_grid_append (grid, _("ARP targets"), widget, NULL);
 	priv->arp_ip_target = NMT_ADDRESS_LIST (widget);
 
+	widget = nmt_mac_entry_new (40, ETH_ALEN, NMT_MAC_ENTRY_TYPE_CLONED);
+	g_object_bind_property (s_wired, NM_SETTING_WIRED_CLONED_MAC_ADDRESS,
+	                        widget, "mac-address",
+	                        G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
+	nmt_editor_grid_append (grid, _("Cloned MAC address"), widget, NULL);
+
 	g_signal_connect (s_bond, "notify::" NM_SETTING_BOND_OPTIONS,
 	                  G_CALLBACK (bond_options_changed), bond);
 	bond_options_changed (G_OBJECT (s_bond), NULL, bond);
@@ -424,11 +438,21 @@ nmt_page_bond_constructed (GObject *object)
 }
 
 static void
+nmt_page_bond_saved (NmtEditorPage *editor_page)
+{
+	NmtPageBondPrivate *priv = NMT_PAGE_BOND_GET_PRIVATE (editor_page);
+
+	nmt_edit_connection_list_recommit (NMT_EDIT_CONNECTION_LIST (priv->slaves));
+}
+
+static void
 nmt_page_bond_class_init (NmtPageBondClass *bond_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (bond_class);
+	NmtEditorPageClass *editor_page_class = NMT_EDITOR_PAGE_CLASS (bond_class);
 
 	g_type_class_add_private (bond_class, sizeof (NmtPageBondPrivate));
 
 	object_class->constructed = nmt_page_bond_constructed;
+	editor_page_class->saved = nmt_page_bond_saved;
 }

@@ -21,9 +21,7 @@
 
 #include "nmt-editor-grid.h"
 
-#include <NetworkManager.h>
-
-G_BEGIN_DECLS
+#include "NetworkManager.h"
 
 #define NMT_TYPE_DEVICE_ENTRY            (nmt_device_entry_get_type ())
 #define NMT_DEVICE_ENTRY(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NMT_TYPE_DEVICE_ENTRY, NmtDeviceEntry))
@@ -54,7 +52,5 @@ typedef gboolean (*NmtDeviceEntryDeviceFilter) (NmtDeviceEntry *deventry,
 void nmt_device_entry_set_device_filter (NmtDeviceEntry             *deventry,
                                          NmtDeviceEntryDeviceFilter  filter,
                                          gpointer                    user_data);
-
-G_END_DECLS
 
 #endif /* NMT_DEVICE_ENTRY_H */

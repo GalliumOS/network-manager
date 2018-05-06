@@ -1,0 +1,1 @@
+libnm-glib-dev: gir-missing-typelib-dependency usr/share/gir-1.0/NMClient-1.0.gir gir1.2-nmclient-1.0

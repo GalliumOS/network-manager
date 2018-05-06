@@ -1,0 +1,114 @@
+From e91f1a7d2a6b8400b6b331d5b72287dcb5164a39 Mon Sep 17 00:00:00 2001
+From: Beniamino Galvani <bgalvani@redhat.com>
+Date: Wed, 10 Jan 2018 11:23:33 +0100
+Subject: [PATCH] dns: introduce routing domains
+
+Similarly to what systemd-resolved does, introduce the concept of
+"routing" domain, which is a domain in the search list that is used
+only to decide the interface over which a query must be forwarded, but
+is not used to complete unqualified host names. Routing domains are
+those starting with a tilde ('~') before the actual domain name.
+
+Domains without the initial tilde are used both for completing
+unqualified names and for the routing decision.
+---
+ clients/common/settings-docs.h.in |  4 ++--
+ libnm-core/nm-setting-ip-config.c |  5 ++++-
+ src/dns/nm-dns-dnsmasq.c          |  8 +++++---
+ src/dns/nm-dns-manager.c          | 36 ++++++++++++++++++++++++++----------
+ src/dns/nm-dns-systemd-resolved.c | 21 ++++++++++-----------
+ src/nm-core-utils.c               | 15 +++++++++++++++
+ src/nm-core-utils.h               |  2 ++
+ 7 files changed, 64 insertions(+), 27 deletions(-)
+
+--- a/src/dns/nm-dns-systemd-resolved.c
++++ b/src/dns/nm-dns-systemd-resolved.c
+@@ -144,7 +144,8 @@
+ 	int addr_family;
+ 	gsize addr_size;
+ 	guint i, n;
+-	gboolean route_only;
++	gboolean is_routing;
++	const char *domain;
+ 
+ 	if (NM_IS_IP4_CONFIG (config))
+ 		addr_family = AF_INET;
+@@ -178,33 +179,31 @@
+ 		g_variant_builder_close (dns);
+ 	}
+ 
+-	/* If this link is never the default (e.g. only used for resources on this
+-	 * network) add a routing domain. */
+-	route_only =   addr_family == AF_INET
+-	             ? !nm_ip4_config_best_default_route_get (config)
+-	             : !nm_ip6_config_best_default_route_get (config);
+-
+ 	n =   addr_family == AF_INET
+ 	    ? nm_ip4_config_get_num_searches (config)
+ 	    : nm_ip6_config_get_num_searches (config);
+ 	if (n  > 0) {
+ 		for (i = 0; i < n; i++) {
++			domain = nm_utils_parse_dns_domain (addr_family == AF_INET
++			                                    ? nm_ip4_config_get_search (config, i)
++			                                    : nm_ip6_config_get_search (config, i),
++			                                    &is_routing);
+ 			g_variant_builder_add (domains, "(sb)",
+-			                       addr_family == AF_INET
+-			                         ? nm_ip4_config_get_search (config, i)
+-			                         : nm_ip6_config_get_search (config, i),
+-			                       route_only);
++			                       domain,
++			                       is_routing);
+ 		}
+ 	} else {
+ 		n =   addr_family == AF_INET
+ 		    ? nm_ip4_config_get_num_domains (config)
+ 		    : nm_ip6_config_get_num_domains (config);
+ 		for (i = 0; i < n; i++) {
++			domain = nm_utils_parse_dns_domain (addr_family == AF_INET
++			                                    ? nm_ip4_config_get_domain (config, i)
++			                                    : nm_ip6_config_get_domain (config, i),
++			                                    &is_routing);
+ 			g_variant_builder_add (domains, "(sb)",
+-			                       addr_family == AF_INET
+-			                         ? nm_ip4_config_get_domain (config, i)
+-			                         : nm_ip6_config_get_domain (config, i),
+-			                       route_only);
++			                       domain,
++			                       is_routing);
+ 		}
+ 	}
+ }
+--- a/src/nm-core-utils.c
++++ b/src/nm-core-utils.c
+@@ -4329,6 +4329,21 @@
+ 	return g_string_free (str, FALSE);
+ }
+ 
++const char *
++nm_utils_parse_dns_domain (const char *domain, gboolean *is_routing)
++{
++	g_return_val_if_fail (domain, NULL);
++	g_return_val_if_fail (domain[0], NULL);
++
++	if (domain[0] == '~') {
++		domain++;
++		NM_SET_OUT (is_routing, TRUE);
++	} else
++		NM_SET_OUT (is_routing, FALSE);
++
++	return domain;
++}
++
+ /*****************************************************************************/
+ 
+ NM_UTILS_ENUM2STR_DEFINE (nm_icmpv6_router_pref_to_string, NMIcmpv6RouterPref,
+--- a/src/nm-core-utils.h
++++ b/src/nm-core-utils.h
+@@ -450,4 +450,6 @@
+ 
+ /*****************************************************************************/
+ 
++const char *nm_utils_parse_dns_domain (const char *domain, gboolean *is_routing);
++
+ #endif /* __NM_CORE_UTILS_H__ */

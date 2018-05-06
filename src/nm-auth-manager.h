@@ -21,12 +21,7 @@
 #ifndef NM_AUTH_MANAGER_H
 #define NM_AUTH_MANAGER_H
 
-
-#include "nm-default.h"
 #include "nm-auth-subject.h"
-
-G_BEGIN_DECLS
-
 
 #define NM_TYPE_AUTH_MANAGER            (nm_auth_manager_get_type ())
 #define NM_AUTH_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_AUTH_MANAGER, NMAuthManager))
@@ -35,18 +30,12 @@ G_BEGIN_DECLS
 #define NM_IS_AUTH_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_AUTH_MANAGER))
 #define NM_AUTH_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_AUTH_MANAGER, NMAuthManagerClass))
 
-
 #define NM_AUTH_MANAGER_POLKIT_ENABLED "polkit-enabled"
 
 #define NM_AUTH_MANAGER_SIGNAL_CHANGED "changed"
 
-typedef struct {
-	GObject parent;
-} NMAuthManager;
-
-typedef struct {
-	GObjectClass parent;
-} NMAuthManagerClass;
+typedef struct _NMAuthManager NMAuthManager;
+typedef struct _NMAuthManagerClass NMAuthManagerClass;
 
 GType nm_auth_manager_get_type (void);
 
@@ -72,7 +61,4 @@ gboolean nm_auth_manager_polkit_authority_check_authorization_finish (NMAuthMana
 
 #endif
 
-G_END_DECLS
-
 #endif /* NM_AUTH_MANAGER_H */
-

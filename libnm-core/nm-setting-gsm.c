@@ -39,7 +39,7 @@
  */
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingGsm, nm_setting_gsm, NM_TYPE_SETTING,
-                         _nm_register_setting (GSM, 1))
+                         _nm_register_setting (GSM, NM_SETTING_PRIORITY_HW_BASE))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_GSM)
 
 #define NM_SETTING_GSM_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_GSM, NMSettingGsmPrivate))
@@ -62,6 +62,7 @@ typedef struct {
 	NMSettingSecretFlags pin_flags;
 
 	gboolean home_only;
+	guint32 mtu;
 } NMSettingGsmPrivate;
 
 enum {
@@ -78,6 +79,7 @@ enum {
 	PROP_DEVICE_ID,
 	PROP_SIM_ID,
 	PROP_SIM_OPERATOR_ID,
+	PROP_MTU,
 
 	LAST_PROP
 };
@@ -267,6 +269,22 @@ nm_setting_gsm_get_sim_operator_id (NMSettingGsm *setting)
 	g_return_val_if_fail (NM_IS_SETTING_GSM (setting), NULL);
 
 	return NM_SETTING_GSM_GET_PRIVATE (setting)->sim_operator_id;
+}
+
+/**
+ * nm_setting_gsm_get_mtu:
+ * @setting: the #NMSettingGsm
+ *
+ * Returns: the #NMSettingGsm:mtu property of the setting
+ *
+ * Since: 1.8
+ **/
+guint32
+nm_setting_gsm_get_mtu (NMSettingGsm *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_GSM (setting), 0);
+
+	return NM_SETTING_GSM_GET_PRIVATE (setting)->mtu;
 }
 
 static gboolean
@@ -524,6 +542,9 @@ set_property (GObject *object, guint prop_id,
 		g_free (priv->sim_operator_id);
 		priv->sim_operator_id = g_value_dup_string (value);
 		break;
+	case PROP_MTU:
+		priv->mtu = g_value_get_uint (value);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -572,6 +593,9 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_SIM_OPERATOR_ID:
 		g_value_set_string (value, nm_setting_gsm_get_sim_operator_id (setting));
+		break;
+	case PROP_MTU:
+		g_value_set_uint (value, nm_setting_gsm_get_mtu (setting));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -769,7 +793,7 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 	 * mobile network operator which this connection applies to.  If given,
 	 * the connection will apply to any device also allowed by
 	 * #NMSettingGsm:device-id and #NMSettingGsm:sim-id which contains a SIM
-	 * card provisioined by the given operator.
+	 * card provisioned by the given operator.
 	 *
 	 * Since: 1.2
 	 **/
@@ -779,6 +803,23 @@ nm_setting_gsm_class_init (NMSettingGsmClass *setting_class)
 		                      NULL,
 		                      G_PARAM_READWRITE |
 		                      G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingGsm:mtu:
+	 *
+	 * If non-zero, only transmit packets of the specified size or smaller,
+	 * breaking larger packets up into multiple frames.
+	 *
+	 * Since: 1.8
+	 **/
+	g_object_class_install_property
+		(object_class, PROP_MTU,
+		 g_param_spec_uint (NM_SETTING_GSM_MTU, "", "",
+		                    0, G_MAXUINT32, 0,
+		                    G_PARAM_READWRITE |
+		                    G_PARAM_CONSTRUCT |
+		                    NM_SETTING_PARAM_FUZZY_IGNORE |
+		                    G_PARAM_STATIC_STRINGS));
 
 	/* Ignore incoming deprecated properties */
 	_nm_setting_class_add_dbus_only_property (parent_class, "allowed-bands",

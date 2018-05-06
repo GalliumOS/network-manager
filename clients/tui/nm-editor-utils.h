@@ -19,9 +19,7 @@
 #ifndef NM_EDITOR_UTILS_H
 #define NM_EDITOR_UTILS_H
 
-#include <NetworkManager.h>
-
-G_BEGIN_DECLS
+#include "NetworkManager.h"
 
 typedef struct {
 	const char *name;
@@ -37,7 +35,5 @@ NMEditorConnectionTypeData  *nm_editor_utils_get_connection_type_data (NMConnect
 NMConnection *nm_editor_utils_create_connection (GType         type,
                                                  NMConnection *master,
                                                  NMClient     *client);
-
-G_END_DECLS
 
 #endif /* NM_EDITOR_UTILS_H */

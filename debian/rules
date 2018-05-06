@@ -3,10 +3,9 @@
 include /usr/share/dpkg/architecture.mk
 
 PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
-DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 %:
-	dh $@ --with gir,systemd,autoreconf,ppp
+	dh $@ --with gir,ppp
 
 autoreconf:
 	gtkdocize --copy
@@ -19,9 +18,10 @@ override_dh_autoreconf:
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		--libexecdir=/usr/lib/NetworkManager \
+		--runstatedir=/run \
 		--with-pppd-plugin-dir=$(PPPD_PLUGIN_DIR) \
 		--with-pppd=/usr/sbin/pppd \
-		--with-resolvconf=/sbin/resolvconf \
+		--with-resolvconf=no \
 		--with-dhclient=/sbin/dhclient \
 		--with-iptables=/sbin/iptables \
 		--with-dnsmasq=/usr/sbin/dnsmasq \
@@ -34,8 +34,10 @@ override_dh_auto_configure:
 		--with-modem-manager-1 \
 		--with-nmtui \
 		--with-nmcli \
-		--disable-more-warnings \
-		--disable-modify-system \
+		--with-selinux \
+		--with-tests \
+		--with-libaudit \
+		--without-dhcpcanon \
 		--enable-polkit \
 		--enable-polkit-agent \
 		--enable-ppp \
@@ -44,21 +46,22 @@ override_dh_auto_configure:
 		--enable-introspection \
 		--enable-gtk-doc \
 		--enable-concheck \
-		--enable-teamdctl=no \
+		--enable-teamdctl \
+		--enable-json-validation \
+		--enable-bluez5-dun \
 		--enable-vala \
-		--with-tests \
-		--enable-bluez5-dun
+		--disable-more-warnings \
+		--disable-modify-system \
+		--disable-ovs
 
 override_dh_install:
+	find debian/tmp -name '*.la' -print -delete
+	rm debian/tmp/usr/share/doc/NetworkManager/examples/server.conf
 	rm -vf $(CURDIR)/debian/tmp/etc/init.d/NetworkManager
-	dh_install -X.la --list-missing
-	install -m 755 debian/network-manager-dispatcher.script \
-		debian/network-manager/etc/NetworkManager/dispatcher.d/01ifupdown
-	install -m 755 debian/ifblacklist_migrate.sh \
-		debian/network-manager/usr/lib/NetworkManager
-	# copy dnsmasq configuration
-	mkdir -p debian/network-manager/etc/dnsmasq.d
-	cp debian/network-manager.dnsmasq debian/network-manager/etc/dnsmasq.d/network-manager
+	dh_install
+
+override_dh_missing:
+	dh_missing --fail-missing
 
 	# copy powersave configuration
 	mkdir -p debian/network-manager/etc/NetworkManager/conf.d
@@ -74,7 +77,8 @@ override_dh_strip:
 	dh_strip --dbgsym-migration='network-manager-dbg (<< 1.1.91-2~)'
 
 override_dh_systemd_start:
-	dh_link lib/systemd/system/NetworkManager.service \
+	dh_link -pnetwork-manager \
+		lib/systemd/system/NetworkManager.service \
 		lib/systemd/system/network-manager.service
 	dh_systemd_start -pnetwork-manager --no-start NetworkManager-dispatcher.service
 	dh_systemd_start -pnetwork-manager --no-start NetworkManager-wait-online.service

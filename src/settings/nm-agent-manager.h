@@ -21,7 +21,7 @@
 #ifndef __NETWORKMANAGER_AGENT_MANAGER_H__
 #define __NETWORKMANAGER_AGENT_MANAGER_H__
 
-#include <nm-connection.h>
+#include "nm-connection.h"
 
 #include "nm-exported-object.h"
 #include "nm-secret-agent.h"
@@ -33,23 +33,17 @@
 #define NM_IS_AGENT_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_AGENT_MANAGER))
 #define NM_AGENT_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_AGENT_MANAGER, NMAgentManagerClass))
 
-struct _NMAgentManagerCallId;
+#define NM_AGENT_MANAGER_AGENT_REGISTERED "agent-registered"
+
 typedef struct _NMAgentManagerCallId *NMAgentManagerCallId;
 
-struct _NMAgentManager {
-	NMExportedObject parent;
-};
-
-typedef struct {
-	NMExportedObjectClass parent;
-
-	/* Signals */
-	void (*agent_registered)   (NMAgentManager *agent_mgr, NMSecretAgent *agent);
-} NMAgentManagerClass;
+typedef struct _NMAgentManagerClass NMAgentManagerClass;
 
 GType nm_agent_manager_get_type (void);
 
 NMAgentManager *nm_agent_manager_get (void);
+
+guint64 nm_agent_manager_get_agent_version_id (NMAgentManager *self);
 
 /* If no agent fulfilled the secrets request, agent_dbus_owner will be NULL */
 typedef void (*NMAgentSecretsResultFunc) (NMAgentManager *manager,
@@ -70,7 +64,7 @@ NMAgentManagerCallId nm_agent_manager_get_secrets (NMAgentManager *manager,
                                                    GVariant *existing_secrets,
                                                    const char *setting_name,
                                                    NMSecretAgentGetSecretsFlags flags,
-                                                   const char **hints,
+                                                   const char *const*hints,
                                                    NMAgentSecretsResultFunc callback,
                                                    gpointer callback_data);
 

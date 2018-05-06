@@ -23,9 +23,9 @@
 #include <stdlib.h>
 #include <syslog.h>
 
-#include "nm-linux-platform.h"
+#include "platform/nm-linux-platform.h"
 
-#include "nm-test-utils.h"
+#include "nm-test-utils-core.h"
 
 NMTST_DEFINE ();
 
@@ -77,6 +77,8 @@ main (int argc, char **argv)
 	loop = g_main_loop_new (NULL, FALSE);
 
 	nm_linux_platform_setup ();
+
+	nm_platform_check_kernel_support (NM_PLATFORM_GET, ~((NMPlatformKernelSupportFlags) 0));
 
 	if (global_opt.persist)
 		g_main_loop_run (loop);

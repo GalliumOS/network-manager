@@ -19,8 +19,6 @@
 
 #include <netinet/in.h>
 
-G_BEGIN_DECLS
-
 #define NM_TYPE_ARPING_MANAGER            (nm_arping_manager_get_type ())
 #define NM_ARPING_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_ARPING_MANAGER, NMArpingManager))
 #define NM_ARPING_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_ARPING_MANAGER, NMArpingManagerClass))
@@ -30,13 +28,7 @@ G_BEGIN_DECLS
 
 #define NM_ARPING_MANAGER_PROBE_TERMINATED  "probe-terminated"
 
-struct _NMArpingManager {
-	GObject parent;
-};
-
-typedef struct {
-	GObjectClass parent;
-} NMArpingManagerClass;
+typedef struct _NMArpingManagerClass NMArpingManagerClass;
 
 GType nm_arping_manager_get_type (void);
 
@@ -47,7 +39,5 @@ gboolean nm_arping_manager_start_probe (NMArpingManager *self, guint timeout, GE
 gboolean nm_arping_manager_check_address (NMArpingManager *self, in_addr_t address);
 void nm_arping_manager_announce_addresses (NMArpingManager *self);
 void nm_arping_manager_reset (NMArpingManager *self);
-
-G_END_DECLS
 
 #endif /* __NM_ARPING_MANAGER__ */

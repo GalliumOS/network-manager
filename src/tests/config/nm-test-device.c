@@ -20,15 +20,36 @@
 
 #include "nm-default.h"
 
+#include "nm-test-device.h"
+
 #include <string.h>
 
-#include "nm-test-device.h"
-#include "nm-device-private.h"
+#include "devices/nm-device-private.h"
 #include "nm-utils.h"
+
+/*****************************************************************************/
+
+struct _NMTestDevice {
+	NMDevice parent;
+};
+
+struct _NMTestDeviceClass {
+	NMDeviceClass parent;
+};
 
 G_DEFINE_TYPE (NMTestDevice, nm_test_device, NM_TYPE_DEVICE)
 
 #define PARENT_CLASS (G_OBJECT_CLASS (g_type_class_peek_parent (nm_test_device_parent_class)))
+
+/*****************************************************************************/
+
+static NMDeviceCapabilities
+get_generic_capabilities (NMDevice *device)
+{
+	return NM_DEVICE_CAP_IS_NON_KERNEL;
+}
+
+/*****************************************************************************/
 
 static void
 nm_test_device_init (NMTestDevice *self)
@@ -38,17 +59,6 @@ nm_test_device_init (NMTestDevice *self)
 /* We jump over NMDevice's construct/destruct methods, which require NMPlatform
  * and NMConnectionProvider to be initialized.
  */
-
-static GObject*
-constructor (GType type,
-             guint n_construct_params,
-             GObjectConstructParam *construct_params)
-{
-	return PARENT_CLASS->constructor (type,
-	                                  n_construct_params,
-	                                  construct_params);
-}
-
 static void
 constructed (GObject *object)
 {
@@ -61,10 +71,13 @@ dispose (GObject *object)
 	PARENT_CLASS->dispose (object);
 }
 
-static NMDeviceCapabilities
-get_generic_capabilities (NMDevice *device)
+NMDevice *
+nm_test_device_new (const char *hwaddr)
 {
-	return NM_DEVICE_CAP_IS_NON_KERNEL;
+	return g_object_new (NM_TYPE_TEST_DEVICE,
+	                     NM_DEVICE_IFACE, "dummy",
+	                     NM_DEVICE_PERM_HW_ADDRESS, hwaddr,
+	                     NULL);
 }
 
 static void
@@ -73,18 +86,8 @@ nm_test_device_class_init (NMTestDeviceClass *klass)
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (klass);
 
-	object_class->constructor = constructor;
 	object_class->constructed = constructed;
 	object_class->dispose = dispose;
 
 	device_class->get_generic_capabilities = get_generic_capabilities;
-}
-
-NMDevice *
-nm_test_device_new (const char *hwaddr)
-{
-	return g_object_new (NM_TYPE_TEST_DEVICE,
-	                     NM_DEVICE_IFACE, "dummy",
-	                     NM_DEVICE_HW_ADDRESS, hwaddr,
-	                     NULL);
 }
