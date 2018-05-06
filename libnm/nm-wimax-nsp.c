@@ -172,7 +172,7 @@ nm_wimax_nsp_filter_connections (NMWimaxNsp *nsp, const GPtrArray *connections)
 	return filtered;
 }
 
-/************************************************************/
+/*****************************************************************************/
 
 static void
 nm_wimax_nsp_init (NMWimaxNsp *nsp)
@@ -238,8 +238,6 @@ nm_wimax_nsp_class_init (NMWimaxNspClass *nsp_class)
 	NMObjectClass *nm_object_class = NM_OBJECT_CLASS (nsp_class);
 
 	g_type_class_add_private (nsp_class, sizeof (NMWimaxNspPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_WIMAX_NSP);
 
 	/* virtual methods */
 	object_class->get_property = get_property;

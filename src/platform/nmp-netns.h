@@ -33,16 +33,7 @@
 #define NMP_NETNS_FD_NET          "fd-net"
 #define NMP_NETNS_FD_MNT          "fd-mnt"
 
-struct _NMPNetnsPrivate;
-
-struct _NMPNetns {
-	GObject parent;
-	struct _NMPNetnsPrivate *priv;
-};
-
-typedef struct {
-	GObjectClass parent;
-} NMPNetnsClass;
+typedef struct _NMPNetnsClass NMPNetnsClass;
 
 GType nmp_netns_get_type (void);
 
@@ -62,11 +53,14 @@ int nmp_netns_get_fd_mnt (NMPNetns *self);
 static inline void
 _nm_auto_pop_netns (NMPNetns **p)
 {
-	if (*p)
-		nmp_netns_pop (*p);
-}
+	if (*p) {
+		int errsv = errno;
 
-#define nm_auto_pop_netns __attribute__((cleanup(_nm_auto_pop_netns)))
+		nmp_netns_pop (*p);
+		errno = errsv;
+	}
+}
+#define nm_auto_pop_netns nm_auto(_nm_auto_pop_netns)
 
 gboolean nmp_netns_bind_to_path (NMPNetns *self, const char *filename, int *out_fd);
 gboolean nmp_netns_bind_to_path_destroy (NMPNetns *self, const char *filename);

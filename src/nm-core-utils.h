@@ -25,7 +25,8 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 
-#include "nm-default.h"
+#include "nm-utils/nm-hash-utils.h"
+
 #include "nm-connection.h"
 
 /*****************************************************************************/
@@ -93,9 +94,59 @@ GETTER (void) \
 
 gboolean nm_ethernet_address_is_valid (gconstpointer addr, gssize len);
 
+gconstpointer nm_utils_ipx_address_clear_host_address (int family, gpointer dst, gconstpointer src, guint8 plen);
 in_addr_t nm_utils_ip4_address_clear_host_address (in_addr_t addr, guint8 plen);
 const struct in6_addr *nm_utils_ip6_address_clear_host_address (struct in6_addr *dst, const struct in6_addr *src, guint8 plen);
-gboolean nm_utils_ip6_address_same_prefix (const struct in6_addr *addr_a, const struct in6_addr *addr_b, guint8 plen);
+
+static inline int
+nm_utils_ip4_address_same_prefix_cmp (in_addr_t addr_a, in_addr_t addr_b, guint8 plen)
+{
+	NM_CMP_DIRECT (htonl (nm_utils_ip4_address_clear_host_address (addr_a, plen)),
+	               htonl (nm_utils_ip4_address_clear_host_address (addr_b, plen)));
+	return 0;
+}
+
+int nm_utils_ip6_address_same_prefix_cmp (const struct in6_addr *addr_a, const struct in6_addr *addr_b, guint8 plen);
+
+static inline gboolean
+nm_utils_ip4_address_same_prefix (in_addr_t addr_a, in_addr_t addr_b, guint8 plen)
+{
+	return nm_utils_ip4_address_same_prefix_cmp (addr_a, addr_b, plen) == 0;
+}
+
+static inline gboolean
+nm_utils_ip6_address_same_prefix (const struct in6_addr *addr_a, const struct in6_addr *addr_b, guint8 plen)
+{
+	return nm_utils_ip6_address_same_prefix_cmp (addr_a, addr_b, plen) == 0;
+}
+
+#define NM_CMP_DIRECT_IN4ADDR_SAME_PREFIX(a, b, plen) \
+    NM_CMP_RETURN (nm_utils_ip4_address_same_prefix_cmp ((a), (b), (plen)))
+
+#define NM_CMP_DIRECT_IN6ADDR_SAME_PREFIX(a, b, plen) \
+    NM_CMP_RETURN (nm_utils_ip6_address_same_prefix_cmp ((a), (b), (plen)))
+
+static inline void
+nm_hash_update_in6addr (NMHashState *h, const struct in6_addr *addr)
+{
+	nm_assert (addr);
+
+	nm_hash_update (h, addr, sizeof (*addr));
+}
+
+static inline void
+nm_hash_update_in6addr_prefix (NMHashState *h, const struct in6_addr *addr, guint8 plen)
+{
+	struct in6_addr a;
+
+	nm_assert (addr);
+
+	nm_utils_ip6_address_clear_host_address (&a, addr, plen);
+	/* we don't hash plen itself. The caller may want to do that.*/
+	nm_hash_update_in6addr (h, &a);
+}
+
+double nm_utils_exp10 (gint16 e);
 
 /**
  * nm_utils_ip6_route_metric_normalize:
@@ -112,7 +163,20 @@ nm_utils_ip6_route_metric_normalize (guint32 metric)
 	return metric ? metric : 1024 /*NM_PLATFORM_ROUTE_METRIC_DEFAULT_IP6*/;
 }
 
-int nm_spawn_process (const char *args, GError **error);
+static inline guint32
+nm_utils_ip_route_metric_normalize (int addr_family, guint32 metric)
+{
+	return addr_family == AF_INET6 ? nm_utils_ip6_route_metric_normalize (metric) : metric;
+}
+
+static inline guint32
+nm_utils_ip_route_metric_penalize (int addr_family, guint32 metric, guint32 penalty)
+{
+	metric = nm_utils_ip_route_metric_normalize (addr_family, metric);
+	if (metric < G_MAXUINT32 - penalty)
+		return metric + penalty;
+	return G_MAXUINT32;
+}
 
 int nm_utils_modprobe (GError **error, gboolean suppress_error_loggin, const char *arg1, ...) G_GNUC_NULL_TERMINATED;
 
@@ -134,164 +198,47 @@ const char *nm_utils_find_helper (const char *progname,
                                   const char *try_first,
                                   GError **error);
 
+char *nm_utils_read_link_absolute (const char *link_file, GError **error);
+
 typedef enum {
 	NM_MATCH_SPEC_NO_MATCH  = 0,
 	NM_MATCH_SPEC_MATCH     = 1,
 	NM_MATCH_SPEC_NEG_MATCH = 2,
 } NMMatchSpecMatchType;
 
-NMMatchSpecMatchType nm_match_spec_device_type (const GSList *specs, const char *device_type);
-NMMatchSpecMatchType nm_match_spec_hwaddr (const GSList *specs, const char *hwaddr);
-NMMatchSpecMatchType nm_match_spec_s390_subchannels (const GSList *specs, const char *subchannels);
-NMMatchSpecMatchType nm_match_spec_interface_name (const GSList *specs, const char *interface_name);
-NMMatchSpecMatchType nm_match_spec_match_config (const GSList *specs, guint nm_version, const char *env);
+NMMatchSpecMatchType nm_match_spec_device (const GSList *specs,
+                                           const char *interface_name,
+                                           const char *driver,
+                                           const char *driver_version,
+                                           const char *device_type,
+                                           const char *hwaddr,
+                                           const char *s390_subchannels);
+NMMatchSpecMatchType nm_match_spec_config (const GSList *specs,
+                                           guint nm_version,
+                                           const char *env);
 GSList *nm_match_spec_split (const char *value);
 char *nm_match_spec_join (GSList *specs);
 
-extern char _nm_utils_to_string_buffer[2096];
-
-void     nm_utils_to_string_buffer_init (char **buf, gsize *len);
-gboolean nm_utils_to_string_buffer_init_null (gconstpointer obj, char **buf, gsize *len);
-
 /*****************************************************************************/
-
-typedef struct {
-	unsigned flag;
-	const char *name;
-} NMUtilsFlags2StrDesc;
-
-#define NM_UTILS_FLAGS2STR(f, n) { .flag = f, .name = ""n, }
-
-#define _NM_UTILS_FLAGS2STR_DEFINE(scope, fcn_name, flags_type, ...) \
-scope const char * \
-fcn_name (flags_type flags, char *buf, gsize len) \
-{ \
-	static const NMUtilsFlags2StrDesc descs[] = { \
-		__VA_ARGS__ \
-	}; \
-	G_STATIC_ASSERT (sizeof (flags_type) <= sizeof (unsigned)); \
-	return nm_utils_flags2str (descs, G_N_ELEMENTS (descs), flags, buf, len); \
-};
-
-#define NM_UTILS_FLAGS2STR_DEFINE(fcn_name, flags_type, ...) \
-	_NM_UTILS_FLAGS2STR_DEFINE (, fcn_name, flags_type, __VA_ARGS__)
-#define NM_UTILS_FLAGS2STR_DEFINE_STATIC(fcn_name, flags_type, ...) \
-	_NM_UTILS_FLAGS2STR_DEFINE (static, fcn_name, flags_type, __VA_ARGS__)
-
-const char *nm_utils_flags2str (const NMUtilsFlags2StrDesc *descs,
-                                gsize n_descs,
-                                unsigned flags,
-                                char *buf,
-                                gsize len);
-
-/*****************************************************************************/
-
-#define NM_UTILS_ENUM2STR(v, n)     (void) 0; case v: s = ""n""; break; (void) 0
-#define NM_UTILS_ENUM2STR_IGNORE(v) (void) 0; case v: break; (void) 0
-
-#define _NM_UTILS_ENUM2STR_DEFINE(scope, fcn_name, lookup_type, int_fmt, ...) \
-scope const char * \
-fcn_name (lookup_type val, char *buf, gsize len) \
-{ \
-	nm_utils_to_string_buffer_init (&buf, &len); \
-	if (len) { \
-		const char *s = NULL; \
-		switch (val) { \
-			(void) 0, \
-			__VA_ARGS__ \
-			(void) 0; \
-		}; \
-		if (s) \
-			g_strlcpy (buf, s, len); \
-		else \
-			g_snprintf (buf, len, "(%"int_fmt")", val); \
-	} \
-	return buf; \
-}
-
-#define NM_UTILS_ENUM2STR_DEFINE(fcn_name, lookup_type, ...) \
-	_NM_UTILS_ENUM2STR_DEFINE (, fcn_name, lookup_type, "d", __VA_ARGS__)
-#define NM_UTILS_ENUM2STR_DEFINE_STATIC(fcn_name, lookup_type, ...) \
-	_NM_UTILS_ENUM2STR_DEFINE (static, fcn_name, lookup_type, "d", __VA_ARGS__)
-
-/*****************************************************************************/
-
-#define NM_UTILS_LOOKUP_DEFAULT(v)            return (v)
-#define NM_UTILS_LOOKUP_DEFAULT_WARN(v)       g_return_val_if_reached (v)
-#define NM_UTILS_LOOKUP_DEFAULT_NM_ASSERT(v)  { nm_assert_not_reached (); return (v); }
-#define NM_UTILS_LOOKUP_ITEM(v, n)            (void) 0; case v: return (n); (void) 0
-#define NM_UTILS_LOOKUP_STR_ITEM(v, n)        NM_UTILS_LOOKUP_ITEM(v, ""n"")
-#define NM_UTILS_LOOKUP_ITEM_IGNORE(v)        (void) 0; case v: break; (void) 0
-#define NM_UTILS_LOOKUP_ITEM_IGNORE_OTHER()   (void) 0; default: break; (void) 0
-
-#define _NM_UTILS_LOOKUP_DEFINE(scope, fcn_name, lookup_type, result_type, unknown_val, ...) \
-scope result_type \
-fcn_name (lookup_type val) \
-{ \
-	switch (val) { \
-		(void) 0, \
-		__VA_ARGS__ \
-		(void) 0; \
-	}; \
-	{ unknown_val; } \
-}
-
-#define NM_UTILS_LOOKUP_STR_DEFINE(fcn_name, lookup_type, unknown_val, ...) \
-	_NM_UTILS_LOOKUP_DEFINE (, fcn_name, lookup_type, const char *, unknown_val, __VA_ARGS__)
-#define NM_UTILS_LOOKUP_STR_DEFINE_STATIC(fcn_name, lookup_type, unknown_val, ...) \
-	_NM_UTILS_LOOKUP_DEFINE (static, fcn_name, lookup_type, const char *, unknown_val, __VA_ARGS__)
-
-/* Call the string-lookup-table function @fcn_name. If the function returns
- * %NULL, the numeric index is converted to string using a alloca() buffer.
- * Beware: this macro uses alloca(). */
-#define NM_UTILS_LOOKUP_STR(fcn_name, idx) \
-	({ \
-		typeof (idx) _idx = (idx); \
-		const char *_s; \
-		\
-		_s = fcn_name (_idx); \
-		if (!_s) { \
-			_s = g_alloca (30); \
-			\
-			g_snprintf ((char *) _s, 30, "(%lld)", (long long) _idx); \
-		} \
-		_s; \
-	})
-
-/*****************************************************************************/
-
-static inline void
-_nm_utils_strbuf_init (char *buf, gsize len, char **p_buf_ptr, gsize *p_buf_len)
-{
-	NM_SET_OUT (p_buf_len, len);
-	NM_SET_OUT (p_buf_ptr, buf);
-	buf[0] = '\0';
-}
-
-#define nm_utils_strbuf_init(buf, p_buf_ptr, p_buf_len) \
-	G_STMT_START { \
-		G_STATIC_ASSERT (G_N_ELEMENTS (buf) == sizeof (buf) && sizeof (buf) > sizeof (char *)); \
-		_nm_utils_strbuf_init ((buf), sizeof (buf), (p_buf_ptr), (p_buf_len)); \
-	} G_STMT_END
-void nm_utils_strbuf_append (char **buf, gsize *len, const char *format, ...) __attribute__((__format__ (__printf__, 3, 4)));
-void nm_utils_strbuf_append_c (char **buf, gsize *len, char c);
-void nm_utils_strbuf_append_str (char **buf, gsize *len, const char *str);
 
 const char *nm_utils_get_ip_config_method (NMConnection *connection,
                                            GType         ip_setting_type);
 
+gboolean nm_utils_connection_has_default_route (NMConnection *connection,
+                                                int addr_family,
+                                                gboolean *out_is_never_default);
+
 char *nm_utils_new_vlan_name (const char *parent_iface, guint32 vlan_id);
+const char *nm_utils_new_infiniband_name (char *name, const char *parent_name, int p_key);
 
-GPtrArray *nm_utils_read_resolv_conf_nameservers (const char *rc_contents);
-GPtrArray *nm_utils_read_resolv_conf_dns_options (const char *rc_contents);
+gboolean nm_utils_resolve_conf_parse (int addr_family,
+                                      const char *rc_contents,
+                                      GArray *nameservers,
+                                      GPtrArray *dns_options);
 
-int nm_utils_cmp_connection_by_autoconnect_priority (NMConnection **a, NMConnection **b);
+int nm_utils_cmp_connection_by_autoconnect_priority (NMConnection *a, NMConnection *b);
 
 void nm_utils_log_connection_diff (NMConnection *connection, NMConnection *diff_base, guint32 level, guint64 domain, const char *name, const char *prefix);
-
-#define NM_UTILS_NS_PER_SECOND  ((gint64) 1000000000)
-#define NM_UTILS_NS_PER_MSEC    ((gint64) 1000000)
-#define NM_UTILS_NS_TO_MSEC_CEIL(nsec)      (((nsec) + (NM_UTILS_NS_PER_MSEC - 1)) / NM_UTILS_NS_PER_MSEC)
 
 gint64 nm_utils_get_monotonic_timestamp_ns (void);
 gint64 nm_utils_get_monotonic_timestamp_us (void);
@@ -301,17 +248,43 @@ gint64 nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timest
 
 gboolean    nm_utils_is_valid_path_component (const char *name);
 const char *NM_ASSERT_VALID_PATH_COMPONENT (const char *name);
-const char *nm_utils_ip6_property_path (const char *ifname, const char *property);
-const char *nm_utils_ip4_property_path (const char *ifname, const char *property);
+
+#define NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE 100
+
+const char *nm_utils_sysctl_ip_conf_path (int addr_family, char *buf, const char *ifname, const char *property);
+
+gboolean nm_utils_sysctl_ip_conf_is_path (int addr_family, const char *path, const char *ifname, const char *property);
 
 gboolean nm_utils_is_specific_hostname (const char *name);
+
+int nm_utils_fd_get_contents (int fd,
+                              gboolean close_fd,
+                              gsize max_length,
+                              char **contents,
+                              gsize *length,
+                              GError **error);
+
+int nm_utils_file_get_contents (int dirfd,
+                                const char *filename,
+                                gsize max_length,
+                                char **contents,
+                                gsize *length,
+                                GError **error);
+
+gboolean nm_utils_file_set_contents (const gchar *filename,
+                                     const gchar *contents,
+                                     gssize length,
+                                     mode_t mode,
+                                     GError **error);
 
 char *nm_utils_machine_id_read (void);
 gboolean nm_utils_machine_id_parse (const char *id_str, /*uuid_t*/ guchar *out_uuid);
 
 guint8 *nm_utils_secret_key_read (gsize *out_key_len, GError **error);
 
-/* IPv6 Interface Identifer helpers */
+const char *nm_utils_get_boot_id (void);
+
+/* IPv6 Interface Identifier helpers */
 
 /**
  * NMUtilsIPv6IfaceId:
@@ -331,23 +304,75 @@ struct _NMUtilsIPv6IfaceId {
 
 #define NM_UTILS_IPV6_IFACE_ID_INIT { { .id = 0 } }
 
+void nm_utils_ipv6_addr_set_interface_identifier (struct in6_addr *addr,
+                                                 const NMUtilsIPv6IfaceId iid);
+
+void nm_utils_ipv6_interface_identifier_get_from_addr (NMUtilsIPv6IfaceId *iid,
+                                                      const struct in6_addr *addr);
+
+gboolean nm_utils_ipv6_interface_identifier_get_from_token (NMUtilsIPv6IfaceId *iid,
+                                                           const char *token);
+
+const char *nm_utils_inet6_interface_identifier_to_token (NMUtilsIPv6IfaceId iid,
+                                                         char *buf);
+
 gboolean nm_utils_get_ipv6_interface_identifier (NMLinkType link_type,
                                                  const guint8 *hwaddr,
                                                  guint len,
                                                  guint dev_id,
                                                  NMUtilsIPv6IfaceId *out_iid);
 
-void nm_utils_ipv6_addr_set_interface_identfier (struct in6_addr *addr,
-                                                 const NMUtilsIPv6IfaceId iid);
+typedef enum {
+	/* The stable type. Note that this value is encoded in the
+	 * generated addresses, thus the numbers MUST not change.
+	 *
+	 * Also note, if we ever allocate ID 255, we must take care
+	 * that nm_utils_ipv6_addr_set_stable_privacy() extends the
+	 * uint8 encoding of this value. */
+	NM_UTILS_STABLE_TYPE_UUID      = 0,
+	NM_UTILS_STABLE_TYPE_STABLE_ID = 1,
+	NM_UTILS_STABLE_TYPE_GENERATED = 2,
+	NM_UTILS_STABLE_TYPE_RANDOM    = 3,
+} NMUtilsStableType;
 
-gboolean nm_utils_ipv6_addr_set_stable_privacy (struct in6_addr *addr,
+NMUtilsStableType nm_utils_stable_id_parse (const char *stable_id,
+                                            const char *uuid,
+                                            const char *bootid,
+                                            char **out_generated);
+
+char *nm_utils_stable_id_random (void);
+char *nm_utils_stable_id_generated_complete (const char *msg);
+
+gboolean nm_utils_ipv6_addr_set_stable_privacy_impl (NMUtilsStableType stable_type,
+                                                     struct in6_addr *addr,
+                                                     const char *ifname,
+                                                     const char *network_id,
+                                                     guint32 dad_counter,
+                                                     guint8 *secret_key,
+                                                     gsize key_len,
+                                                     GError **error);
+
+gboolean nm_utils_ipv6_addr_set_stable_privacy (NMUtilsStableType id_type,
+                                                struct in6_addr *addr,
                                                 const char *ifname,
-                                                const char *uuid,
-                                                guint dad_counter,
+                                                const char *network_id,
+                                                guint32 dad_counter,
                                                 GError **error);
 
-void nm_utils_ipv6_interface_identfier_get_from_addr (NMUtilsIPv6IfaceId *iid,
-                                                      const struct in6_addr *addr);
+char *nm_utils_hw_addr_gen_random_eth (const char *current_mac_address,
+                                       const char *generate_mac_address_mask);
+char *nm_utils_hw_addr_gen_stable_eth_impl (NMUtilsStableType stable_type,
+                                            const char *stable_id,
+                                            const guint8 *secret_key,
+                                            gsize key_len,
+                                            const char *ifname,
+                                            const char *current_mac_address,
+                                            const char *generate_mac_address_mask);
+char *nm_utils_hw_addr_gen_stable_eth (NMUtilsStableType stable_type,
+                                       const char *stable_id,
+                                       const char *ifname,
+                                       const char *current_mac_address,
+                                       const char *generate_mac_address_mask);
 
 void nm_utils_array_remove_at_indexes (GArray *array, const guint *indexes_to_delete, gsize len);
 
@@ -393,5 +418,36 @@ gboolean nm_utils_lifetime_get (guint32 timestamp,
                                 guint32 *out_preferred);
 
 gboolean nm_utils_ip4_address_is_link_local (in_addr_t addr);
+
+const char *nm_utils_dnsmasq_status_to_string (int status, char *dest, gsize size);
+
+void nm_utils_get_reverse_dns_domains_ip4 (guint32 ip, guint8 plen, GPtrArray *domains);
+void nm_utils_get_reverse_dns_domains_ip6 (const struct in6_addr *ip, guint8 plen, GPtrArray *domains);
+
+struct stat;
+
+gboolean nm_utils_validate_plugin (const char *path, struct stat *stat, GError **error);
+char **nm_utils_read_plugin_paths (const char *dirname, const char *prefix);
+char *nm_utils_format_con_diff_for_audit (GHashTable *diff);
+
+/*****************************************************************************/
+
+/* this enum is compatible with ICMPV6_ROUTER_PREF_* (from <linux/icmpv6.h>,
+ * the values for netlink attribute RTA_PREF) and "enum ndp_route_preference"
+ * from <ndp.h>. */
+typedef enum {
+	NM_ICMPV6_ROUTER_PREF_MEDIUM      = 0x0, /* ICMPV6_ROUTER_PREF_MEDIUM */
+	NM_ICMPV6_ROUTER_PREF_LOW         = 0x3, /* ICMPV6_ROUTER_PREF_LOW */
+	NM_ICMPV6_ROUTER_PREF_HIGH        = 0x1, /* ICMPV6_ROUTER_PREF_HIGH */
+	NM_ICMPV6_ROUTER_PREF_INVALID     = 0x2, /* ICMPV6_ROUTER_PREF_INVALID */
+} NMIcmpv6RouterPref;
+
+const char *nm_icmpv6_router_pref_to_string (NMIcmpv6RouterPref pref, char *buf, gsize len);
+
+/*****************************************************************************/
+
+const char *nm_activation_type_to_string (NMActivationType activation_type);
+
+/*****************************************************************************/
 
 #endif /* __NM_CORE_UTILS_H__ */

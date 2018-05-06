@@ -26,7 +26,7 @@
 #ifndef __NM_SETTINGS_H__
 #define __NM_SETTINGS_H__
 
-#include <nm-connection.h>
+#include "nm-connection.h"
 
 #include "nm-exported-object.h"
 
@@ -41,39 +41,33 @@
 #define NM_SETTINGS_HOSTNAME         "hostname"
 #define NM_SETTINGS_CAN_MODIFY       "can-modify"
 #define NM_SETTINGS_CONNECTIONS      "connections"
-#define NM_SETTINGS_STARTUP_COMPLETE "connections"
+#define NM_SETTINGS_STARTUP_COMPLETE "startup-complete"
 
 #define NM_SETTINGS_SIGNAL_CONNECTION_ADDED              "connection-added"
 #define NM_SETTINGS_SIGNAL_CONNECTION_UPDATED            "connection-updated"
-#define NM_SETTINGS_SIGNAL_CONNECTION_UPDATED_BY_USER    "connection-updated-by-user"
 #define NM_SETTINGS_SIGNAL_CONNECTION_REMOVED            "connection-removed"
-#define NM_SETTINGS_SIGNAL_CONNECTION_VISIBILITY_CHANGED "connection-visibility-changed"
-#define NM_SETTINGS_SIGNAL_AGENT_REGISTERED              "agent-registered"
+#define NM_SETTINGS_SIGNAL_CONNECTION_FLAGS_CHANGED      "connection-flags-changed"
 
-struct _NMSettings {
-	NMExportedObject parent_instance;
-};
+/**
+ * NMConnectionFilterFunc:
+ * @settings: The #NMSettings requesting the filtering
+ * @connection: the connection to be filtered
+ * @func_data: the caller-provided data pointer
+ *
+ * Returns: %TRUE to allow the connection, %FALSE to ignore it
+ */
+typedef gboolean (*NMSettingsConnectionFilterFunc) (NMSettings *settings,
+                                                    NMSettingsConnection *connection,
+                                                    gpointer func_data);
 
-typedef struct {
-	NMExportedObjectClass parent_class;
-
-	/* Signals */
-	void (*properties_changed) (NMSettings *self, GHashTable *properties);
-
-	void (*connection_added)   (NMSettings *self, NMSettingsConnection *connection);
-
-	void (*connection_updated) (NMSettings *self, NMSettingsConnection *connection);
-
-	void (*connection_removed) (NMSettings *self, NMSettingsConnection *connection);
-
-	void (*connection_visibility_changed) (NMSettings *self, NMSettingsConnection *connection);
-
-	void (*agent_registered) (NMSettings *self, NMSecretAgent *agent);
-} NMSettingsClass;
+typedef struct _NMSettingsClass NMSettingsClass;
 
 typedef void (*NMSettingsSetHostnameCb) (const char *name, gboolean result, gpointer user_data);
 
 GType nm_settings_get_type (void);
+
+NMSettings *nm_settings_get (void);
+#define NM_SETTINGS_GET (nm_settings_get ())
 
 NMSettings *nm_settings_new (void);
 gboolean nm_settings_start (NMSettings *self, GError **error);
@@ -100,10 +94,14 @@ void nm_settings_add_connection_dbus (NMSettings *self,
                                       NMSettingsAddCallback callback,
                                       gpointer user_data);
 
-/* Returns a list of NMSettingsConnections.  Caller must free the list with
- * g_slist_free().
- */
-GSList *nm_settings_get_connections (NMSettings *settings);
+NMSettingsConnection *const* nm_settings_get_connections (NMSettings *settings, guint *out_len);
+
+NMSettingsConnection **nm_settings_get_connections_clone (NMSettings *self,
+                                                          guint *out_len,
+                                                          NMSettingsConnectionFilterFunc func,
+                                                          gpointer func_data,
+                                                          GCompareDataFunc sort_compare_func,
+                                                          gpointer sort_data);
 
 NMSettingsConnection *nm_settings_add_connection (NMSettings *settings,
                                                   NMConnection *connection,
@@ -119,19 +117,10 @@ gboolean nm_settings_has_connection (NMSettings *self, NMSettingsConnection *con
 
 const GSList *nm_settings_get_unmanaged_specs (NMSettings *self);
 
-char *nm_settings_get_hostname (NMSettings *self);
-
 void nm_settings_device_added (NMSettings *self, NMDevice *device);
 
 void nm_settings_device_removed (NMSettings *self, NMDevice *device, gboolean quitting);
 
-gint nm_settings_sort_connections (gconstpointer a, gconstpointer b);
-
 gboolean nm_settings_get_startup_complete (NMSettings *self);
-
-void nm_settings_set_transient_hostname (NMSettings *self,
-                                         const char *hostname,
-                                         NMSettingsSetHostnameCb cb,
-                                         gpointer user_data);
 
 #endif  /* __NM_SETTINGS_H__ */

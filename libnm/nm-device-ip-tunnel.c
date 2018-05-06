@@ -27,7 +27,6 @@
 #include "nm-utils.h"
 
 #include "nm-device-ip-tunnel.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 #include "nm-core-internal.h"
 
@@ -111,7 +110,7 @@ nm_device_ip_tunnel_get_local (NMDeviceIPTunnel *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_IP_TUNNEL (device), NULL);
 
-	return NM_DEVICE_IP_TUNNEL_GET_PRIVATE (device)->local;
+	return nm_str_not_empty (NM_DEVICE_IP_TUNNEL_GET_PRIVATE (device)->local);
 }
 
 /**
@@ -127,7 +126,7 @@ nm_device_ip_tunnel_get_remote (NMDeviceIPTunnel *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_IP_TUNNEL (device), NULL);
 
-	return NM_DEVICE_IP_TUNNEL_GET_PRIVATE (device)->remote;
+	return nm_str_not_empty (NM_DEVICE_IP_TUNNEL_GET_PRIVATE (device)->remote);
 }
 
 /**
@@ -192,7 +191,7 @@ nm_device_ip_tunnel_get_input_key (NMDeviceIPTunnel *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_IP_TUNNEL (device), NULL);
 
-	return NM_DEVICE_IP_TUNNEL_GET_PRIVATE (device)->input_key;
+	return nm_str_not_empty (NM_DEVICE_IP_TUNNEL_GET_PRIVATE (device)->input_key);
 }
 
 /**
@@ -208,7 +207,7 @@ nm_device_ip_tunnel_get_output_key (NMDeviceIPTunnel *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_IP_TUNNEL (device), NULL);
 
-	return NM_DEVICE_IP_TUNNEL_GET_PRIVATE (device)->output_key;
+	return nm_str_not_empty (NM_DEVICE_IP_TUNNEL_GET_PRIVATE (device)->output_key);
 }
 
 /**
@@ -264,12 +263,11 @@ get_setting_type (NMDevice *device)
 	return NM_TYPE_SETTING_IP_TUNNEL;
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_ip_tunnel_init (NMDeviceIPTunnel *device)
 {
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_IP_TUNNEL);
 }
 
 static void
@@ -368,8 +366,6 @@ nm_device_ip_tunnel_class_init (NMDeviceIPTunnelClass *bond_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (bond_class);
 
 	g_type_class_add_private (bond_class, sizeof (NMDeviceIPTunnelPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL);
 
 	/* virtual methods */
 	object_class->finalize = finalize;

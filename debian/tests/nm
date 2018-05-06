@@ -128,7 +128,9 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
             elif d.props.interface == self.dev_w_client:
                 self.assertEqual(d.get_device_type(), NetworkManager.DeviceType.WIFI)
                 self.assertEqual(d.get_driver(), 'mac80211_hwsim')
-                self.assertEqual(d.get_hw_address(), self.mac_w_client)
+                # NM ≥ 1.4 randomizes MAC addresses by default, so we can't
+                # test for equality, just make sure it's not our AP
+                self.assertNotEqual(d.get_hw_address(), self.mac_w_ap)
                 self.nmdev_w = d
             elif d.props.interface == self.dev_e_client:
                 self.assertEqual(d.get_device_type(), NetworkManager.DeviceType.ETHERNET)
@@ -593,20 +595,17 @@ Logs are in '%s'. When done, exit the shell.
 ''' % (self.dev_e_client, self.dev_e_ap, self.workdir))
         subprocess.call(['bash', '-i'])
 
-    @unittest.skip("Requires more extensive veth support")
     def test_auto_ip4(self):
         '''ethernet: auto-connection, IPv4'''
 
         self.do_test(None, auto_connect=True)
 
-    @unittest.skip("Requires more extensive veth support")
     def test_auto_ip6_raonly_no_pe(self):
         '''ethernet: auto-connection, IPv6 with only RA, PE disabled'''
 
         self.do_test('ra-only', auto_connect=True,
                      ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.DISABLED)
 
-    @unittest.skip("Requires more extensive veth support")
     def test_auto_ip6_dhcp(self):
         '''ethernet: auto-connection, IPv6 with DHCP'''
 

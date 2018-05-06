@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingWimax: libnm-util Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm-util Reference Manual">
 <link rel="up" href="ch01.html" title="libnm-util API Reference">
 <link rel="prev" href="NMSettingGsm.html" title="NMSettingGsm">
 <link rel="next" href="NMSettingBond.html" title="NMSettingBond">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingWimax.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -43,7 +43,7 @@
 <tbody>
 <tr>
 <td class="function_type">
-<span class="returnvalue">GQuark</span>
+<a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingWimax.html#nm-setting-wimax-error-quark" title="nm_setting_wimax_error_quark ()">nm_setting_wimax_error_quark</a> <span class="c_punctuation">()</span>
@@ -65,7 +65,7 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">GByteArray</span> *
+<td class="function_type">const <a href="../glib/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingWimax.html#nm-setting-wimax-get-mac-address" title="nm_setting_wimax_get_mac_address ()">nm_setting_wimax_get_mac_address</a> <span class="c_punctuation">()</span>
@@ -76,7 +76,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -91,7 +91,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingWimax.html#NMSettingWimax--network-name" title="The “network-name” property">network-name</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -100,7 +100,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -131,9 +131,9 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GEnum
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">╰──</span> NMSettingWimaxError
-    GObject
+    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingWimax
 </pre>
@@ -155,7 +155,7 @@ connections cannot be activated.</p>
 <a name="NMSettingWimax.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="nm-setting-wimax-error-quark"></a><h3>nm_setting_wimax_error_quark ()</h3>
-<pre class="programlisting"><span class="returnvalue">GQuark</span>
+<pre class="programlisting"><a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 nm_setting_wimax_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_setting_wimax_error_quark</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
@@ -163,7 +163,7 @@ nm_setting_wimax_error_quark (<em class="parameter"><code><span class="type">voi
 </div>
 <p>Registers an error quark for <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> if necessary.</p>
 <div class="refsect3">
-<a name="id-1.2.12.9.2.6"></a><h4>Returns</h4>
+<a name="nm-setting-wimax-error-quark.returns"></a><h4>Returns</h4>
 <p> the error quark used for <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> errors.</p>
 </div>
 </div>
@@ -178,7 +178,7 @@ nm_setting_wimax_new (<em class="parameter"><code><span class="type">void</span>
 </div>
 <p>Creates a new <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.2.12.9.3.6"></a><h4>Returns</h4>
+<a name="nm-setting-wimax-new.returns"></a><h4>Returns</h4>
 <p> the new empty <a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> object</p>
 </div>
 </div>
@@ -194,8 +194,8 @@ nm_setting_wimax_get_network_name (<em class="parameter"><code><a class="link" h
 <p>Returns the WiMAX NSP name (ex "Sprint" or "CLEAR") which identifies the
 specific WiMAX network this setting describes a connection to.</p>
 <div class="refsect3">
-<a name="id-1.2.12.9.4.6"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-wimax-get-network-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -209,14 +209,14 @@ specific WiMAX network this setting describes a connection to.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.12.9.4.7"></a><h4>Returns</h4>
+<a name="nm-setting-wimax-get-network-name.returns"></a><h4>Returns</h4>
 <p> the WiMAX NSP name</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-wimax-get-mac-address"></a><h3>nm_setting_wimax_get_mac_address ()</h3>
-<pre class="programlisting">const <span class="returnvalue">GByteArray</span> *
+<pre class="programlisting">const <a href="../glib/glib-Byte-Arrays.html#GByteArray"><span class="returnvalue">GByteArray</span></a> *
 nm_setting_wimax_get_mac_address (<em class="parameter"><code><a class="link" href="NMSettingWimax.html" title="NMSettingWimax"><span class="type">NMSettingWimax</span></a> *setting</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_setting_wimax_get_mac_address</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
@@ -225,8 +225,8 @@ nm_setting_wimax_get_mac_address (<em class="parameter"><code><a class="link" hr
 <p>Returns the MAC address of a WiMAX device which this connection is locked
 to.</p>
 <div class="refsect3">
-<a name="id-1.2.12.9.5.6"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-wimax-get-mac-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -240,7 +240,7 @@ to.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.2.12.9.5.7"></a><h4>Returns</h4>
+<a name="nm-setting-wimax-get-mac-address.returns"></a><h4>Returns</h4>
 <p> the MAC address</p>
 </div>
 </div>
@@ -256,8 +256,8 @@ to.</p>
 <div class="refsect2">
 <a name="NMSettingWimaxError"></a><h3>enum NMSettingWimaxError</h3>
 <div class="refsect3">
-<a name="id-1.2.12.10.3.3"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMSettingWimaxError.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -326,7 +326,7 @@ device (known as MAC spoofing).</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWimax--network-name"></a><h3>The <code class="literal">“network-name”</code> property</h3>
-<pre class="programlisting">  “network-name”             <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “network-name”             <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Network Service Provider (NSP) name of the WiMAX network this connection
 should use.</p>
 <div class="warning">
@@ -339,6 +339,6 @@ should use.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

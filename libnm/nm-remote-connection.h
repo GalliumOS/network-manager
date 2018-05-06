@@ -26,7 +26,7 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-object.h>
+#include "nm-object.h"
 
 G_BEGIN_DECLS
 
@@ -59,6 +59,19 @@ typedef struct {
 } NMRemoteConnectionClass;
 
 GType nm_remote_connection_get_type (void);
+
+NM_AVAILABLE_IN_1_10_2
+void nm_remote_connection_update2 (NMRemoteConnection *connection,
+                                   GVariant *settings,
+                                   NMSettingsUpdate2Flags flags,
+                                   GVariant *args,
+                                   GCancellable *cancellable,
+                                   GAsyncReadyCallback callback,
+                                   gpointer user_data);
+NM_AVAILABLE_IN_1_10_2
+GVariant *nm_remote_connection_update2_finish (NMRemoteConnection *connection,
+                                               GAsyncResult *result,
+                                               GError **error);
 
 gboolean nm_remote_connection_commit_changes        (NMRemoteConnection *connection,
                                                      gboolean save_to_disk,

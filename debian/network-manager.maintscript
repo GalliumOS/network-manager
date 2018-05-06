@@ -1,5 +1,3 @@
-mv_conffile /etc/dbus-1/system.d/NetworkManager.conf /etc/dbus-1/system.d/org.freedesktop.NetworkManager.conf 0.9.4.0-1~
-rm_conffile /etc/polkit-1/localauthority/10-vendor.d/org.freedesktop.NetworkManager.pkla 0.9.8.8-4~
-rm_conffile /etc/polkit-1/rules.d/60-network-manager.rules 0.9.8.8-4~
-rm_conffile /etc/dbus-1/system.d/nm-dhcp-client.conf 0.9.10.0-1~
 rm_conffile /etc/dbus-1/system.d/nm-avahi-autoipd.conf 1.1.90-2~
+mv_conffile /etc/NetworkManager/dispatcher.d/01ifupdown /etc/NetworkManager/dispatcher.d/01-ifupdown 1.8.0-5~
+rm_conffile /etc/dbus-1/system.d/nm-ofono.conf 1.2.4-1~

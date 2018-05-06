@@ -144,62 +144,62 @@
           <tbody>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_UNKNOWN</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_UNKNOWN</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The reason for the VPN connection state change is unknown.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_NONE</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_NONE</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>No reason was given for the VPN connection state change.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_USER_DISCONNECTED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_USER_DISCONNECTED</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The VPN connection changed state because the user disconnected it.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The VPN connection changed state because the device it was using was disconnected.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_SERVICE_STOPPED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_STOPPED</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The service providing the VPN connection was stopped.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_IP_CONFIG_INVALID</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>5</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_IP_CONFIG_INVALID</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The IP config of the VPN connection was invalid.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_CONNECT_TIMEOUT</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>6</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_CONNECT_TIMEOUT</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The connection attempt to the VPN service timed out.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_SERVICE_START_TIMEOUT</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>7</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_TIMEOUT</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>A timeout occurred while starting the service providing the VPN connection.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_SERVICE_START_FAILED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>8</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_FAILED</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>Starting the service starting the service providing the VPN connection failed.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_NO_SECRETS</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>9</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_NO_SECRETS</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>Necessary secrets for the VPN connection were not provided.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_LOGIN_FAILED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_LOGIN_FAILED</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>Authentication to the VPN server failed.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_CONNECTION_STATE_REASON_CONNECTION_REMOVED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>11</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>NM_ACTIVE_CONNECTION_STATE_REASON_CONNECTION_REMOVED</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The connection was deleted from settings.</para><para></para></entry>
             </row>
           </tbody>
@@ -224,17 +224,17 @@
           <tbody>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_PLUGIN_FAILURE_LOGIN_FAILED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>Login failed.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>Connect failed.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_VPN_PLUGIN_FAILURE_BAD_IP_CONFIG</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>Invalid IP configuration returned from the VPN plugin.</para><para></para></entry>
             </row>
           </tbody>

@@ -27,7 +27,6 @@
 #include "nm-utils.h"
 
 #include "nm-device-infiniband.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 
 G_DEFINE_TYPE (NMDeviceInfiniband, nm_device_infiniband, NM_TYPE_DEVICE)
@@ -61,7 +60,7 @@ nm_device_infiniband_get_hw_address (NMDeviceInfiniband *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_INFINIBAND (device), NULL);
 
-	return NM_DEVICE_INFINIBAND_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_INFINIBAND_GET_PRIVATE (device)->hw_address);
 }
 
 /**
@@ -127,12 +126,11 @@ get_hw_address (NMDevice *device)
 	return nm_device_infiniband_get_hw_address (NM_DEVICE_INFINIBAND (device));
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_infiniband_init (NMDeviceInfiniband *device)
 {
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_INFINIBAND);
 }
 
 static void
@@ -191,8 +189,6 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *ib_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (ib_class);
 
 	g_type_class_add_private (ib_class, sizeof (NMDeviceInfinibandPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_INFINIBAND);
 
 	/* virtual methods */
 	object_class->finalize = finalize;

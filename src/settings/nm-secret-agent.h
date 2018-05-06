@@ -21,8 +21,7 @@
 #ifndef __NETWORKMANAGER_SECRET_AGENT_H__
 #define __NETWORKMANAGER_SECRET_AGENT_H__
 
-#include <nm-connection.h>
-#include "nm-default.h"
+#include "nm-connection.h"
 
 #define NM_TYPE_SECRET_AGENT            (nm_secret_agent_get_type ())
 #define NM_SECRET_AGENT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SECRET_AGENT, NMSecretAgent))
@@ -33,17 +32,8 @@
 
 #define NM_SECRET_AGENT_DISCONNECTED "disconnected"
 
-struct _NMSecretAgent {
-	GObject parent;
-};
-
-typedef struct {
-	GObjectClass parent;
-
-	void (*disconnected) (NMSecretAgent *self);
-} NMSecretAgentClass;
-
-typedef struct _NMSecretAgentCallId *NMSecretAgentCallId;
+typedef struct _NMSecretAgentClass NMSecretAgentClass;
+typedef struct _NMSecretAgentCallId NMSecretAgentCallId;
 
 GType nm_secret_agent_get_type (void);
 
@@ -76,12 +66,12 @@ gboolean    nm_secret_agent_has_permission (NMSecretAgent *agent,
                                             const char *permission);
 
 typedef void (*NMSecretAgentCallback) (NMSecretAgent *agent,
-                                       NMSecretAgentCallId call_id,
+                                       NMSecretAgentCallId *call_id,
                                        GVariant *new_secrets, /* NULL for save & delete */
                                        GError *error,
                                        gpointer user_data);
 
-NMSecretAgentCallId nm_secret_agent_get_secrets  (NMSecretAgent *agent,
+NMSecretAgentCallId *nm_secret_agent_get_secrets (NMSecretAgent *agent,
                                                   const char *path,
                                                   NMConnection *connection,
                                                   const char *setting_name,
@@ -91,18 +81,18 @@ NMSecretAgentCallId nm_secret_agent_get_secrets  (NMSecretAgent *agent,
                                                   gpointer callback_data);
 
 void        nm_secret_agent_cancel_secrets (NMSecretAgent *agent,
-                                            NMSecretAgentCallId call_id);
+                                            NMSecretAgentCallId *call_id);
 
-NMSecretAgentCallId nm_secret_agent_save_secrets (NMSecretAgent *agent,
-                                                  const char *path,
-                                                  NMConnection *connection,
-                                                  NMSecretAgentCallback callback,
-                                                  gpointer callback_data);
+NMSecretAgentCallId *nm_secret_agent_save_secrets (NMSecretAgent *agent,
+                                                   const char *path,
+                                                   NMConnection *connection,
+                                                   NMSecretAgentCallback callback,
+                                                   gpointer callback_data);
 
-NMSecretAgentCallId nm_secret_agent_delete_secrets (NMSecretAgent *agent,
-                                                    const char *path,
-                                                    NMConnection *connection,
-                                                    NMSecretAgentCallback callback,
-                                                    gpointer callback_data);
+NMSecretAgentCallId *nm_secret_agent_delete_secrets (NMSecretAgent *agent,
+                                                     const char *path,
+                                                     NMConnection *connection,
+                                                     NMSecretAgentCallback callback,
+                                                     gpointer callback_data);
 
 #endif /* __NETWORKMANAGER_SECRET_AGENT_H__ */

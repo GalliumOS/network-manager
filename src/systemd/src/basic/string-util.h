@@ -37,6 +37,7 @@
 #define UPPERCASE_LETTERS "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define LETTERS           LOWERCASE_LETTERS UPPERCASE_LETTERS
 #define ALPHANUMERICAL    LETTERS DIGITS
+#define HEXDIGITS         DIGITS "abcdefABCDEF"
 
 #define streq(a,b) (strcmp((a),(b)) == 0)
 #define strneq(a, b, n) (strncmp((a), (b), (n)) == 0)
@@ -63,6 +64,14 @@ static inline const char *strna(const char *s) {
 
 static inline bool isempty(const char *p) {
         return !p || !p[0];
+}
+
+static inline const char *empty_to_null(const char *p) {
+        return isempty(p) ? NULL : p;
+}
+
+static inline const char *strdash_if_empty(const char *str) {
+        return isempty(str) ? "-" : str;
 }
 
 static inline char *startswith(const char *s, const char *prefix) {
@@ -98,22 +107,20 @@ const char* split(const char **state, size_t *l, const char *separator, bool quo
 #define FOREACH_WORD_SEPARATOR(word, length, s, separator, state)       \
         _FOREACH_WORD(word, length, s, separator, false, state)
 
-#define FOREACH_WORD_QUOTED(word, length, s, state)                     \
-        _FOREACH_WORD(word, length, s, WHITESPACE, true, state)
-
 #define _FOREACH_WORD(word, length, s, separator, quoted, state)        \
         for ((state) = (s), (word) = split(&(state), &(length), (separator), (quoted)); (word); (word) = split(&(state), &(length), (separator), (quoted)))
 
 char *strappend(const char *s, const char *suffix);
 char *strnappend(const char *s, const char *suffix, size_t length);
 
-char *strjoin(const char *x, ...) _sentinel_;
+char *strjoin_real(const char *x, ...) _sentinel_;
+#define strjoin(a, ...) strjoin_real((a), __VA_ARGS__, NULL)
 
 #define strjoina(a, ...)                                                \
         ({                                                              \
                 const char *_appendees_[] = { a, __VA_ARGS__ };         \
                 char *_d_, *_p_;                                        \
-                int _len_ = 0;                                          \
+                size_t _len_ = 0;                                          \
                 unsigned _i_;                                           \
                 for (_i_ = 0; _i_ < ELEMENTSOF(_appendees_) && _appendees_[_i_]; _i_++) \
                         _len_ += strlen(_appendees_[_i_]);              \
@@ -132,6 +139,9 @@ char ascii_tolower(char x);
 char *ascii_strlower(char *s);
 char *ascii_strlower_n(char *s, size_t n);
 
+char ascii_toupper(char x);
+char *ascii_strupper(char *s);
+
 int ascii_strcasecmp_n(const char *a, const char *b, size_t n);
 int ascii_strcasecmp_nn(const char *a, size_t n, const char *b, size_t m);
 
@@ -148,7 +158,7 @@ bool string_has_cc(const char *p, const char *ok) _pure_;
 char *ellipsize_mem(const char *s, size_t old_length_bytes, size_t new_length_columns, unsigned percent);
 char *ellipsize(const char *s, size_t length, unsigned percent);
 
-bool nulstr_contains(const char*nulstr, const char *needle);
+bool nulstr_contains(const char *nulstr, const char *needle);
 
 char* strshorten(char *s, size_t l);
 
@@ -179,7 +189,10 @@ static inline void *memmem_safe(const void *haystack, size_t haystacklen, const 
         return memmem(haystack, haystacklen, needle, needlelen);
 }
 
-void* memory_erase(void *p, size_t l);
+#if !HAVE_EXPLICIT_BZERO
+void explicit_bzero(void *p, size_t l);
+#endif
+
 char *string_erase(char *x);
 
 char *string_free_erase(char *s);
@@ -187,3 +200,10 @@ DEFINE_TRIVIAL_CLEANUP_FUNC(char *, string_free_erase);
 #define _cleanup_string_free_erase_ _cleanup_(string_free_erasep)
 
 bool string_is_safe(const char *p) _pure_;
+
+static inline size_t strlen_ptr(const char *s) {
+        if (!s)
+                return 0;
+
+        return strlen(s);
+}

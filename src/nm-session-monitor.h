@@ -21,11 +21,6 @@
 #ifndef __NETWORKMANAGER_SESSION_MONITOR_H__
 #define __NETWORKMANAGER_SESSION_MONITOR_H__
 
-
-#include "nm-default.h"
-
-G_BEGIN_DECLS
-
 #define NM_TYPE_SESSION_MONITOR         (nm_session_monitor_get_type ())
 #define NM_SESSION_MONITOR(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), NM_TYPE_SESSION_MONITOR, NMSessionMonitor))
 #define NM_SESSION_MONITOR_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST ((k), NM_TYPE_SESSION_MONITOR, NMSessionMonitorClass))
@@ -35,27 +30,16 @@ G_BEGIN_DECLS
 
 #define NM_SESSION_MONITOR_CHANGED "changed"
 
-typedef struct _NMSessionMonitorClass    NMSessionMonitorClass;
+typedef struct _NMSessionMonitorClass NMSessionMonitorClass;
 
-typedef void (*NMSessionCallback) (NMSessionMonitor *monitor, gpointer user_data);
-
-GType             nm_session_monitor_get_type       (void) G_GNUC_CONST;
+GType nm_session_monitor_get_type (void) G_GNUC_CONST;
 
 NMSessionMonitor *nm_session_monitor_get (void);
 
-gulong            nm_session_monitor_connect        (NMSessionMonitor *self,
-                                                     NMSessionCallback callback,
-                                                     gpointer user_data);
-void              nm_session_monitor_disconnect     (NMSessionMonitor *self,
-                                                     gulong handler_id);
-
-gboolean          nm_session_monitor_uid_to_user    (uid_t uid, const char **out_user);
-gboolean          nm_session_monitor_user_to_uid    (const char *user, uid_t *out_uid);
-gboolean          nm_session_monitor_session_exists (NMSessionMonitor *self,
-                                                     uid_t uid,
-                                                     gboolean active);
-
-G_END_DECLS
+gboolean nm_session_monitor_uid_to_user    (uid_t uid, const char **out_user);
+gboolean nm_session_monitor_user_to_uid    (const char *user, uid_t *out_uid);
+gboolean nm_session_monitor_session_exists (NMSessionMonitor *self,
+                                            uid_t uid,
+                                            gboolean active);
 
 #endif /* __NETWORKMANAGER_SESSION_MONITOR_H__ */
-

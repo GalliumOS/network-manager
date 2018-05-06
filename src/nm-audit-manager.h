@@ -21,14 +21,9 @@
 #ifndef __NM_AUDIT_MANAGER_H__
 #define __NM_AUDIT_MANAGER_H__
 
-#include <glib.h>
-#include <glib-object.h>
-
 #include "nm-connection.h"
-#include "nm-device.h"
+#include "devices/nm-device.h"
 #include "nm-types.h"
-
-G_BEGIN_DECLS
 
 #define NM_TYPE_AUDIT_MANAGER            (nm_audit_manager_get_type ())
 #define NM_AUDIT_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_AUDIT_MANAGER, NMAuditManager))
@@ -37,13 +32,7 @@ G_BEGIN_DECLS
 #define NM_IS_AUDIT_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_AUDIT_MANAGER))
 #define NM_AUDIT_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_AUDIT_MANAGER, NMAuditManagerClass))
 
-struct _NMAuditManager {
-	GObject parent;
-};
-
-typedef struct {
-	GObjectClass parent;
-} NMAuditManagerClass;
+typedef struct _NMAuditManagerClass NMAuditManagerClass;
 
 #define NM_AUDIT_OP_CONN_ADD                "connection-add"
 #define NM_AUDIT_OP_CONN_DELETE             "connection-delete"
@@ -53,9 +42,11 @@ typedef struct {
 #define NM_AUDIT_OP_CONN_DEACTIVATE         "connection-deactivate"
 #define NM_AUDIT_OP_CONN_CLEAR_SECRETS      "connection-clear-secrets"
 
+#define NM_AUDIT_OP_RELOAD                  "reload"
 #define NM_AUDIT_OP_SLEEP_CONTROL           "sleep-control"
 #define NM_AUDIT_OP_NET_CONTROL             "networking-control"
 #define NM_AUDIT_OP_RADIO_CONTROL           "radio-control"
+#define NM_AUDIT_OP_STATISTICS              "statistics"
 
 #define NM_AUDIT_OP_DEVICE_AUTOCONNECT      "device-autoconnect"
 #define NM_AUDIT_OP_DEVICE_DISCONNECT       "device-disconnect"
@@ -63,17 +54,21 @@ typedef struct {
 #define NM_AUDIT_OP_DEVICE_MANAGED          "device-managed"
 #define NM_AUDIT_OP_DEVICE_REAPPLY          "device-reapply"
 
+#define NM_AUDIT_OP_CHECKPOINT_CREATE       "checkpoint-create"
+#define NM_AUDIT_OP_CHECKPOINT_ROLLBACK     "checkpoint-rollback"
+#define NM_AUDIT_OP_CHECKPOINT_DESTROY      "checkpoint-destroy"
+
 GType nm_audit_manager_get_type (void);
 NMAuditManager *nm_audit_manager_get (void);
 gboolean nm_audit_manager_audit_enabled (NMAuditManager *self);
 
-#define nm_audit_log_connection_op(op, connection, result, subject_context, reason) \
+#define nm_audit_log_connection_op(op, connection, result, args, subject_context, reason) \
 	G_STMT_START { \
 		NMAuditManager *_audit = nm_audit_manager_get (); \
 		\
 		if (nm_audit_manager_audit_enabled (_audit)) { \
 			_nm_audit_manager_log_connection_op (_audit, __FILE__, __LINE__, G_STRFUNC, \
-			                                     (op), (connection), (result), (subject_context), \
+			                                     (op), (connection), (result), (args), (subject_context), \
 			                                     (reason)); \
 		} \
 	} G_STMT_END
@@ -83,32 +78,43 @@ gboolean nm_audit_manager_audit_enabled (NMAuditManager *self);
 		NMAuditManager *_audit = nm_audit_manager_get (); \
 		\
 		if (nm_audit_manager_audit_enabled (_audit)) { \
-			_nm_audit_manager_log_control_op (_audit, __FILE__, __LINE__, G_STRFUNC, \
+			_nm_audit_manager_log_generic_op (_audit, __FILE__, __LINE__, G_STRFUNC, \
 			                                  (op), (arg), (result), (subject_context), (reason)); \
 		} \
 	} G_STMT_END
 
-#define nm_audit_log_device_op(op, device, result, subject_context, reason) \
+#define nm_audit_log_device_op(op, device, result, args, subject_context, reason) \
 	G_STMT_START { \
 		NMAuditManager *_audit = nm_audit_manager_get (); \
 		\
 		if (nm_audit_manager_audit_enabled (_audit)) { \
 			_nm_audit_manager_log_device_op (_audit, __FILE__, __LINE__, G_STRFUNC, \
-			                                 (op), (device), (result), (subject_context), (reason)); \
+			                                 (op), (device), (result), (args), (subject_context), (reason)); \
+		} \
+	} G_STMT_END
+
+#define nm_audit_log_checkpoint_op(op, arg, result, subject_context, reason) \
+	G_STMT_START { \
+		NMAuditManager *_audit = nm_audit_manager_get (); \
+		\
+		if (nm_audit_manager_audit_enabled (_audit)) { \
+			_nm_audit_manager_log_generic_op (_audit, __FILE__, __LINE__, G_STRFUNC, \
+			                                  (op), (arg), (result), (subject_context), (reason)); \
 		} \
 	} G_STMT_END
 
 void _nm_audit_manager_log_connection_op (NMAuditManager *self, const char *file, guint line,
                                           const char *func, const char *op, NMSettingsConnection *connection,
-                                          gboolean result, gpointer subject_context, const char *reason);
+                                          gboolean result, const char *args, gpointer subject_context,
+                                          const char *reason);
 
-void _nm_audit_manager_log_control_op    (NMAuditManager *self, const char *file, guint line,
+void _nm_audit_manager_log_generic_op    (NMAuditManager *self, const char *file, guint line,
                                           const char *func, const char *op, const char *arg,
                                           gboolean result, gpointer subject_context, const char *reason);
 
 void _nm_audit_manager_log_device_op     (NMAuditManager *self, const char *file, guint line,
                                           const char *func, const char *op, NMDevice *device,
-                                          gboolean result, gpointer subject_context, const char *reason);
-G_END_DECLS
+                                          gboolean result, const char *args, gpointer subject_context,
+                                          const char *reason);
 
 #endif /* __NM_AUDIT_MANAGER_H__ */

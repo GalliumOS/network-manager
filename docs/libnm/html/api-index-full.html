@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>API Index: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="index.html" title="libnm Reference Manual">
 <link rel="prev" href="object-tree.html" title="Object Hierarchy">
 <link rel="next" href="annotation-glossary.html" title="Annotation Glossary">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -25,6 +25,8 @@
                      <span class="dim">|</span> 
                   <a class="shortcut" href="#idxI">I</a>
                      <span class="dim">|</span> 
+                  <a class="shortcut" href="#idxJ">J</a>
+                     <span class="dim">|</span> 
                   <a class="shortcut" href="#idxL">L</a>
                      <span class="dim">|</span> 
                   <a class="shortcut" href="#idxM">M</a>
@@ -34,6 +36,8 @@
                   <a class="shortcut" href="#idxR">R</a>
                      <span class="dim">|</span> 
                   <a class="shortcut" href="#idxS">S</a>
+                     <span class="dim">|</span> 
+                  <a class="shortcut" href="#idxT">T</a>
                      <span class="dim">|</span> 
                   <a class="shortcut" href="#idxU">U</a>
                      <span class="dim">|</span> 
@@ -203,7 +207,15 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NMActivationStateFlags" title="enum NMActivationStateFlags">NMActivationStateFlags</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMActiveConnection.html#NMActiveConnection-struct" title="NMActiveConnection">NMActiveConnection</a>, struct in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMActiveConnection.html#NMActiveConnection-state-changed" title="The “state-changed” signal">NMActiveConnection::state-changed</a>, object signal in nm-types
 </dt>
 <dd></dd>
 <dt>
@@ -255,6 +267,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMActiveConnection.html#NMActiveConnection--state-flags" title="The “state-flags” property">NMActiveConnection:state-flags</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMActiveConnection.html#NMActiveConnection--type" title="The “type” property">NMActiveConnection:type</a>, object property in nm-types
 </dt>
 <dd></dd>
@@ -268,6 +284,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NMActiveConnectionStateReason" title="enum NMActiveConnectionStateReason">NMActiveConnectionStateReason</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -347,6 +367,14 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMActiveConnection.html#nm-active-connection-get-state-flags" title="nm_active_connection_get_state_flags ()">nm_active_connection_get_state_flags</a>, function in <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMActiveConnection.html#nm-active-connection-get-state-reason" title="nm_active_connection_get_state_reason ()">nm_active_connection_get_state_reason</a>, function in <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMActiveConnection.html#nm-active-connection-get-uuid" title="nm_active_connection_get_uuid ()">nm_active_connection_get_uuid</a>, function in <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
 </dt>
 <dd></dd>
@@ -376,6 +404,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMActiveConnection.html#NM-ACTIVE-CONNECTION-STATE:CAPS" title="NM_ACTIVE_CONNECTION_STATE">NM_ACTIVE_CONNECTION_STATE</a>, macro in <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMActiveConnection.html#NM-ACTIVE-CONNECTION-STATE-FLAGS:CAPS" title="NM_ACTIVE_CONNECTION_STATE_FLAGS">NM_ACTIVE_CONNECTION_STATE_FLAGS</a>, macro in <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -411,11 +443,27 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-10:CAPS" title="NM_AVAILABLE_IN_1_10">NM_AVAILABLE_IN_1_10</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-10-2:CAPS" title="NM_AVAILABLE_IN_1_10_2">NM_AVAILABLE_IN_1_10_2</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NM-AVAILABLE-IN-1-2:CAPS" title="NM_AVAILABLE_IN_1_2">NM_AVAILABLE_IN_1_2</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-4:CAPS" title="NM_AVAILABLE_IN_1_4">NM_AVAILABLE_IN_1_4</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-6:CAPS" title="NM_AVAILABLE_IN_1_6">NM_AVAILABLE_IN_1_6</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-AVAILABLE-IN-1-8:CAPS" title="NM_AVAILABLE_IN_1_8">NM_AVAILABLE_IN_1_8</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
 </dt>
 <dd></dd>
 <a name="idxB"></a><h3 class="title">B</h3>
@@ -425,7 +473,23 @@
 <dd></dd>
 <a name="idxC"></a><h3 class="title">C</h3>
 <dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NMCapability" title="enum NMCapability">NMCapability</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NMCheckpointCreateFlags" title="enum NMCheckpointCreateFlags">NMCheckpointCreateFlags</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMClient.html#NMClient-struct" title="NMClient">NMClient</a>, struct in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NMClient-active-connection-added" title="The “active-connection-added” signal">NMClient::active-connection-added</a>, object signal in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NMClient-active-connection-removed" title="The “active-connection-removed” signal">NMClient::active-connection-removed</a>, object signal in nm-types
 </dt>
 <dd></dd>
 <dt>
@@ -481,7 +545,27 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMClient.html#NMClient--connectivity-check-available" title="The “connectivity-check-available” property">NMClient:connectivity-check-available</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NMClient--connectivity-check-enabled" title="The “connectivity-check-enabled” property">NMClient:connectivity-check-enabled</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMClient.html#NMClient--devices" title="The “devices” property">NMClient:devices</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NMClient--dns-configuration" title="The “dns-configuration” property">NMClient:dns-configuration</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NMClient--dns-mode" title="The “dns-mode” property">NMClient:dns-mode</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NMClient--dns-rc-manager" title="The “dns-rc-manager” property">NMClient:dns-rc-manager</a>, object property in nm-types
 </dt>
 <dd></dd>
 <dt>
@@ -569,6 +653,14 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMClient.html#NM-CLIENT-ACTIVE-CONNECTION-ADDED:CAPS" title="NM_CLIENT_ACTIVE_CONNECTION_ADDED">NM_CLIENT_ACTIVE_CONNECTION_ADDED</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NM-CLIENT-ACTIVE-CONNECTION-REMOVED:CAPS" title="NM_CLIENT_ACTIVE_CONNECTION_REMOVED">NM_CLIENT_ACTIVE_CONNECTION_REMOVED</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMClient.html#nm-client-add-and-activate-connection-async" title="nm_client_add_and_activate_connection_async ()">nm_client_add_and_activate_connection_async</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
@@ -629,6 +721,26 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMClient.html#NM-CLIENT-CONNECTIVITY-CHECK-AVAILABLE:CAPS" title="NM_CLIENT_CONNECTIVITY_CHECK_AVAILABLE">NM_CLIENT_CONNECTIVITY_CHECK_AVAILABLE</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NM-CLIENT-CONNECTIVITY-CHECK-ENABLED:CAPS" title="NM_CLIENT_CONNECTIVITY_CHECK_ENABLED">NM_CLIENT_CONNECTIVITY_CHECK_ENABLED</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-connectivity-check-get-available" title="nm_client_connectivity_check_get_available ()">nm_client_connectivity_check_get_available</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-connectivity-check-get-enabled" title="nm_client_connectivity_check_get_enabled ()">nm_client_connectivity_check_get_enabled</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-connectivity-check-set-enabled" title="nm_client_connectivity_check_set_enabled ()">nm_client_connectivity_check_set_enabled</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMClient.html#nm-client-deactivate-connection" title="nm_client_deactivate_connection ()">nm_client_deactivate_connection</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
@@ -650,6 +762,18 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMClient.html#NM-CLIENT-DEVICE-REMOVED:CAPS" title="NM_CLIENT_DEVICE_REMOVED">NM_CLIENT_DEVICE_REMOVED</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NM-CLIENT-DNS-CONFIGURATION:CAPS" title="NM_CLIENT_DNS_CONFIGURATION">NM_CLIENT_DNS_CONFIGURATION</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NM-CLIENT-DNS-MODE:CAPS" title="NM_CLIENT_DNS_MODE">NM_CLIENT_DNS_MODE</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NM-CLIENT-DNS-RC-MANAGER:CAPS" title="NM_CLIENT_DNS_RC_MANAGER">NM_CLIENT_DNS_RC_MANAGER</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
 <dt>
@@ -702,6 +826,18 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMClient.html#nm-client-get-device-by-path" title="nm_client_get_device_by_path ()">nm_client_get_device_by_path</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-get-dns-configuration" title="nm_client_get_dns_configuration ()">nm_client_get_dns_configuration</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-get-dns-mode" title="nm_client_get_dns_mode ()">nm_client_get_dns_mode</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-get-dns-rc-manager" title="nm_client_get_dns_rc_manager ()">nm_client_get_dns_rc_manager</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
 <dt>
@@ -889,19 +1025,19 @@
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct">NMConnection</a>, struct in nm-core-types
+<a href="../libnm-util/NMConnection.html#NMConnection-struct">NMConnection</a>, struct in nm-core-types
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-changed">NMConnection::changed</a>, object signal in nm-core-types
+<a href="../libnm-util/NMConnection.html#NMConnection-changed">NMConnection::changed</a>, object signal in nm-core-types
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-secrets-cleared">NMConnection::secrets-cleared</a>, object signal in nm-core-types
+<a href="../libnm-util/NMConnection.html#NMConnection-secrets-cleared">NMConnection::secrets-cleared</a>, object signal in nm-core-types
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-secrets-updated">NMConnection::secrets-updated</a>, object signal in nm-core-types
+<a href="../libnm-util/NMConnection.html#NMConnection-secrets-updated">NMConnection::secrets-updated</a>, object signal in nm-core-types
 </dt>
 <dd></dd>
 <dt>
@@ -981,6 +1117,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMConnection.html#nm-connection-get-settings" title="nm_connection_get_settings ()">nm_connection_get_settings</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMConnection.html#nm-connection-get-setting-802-1x" title="nm_connection_get_setting_802_1x ()">nm_connection_get_setting_802_1x</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
 </dt>
 <dd></dd>
@@ -1021,6 +1161,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMConnection.html#nm-connection-get-setting-dummy" title="nm_connection_get_setting_dummy ()">nm_connection_get_setting_dummy</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMConnection.html#nm-connection-get-setting-generic" title="nm_connection_get_setting_generic ()">nm_connection_get_setting_generic</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
 </dt>
 <dd></dd>
@@ -1045,11 +1189,31 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMConnection.html#nm-connection-get-setting-macsec" title="nm_connection_get_setting_macsec ()">nm_connection_get_setting_macsec</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMConnection.html#nm-connection-get-setting-macvlan" title="nm_connection_get_setting_macvlan ()">nm_connection_get_setting_macvlan</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMConnection.html#nm-connection-get-setting-olpc-mesh" title="nm_connection_get_setting_olpc_mesh ()">nm_connection_get_setting_olpc_mesh</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMConnection.html#nm-connection-get-setting-ovs-bridge" title="nm_connection_get_setting_ovs_bridge ()">nm_connection_get_setting_ovs_bridge</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMConnection.html#nm-connection-get-setting-ovs-interface" title="nm_connection_get_setting_ovs_interface ()">nm_connection_get_setting_ovs_interface</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMConnection.html#nm-connection-get-setting-ovs-patch" title="nm_connection_get_setting_ovs_patch ()">nm_connection_get_setting_ovs_patch</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMConnection.html#nm-connection-get-setting-ovs-port" title="nm_connection_get_setting_ovs_port ()">nm_connection_get_setting_ovs_port</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1061,7 +1225,15 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMConnection.html#nm-connection-get-setting-proxy" title="nm_connection_get_setting_proxy ()">nm_connection_get_setting_proxy</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMConnection.html#nm-connection-get-setting-serial" title="nm_connection_get_setting_serial ()">nm_connection_get_setting_serial</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMConnection.html#nm-connection-get-setting-tc-config" title="nm_connection_get_setting_tc_config ()">nm_connection_get_setting_tc_config</a>, function in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1226,6 +1398,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-DUMMY:CAPS" title="NM_DBUS_INTERFACE_DEVICE_DUMMY">NM_DBUS_INTERFACE_DEVICE_DUMMY</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-GENERIC:CAPS" title="NM_DBUS_INTERFACE_DEVICE_GENERIC">NM_DBUS_INTERFACE_DEVICE_GENERIC</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
@@ -1242,6 +1418,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-MACSEC:CAPS" title="NM_DBUS_INTERFACE_DEVICE_MACSEC">NM_DBUS_INTERFACE_DEVICE_MACSEC</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-MACVLAN:CAPS" title="NM_DBUS_INTERFACE_DEVICE_MACVLAN">NM_DBUS_INTERFACE_DEVICE_MACVLAN</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
@@ -1251,6 +1431,26 @@
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-OLPC-MESH:CAPS" title="NM_DBUS_INTERFACE_DEVICE_OLPC_MESH">NM_DBUS_INTERFACE_DEVICE_OLPC_MESH</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-OVS-BRIDGE:CAPS" title="NM_DBUS_INTERFACE_DEVICE_OVS_BRIDGE">NM_DBUS_INTERFACE_DEVICE_OVS_BRIDGE</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-OVS-INTERFACE:CAPS" title="NM_DBUS_INTERFACE_DEVICE_OVS_INTERFACE">NM_DBUS_INTERFACE_DEVICE_OVS_INTERFACE</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-OVS-PORT:CAPS" title="NM_DBUS_INTERFACE_DEVICE_OVS_PORT">NM_DBUS_INTERFACE_DEVICE_OVS_PORT</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-PPP:CAPS" title="NM_DBUS_INTERFACE_DEVICE_PPP">NM_DBUS_INTERFACE_DEVICE_PPP</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-STATISTICS:CAPS" title="NM_DBUS_INTERFACE_DEVICE_STATISTICS">NM_DBUS_INTERFACE_DEVICE_STATISTICS</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1291,6 +1491,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DHCP6-CONFIG:CAPS" title="NM_DBUS_INTERFACE_DHCP6_CONFIG">NM_DBUS_INTERFACE_DHCP6_CONFIG</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DNS-MANAGER:CAPS" title="NM_DBUS_INTERFACE_DNS_MANAGER">NM_DBUS_INTERFACE_DNS_MANAGER</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1351,6 +1555,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-PATH-AGENT-MANAGER:CAPS" title="NM_DBUS_PATH_AGENT_MANAGER">NM_DBUS_PATH_AGENT_MANAGER</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-PATH-DNS-MANAGER:CAPS" title="NM_DBUS_PATH_DNS_MANAGER">NM_DBUS_PATH_DNS_MANAGER</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1462,6 +1670,14 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-10:CAPS" title="NM_DEPRECATED_IN_1_10">NM_DEPRECATED_IN_1_10</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-10-FOR:CAPS" title="NM_DEPRECATED_IN_1_10_FOR()">NM_DEPRECATED_IN_1_10_FOR</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-2:CAPS" title="NM_DEPRECATED_IN_1_2">NM_DEPRECATED_IN_1_2</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
 </dt>
 <dd></dd>
@@ -1475,6 +1691,22 @@
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-4-FOR:CAPS" title="NM_DEPRECATED_IN_1_4_FOR()">NM_DEPRECATED_IN_1_4_FOR</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-6:CAPS" title="NM_DEPRECATED_IN_1_6">NM_DEPRECATED_IN_1_6</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-6-FOR:CAPS" title="NM_DEPRECATED_IN_1_6_FOR()">NM_DEPRECATED_IN_1_6_FOR</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-8:CAPS" title="NM_DEPRECATED_IN_1_8">NM_DEPRECATED_IN_1_8</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-8-FOR:CAPS" title="NM_DEPRECATED_IN_1_8_FOR()">NM_DEPRECATED_IN_1_8_FOR</a>, macro in <a class="link" href="libnm-nm-vpn-dbus-interface.html" title="nm-vpn-dbus-interface">nm-vpn-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1654,6 +1886,14 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceDummy.html#NMDeviceDummy-struct" title="NMDeviceDummy">NMDeviceDummy</a>, struct in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceDummy.html#NMDeviceDummy--hw-address" title="The “hw-address” property">NMDeviceDummy:hw-address</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-errors.html#NMDeviceError" title="enum NMDeviceError">NMDeviceError</a>, enum in <a class="link" href="libnm-nm-errors.html" title="nm-errors">nm-errors</a>
 </dt>
 <dd></dd>
@@ -1754,6 +1994,66 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec-struct" title="NMDeviceMacsec">NMDeviceMacsec</a>, struct in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--cipher-suite" title="The “cipher-suite” property">NMDeviceMacsec:cipher-suite</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--encoding-sa" title="The “encoding-sa” property">NMDeviceMacsec:encoding-sa</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--encrypt" title="The “encrypt” property">NMDeviceMacsec:encrypt</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--es" title="The “es” property">NMDeviceMacsec:es</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--hw-address" title="The “hw-address” property">NMDeviceMacsec:hw-address</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--icv-length" title="The “icv-length” property">NMDeviceMacsec:icv-length</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--include-sci" title="The “include-sci” property">NMDeviceMacsec:include-sci</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--parent" title="The “parent” property">NMDeviceMacsec:parent</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--protect" title="The “protect” property">NMDeviceMacsec:protect</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--replay-protect" title="The “replay-protect” property">NMDeviceMacsec:replay-protect</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--scb" title="The “scb” property">NMDeviceMacsec:scb</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--sci" title="The “sci” property">NMDeviceMacsec:sci</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--validation" title="The “validation” property">NMDeviceMacsec:validation</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NMDeviceMacsec--window" title="The “window” property">NMDeviceMacsec:window</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceMacvlan.html#NMDeviceMacvlan-struct" title="NMDeviceMacvlan">NMDeviceMacvlan</a>, struct in nm-types
 </dt>
 <dd></dd>
@@ -1810,6 +2110,22 @@
 </dt>
 <dd></dd>
 <dt>
+NMDeviceOvsBridge, struct in nm-types
+</dt>
+<dd></dd>
+<dt>
+NMDeviceOvsInterface, struct in nm-types
+</dt>
+<dd></dd>
+<dt>
+NMDeviceOvsPort, struct in nm-types
+</dt>
+<dd></dd>
+<dt>
+NMDevicePpp, struct in nm-types
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NMDeviceState" title="enum NMDeviceState">NMDeviceState</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
@@ -1823,6 +2139,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMDeviceTeam.html#NMDeviceTeam--carrier" title="The “carrier” property">NMDeviceTeam:carrier</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceTeam.html#NMDeviceTeam--config" title="The “config” property">NMDeviceTeam:config</a>, object property in nm-types
 </dt>
 <dd></dd>
 <dt>
@@ -2206,6 +2526,14 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceDummy.html#nm-device-dummy-get-hw-address" title="nm_device_dummy_get_hw_address ()">nm_device_dummy_get_hw_address</a>, function in <a class="link" href="NMDeviceDummy.html" title="NMDeviceDummy">NMDeviceDummy</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceDummy.html#NM-DEVICE-DUMMY-HW-ADDRESS:CAPS" title="NM_DEVICE_DUMMY_HW_ADDRESS">NM_DEVICE_DUMMY_HW_ADDRESS</a>, macro in <a class="link" href="NMDeviceDummy.html" title="NMDeviceDummy">NMDeviceDummy</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-errors.html#NM-DEVICE-ERROR:CAPS" title="NM_DEVICE_ERROR">NM_DEVICE_ERROR</a>, macro in <a class="link" href="libnm-nm-errors.html" title="nm-errors">nm-errors</a>
 </dt>
 <dd></dd>
@@ -2542,6 +2870,118 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-CIPHER-SUITE:CAPS" title="NM_DEVICE_MACSEC_CIPHER_SUITE">NM_DEVICE_MACSEC_CIPHER_SUITE</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-ENCODING-SA:CAPS" title="NM_DEVICE_MACSEC_ENCODING_SA">NM_DEVICE_MACSEC_ENCODING_SA</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-ENCRYPT:CAPS" title="NM_DEVICE_MACSEC_ENCRYPT">NM_DEVICE_MACSEC_ENCRYPT</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-ES:CAPS" title="NM_DEVICE_MACSEC_ES">NM_DEVICE_MACSEC_ES</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-cipher-suite" title="nm_device_macsec_get_cipher_suite ()">nm_device_macsec_get_cipher_suite</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-encoding-sa" title="nm_device_macsec_get_encoding_sa ()">nm_device_macsec_get_encoding_sa</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-encrypt" title="nm_device_macsec_get_encrypt ()">nm_device_macsec_get_encrypt</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-es" title="nm_device_macsec_get_es ()">nm_device_macsec_get_es</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-hw-address" title="nm_device_macsec_get_hw_address ()">nm_device_macsec_get_hw_address</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-icv-length" title="nm_device_macsec_get_icv_length ()">nm_device_macsec_get_icv_length</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-include-sci" title="nm_device_macsec_get_include_sci ()">nm_device_macsec_get_include_sci</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-parent" title="nm_device_macsec_get_parent ()">nm_device_macsec_get_parent</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-protect" title="nm_device_macsec_get_protect ()">nm_device_macsec_get_protect</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-replay-protect" title="nm_device_macsec_get_replay_protect ()">nm_device_macsec_get_replay_protect</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-scb" title="nm_device_macsec_get_scb ()">nm_device_macsec_get_scb</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-sci" title="nm_device_macsec_get_sci ()">nm_device_macsec_get_sci</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-validation" title="nm_device_macsec_get_validation ()">nm_device_macsec_get_validation</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-window" title="nm_device_macsec_get_window ()">nm_device_macsec_get_window</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-HW-ADDRESS:CAPS" title="NM_DEVICE_MACSEC_HW_ADDRESS">NM_DEVICE_MACSEC_HW_ADDRESS</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-ICV-LENGTH:CAPS" title="NM_DEVICE_MACSEC_ICV_LENGTH">NM_DEVICE_MACSEC_ICV_LENGTH</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-INCLUDE-SCI:CAPS" title="NM_DEVICE_MACSEC_INCLUDE_SCI">NM_DEVICE_MACSEC_INCLUDE_SCI</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-PARENT:CAPS" title="NM_DEVICE_MACSEC_PARENT">NM_DEVICE_MACSEC_PARENT</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-PROTECT:CAPS" title="NM_DEVICE_MACSEC_PROTECT">NM_DEVICE_MACSEC_PROTECT</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-REPLAY-PROTECT:CAPS" title="NM_DEVICE_MACSEC_REPLAY_PROTECT">NM_DEVICE_MACSEC_REPLAY_PROTECT</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-SCB:CAPS" title="NM_DEVICE_MACSEC_SCB">NM_DEVICE_MACSEC_SCB</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-SCI:CAPS" title="NM_DEVICE_MACSEC_SCI">NM_DEVICE_MACSEC_SCI</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-VALIDATION:CAPS" title="NM_DEVICE_MACSEC_VALIDATION">NM_DEVICE_MACSEC_VALIDATION</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-WINDOW:CAPS" title="NM_DEVICE_MACSEC_WINDOW">NM_DEVICE_MACSEC_WINDOW</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceMacvlan.html#nm-device-macvlan-get-hw-address" title="nm_device_macvlan_get_hw_address ()">nm_device_macvlan_get_hw_address</a>, function in <a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan">NMDeviceMacvlan</a>
 </dt>
 <dd></dd>
@@ -2682,7 +3122,15 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceTeam.html#NM-DEVICE-TEAM-CONFIG:CAPS" title="NM_DEVICE_TEAM_CONFIG">NM_DEVICE_TEAM_CONFIG</a>, macro in <a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam">NMDeviceTeam</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceTeam.html#nm-device-team-get-carrier" title="nm_device_team_get_carrier ()">nm_device_team_get_carrier</a>, function in <a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam">NMDeviceTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceTeam.html#nm-device-team-get-config" title="nm_device_team_get_config ()">nm_device_team_get_config</a>, function in <a class="link" href="NMDeviceTeam.html" title="NMDeviceTeam">NMDeviceTeam</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3121,6 +3569,30 @@
 <a class="link" href="NMDhcpConfig.html#NM-DHCP-CONFIG-OPTIONS:CAPS" title="NM_DHCP_CONFIG_OPTIONS">NM_DHCP_CONFIG_OPTIONS</a>, macro in <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig">NMDhcpConfig</a>
 </dt>
 <dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-dns-entry-get-domains" title="nm_dns_entry_get_domains ()">nm_dns_entry_get_domains</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-dns-entry-get-interface" title="nm_dns_entry_get_interface ()">nm_dns_entry_get_interface</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-dns-entry-get-nameservers" title="nm_dns_entry_get_nameservers ()">nm_dns_entry_get_nameservers</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-dns-entry-get-priority" title="nm_dns_entry_get_priority ()">nm_dns_entry_get_priority</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-dns-entry-get-vpn" title="nm_dns_entry_get_vpn ()">nm_dns_entry_get_vpn</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-dns-entry-unref" title="nm_dns_entry_unref ()">nm_dns_entry_unref</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
 <a name="idxI"></a><h3 class="title">I</h3>
 <dt>
 <a class="link" href="NMIPConfig.html#NMIPConfig-struct" title="NMIPConfig">NMIPConfig</a>, struct in nm-types
@@ -3291,11 +3763,79 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-CWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_CWND">NM_IP_ROUTE_ATTRIBUTE_CWND</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-FROM:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_FROM">NM_IP_ROUTE_ATTRIBUTE_FROM</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-INITCWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_INITCWND">NM_IP_ROUTE_ATTRIBUTE_INITCWND</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-INITRWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_INITRWND">NM_IP_ROUTE_ATTRIBUTE_INITRWND</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-CWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND">NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-INITCWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND">NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-INITRWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND">NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-MTU:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU">NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-WINDOW:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW">NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-MTU:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_MTU">NM_IP_ROUTE_ATTRIBUTE_MTU</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-ONLINK:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_ONLINK">NM_IP_ROUTE_ATTRIBUTE_ONLINK</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-SRC:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_SRC">NM_IP_ROUTE_ATTRIBUTE_SRC</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-TABLE:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_TABLE">NM_IP_ROUTE_ATTRIBUTE_TABLE</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-TOS:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_TOS">NM_IP_ROUTE_ATTRIBUTE_TOS</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#nm-ip-route-attribute-validate" title="nm_ip_route_attribute_validate ()">nm_ip_route_attribute_validate</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-WINDOW:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_WINDOW">NM_IP_ROUTE_ATTRIBUTE_WINDOW</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-dup" title="nm_ip_route_dup ()">nm_ip_route_dup</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-equal" title="nm_ip_route_equal ()">nm_ip_route_equal</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#nm-ip-route-equal-full" title="nm_ip_route_equal_full ()">nm_ip_route_equal_full</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3332,6 +3872,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-get-prefix" title="nm_ip_route_get_prefix ()">nm_ip_route_get_prefix</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#nm-ip-route-get-variant-attribute-spec" title="nm_ip_route_get_variant_attribute_spec ()">nm_ip_route_get_variant_attribute_spec</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3376,6 +3920,107 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-unref" title="nm_ip_route_unref ()">nm_ip_route_unref</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<a name="idxJ"></a><h3 class="title">J</h3>
+<dt>
+nm_jansson_load, function in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_array, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_array_append_new, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_array_get, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_array_size, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_delete, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_dumps, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_false, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_integer, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_integer_value, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_loads, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_del, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_get, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_iter, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_iter_at, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_iter_key, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_iter_next, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_iter_value, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_key_to_iter, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_set_new, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_object_size, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_string, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_string_value, macro in nm-json
+</dt>
+<dd></dd>
+<dt>
+json_true, macro in nm-json
 </dt>
 <dd></dd>
 <a name="idxL"></a><h3 class="title">L</h3>
@@ -3502,7 +4147,11 @@
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMObject.html#NMObject--nm-running-internal" title="The “nm-running-internal” property">NMObject:nm-running-internal</a>, object property in nm-types
+<a class="link" href="NMObject.html#NMObject--dbus-object" title="The “dbus-object” property">NMObject:dbus-object</a>, object property in nm-types
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMObject.html#NMObject--dbus-object-manager" title="The “dbus-object-manager” property">NMObject:dbus-object-manager</a>, object property in nm-types
 </dt>
 <dd></dd>
 <dt>
@@ -3511,6 +4160,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMObject.html#NM-OBJECT-DBUS-CONNECTION:CAPS" title="NM_OBJECT_DBUS_CONNECTION">NM_OBJECT_DBUS_CONNECTION</a>, macro in <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMObject.html#NM-OBJECT-DBUS-OBJECT-MANAGER:CAPS" title="NM_OBJECT_DBUS_OBJECT_MANAGER">NM_OBJECT_DBUS_OBJECT_MANAGER</a>, macro in <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3603,7 +4256,19 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMRemoteConnection.html#nm-remote-connection-update2" title="nm_remote_connection_update2 ()">nm_remote_connection_update2</a>, function in <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection">NMRemoteConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMRemoteConnection.html#nm-remote-connection-update2-finish" title="nm_remote_connection_update2_finish ()">nm_remote_connection_update2_finish</a>, function in <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection">NMRemoteConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMRemoteConnection.html#NM-REMOTE-CONNECTION-VISIBLE:CAPS" title="NM_REMOTE_CONNECTION_VISIBLE">NM_REMOTE_CONNECTION_VISIBLE</a>, macro in <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection">NMRemoteConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NMRollbackResult" title="enum NMRollbackResult">NMRollbackResult</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <a name="idxS"></a><h3 class="title">S</h3>
@@ -3732,7 +4397,19 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--auth-timeout" title="The “auth-timeout” property">NMSetting8021x:auth-timeout</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--ca-cert" title="The “ca-cert” property">NMSetting8021x:ca-cert</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--ca-cert-password" title="The “ca-cert-password” property">NMSetting8021x:ca-cert-password</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--ca-cert-password-flags" title="The “ca-cert-password-flags” property">NMSetting8021x:ca-cert-password-flags</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3741,6 +4418,14 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--client-cert" title="The “client-cert” property">NMSetting8021x:client-cert</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--client-cert-password" title="The “client-cert-password” property">NMSetting8021x:client-cert-password</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--client-cert-password-flags" title="The “client-cert-password-flags” property">NMSetting8021x:client-cert-password-flags</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3776,6 +4461,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--phase1-auth-flags" title="The “phase1-auth-flags” property">NMSetting8021x:phase1-auth-flags</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase1-fast-provisioning" title="The “phase1-fast-provisioning” property">NMSetting8021x:phase1-fast-provisioning</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
@@ -3804,11 +4493,27 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-ca-cert-password" title="The “phase2-ca-cert-password” property">NMSetting8021x:phase2-ca-cert-password</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-ca-cert-password-flags" title="The “phase2-ca-cert-password-flags” property">NMSetting8021x:phase2-ca-cert-password-flags</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-ca-path" title="The “phase2-ca-path” property">NMSetting8021x:phase2-ca-path</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-client-cert" title="The “phase2-client-cert” property">NMSetting8021x:phase2-client-cert</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-client-cert-password" title="The “phase2-client-cert-password” property">NMSetting8021x:phase2-client-cert-password</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-client-cert-password-flags" title="The “phase2-client-cert-password-flags” property">NMSetting8021x:phase2-client-cert-password-flags</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3857,6 +4562,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--system-ca-certs" title="The “system-ca-certs” property">NMSetting8021x:system-ca-certs</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021xAuthFlags" title="enum NMSetting8021xAuthFlags">NMSetting8021xAuthFlags</a>, enum in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3936,6 +4645,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingBridge.html#NMSettingBridge--group-forward-mask" title="The “group-forward-mask” property">NMSettingBridge:group-forward-mask</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingBridge.html#NMSettingBridge--hello-time" title="The “hello-time” property">NMSettingBridge:hello-time</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
 </dt>
 <dd></dd>
@@ -3980,6 +4693,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingCdma.html#NMSettingCdma--mtu" title="The “mtu” property">NMSettingCdma:mtu</a>, object property in <a class="link" href="NMSettingCdma.html" title="NMSettingCdma">NMSettingCdma</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingCdma.html#NMSettingCdma--number" title="The “number” property">NMSettingCdma:number</a>, object property in <a class="link" href="NMSettingCdma.html" title="NMSettingCdma">NMSettingCdma</a>
 </dt>
 <dd></dd>
@@ -4008,11 +4725,19 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingConnection.html#NMSettingConnection--auth-retries" title="The “auth-retries” property">NMSettingConnection:auth-retries</a>, object property in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingConnection.html#NMSettingConnection--autoconnect" title="The “autoconnect” property">NMSettingConnection:autoconnect</a>, object property in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingConnection.html#NMSettingConnection--autoconnect-priority" title="The “autoconnect-priority” property">NMSettingConnection:autoconnect-priority</a>, object property in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingConnection.html#NMSettingConnection--autoconnect-retries" title="The “autoconnect-retries” property">NMSettingConnection:autoconnect-retries</a>, object property in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4057,6 +4782,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingConnection.html#NMSettingConnection--slave-type" title="The “slave-type” property">NMSettingConnection:slave-type</a>, object property in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingConnection.html#NMSettingConnection--stable-id" title="The “stable-id” property">NMSettingConnection:stable-id</a>, object property in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4156,6 +4885,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingDummy.html#NMSettingDummy-struct" title="NMSettingDummy">NMSettingDummy</a>, struct in <a class="link" href="NMSettingDummy.html" title="NMSettingDummy">NMSettingDummy</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingGeneric.html#NMSettingGeneric-struct" title="NMSettingGeneric">NMSettingGeneric</a>, struct in <a class="link" href="NMSettingGeneric.html" title="NMSettingGeneric">NMSettingGeneric</a>
 </dt>
 <dd></dd>
@@ -4173,6 +4906,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingGsm.html#NMSettingGsm--home-only" title="The “home-only” property">NMSettingGsm:home-only</a>, object property in <a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingGsm.html#NMSettingGsm--mtu" title="The “mtu” property">NMSettingGsm:mtu</a>, object property in <a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4260,6 +4997,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--token" title="The “token” property">NMSettingIP6Config:token</a>, object property in <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigAddrGenMode" title="enum NMSettingIP6ConfigAddrGenMode">NMSettingIP6ConfigAddrGenMode</a>, enum in <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
 </dt>
 <dd></dd>
@@ -4300,6 +5041,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns-priority" title="The “dns-priority” property">NMSettingIPConfig:dns-priority</a>, object property in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns-search" title="The “dns-search” property">NMSettingIPConfig:dns-search</a>, object property in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
@@ -4329,6 +5074,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--route-metric" title="The “route-metric” property">NMSettingIPConfig:route-metric</a>, object property in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--route-table" title="The “route-table” property">NMSettingIPConfig:route-table</a>, object property in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4392,6 +5141,50 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec-struct" title="NMSettingMacsec">NMSettingMacsec</a>, struct in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec--encrypt" title="The “encrypt” property">NMSettingMacsec:encrypt</a>, object property in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mka-cak" title="The “mka-cak” property">NMSettingMacsec:mka-cak</a>, object property in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mka-cak-flags" title="The “mka-cak-flags” property">NMSettingMacsec:mka-cak-flags</a>, object property in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mka-ckn" title="The “mka-ckn” property">NMSettingMacsec:mka-ckn</a>, object property in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mode" title="The “mode” property">NMSettingMacsec:mode</a>, object property in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec--parent" title="The “parent” property">NMSettingMacsec:parent</a>, object property in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec--port" title="The “port” property">NMSettingMacsec:port</a>, object property in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsec--validation" title="The “validation” property">NMSettingMacsec:validation</a>, object property in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsecMode" title="enum NMSettingMacsecMode">NMSettingMacsecMode</a>, enum in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NMSettingMacsecValidation" title="enum NMSettingMacsecValidation">NMSettingMacsecValidation</a>, enum in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingMacvlan.html#NMSettingMacvlan-struct" title="NMSettingMacvlan">NMSettingMacvlan</a>, struct in <a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan">NMSettingMacvlan</a>
 </dt>
 <dd></dd>
@@ -4429,6 +5222,70 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingOlpcMesh.html#NMSettingOlpcMesh--ssid" title="The “ssid” property">NMSettingOlpcMesh:ssid</a>, object property in <a class="link" href="NMSettingOlpcMesh.html" title="NMSettingOlpcMesh">NMSettingOlpcMesh</a>
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsBridge, struct in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsBridge:fail-mode, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsBridge:mcast-snooping-enable, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsBridge:rstp-enable, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsBridge:stp-enable, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsInterface, struct in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsInterface:type, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPatch, struct in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPatch:peer, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPort, struct in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPort:bond-downdelay, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPort:bond-mode, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPort:bond-updelay, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPort:lacp, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPort:tag, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsPort:vlan-mode, object property in nm-core-types
 </dt>
 <dd></dd>
 <dt>
@@ -4512,6 +5369,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingPppoe.html#NMSettingPppoe--parent" title="The “parent” property">NMSettingPppoe:parent</a>, object property in <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe">NMSettingPppoe</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingPppoe.html#NMSettingPppoe--password" title="The “password” property">NMSettingPppoe:password</a>, object property in <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe">NMSettingPppoe</a>
 </dt>
 <dd></dd>
@@ -4525,6 +5386,30 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingPppoe.html#NMSettingPppoe--username" title="The “username” property">NMSettingPppoe:username</a>, object property in <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe">NMSettingPppoe</a>
+</dt>
+<dd></dd>
+<dt>
+NMSettingProxy, struct in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NMSettingProxy:browser-only, object property in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NMSettingProxy:method, object property in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NMSettingProxy:pac-script, object property in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NMSettingProxy:pac-url, object property in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NMSettingProxyMethod, enum in NMSettingProxy
 </dt>
 <dd></dd>
 <dt>
@@ -4564,11 +5449,27 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NMSettingsUpdate2Flags" title="enum NMSettingsUpdate2Flags">NMSettingsUpdate2Flags</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-errors.html#NM-SETTINGS-ERROR:CAPS" title="NM_SETTINGS_ERROR">NM_SETTINGS_ERROR</a>, macro in <a class="link" href="libnm-nm-errors.html" title="nm-errors">nm-errors</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-errors.html#nm-settings-error-quark" title="nm_settings_error_quark ()">nm_settings_error_quark</a>, function in <a class="link" href="libnm-nm-errors.html" title="nm-errors">nm-errors</a>
+</dt>
+<dd></dd>
+<dt>
+NMSettingTCConfig, struct in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingTCConfig:qdiscs, object property in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingTCConfig:tfilters, object property in nm-core-types
 </dt>
 <dd></dd>
 <dt>
@@ -4580,11 +5481,95 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--link-watchers" title="The “link-watchers” property">NMSettingTeam:link-watchers</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--mcast-rejoin-count" title="The “mcast-rejoin-count” property">NMSettingTeam:mcast-rejoin-count</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--mcast-rejoin-interval" title="The “mcast-rejoin-interval” property">NMSettingTeam:mcast-rejoin-interval</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--notify-peers-count" title="The “notify-peers-count” property">NMSettingTeam:notify-peers-count</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--notify-peers-interval" title="The “notify-peers-interval” property">NMSettingTeam:notify-peers-interval</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner" title="The “runner” property">NMSettingTeam:runner</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-active" title="The “runner-active” property">NMSettingTeam:runner-active</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-agg-select-policy" title="The “runner-agg-select-policy” property">NMSettingTeam:runner-agg-select-policy</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-fast-rate" title="The “runner-fast-rate” property">NMSettingTeam:runner-fast-rate</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-hwaddr-policy" title="The “runner-hwaddr-policy” property">NMSettingTeam:runner-hwaddr-policy</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-min-ports" title="The “runner-min-ports” property">NMSettingTeam:runner-min-ports</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-sys-prio" title="The “runner-sys-prio” property">NMSettingTeam:runner-sys-prio</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-tx-balancer" title="The “runner-tx-balancer” property">NMSettingTeam:runner-tx-balancer</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-tx-balancer-interval" title="The “runner-tx-balancer-interval” property">NMSettingTeam:runner-tx-balancer-interval</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMSettingTeam--runner-tx-hash" title="The “runner-tx-hash” property">NMSettingTeam:runner-tx-hash</a>, object property in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort-struct" title="NMSettingTeamPort">NMSettingTeamPort</a>, struct in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--config" title="The “config” property">NMSettingTeamPort:config</a>, object property in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--lacp-key" title="The “lacp-key” property">NMSettingTeamPort:lacp-key</a>, object property in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--lacp-prio" title="The “lacp-prio” property">NMSettingTeamPort:lacp-prio</a>, object property in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--link-watchers" title="The “link-watchers” property">NMSettingTeamPort:link-watchers</a>, object property in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--prio" title="The “prio” property">NMSettingTeamPort:prio</a>, object property in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--queue-id" title="The “queue-id” property">NMSettingTeamPort:queue-id</a>, object property in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--sticky" title="The “sticky” property">NMSettingTeamPort:sticky</a>, object property in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4617,6 +5602,14 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingTun.html#NMSettingTunMode" title="enum NMSettingTunMode">NMSettingTunMode</a>, enum in <a class="link" href="NMSettingTun.html" title="NMSettingTun">NMSettingTun</a>
+</dt>
+<dd></dd>
+<dt>
+NMSettingUser, struct in nm-core-types
+</dt>
+<dd></dd>
+<dt>
+NMSettingUser:data, object property in nm-core-types
 </dt>
 <dd></dd>
 <dt>
@@ -4772,6 +5765,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWired.html#NMSettingWired--generate-mac-address-mask" title="The “generate-mac-address-mask” property">NMSettingWired:generate-mac-address-mask</a>, object property in <a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" title="The “mac-address” property">NMSettingWired:mac-address</a>, object property in <a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
 </dt>
 <dd></dd>
@@ -4833,6 +5830,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingWireless.html#NMSettingWireless--cloned-mac-address" title="The “cloned-mac-address” property">NMSettingWireless:cloned-mac-address</a>, object property in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWireless.html#NMSettingWireless--generate-mac-address-mask" title="The “generate-mac-address-mask” property">NMSettingWireless:generate-mac-address-mask</a>, object property in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4916,6 +5917,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--pmf" title="The “pmf” property">NMSettingWirelessSecurity:pmf</a>, object property in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--proto" title="The “proto” property">NMSettingWirelessSecurity:proto</a>, object property in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
 </dt>
 <dd></dd>
@@ -4956,6 +5961,18 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--wps-method" title="The “wps-method” property">NMSettingWirelessSecurity:wps-method</a>, object property in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurityPmf" title="enum NMSettingWirelessSecurityPmf">NMSettingWirelessSecurityPmf</a>, enum in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurityWpsMethod" title="enum NMSettingWirelessSecurityWpsMethod">NMSettingWirelessSecurityWpsMethod</a>, enum in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-add-altsubject-match" title="nm_setting_802_1x_add_altsubject_match ()">nm_setting_802_1x_add_altsubject_match</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
@@ -4976,7 +5993,19 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-AUTH-TIMEOUT:CAPS" title="NM_SETTING_802_1X_AUTH_TIMEOUT">NM_SETTING_802_1X_AUTH_TIMEOUT</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-CA-CERT:CAPS" title="NM_SETTING_802_1X_CA_CERT">NM_SETTING_802_1X_CA_CERT</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-CA-CERT-PASSWORD:CAPS" title="NM_SETTING_802_1X_CA_CERT_PASSWORD">NM_SETTING_802_1X_CA_CERT_PASSWORD</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-CA-CERT-PASSWORD-FLAGS:CAPS" title="NM_SETTING_802_1X_CA_CERT_PASSWORD_FLAGS">NM_SETTING_802_1X_CA_CERT_PASSWORD_FLAGS</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4985,6 +6014,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-CERT-SCHEME-PREFIX-PATH:CAPS" title="NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PATH">NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PATH</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-CERT-SCHEME-PREFIX-PKCS11:CAPS" title="NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PKCS11">NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PKCS11</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5008,6 +6041,14 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-CLIENT-CERT-PASSWORD:CAPS" title="NM_SETTING_802_1X_CLIENT_CERT_PASSWORD">NM_SETTING_802_1X_CLIENT_CERT_PASSWORD</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-CLIENT-CERT-PASSWORD-FLAGS:CAPS" title="NM_SETTING_802_1X_CLIENT_CERT_PASSWORD_FLAGS">NM_SETTING_802_1X_CLIENT_CERT_PASSWORD_FLAGS</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-DOMAIN-SUFFIX-MATCH:CAPS" title="NM_SETTING_802_1X_DOMAIN_SUFFIX_MATCH">NM_SETTING_802_1X_DOMAIN_SUFFIX_MATCH</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
@@ -5024,7 +6065,19 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-auth-timeout" title="nm_setting_802_1x_get_auth_timeout ()">nm_setting_802_1x_get_auth_timeout</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-ca-cert-blob" title="nm_setting_802_1x_get_ca_cert_blob ()">nm_setting_802_1x_get_ca_cert_blob</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-ca-cert-password" title="nm_setting_802_1x_get_ca_cert_password ()">nm_setting_802_1x_get_ca_cert_password</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-ca-cert-password-flags" title="nm_setting_802_1x_get_ca_cert_password_flags ()">nm_setting_802_1x_get_ca_cert_password_flags</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5036,6 +6089,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-ca-cert-uri" title="nm_setting_802_1x_get_ca_cert_uri ()">nm_setting_802_1x_get_ca_cert_uri</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-ca-path" title="nm_setting_802_1x_get_ca_path ()">nm_setting_802_1x_get_ca_path</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
@@ -5044,11 +6101,23 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-client-cert-password" title="nm_setting_802_1x_get_client_cert_password ()">nm_setting_802_1x_get_client_cert_password</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-client-cert-password-flags" title="nm_setting_802_1x_get_client_cert_password_flags ()">nm_setting_802_1x_get_client_cert_password_flags</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-client-cert-path" title="nm_setting_802_1x_get_client_cert_path ()">nm_setting_802_1x_get_client_cert_path</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-client-cert-scheme" title="nm_setting_802_1x_get_client_cert_scheme ()">nm_setting_802_1x_get_client_cert_scheme</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-client-cert-uri" title="nm_setting_802_1x_get_client_cert_uri ()">nm_setting_802_1x_get_client_cert_uri</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5096,6 +6165,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase1-auth-flags" title="nm_setting_802_1x_get_phase1_auth_flags ()">nm_setting_802_1x_get_phase1_auth_flags</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase1-fast-provisioning" title="nm_setting_802_1x_get_phase1_fast_provisioning ()">nm_setting_802_1x_get_phase1_fast_provisioning</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
@@ -5124,11 +6197,23 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-ca-cert-password" title="nm_setting_802_1x_get_phase2_ca_cert_password ()">nm_setting_802_1x_get_phase2_ca_cert_password</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-ca-cert-password-flags" title="nm_setting_802_1x_get_phase2_ca_cert_password_flags ()">nm_setting_802_1x_get_phase2_ca_cert_password_flags</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-ca-cert-path" title="nm_setting_802_1x_get_phase2_ca_cert_path ()">nm_setting_802_1x_get_phase2_ca_cert_path</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-ca-cert-scheme" title="nm_setting_802_1x_get_phase2_ca_cert_scheme ()">nm_setting_802_1x_get_phase2_ca_cert_scheme</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-ca-cert-uri" title="nm_setting_802_1x_get_phase2_ca_cert_uri ()">nm_setting_802_1x_get_phase2_ca_cert_uri</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5140,11 +6225,23 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-client-cert-password" title="nm_setting_802_1x_get_phase2_client_cert_password ()">nm_setting_802_1x_get_phase2_client_cert_password</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-client-cert-password-flags" title="nm_setting_802_1x_get_phase2_client_cert_password_flags ()">nm_setting_802_1x_get_phase2_client_cert_password_flags</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-client-cert-path" title="nm_setting_802_1x_get_phase2_client_cert_path ()">nm_setting_802_1x_get_phase2_client_cert_path</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-client-cert-scheme" title="nm_setting_802_1x_get_phase2_client_cert_scheme ()">nm_setting_802_1x_get_phase2_client_cert_scheme</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-client-cert-uri" title="nm_setting_802_1x_get_phase2_client_cert_uri ()">nm_setting_802_1x_get_phase2_client_cert_uri</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5173,6 +6270,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-private-key-scheme" title="nm_setting_802_1x_get_phase2_private_key_scheme ()">nm_setting_802_1x_get_phase2_private_key_scheme</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-private-key-uri" title="nm_setting_802_1x_get_phase2_private_key_uri ()">nm_setting_802_1x_get_phase2_private_key_uri</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5212,6 +6313,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-private-key-uri" title="nm_setting_802_1x_get_private_key_uri ()">nm_setting_802_1x_get_private_key_uri</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-subject-match" title="nm_setting_802_1x_get_subject_match ()">nm_setting_802_1x_get_subject_match</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
@@ -5248,6 +6353,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE1-AUTH-FLAGS:CAPS" title="NM_SETTING_802_1X_PHASE1_AUTH_FLAGS">NM_SETTING_802_1X_PHASE1_AUTH_FLAGS</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE1-FAST-PROVISIONING:CAPS" title="NM_SETTING_802_1X_PHASE1_FAST_PROVISIONING">NM_SETTING_802_1X_PHASE1_FAST_PROVISIONING</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
@@ -5276,11 +6385,27 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-CA-CERT-PASSWORD:CAPS" title="NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD">NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-CA-CERT-PASSWORD-FLAGS:CAPS" title="NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD_FLAGS">NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD_FLAGS</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-CA-PATH:CAPS" title="NM_SETTING_802_1X_PHASE2_CA_PATH">NM_SETTING_802_1X_PHASE2_CA_PATH</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-CLIENT-CERT:CAPS" title="NM_SETTING_802_1X_PHASE2_CLIENT_CERT">NM_SETTING_802_1X_PHASE2_CLIENT_CERT</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-CLIENT-CERT-PASSWORD:CAPS" title="NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD">NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-CLIENT-CERT-PASSWORD-FLAGS:CAPS" title="NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD_FLAGS">NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD_FLAGS</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5496,6 +6621,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingBluetooth.html#NM-SETTING-BLUETOOTH-TYPE-NAP:CAPS" title="NM_SETTING_BLUETOOTH_TYPE_NAP">NM_SETTING_BLUETOOTH_TYPE_NAP</a>, macro in <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth">NMSettingBluetooth</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingBluetooth.html#NM-SETTING-BLUETOOTH-TYPE-PANU:CAPS" title="NM_SETTING_BLUETOOTH_TYPE_PANU">NM_SETTING_BLUETOOTH_TYPE_PANU</a>, macro in <a class="link" href="NMSettingBluetooth.html" title="NMSettingBluetooth">NMSettingBluetooth</a>
 </dt>
 <dd></dd>
@@ -5668,6 +6797,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-group-forward-mask" title="nm_setting_bridge_get_group_forward_mask ()">nm_setting_bridge_get_group_forward_mask</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-hello-time" title="nm_setting_bridge_get_hello_time ()">nm_setting_bridge_get_hello_time</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
 </dt>
 <dd></dd>
@@ -5689,6 +6822,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-stp" title="nm_setting_bridge_get_stp ()">nm_setting_bridge_get_stp</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-GROUP-FORWARD-MASK:CAPS" title="NM_SETTING_BRIDGE_GROUP_FORWARD_MASK">NM_SETTING_BRIDGE_GROUP_FORWARD_MASK</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5756,6 +6893,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingCdma.html#nm-setting-cdma-get-mtu" title="nm_setting_cdma_get_mtu ()">nm_setting_cdma_get_mtu</a>, function in <a class="link" href="NMSettingCdma.html" title="NMSettingCdma">NMSettingCdma</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingCdma.html#nm-setting-cdma-get-number" title="nm_setting_cdma_get_number ()">nm_setting_cdma_get_number</a>, function in <a class="link" href="NMSettingCdma.html" title="NMSettingCdma">NMSettingCdma</a>
 </dt>
 <dd></dd>
@@ -5769,6 +6910,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingCdma.html#nm-setting-cdma-get-username" title="nm_setting_cdma_get_username ()">nm_setting_cdma_get_username</a>, function in <a class="link" href="NMSettingCdma.html" title="NMSettingCdma">NMSettingCdma</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingCdma.html#NM-SETTING-CDMA-MTU:CAPS" title="NM_SETTING_CDMA_MTU">NM_SETTING_CDMA_MTU</a>, macro in <a class="link" href="NMSettingCdma.html" title="NMSettingCdma">NMSettingCdma</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5808,6 +6953,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-AUTH-RETRIES:CAPS" title="NM_SETTING_CONNECTION_AUTH_RETRIES">NM_SETTING_CONNECTION_AUTH_RETRIES</a>, macro in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-AUTOCONNECT:CAPS" title="NM_SETTING_CONNECTION_AUTOCONNECT">NM_SETTING_CONNECTION_AUTOCONNECT</a>, macro in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
@@ -5828,6 +6977,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-AUTOCONNECT-RETRIES:CAPS" title="NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES">NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES</a>, macro in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-AUTOCONNECT-SLAVES:CAPS" title="NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES">NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES</a>, macro in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
@@ -5836,11 +6989,19 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-auth-retries" title="nm_setting_connection_get_auth_retries ()">nm_setting_connection_get_auth_retries</a>, function in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-autoconnect" title="nm_setting_connection_get_autoconnect ()">nm_setting_connection_get_autoconnect</a>, function in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-autoconnect-priority" title="nm_setting_connection_get_autoconnect_priority ()">nm_setting_connection_get_autoconnect_priority</a>, function in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-autoconnect-retries" title="nm_setting_connection_get_autoconnect_retries ()">nm_setting_connection_get_autoconnect_retries</a>, function in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5897,6 +7058,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-slave-type" title="nm_setting_connection_get_slave_type ()">nm_setting_connection_get_slave_type</a>, function in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-stable-id" title="nm_setting_connection_get_stable_id ()">nm_setting_connection_get_stable_id</a>, function in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5977,6 +7142,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-SLAVE-TYPE:CAPS" title="NM_SETTING_CONNECTION_SLAVE_TYPE">NM_SETTING_CONNECTION_SLAVE_TYPE</a>, macro in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-STABLE-ID:CAPS" title="NM_SETTING_CONNECTION_STABLE_ID">NM_SETTING_CONNECTION_STABLE_ID</a>, macro in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6220,6 +7389,14 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingDummy.html#nm-setting-dummy-new" title="nm_setting_dummy_new ()">nm_setting_dummy_new</a>, function in <a class="link" href="NMSettingDummy.html" title="NMSettingDummy">NMSettingDummy</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingDummy.html#NM-SETTING-DUMMY-SETTING-NAME:CAPS" title="NM_SETTING_DUMMY_SETTING_NAME">NM_SETTING_DUMMY_SETTING_NAME</a>, macro in <a class="link" href="NMSettingDummy.html" title="NMSettingDummy">NMSettingDummy</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting.html#nm-setting-duplicate" title="nm_setting_duplicate ()">nm_setting_duplicate</a>, function in <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
 </dt>
 <dd></dd>
@@ -6268,6 +7445,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingGsm.html#nm-setting-gsm-get-mtu" title="nm_setting_gsm_get_mtu ()">nm_setting_gsm_get_mtu</a>, function in <a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingGsm.html#nm-setting-gsm-get-network-id" title="nm_setting_gsm_get_network_id ()">nm_setting_gsm_get_network_id</a>, function in <a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
 </dt>
 <dd></dd>
@@ -6305,6 +7486,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingGsm.html#NM-SETTING-GSM-HOME-ONLY:CAPS" title="NM_SETTING_GSM_HOME_ONLY">NM_SETTING_GSM_HOME_ONLY</a>, macro in <a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingGsm.html#NM-SETTING-GSM-MTU:CAPS" title="NM_SETTING_GSM_MTU">NM_SETTING_GSM_MTU</a>, macro in <a class="link" href="NMSettingGsm.html" title="NMSettingGsm">NMSettingGsm</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6460,6 +7645,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingIP6Config.html#nm-setting-ip6-config-get-token" title="nm_setting_ip6_config_get_token ()">nm_setting_ip6_config_get_token</a>, function in <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-IP6-PRIVACY:CAPS" title="NM_SETTING_IP6_CONFIG_IP6_PRIVACY">NM_SETTING_IP6_CONFIG_IP6_PRIVACY</a>, macro in <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
 </dt>
 <dd></dd>
@@ -6493,6 +7682,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-SETTING-NAME:CAPS" title="NM_SETTING_IP6_CONFIG_SETTING_NAME">NM_SETTING_IP6_CONFIG_SETTING_NAME</a>, macro in <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-TOKEN:CAPS" title="NM_SETTING_IP6_CONFIG_TOKEN">NM_SETTING_IP6_CONFIG_TOKEN</a>, macro in <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6568,6 +7761,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DNS-PRIORITY:CAPS" title="NM_SETTING_IP_CONFIG_DNS_PRIORITY">NM_SETTING_IP_CONFIG_DNS_PRIORITY</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DNS-SEARCH:CAPS" title="NM_SETTING_IP_CONFIG_DNS_SEARCH">NM_SETTING_IP_CONFIG_DNS_SEARCH</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
@@ -6601,6 +7798,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dns-option" title="nm_setting_ip_config_get_dns_option ()">nm_setting_ip_config_get_dns_option</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dns-priority" title="nm_setting_ip_config_get_dns_priority ()">nm_setting_ip_config_get_dns_priority</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6657,6 +7858,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-route-metric" title="nm_setting_ip_config_get_route_metric ()">nm_setting_ip_config_get_route_metric</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-route-table" title="nm_setting_ip_config_get_route_table ()">nm_setting_ip_config_get_route_table</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6733,6 +7938,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-ROUTE-METRIC:CAPS" title="NM_SETTING_IP_CONFIG_ROUTE_METRIC">NM_SETTING_IP_CONFIG_ROUTE_METRIC</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-ROUTE-TABLE:CAPS" title="NM_SETTING_IP_CONFIG_ROUTE_TABLE">NM_SETTING_IP_CONFIG_ROUTE_TABLE</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6844,6 +8053,86 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-ENCRYPT:CAPS" title="NM_SETTING_MACSEC_ENCRYPT">NM_SETTING_MACSEC_ENCRYPT</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-get-encrypt" title="nm_setting_macsec_get_encrypt ()">nm_setting_macsec_get_encrypt</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-get-mka-cak" title="nm_setting_macsec_get_mka_cak ()">nm_setting_macsec_get_mka_cak</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-get-mka-cak-flags" title="nm_setting_macsec_get_mka_cak_flags ()">nm_setting_macsec_get_mka_cak_flags</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-get-mka-ckn" title="nm_setting_macsec_get_mka_ckn ()">nm_setting_macsec_get_mka_ckn</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-get-mode" title="nm_setting_macsec_get_mode ()">nm_setting_macsec_get_mode</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-get-parent" title="nm_setting_macsec_get_parent ()">nm_setting_macsec_get_parent</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-get-port" title="nm_setting_macsec_get_port ()">nm_setting_macsec_get_port</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-get-validation" title="nm_setting_macsec_get_validation ()">nm_setting_macsec_get_validation</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-MKA-CAK:CAPS" title="NM_SETTING_MACSEC_MKA_CAK">NM_SETTING_MACSEC_MKA_CAK</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-MKA-CAK-FLAGS:CAPS" title="NM_SETTING_MACSEC_MKA_CAK_FLAGS">NM_SETTING_MACSEC_MKA_CAK_FLAGS</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-MKA-CAK-LENGTH:CAPS" title="NM_SETTING_MACSEC_MKA_CAK_LENGTH">NM_SETTING_MACSEC_MKA_CAK_LENGTH</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-MKA-CKN:CAPS" title="NM_SETTING_MACSEC_MKA_CKN">NM_SETTING_MACSEC_MKA_CKN</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-MKA-CKN-LENGTH:CAPS" title="NM_SETTING_MACSEC_MKA_CKN_LENGTH">NM_SETTING_MACSEC_MKA_CKN_LENGTH</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-MODE:CAPS" title="NM_SETTING_MACSEC_MODE">NM_SETTING_MACSEC_MODE</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#nm-setting-macsec-new" title="nm_setting_macsec_new ()">nm_setting_macsec_new</a>, function in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-PARENT:CAPS" title="NM_SETTING_MACSEC_PARENT">NM_SETTING_MACSEC_PARENT</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-PORT:CAPS" title="NM_SETTING_MACSEC_PORT">NM_SETTING_MACSEC_PORT</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-SETTING-NAME:CAPS" title="NM_SETTING_MACSEC_SETTING_NAME">NM_SETTING_MACSEC_SETTING_NAME</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingMacsec.html#NM-SETTING-MACSEC-VALIDATION:CAPS" title="NM_SETTING_MACSEC_VALIDATION">NM_SETTING_MACSEC_VALIDATION</a>, macro in <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec">NMSettingMacsec</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingMacvlan.html#nm-setting-macvlan-get-mode" title="nm_setting_macvlan_get_mode ()">nm_setting_macvlan_get_mode</a>, function in <a class="link" href="NMSettingMacvlan.html" title="NMSettingMacvlan">NMSettingMacvlan</a>
 </dt>
 <dd></dd>
@@ -6920,6 +8209,134 @@
 </dt>
 <dd></dd>
 <dt>
+NM_SETTING_OVS_BRIDGE_FAIL_MODE, macro in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_bridge_get_fail_mode, function in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_bridge_get_mcast_snooping_enable, function in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_bridge_get_rstp_enable, function in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_bridge_get_stp_enable, function in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_BRIDGE_MCAST_SNOOPING_ENABLE, macro in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_bridge_new, function in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_BRIDGE_RSTP_ENABLE, macro in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_BRIDGE_SETTING_NAME, macro in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_BRIDGE_STP_ENABLE, macro in nm-setting-ovs-bridge
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_interface_get_interface_type, function in nm-setting-ovs-interface
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_interface_new, function in nm-setting-ovs-interface
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_INTERFACE_SETTING_NAME, macro in nm-setting-ovs-interface
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_INTERFACE_TYPE, macro in nm-setting-ovs-interface
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_patch_get_peer, function in nm-setting-ovs-patch
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_patch_new, function in nm-setting-ovs-patch
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PATCH_PEER, macro in nm-setting-ovs-patch
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PATCH_SETTING_NAME, macro in nm-setting-ovs-patch
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PORT_BOND_DOWNDELAY, macro in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PORT_BOND_MODE, macro in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PORT_BOND_UPDELAY, macro in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_port_get_bond_downdelay, function in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_port_get_bond_mode, function in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_port_get_bond_updelay, function in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_port_get_lacp, function in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_port_get_tag, function in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_port_get_vlan_mode, function in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PORT_LACP, macro in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+nm_setting_ovs_port_new, function in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PORT_SETTING_NAME, macro in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PORT_TAG, macro in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_OVS_PORT_VLAN_MODE, macro in nm-setting-ovs-port
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting.html#NM-SETTING-PARAM-FUZZY-IGNORE:CAPS" title="NM_SETTING_PARAM_FUZZY_IGNORE">NM_SETTING_PARAM_FUZZY_IGNORE</a>, macro in <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
 </dt>
 <dd></dd>
@@ -6929,6 +8346,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting.html#NM-SETTING-PARAM-SECRET:CAPS" title="NM_SETTING_PARAM_SECRET">NM_SETTING_PARAM_SECRET</a>, macro in <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingPppoe.html#nm-setting-pppoe-get-parent" title="nm_setting_pppoe_get_parent ()">nm_setting_pppoe_get_parent</a>, function in <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe">NMSettingPppoe</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6949,6 +8370,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingPppoe.html#nm-setting-pppoe-new" title="nm_setting_pppoe_new ()">nm_setting_pppoe_new</a>, function in <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe">NMSettingPppoe</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingPppoe.html#NM-SETTING-PPPOE-PARENT:CAPS" title="NM_SETTING_PPPOE_PARENT">NM_SETTING_PPPOE_PARENT</a>, macro in <a class="link" href="NMSettingPppoe.html" title="NMSettingPppoe">NMSettingPppoe</a>
 </dt>
 <dd></dd>
 <dt>
@@ -7124,6 +8549,46 @@
 </dt>
 <dd></dd>
 <dt>
+NM_SETTING_PROXY_BROWSER_ONLY, macro in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+nm_setting_proxy_get_browser_only, function in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+nm_setting_proxy_get_method, function in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+nm_setting_proxy_get_pac_script, function in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+nm_setting_proxy_get_pac_url, function in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_PROXY_METHOD, macro in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+nm_setting_proxy_new, function in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_PROXY_PAC_SCRIPT, macro in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_PROXY_PAC_URL, macro in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_PROXY_SETTING_NAME, macro in NMSettingProxy
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingSerial.html#NM-SETTING-SERIAL-BAUD:CAPS" title="NM_SETTING_SERIAL_BAUD">NM_SETTING_SERIAL_BAUD</a>, macro in <a class="link" href="NMSettingSerial.html" title="NMSettingSerial">NMSettingSerial</a>
 </dt>
 <dd></dd>
@@ -7176,6 +8641,82 @@
 </dt>
 <dd></dd>
 <dt>
+nm_setting_tc_config_add_qdisc, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_add_tfilter, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_clear_qdiscs, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_clear_tfilters, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_get_num_qdiscs, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_get_num_tfilters, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_get_qdisc, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_get_tfilter, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_new, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_TC_CONFIG_QDISCS, macro in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_remove_qdisc, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_remove_qdisc_by_value, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_remove_tfilter, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_setting_tc_config_remove_tfilter_by_value, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_TC_CONFIG_SETTING_NAME, macro in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_TC_CONFIG_TFILTERS, macro in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-add-link-watcher" title="nm_setting_team_add_link_watcher ()">nm_setting_team_add_link_watcher</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-add-runner-tx-hash" title="nm_setting_team_add_runner_tx_hash ()">nm_setting_team_add_runner_tx_hash</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-clear-link-watchers" title="nm_setting_team_clear_link_watchers ()">nm_setting_team_clear_link_watchers</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-CONFIG:CAPS" title="NM_SETTING_TEAM_CONFIG">NM_SETTING_TEAM_CONFIG</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
 </dt>
 <dd></dd>
@@ -7184,7 +8725,111 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-link-watcher" title="nm_setting_team_get_link_watcher ()">nm_setting_team_get_link_watcher</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-mcast-rejoin-count" title="nm_setting_team_get_mcast_rejoin_count ()">nm_setting_team_get_mcast_rejoin_count</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-mcast-rejoin-interval" title="nm_setting_team_get_mcast_rejoin_interval ()">nm_setting_team_get_mcast_rejoin_interval</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-notify-peers-count" title="nm_setting_team_get_notify_peers_count ()">nm_setting_team_get_notify_peers_count</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-notify-peers-interval" title="nm_setting_team_get_notify_peers_interval ()">nm_setting_team_get_notify_peers_interval</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-num-link-watchers" title="nm_setting_team_get_num_link_watchers ()">nm_setting_team_get_num_link_watchers</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-num-runner-tx-hash" title="nm_setting_team_get_num_runner_tx_hash ()">nm_setting_team_get_num_runner_tx_hash</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner" title="nm_setting_team_get_runner ()">nm_setting_team_get_runner</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-active" title="nm_setting_team_get_runner_active ()">nm_setting_team_get_runner_active</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-agg-select-policy" title="nm_setting_team_get_runner_agg_select_policy ()">nm_setting_team_get_runner_agg_select_policy</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-fast-rate" title="nm_setting_team_get_runner_fast_rate ()">nm_setting_team_get_runner_fast_rate</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-hwaddr-policy" title="nm_setting_team_get_runner_hwaddr_policy ()">nm_setting_team_get_runner_hwaddr_policy</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-min-ports" title="nm_setting_team_get_runner_min_ports ()">nm_setting_team_get_runner_min_ports</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-sys-prio" title="nm_setting_team_get_runner_sys_prio ()">nm_setting_team_get_runner_sys_prio</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-tx-balancer" title="nm_setting_team_get_runner_tx_balancer ()">nm_setting_team_get_runner_tx_balancer</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-tx-balancer-interval" title="nm_setting_team_get_runner_tx_balancer_interval ()">nm_setting_team_get_runner_tx_balancer_interval</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-get-runner-tx-hash" title="nm_setting_team_get_runner_tx_hash ()">nm_setting_team_get_runner_tx_hash</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-LINK-WATCHERS:CAPS" title="NM_SETTING_TEAM_LINK_WATCHERS">NM_SETTING_TEAM_LINK_WATCHERS</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-MCAST-REJOIN-COUNT:CAPS" title="NM_SETTING_TEAM_MCAST_REJOIN_COUNT">NM_SETTING_TEAM_MCAST_REJOIN_COUNT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-MCAST-REJOIN-INTERVAL:CAPS" title="NM_SETTING_TEAM_MCAST_REJOIN_INTERVAL">NM_SETTING_TEAM_MCAST_REJOIN_INTERVAL</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingTeam.html#nm-setting-team-new" title="nm_setting_team_new ()">nm_setting_team_new</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-NOTIFY-MCAST-COUNT-ACTIVEBACKUP-DEFAULT:CAPS" title="NM_SETTING_TEAM_NOTIFY_MCAST_COUNT_ACTIVEBACKUP_DEFAULT">NM_SETTING_TEAM_NOTIFY_MCAST_COUNT_ACTIVEBACKUP_DEFAULT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-NOTIFY-PEERS-COUNT:CAPS" title="NM_SETTING_TEAM_NOTIFY_PEERS_COUNT">NM_SETTING_TEAM_NOTIFY_PEERS_COUNT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-NOTIFY-PEERS-COUNT-ACTIVEBACKUP-DEFAULT:CAPS" title="NM_SETTING_TEAM_NOTIFY_PEERS_COUNT_ACTIVEBACKUP_DEFAULT">NM_SETTING_TEAM_NOTIFY_PEERS_COUNT_ACTIVEBACKUP_DEFAULT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-NOTIFY-PEERS-INTERVAL:CAPS" title="NM_SETTING_TEAM_NOTIFY_PEERS_INTERVAL">NM_SETTING_TEAM_NOTIFY_PEERS_INTERVAL</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-add-link-watcher" title="nm_setting_team_port_add_link_watcher ()">nm_setting_team_port_add_link_watcher</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-clear-link-watchers" title="nm_setting_team_port_clear_link_watchers ()">nm_setting_team_port_clear_link_watchers</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
 </dt>
 <dd></dd>
 <dt>
@@ -7196,11 +8841,211 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-get-lacp-key" title="nm_setting_team_port_get_lacp_key ()">nm_setting_team_port_get_lacp_key</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-get-lacp-prio" title="nm_setting_team_port_get_lacp_prio ()">nm_setting_team_port_get_lacp_prio</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-get-link-watcher" title="nm_setting_team_port_get_link_watcher ()">nm_setting_team_port_get_link_watcher</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-get-num-link-watchers" title="nm_setting_team_port_get_num_link_watchers ()">nm_setting_team_port_get_num_link_watchers</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-get-prio" title="nm_setting_team_port_get_prio ()">nm_setting_team_port_get_prio</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-get-queue-id" title="nm_setting_team_port_get_queue_id ()">nm_setting_team_port_get_queue_id</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-get-sticky" title="nm_setting_team_port_get_sticky ()">nm_setting_team_port_get_sticky</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-LACP-KEY:CAPS" title="NM_SETTING_TEAM_PORT_LACP_KEY">NM_SETTING_TEAM_PORT_LACP_KEY</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-LACP-PRIO:CAPS" title="NM_SETTING_TEAM_PORT_LACP_PRIO">NM_SETTING_TEAM_PORT_LACP_PRIO</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-LACP-PRIO-DEFAULT:CAPS" title="NM_SETTING_TEAM_PORT_LACP_PRIO_DEFAULT">NM_SETTING_TEAM_PORT_LACP_PRIO_DEFAULT</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-LINK-WATCHERS:CAPS" title="NM_SETTING_TEAM_PORT_LINK_WATCHERS">NM_SETTING_TEAM_PORT_LINK_WATCHERS</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-new" title="nm_setting_team_port_new ()">nm_setting_team_port_new</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-PRIO:CAPS" title="NM_SETTING_TEAM_PORT_PRIO">NM_SETTING_TEAM_PORT_PRIO</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-QUEUE-ID:CAPS" title="NM_SETTING_TEAM_PORT_QUEUE_ID">NM_SETTING_TEAM_PORT_QUEUE_ID</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-QUEUE-ID-DEFAULT:CAPS" title="NM_SETTING_TEAM_PORT_QUEUE_ID_DEFAULT">NM_SETTING_TEAM_PORT_QUEUE_ID_DEFAULT</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-remove-link-watcher" title="nm_setting_team_port_remove_link_watcher ()">nm_setting_team_port_remove_link_watcher</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#nm-setting-team-port-remove-link-watcher-by-value" title="nm_setting_team_port_remove_link_watcher_by_value ()">nm_setting_team_port_remove_link_watcher_by_value</a>, function in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-SETTING-NAME:CAPS" title="NM_SETTING_TEAM_PORT_SETTING_NAME">NM_SETTING_TEAM_PORT_SETTING_NAME</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-STICKY:CAPS" title="NM_SETTING_TEAM_PORT_STICKY">NM_SETTING_TEAM_PORT_STICKY</a>, macro in <a class="link" href="NMSettingTeamPort.html" title="NMSettingTeamPort">NMSettingTeamPort</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-remove-link-watcher" title="nm_setting_team_remove_link_watcher ()">nm_setting_team_remove_link_watcher</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-remove-link-watcher-by-value" title="nm_setting_team_remove_link_watcher_by_value ()">nm_setting_team_remove_link_watcher_by_value</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-remove-runner-tx-hash" title="nm_setting_team_remove_runner_tx_hash ()">nm_setting_team_remove_runner_tx_hash</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-setting-team-remove-runner-tx-hash-by-value" title="nm_setting_team_remove_runner_tx_hash_by_value ()">nm_setting_team_remove_runner_tx_hash_by_value</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER:CAPS" title="NM_SETTING_TEAM_RUNNER">NM_SETTING_TEAM_RUNNER</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-ACTIVE:CAPS" title="NM_SETTING_TEAM_RUNNER_ACTIVE">NM_SETTING_TEAM_RUNNER_ACTIVE</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-ACTIVEBACKUP:CAPS" title="NM_SETTING_TEAM_RUNNER_ACTIVEBACKUP">NM_SETTING_TEAM_RUNNER_ACTIVEBACKUP</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-AGG-SELECT-POLICY:CAPS" title="NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY">NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-AGG-SELECT-POLICY-BANDWIDTH:CAPS" title="NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_BANDWIDTH">NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_BANDWIDTH</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-AGG-SELECT-POLICY-COUNT:CAPS" title="NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_COUNT">NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_COUNT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-AGG-SELECT-POLICY-DEFAULT:CAPS" title="NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_DEFAULT">NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_DEFAULT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-AGG-SELECT-POLICY-LACP-PRIO:CAPS" title="NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_LACP_PRIO">NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_LACP_PRIO</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-AGG-SELECT-POLICY-LACP-PRIO-STABLE:CAPS" title="NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_LACP_PRIO_STABLE">NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_LACP_PRIO_STABLE</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-AGG-SELECT-POLICY-PORT-CONFIG:CAPS" title="NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_PORT_CONFIG">NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_PORT_CONFIG</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-BROADCAST:CAPS" title="NM_SETTING_TEAM_RUNNER_BROADCAST">NM_SETTING_TEAM_RUNNER_BROADCAST</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-DEFAULT:CAPS" title="NM_SETTING_TEAM_RUNNER_DEFAULT">NM_SETTING_TEAM_RUNNER_DEFAULT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-FAST-RATE:CAPS" title="NM_SETTING_TEAM_RUNNER_FAST_RATE">NM_SETTING_TEAM_RUNNER_FAST_RATE</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-HWADDR-POLICY:CAPS" title="NM_SETTING_TEAM_RUNNER_HWADDR_POLICY">NM_SETTING_TEAM_RUNNER_HWADDR_POLICY</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-HWADDR-POLICY-BY-ACTIVE:CAPS" title="NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_BY_ACTIVE">NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_BY_ACTIVE</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-HWADDR-POLICY-DEFAULT:CAPS" title="NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_DEFAULT">NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_DEFAULT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-HWADDR-POLICY-ONLY-ACTIVE:CAPS" title="NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_ONLY_ACTIVE">NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_ONLY_ACTIVE</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-HWADDR-POLICY-SAME-ALL:CAPS" title="NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_SAME_ALL">NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_SAME_ALL</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-LACP:CAPS" title="NM_SETTING_TEAM_RUNNER_LACP">NM_SETTING_TEAM_RUNNER_LACP</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-LOADBALANCE:CAPS" title="NM_SETTING_TEAM_RUNNER_LOADBALANCE">NM_SETTING_TEAM_RUNNER_LOADBALANCE</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-MIN-PORTS:CAPS" title="NM_SETTING_TEAM_RUNNER_MIN_PORTS">NM_SETTING_TEAM_RUNNER_MIN_PORTS</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-RANDOM:CAPS" title="NM_SETTING_TEAM_RUNNER_RANDOM">NM_SETTING_TEAM_RUNNER_RANDOM</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-ROUNDROBIN:CAPS" title="NM_SETTING_TEAM_RUNNER_ROUNDROBIN">NM_SETTING_TEAM_RUNNER_ROUNDROBIN</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-SYS-PRIO:CAPS" title="NM_SETTING_TEAM_RUNNER_SYS_PRIO">NM_SETTING_TEAM_RUNNER_SYS_PRIO</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-SYS-PRIO-DEFAULT:CAPS" title="NM_SETTING_TEAM_RUNNER_SYS_PRIO_DEFAULT">NM_SETTING_TEAM_RUNNER_SYS_PRIO_DEFAULT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-TX-BALANCER:CAPS" title="NM_SETTING_TEAM_RUNNER_TX_BALANCER">NM_SETTING_TEAM_RUNNER_TX_BALANCER</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-TX-BALANCER-INTERVAL:CAPS" title="NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL">NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-TX-BALANCER-INTERVAL-DEFAULT:CAPS" title="NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL_DEFAULT">NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL_DEFAULT</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-SETTING-TEAM-RUNNER-TX-HASH:CAPS" title="NM_SETTING_TEAM_RUNNER_TX_HASH">NM_SETTING_TEAM_RUNNER_TX_HASH</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
 </dt>
 <dd></dd>
 <dt>
@@ -7265,6 +9110,38 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingTun.html#NM-SETTING-TUN-VNET-HDR:CAPS" title="NM_SETTING_TUN_VNET_HDR">NM_SETTING_TUN_VNET_HDR</a>, macro in <a class="link" href="NMSettingTun.html" title="NMSettingTun">NMSettingTun</a>
+</dt>
+<dd></dd>
+<dt>
+nm_setting_user_check_key, function in nm-setting-user
+</dt>
+<dd></dd>
+<dt>
+nm_setting_user_check_val, function in nm-setting-user
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_USER_DATA, macro in nm-setting-user
+</dt>
+<dd></dd>
+<dt>
+nm_setting_user_get_data, function in nm-setting-user
+</dt>
+<dd></dd>
+<dt>
+nm_setting_user_get_keys, function in nm-setting-user
+</dt>
+<dd></dd>
+<dt>
+nm_setting_user_new, function in nm-setting-user
+</dt>
+<dd></dd>
+<dt>
+NM_SETTING_USER_SETTING_NAME, macro in nm-setting-user
+</dt>
+<dd></dd>
+<dt>
+nm_setting_user_set_data, function in nm-setting-user
 </dt>
 <dd></dd>
 <dt>
@@ -7620,6 +9497,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWired.html#NM-SETTING-WIRED-GENERATE-MAC-ADDRESS-MASK:CAPS" title="NM_SETTING_WIRED_GENERATE_MAC_ADDRESS_MASK">NM_SETTING_WIRED_GENERATE_MAC_ADDRESS_MASK</a>, macro in <a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingWired.html#nm-setting-wired-get-auto-negotiate" title="nm_setting_wired_get_auto_negotiate ()">nm_setting_wired_get_auto_negotiate</a>, function in <a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
 </dt>
 <dd></dd>
@@ -7629,6 +9510,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingWired.html#nm-setting-wired-get-duplex" title="nm_setting_wired_get_duplex ()">nm_setting_wired_get_duplex</a>, function in <a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWired.html#nm-setting-wired-get-generate-mac-address-mask" title="nm_setting_wired_get_generate_mac_address_mask ()">nm_setting_wired_get_generate_mac_address_mask</a>, function in <a class="link" href="NMSettingWired.html" title="NMSettingWired">NMSettingWired</a>
 </dt>
 <dd></dd>
 <dt>
@@ -7784,6 +9669,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-GENERATE-MAC-ADDRESS-MASK:CAPS" title="NM_SETTING_WIRELESS_GENERATE_MAC_ADDRESS_MASK">NM_SETTING_WIRELESS_GENERATE_MAC_ADDRESS_MASK</a>, macro in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingWireless.html#nm-setting-wireless-get-band" title="nm_setting_wireless_get_band ()">nm_setting_wireless_get_band</a>, function in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
 </dt>
 <dd></dd>
@@ -7797,6 +9686,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingWireless.html#nm-setting-wireless-get-cloned-mac-address" title="nm_setting_wireless_get_cloned_mac_address ()">nm_setting_wireless_get_cloned_mac_address</a>, function in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWireless.html#nm-setting-wireless-get-generate-mac-address-mask" title="nm_setting_wireless_get_generate_mac_address_mask ()">nm_setting_wireless_get_generate_mac_address_mask</a>, function in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
 </dt>
 <dd></dd>
 <dt>
@@ -7980,6 +9873,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWirelessSecurity.html#nm-setting-wireless-security-get-pmf" title="nm_setting_wireless_security_get_pmf ()">nm_setting_wireless_security_get_pmf</a>, function in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingWirelessSecurity.html#nm-setting-wireless-security-get-proto" title="nm_setting_wireless_security_get_proto ()">nm_setting_wireless_security_get_proto</a>, function in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
 </dt>
 <dd></dd>
@@ -8008,6 +9905,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWirelessSecurity.html#nm-setting-wireless-security-get-wps-method" title="nm_setting_wireless_security_get_wps_method ()">nm_setting_wireless_security_get_wps_method</a>, function in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-GROUP:CAPS" title="NM_SETTING_WIRELESS_SECURITY_GROUP">NM_SETTING_WIRELESS_SECURITY_GROUP</a>, macro in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
 </dt>
 <dd></dd>
@@ -8033,6 +9934,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-PAIRWISE:CAPS" title="NM_SETTING_WIRELESS_SECURITY_PAIRWISE">NM_SETTING_WIRELESS_SECURITY_PAIRWISE</a>, macro in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-PMF:CAPS" title="NM_SETTING_WIRELESS_SECURITY_PMF">NM_SETTING_WIRELESS_SECURITY_PMF</a>, macro in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8108,6 +10013,10 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-WPS-METHOD:CAPS" title="NM_SETTING_WIRELESS_SECURITY_WPS_METHOD">NM_SETTING_WIRELESS_SECURITY_WPS_METHOD</a>, macro in <a class="link" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">NMSettingWirelessSecurity</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-SEEN-BSSIDS:CAPS" title="NM_SETTING_WIRELESS_SEEN_BSSIDS">NM_SETTING_WIRELESS_SEEN_BSSIDS</a>, macro in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
 </dt>
 <dd></dd>
@@ -8145,6 +10054,203 @@
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NMState" title="enum NMState">NMState</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<a name="idxT"></a><h3 class="title">T</h3>
+<dt>
+nm_tc_action_dup, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_action_equal, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_action_get_attribute, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_action_get_attribute_names, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_action_get_kind, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_action_new, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_action_ref, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_action_set_attribute, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_action_unref, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_dup, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_equal, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_get_handle, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_get_kind, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_get_parent, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_new, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_ref, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_set_handle, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_qdisc_unref, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_dup, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_equal, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_get_action, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_get_handle, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_get_kind, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_get_parent, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_new, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_ref, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_set_action, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_set_handle, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+nm_tc_tfilter_unref, function in nm-setting-tc-config
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMTeamLinkWatcherArpPingFlags" title="enum NMTeamLinkWatcherArpPingFlags">NMTeamLinkWatcherArpPingFlags</a>, enum in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-TEAM-LINK-WATCHER-ARP-PING:CAPS" title="NM_TEAM_LINK_WATCHER_ARP_PING">NM_TEAM_LINK_WATCHER_ARP_PING</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-dup" title="nm_team_link_watcher_dup ()">nm_team_link_watcher_dup</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-equal" title="nm_team_link_watcher_equal ()">nm_team_link_watcher_equal</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-TEAM-LINK-WATCHER-ETHTOOL:CAPS" title="NM_TEAM_LINK_WATCHER_ETHTOOL">NM_TEAM_LINK_WATCHER_ETHTOOL</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-delay-down" title="nm_team_link_watcher_get_delay_down ()">nm_team_link_watcher_get_delay_down</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-delay-up" title="nm_team_link_watcher_get_delay_up ()">nm_team_link_watcher_get_delay_up</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-flags" title="nm_team_link_watcher_get_flags ()">nm_team_link_watcher_get_flags</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-init-wait" title="nm_team_link_watcher_get_init_wait ()">nm_team_link_watcher_get_init_wait</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-interval" title="nm_team_link_watcher_get_interval ()">nm_team_link_watcher_get_interval</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-missed-max" title="nm_team_link_watcher_get_missed_max ()">nm_team_link_watcher_get_missed_max</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-name" title="nm_team_link_watcher_get_name ()">nm_team_link_watcher_get_name</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-source-host" title="nm_team_link_watcher_get_source_host ()">nm_team_link_watcher_get_source_host</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-get-target-host" title="nm_team_link_watcher_get_target_host ()">nm_team_link_watcher_get_target_host</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-new-arp-ping" title="nm_team_link_watcher_new_arp_ping ()">nm_team_link_watcher_new_arp_ping</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-new-ethtool" title="nm_team_link_watcher_new_ethtool ()">nm_team_link_watcher_new_ethtool</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-new-nsna-ping" title="nm_team_link_watcher_new_nsna_ping ()">nm_team_link_watcher_new_nsna_ping</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NM-TEAM-LINK-WATCHER-NSNA-PING:CAPS" title="NM_TEAM_LINK_WATCHER_NSNA_PING">NM_TEAM_LINK_WATCHER_NSNA_PING</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-ref" title="nm_team_link_watcher_ref ()">nm_team_link_watcher_ref</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#nm-team-link-watcher-unref" title="nm_team_link_watcher_unref ()">nm_team_link_watcher_unref</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
 </dt>
 <dd></dd>
 <a name="idxU"></a><h3 class="title">U</h3>
@@ -8210,6 +10316,14 @@
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-utils.html#nm-utils-file-search-in-paths" title="nm_utils_file_search_in_paths ()">nm_utils_file_search_in_paths</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+nm_utils_fixup_desc_string, function in nm-libnm-utils
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-format-variant-attributes" title="nm_utils_format_variant_attributes ()">nm_utils_format_variant_attributes</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8349,7 +10463,19 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-is-json-object" title="nm_utils_is_json_object ()">nm_utils_is_json_object</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-utils.html#nm-utils-is-uuid" title="nm_utils_is_uuid ()">nm_utils_is_uuid</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-is-valid-iface-name" title="nm_utils_is_valid_iface_name ()">nm_utils_is_valid_iface_name</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-parse-variant-attributes" title="nm_utils_parse_variant_attributes ()">nm_utils_parse_variant_attributes</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8365,7 +10491,35 @@
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-tc-action-from-str" title="nm_utils_tc_action_from_str ()">nm_utils_tc_action_from_str</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-tc-action-to-str" title="nm_utils_tc_action_to_str ()">nm_utils_tc_action_to_str</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-tc-qdisc-from-str" title="nm_utils_tc_qdisc_from_str ()">nm_utils_tc_qdisc_from_str</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-tc-qdisc-to-str" title="nm_utils_tc_qdisc_to_str ()">nm_utils_tc_qdisc_to_str</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-tc-tfilter-from-str" title="nm_utils_tc_tfilter_from_str ()">nm_utils_tc_tfilter_from_str</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-tc-tfilter-to-str" title="nm_utils_tc_tfilter_to_str ()">nm_utils_tc_tfilter_to_str</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-utils.html#nm-utils-uuid-generate" title="nm_utils_uuid_generate ()">nm_utils_uuid_generate</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-utils.html#nm-utils-version" title="nm_utils_version ()">nm_utils_version</a>, function in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8405,6 +10559,10 @@
 </dt>
 <dd></dd>
 <a name="idxV"></a><h3 class="title">V</h3>
+<dt>
+<a class="link" href="libnm-nm-utils.html#NMVariantAttributeSpec" title="NMVariantAttributeSpec">NMVariantAttributeSpec</a>, struct in <a class="link" href="libnm-nm-utils.html" title="nm-utils">nm-utils</a>
+</dt>
+<dd></dd>
 <dt>
 <a class="link" href="NMConnection.html#NM-VARIANT-TYPE-SETTING:CAPS" title="NM_VARIANT_TYPE_SETTING">NM_VARIANT_TYPE_SETTING</a>, macro in <a class="link" href="NMConnection.html" title="NMConnection">NMConnection</a>
 </dt>
@@ -8462,7 +10620,7 @@
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#NMVpnEditorInterface">NMVpnEditorInterface</a>, struct in <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditor">NMVpnEditor</a>
+NMVpnEditorInterface, struct in <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditor">NMVpnEditor</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8487,6 +10645,10 @@
 <dd></dd>
 <dt>
 <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditorPluginInterface" title="NMVpnEditorPluginInterface">NMVpnEditorPluginInterface</a>, struct in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnEditorPlugin.html#NMVpnEditorPluginVT" title="NMVpnEditorPluginVT">NMVpnEditorPluginVT</a>, struct in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8534,7 +10696,7 @@ NMVpnPluginInfo, struct in nm-vpn-plugin-info
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-get-widget">nm_vpn_editor_get_widget</a>, function in <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditor">NMVpnEditor</a>
+<a href="../libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-get-widget">nm_vpn_editor_get_widget</a>, function in <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditor">NMVpnEditor</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8558,11 +10720,23 @@ NMVpnPluginInfo, struct in nm-vpn-plugin-info
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMVpnEditorPlugin.html#nm-vpn-editor-plugin-get-plugin-info" title="nm_vpn_editor_plugin_get_plugin_info ()">nm_vpn_editor_plugin_get_plugin_info</a>, function in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMVpnEditorPlugin.html#nm-vpn-editor-plugin-get-suggested-filename" title="nm_vpn_editor_plugin_get_suggested_filename ()">nm_vpn_editor_plugin_get_suggested_filename</a>, function in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMVpnEditorPlugin.html#nm-vpn-editor-plugin-get-vt" title="nm_vpn_editor_plugin_get_vt ()">nm_vpn_editor_plugin_get_vt</a>, function in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMVpnEditorPlugin.html#nm-vpn-editor-plugin-import" title="nm_vpn_editor_plugin_import ()">nm_vpn_editor_plugin_import</a>, function in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnEditorPlugin.html#nm-vpn-editor-plugin-load" title="nm_vpn_editor_plugin_load ()">nm_vpn_editor_plugin_load</a>, function in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8578,7 +10752,11 @@ NMVpnPluginInfo, struct in nm-vpn-plugin-info
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-update-connection">nm_vpn_editor_update_connection</a>, function in <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditor">NMVpnEditor</a>
+<a class="link" href="NMVpnEditorPlugin.html#nm-vpn-editor-plugin-set-plugin-info" title="nm_vpn_editor_plugin_set_plugin_info ()">nm_vpn_editor_plugin_set_plugin_info</a>, function in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a href="../libnm-glib/libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-update-connection">nm_vpn_editor_update_connection</a>, function in <a class="link" href="NMVpnEditorPlugin.html#NMVpnEditor">NMVpnEditor</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8603,6 +10781,10 @@ NMVpnPluginInfo, struct in nm-vpn-plugin-info
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-CONFIG-MTU:CAPS" title="NM_VPN_PLUGIN_CONFIG_MTU">NM_VPN_PLUGIN_CONFIG_MTU</a>, macro in <a class="link" href="libnm-nm-vpn-dbus-interface.html" title="nm-vpn-dbus-interface">nm-vpn-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-CONFIG-PROXY-PAC:CAPS" title="NM_VPN_PLUGIN_CONFIG_PROXY_PAC">NM_VPN_PLUGIN_CONFIG_PROXY_PAC</a>, macro in <a class="link" href="libnm-nm-vpn-dbus-interface.html" title="nm-vpn-dbus-interface">nm-vpn-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8694,6 +10876,10 @@ NM_VPN_PLUGIN_INFO_NAME, macro in nm-vpn-plugin-info
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-IP4-CONFIG-PRESERVE-ROUTES:CAPS" title="NM_VPN_PLUGIN_IP4_CONFIG_PRESERVE_ROUTES">NM_VPN_PLUGIN_IP4_CONFIG_PRESERVE_ROUTES</a>, macro in <a class="link" href="libnm-nm-vpn-dbus-interface.html" title="nm-vpn-dbus-interface">nm-vpn-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-IP4-CONFIG-PTP:CAPS" title="NM_VPN_PLUGIN_IP4_CONFIG_PTP">NM_VPN_PLUGIN_IP4_CONFIG_PTP</a>, macro in <a class="link" href="libnm-nm-vpn-dbus-interface.html" title="nm-vpn-dbus-interface">nm-vpn-dbus-interface</a>
 </dt>
 <dd></dd>
@@ -8735,6 +10921,10 @@ NM_VPN_PLUGIN_INFO_NAME, macro in nm-vpn-plugin-info
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-IP6-CONFIG-PREFIX:CAPS" title="NM_VPN_PLUGIN_IP6_CONFIG_PREFIX">NM_VPN_PLUGIN_IP6_CONFIG_PREFIX</a>, macro in <a class="link" href="libnm-nm-vpn-dbus-interface.html" title="nm-vpn-dbus-interface">nm-vpn-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-IP6-CONFIG-PRESERVE-ROUTES:CAPS" title="NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES">NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES</a>, macro in <a class="link" href="libnm-nm-vpn-dbus-interface.html" title="nm-vpn-dbus-interface">nm-vpn-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8824,6 +11014,6 @@ NM_VPN_SERVICE_PLUGIN_STATE, macro in nm-vpn-service-plugin
 <dd></dd>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

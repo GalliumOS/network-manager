@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include "nm-device-generic.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 #include "nm-setting-generic.h"
 #include "nm-setting-connection.h"
@@ -59,17 +58,17 @@ nm_device_generic_get_hw_address (NMDeviceGeneric *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_GENERIC (device), NULL);
 
-	return NM_DEVICE_GENERIC_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_GENERIC_GET_PRIVATE (device)->hw_address);
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static const char *
 get_type_description (NMDevice *device)
 {
 	NMDeviceGenericPrivate *priv = NM_DEVICE_GENERIC_GET_PRIVATE (device);
 
-	return priv->type_description;
+	return nm_str_not_empty (priv->type_description);
 }
 
 static const char *
@@ -108,12 +107,11 @@ get_setting_type (NMDevice *device)
 	return NM_TYPE_SETTING_GENERIC;
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_generic_init (NMDeviceGeneric *device)
 {
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_GENERIC);
 }
 
 static void
@@ -150,14 +148,15 @@ get_property (GObject *object,
               GValue *value,
               GParamSpec *pspec)
 {
-	NMDeviceGenericPrivate *priv = NM_DEVICE_GENERIC_GET_PRIVATE (object);
+	NMDeviceGeneric *self = NM_DEVICE_GENERIC (object);
+	NMDeviceGenericPrivate *priv = NM_DEVICE_GENERIC_GET_PRIVATE (self);
 
 	switch (prop_id) {
 	case PROP_HW_ADDRESS:
 		g_value_set_string (value, priv->hw_address);
 		break;
 	case PROP_TYPE_DESCRIPTION:
-		g_value_set_string (value, priv->type_description);
+		g_value_set_string (value, get_type_description ((NMDevice *) self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -173,8 +172,6 @@ nm_device_generic_class_init (NMDeviceGenericClass *klass)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (NMDeviceGenericPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_GENERIC);
 
 	object_class->finalize = finalize;
 	object_class->get_property = get_property;

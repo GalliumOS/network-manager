@@ -34,19 +34,15 @@
 #undef basename
 
 #include "alloc-util.h"
-#if 0 /* NM_IGNORED */
 #include "extract-word.h"
-#endif /* NM_IGNORED */
 #include "fs-util.h"
+#include "glob-util.h"
 #include "log.h"
 #include "macro.h"
-#if 0 /* NM_IGNORED */
 #include "missing.h"
-#endif /* NM_IGNORED */
+#include "parse-util.h"
 #include "path-util.h"
-#if 0 /* NM_IGNORED */
 #include "stat-util.h"
-#endif /* NM_IGNORED */
 #include "string-util.h"
 #include "strv.h"
 #include "time-util.h"
@@ -90,7 +86,7 @@ char *path_make_absolute(const char *p, const char *prefix) {
         if (path_is_absolute(p) || !prefix)
                 return strdup(p);
 
-        return strjoin(prefix, "/", p, NULL);
+        return strjoin(prefix, "/", p);
 }
 
 int path_make_absolute_cwd(const char *p, char **ret) {
@@ -111,7 +107,7 @@ int path_make_absolute_cwd(const char *p, char **ret) {
                 if (!cwd)
                         return negative_errno();
 
-                c = strjoin(cwd, "/", p, NULL);
+                c = strjoin(cwd, "/", p);
         }
         if (!c)
                 return -ENOMEM;
@@ -138,8 +134,7 @@ int path_make_relative(const char *from_dir, const char *to_path, char **_r) {
 
         /* Skip the common part. */
         for (;;) {
-                size_t a;
-                size_t b;
+                size_t a, b;
 
                 from_dir += strspn(from_dir, "/");
                 to_path += strspn(to_path, "/");
@@ -151,7 +146,6 @@ int path_make_relative(const char *from_dir, const char *to_path, char **_r) {
                         else
                                 /* from_dir is a parent directory of to_path. */
                                 r = strdup(to_path);
-
                         if (!r)
                                 return -ENOMEM;
 
@@ -182,21 +176,32 @@ int path_make_relative(const char *from_dir, const char *to_path, char **_r) {
 
         /* Count the number of necessary ".." elements. */
         for (n_parents = 0;;) {
+                size_t w;
+
                 from_dir += strspn(from_dir, "/");
 
                 if (!*from_dir)
                         break;
 
-                from_dir += strcspn(from_dir, "/");
-                n_parents++;
+                w = strcspn(from_dir, "/");
+
+                /* If this includes ".." we can't do a simple series of "..", refuse */
+                if (w == 2 && from_dir[0] == '.' && from_dir[1] == '.')
+                        return -EINVAL;
+
+                /* Count number of elements, except if they are "." */
+                if (w != 1 || from_dir[0] != '.')
+                        n_parents++;
+
+                from_dir += w;
         }
 
-        r = malloc(n_parents * 3 + strlen(to_path) + 1);
+        r = new(char, n_parents * 3 + strlen(to_path) + 1);
         if (!r)
                 return -ENOMEM;
 
-        for (p = r; n_parents > 0; n_parents--, p += 3)
-                memcpy(p, "../", 3);
+        for (p = r; n_parents > 0; n_parents--)
+                p = mempcpy(p, "../", 3);
 
         strcpy(p, to_path);
         path_kill_slashes(r);
@@ -227,10 +232,11 @@ int path_strv_make_absolute_cwd(char **l) {
         return 0;
 }
 
-char **path_strv_resolve(char **l, const char *prefix) {
+char **path_strv_resolve(char **l, const char *root) {
         char **s;
         unsigned k = 0;
         bool enomem = false;
+        int r;
 
         if (strv_isempty(l))
                 return l;
@@ -240,17 +246,17 @@ char **path_strv_resolve(char **l, const char *prefix) {
          * changes on failure. */
 
         STRV_FOREACH(s, l) {
-                char *t, *u;
                 _cleanup_free_ char *orig = NULL;
+                char *t, *u;
 
                 if (!path_is_absolute(*s)) {
                         free(*s);
                         continue;
                 }
 
-                if (prefix) {
+                if (root) {
                         orig = *s;
-                        t = strappend(prefix, orig);
+                        t = prefix_root(root, orig);
                         if (!t) {
                                 enomem = true;
                                 continue;
@@ -258,28 +264,26 @@ char **path_strv_resolve(char **l, const char *prefix) {
                 } else
                         t = *s;
 
-                errno = 0;
-                u = canonicalize_file_name(t);
-                if (!u) {
-                        if (errno == ENOENT) {
-                                if (prefix) {
-                                        u = orig;
-                                        orig = NULL;
-                                        free(t);
-                                } else
-                                        u = t;
-                        } else {
+                r = chase_symlinks(t, root, 0, &u);
+                if (r == -ENOENT) {
+                        if (root) {
+                                u = orig;
+                                orig = NULL;
                                 free(t);
-                                if (errno == ENOMEM || errno == 0)
-                                        enomem = true;
+                        } else
+                                u = t;
+                } else if (r < 0) {
+                        free(t);
 
-                                continue;
-                        }
-                } else if (prefix) {
+                        if (r == -ENOMEM)
+                                enomem = true;
+
+                        continue;
+                } else if (root) {
                         char *x;
 
                         free(t);
-                        x = path_startswith(u, prefix);
+                        x = path_startswith(u, root);
                         if (x) {
                                 /* restore the slash if it was lost */
                                 if (!startswith(x, "/"))
@@ -295,9 +299,7 @@ char **path_strv_resolve(char **l, const char *prefix) {
                         } else {
                                 /* canonicalized path goes outside of
                                  * prefix, keep the original path instead */
-                                free(u);
-                                u = orig;
-                                orig = NULL;
+                                free_and_replace(u, orig);
                         }
                 } else
                         free(t);
@@ -313,12 +315,12 @@ char **path_strv_resolve(char **l, const char *prefix) {
         return l;
 }
 
-char **path_strv_resolve_uniq(char **l, const char *prefix) {
+char **path_strv_resolve_uniq(char **l, const char *root) {
 
         if (strv_isempty(l))
                 return l;
 
-        if (!path_strv_resolve(l, prefix))
+        if (!path_strv_resolve(l, root))
                 return NULL;
 
         return strv_uniq(l);
@@ -364,6 +366,16 @@ char *path_kill_slashes(char *path) {
 char* path_startswith(const char *path, const char *prefix) {
         assert(path);
         assert(prefix);
+
+        /* Returns a pointer to the start of the first component after the parts matched by
+         * the prefix, iff
+         * - both paths are absolute or both paths are relative,
+         * and
+         * - each component in prefix in turn matches a component in path at the same position.
+         * An empty string will be returned when the prefix and path are equivalent.
+         *
+         * Returns NULL otherwise.
+         */
 
         if ((path[0] == '/') != (prefix[0] == '/'))
                 return NULL;
@@ -444,8 +456,8 @@ bool path_equal(const char *a, const char *b) {
         return path_compare(a, b) == 0;
 }
 
-bool path_equal_or_files_same(const char *a, const char *b) {
-        return path_equal(a, b) || files_same(a, b) > 0;
+bool path_equal_or_files_same(const char *a, const char *b, int flags) {
+        return path_equal(a, b) || files_same(a, b, flags) > 0;
 }
 
 char* path_join(const char *root, const char *path, const char *rest) {
@@ -455,13 +467,11 @@ char* path_join(const char *root, const char *path, const char *rest) {
                 return strjoin(root, endswith(root, "/") ? "" : "/",
                                path[0] == '/' ? path+1 : path,
                                rest ? (endswith(path, "/") ? "" : "/") : NULL,
-                               rest && rest[0] == '/' ? rest+1 : rest,
-                               NULL);
+                               rest && rest[0] == '/' ? rest+1 : rest);
         else
                 return strjoin(path,
                                rest ? (endswith(path, "/") ? "" : "/") : NULL,
-                               rest && rest[0] == '/' ? rest+1 : rest,
-                               NULL);
+                               rest && rest[0] == '/' ? rest+1 : rest);
 }
 
 int find_binary(const char *name, char **ret) {
@@ -505,7 +515,7 @@ int find_binary(const char *name, char **ret) {
                 if (!path_is_absolute(element))
                         continue;
 
-                j = strjoin(element, "/", name, NULL);
+                j = strjoin(element, "/", name);
                 if (!j)
                         return -ENOMEM;
 
@@ -580,10 +590,10 @@ static int binary_is_good(const char *binary) {
         if (r < 0)
                 return r;
 
-        return !path_equal(d, "true") &&
-               !path_equal(d, "/bin/true") &&
-               !path_equal(d, "/usr/bin/true") &&
-               !path_equal(d, "/dev/null");
+        return !PATH_IN_SET(d, "true"
+                               "/bin/true",
+                               "/usr/bin/true",
+                               "/dev/null");
 }
 
 int fsck_exists(const char *fstype) {
@@ -704,10 +714,7 @@ bool filename_is_valid(const char *p) {
         if (isempty(p))
                 return false;
 
-        if (streq(p, "."))
-                return false;
-
-        if (streq(p, ".."))
+        if (dot_or_dot_dot(p))
                 return false;
 
         e = strchrnul(p, '/');
@@ -726,14 +733,17 @@ bool path_is_safe(const char *p) {
         if (isempty(p))
                 return false;
 
-        if (streq(p, "..") || startswith(p, "../") || endswith(p, "/..") || strstr(p, "/../"))
+        if (dot_or_dot_dot(p))
+                return false;
+
+        if (startswith(p, "../") || endswith(p, "/..") || strstr(p, "/../"))
                 return false;
 
         if (strlen(p)+1 > PATH_MAX)
                 return false;
 
         /* The following two checks are not really dangerous, but hey, they still are confusing */
-        if (streq(p, ".") || startswith(p, "./") || endswith(p, "/.") || strstr(p, "/./"))
+        if (startswith(p, "./") || endswith(p, "/.") || strstr(p, "/./"))
                 return false;
 
         if (strstr(p, "//"))
@@ -769,34 +779,53 @@ char *file_in_same_dir(const char *path, const char *filename) {
         return ret;
 }
 
-bool hidden_file_allow_backup(const char *filename) {
+bool hidden_or_backup_file(const char *filename) {
+        const char *p;
+
         assert(filename);
 
-        return
-                filename[0] == '.' ||
-                streq(filename, "lost+found") ||
-                streq(filename, "aquota.user") ||
-                streq(filename, "aquota.group") ||
-                endswith(filename, ".rpmnew") ||
-                endswith(filename, ".rpmsave") ||
-                endswith(filename, ".rpmorig") ||
-                endswith(filename, ".dpkg-old") ||
-                endswith(filename, ".dpkg-new") ||
-                endswith(filename, ".dpkg-tmp") ||
-                endswith(filename, ".dpkg-dist") ||
-                endswith(filename, ".dpkg-bak") ||
-                endswith(filename, ".dpkg-backup") ||
-                endswith(filename, ".dpkg-remove") ||
-                endswith(filename, ".swp");
-}
-
-bool hidden_file(const char *filename) {
-        assert(filename);
-
-        if (endswith(filename, "~"))
+        if (filename[0] == '.' ||
+            streq(filename, "lost+found") ||
+            streq(filename, "aquota.user") ||
+            streq(filename, "aquota.group") ||
+            endswith(filename, "~"))
                 return true;
 
-        return hidden_file_allow_backup(filename);
+        p = strrchr(filename, '.');
+        if (!p)
+                return false;
+
+        /* Please, let's not add more entries to the list below. If external projects think it's a good idea to come up
+         * with always new suffixes and that everybody else should just adjust to that, then it really should be on
+         * them. Hence, in future, let's not add any more entries. Instead, let's ask those packages to instead adopt
+         * one of the generic suffixes/prefixes for hidden files or backups, possibly augmented with an additional
+         * string. Specifically: there's now:
+         *
+         *    The generic suffixes "~" and ".bak" for backup files
+         *    The generic prefix "." for hidden files
+         *
+         * Thus, if a new package manager "foopkg" wants its own set of ".foopkg-new", ".foopkg-old", ".foopkg-dist"
+         * or so registered, let's refuse that and ask them to use ".foopkg.new", ".foopkg.old" or ".foopkg~" instead.
+         */
+
+        return STR_IN_SET(p + 1,
+                          "rpmnew",
+                          "rpmsave",
+                          "rpmorig",
+                          "dpkg-old",
+                          "dpkg-new",
+                          "dpkg-tmp",
+                          "dpkg-dist",
+                          "dpkg-bak",
+                          "dpkg-backup",
+                          "dpkg-remove",
+                          "ucf-new",
+                          "ucf-old",
+                          "ucf-dist",
+                          "swp",
+                          "bak",
+                          "old",
+                          "new");
 }
 
 bool is_device_path(const char *path) {
@@ -804,8 +833,92 @@ bool is_device_path(const char *path) {
         /* Returns true on paths that refer to a device, either in
          * sysfs or in /dev */
 
-        return
-                path_startswith(path, "/dev/") ||
-                path_startswith(path, "/sys/");
+        return path_startswith(path, "/dev/") ||
+               path_startswith(path, "/sys/");
+}
+
+bool is_deviceallow_pattern(const char *path) {
+        return path_startswith(path, "/dev/") ||
+               startswith(path, "block-") ||
+               startswith(path, "char-");
+}
+
+int systemd_installation_has_version(const char *root, unsigned minimal_version) {
+        const char *pattern;
+        int r;
+
+        /* Try to guess if systemd installation is later than the specified version. This
+         * is hacky and likely to yield false negatives, particularly if the installation
+         * is non-standard. False positives should be relatively rare.
+         */
+
+        NULSTR_FOREACH(pattern,
+                       /* /lib works for systems without usr-merge, and for systems with a sane
+                        * usr-merge, where /lib is a symlink to /usr/lib. /usr/lib is necessary
+                        * for Gentoo which does a merge without making /lib a symlink.
+                        */
+                       "lib/systemd/libsystemd-shared-*.so\0"
+                       "usr/lib/systemd/libsystemd-shared-*.so\0") {
+
+                _cleanup_strv_free_ char **names = NULL;
+                _cleanup_free_ char *path = NULL;
+                char *c, **name;
+
+                path = prefix_root(root, pattern);
+                if (!path)
+                        return -ENOMEM;
+
+                r = glob_extend(&names, path);
+                if (r == -ENOENT)
+                        continue;
+                if (r < 0)
+                        return r;
+
+                assert_se((c = endswith(path, "*.so")));
+                *c = '\0'; /* truncate the glob part */
+
+                STRV_FOREACH(name, names) {
+                        /* This is most likely to run only once, hence let's not optimize anything. */
+                        char *t, *t2;
+                        unsigned version;
+
+                        t = startswith(*name, path);
+                        if (!t)
+                                continue;
+
+                        t2 = endswith(t, ".so");
+                        if (!t2)
+                                continue;
+
+                        t2[0] = '\0'; /* truncate the suffix */
+
+                        r = safe_atou(t, &version);
+                        if (r < 0) {
+                                log_debug_errno(r, "Found libsystemd shared at \"%s.so\", but failed to parse version: %m", *name);
+                                continue;
+                        }
+
+                        log_debug("Found libsystemd shared at \"%s.so\", version %u (%s).",
+                                  *name, version,
+                                  version >= minimal_version ? "OK" : "too old");
+                        if (version >= minimal_version)
+                                return true;
+                }
+        }
+
+        return false;
 }
 #endif /* NM_IGNORED */
+
+bool dot_or_dot_dot(const char *path) {
+        if (!path)
+                return false;
+        if (path[0] != '.')
+                return false;
+        if (path[1] == 0)
+                return true;
+        if (path[1] != '.')
+                return false;
+
+        return path[2] == 0;
+}

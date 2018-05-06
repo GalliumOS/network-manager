@@ -565,7 +565,6 @@
     <keyword type="property" name="The “dbus-connection” property" link="NMObject.html#NMObject--dbus-connection"/>
     <keyword type="property" name="The “dbus-path” property" link="NMObject.html#NMObject--dbus-path"/>
     <keyword type="signal" name="The “object-creation-failed” signal" link="NMObject.html#NMObject-object-creation-failed"/>
-    <keyword type="macro" name="NM_REMOTE_CONNECTION_ERROR" link="NMRemoteConnection.html#NM-REMOTE-CONNECTION-ERROR:CAPS"/>
     <keyword type="function" name="nm_remote_connection_error_quark ()" link="NMRemoteConnection.html#nm-remote-connection-error-quark"/>
     <keyword type="function" name="NMRemoteConnectionResultFunc ()" link="NMRemoteConnection.html#NMRemoteConnectionResultFunc"/>
     <keyword type="function" name="NMRemoteConnectionGetSecretsFunc ()" link="NMRemoteConnection.html#NMRemoteConnectionGetSecretsFunc"/>
@@ -577,6 +576,7 @@
     <keyword type="function" name="nm_remote_connection_get_secrets ()" link="NMRemoteConnection.html#nm-remote-connection-get-secrets"/>
     <keyword type="function" name="nm_remote_connection_get_unsaved ()" link="NMRemoteConnection.html#nm-remote-connection-get-unsaved" since="0.9.10"/>
     <keyword type="enum" name="enum NMRemoteConnectionError" link="NMRemoteConnection.html#NMRemoteConnectionError"/>
+    <keyword type="macro" name="NM_REMOTE_CONNECTION_ERROR" link="NMRemoteConnection.html#NM-REMOTE-CONNECTION-ERROR:CAPS"/>
     <keyword type="macro" name="NM_REMOTE_CONNECTION_UNSAVED" link="NMRemoteConnection.html#NM-REMOTE-CONNECTION-UNSAVED:CAPS"/>
     <keyword type="macro" name="NM_REMOTE_CONNECTION_UPDATED" link="NMRemoteConnection.html#NM-REMOTE-CONNECTION-UPDATED:CAPS"/>
     <keyword type="macro" name="NM_REMOTE_CONNECTION_REMOVED" link="NMRemoteConnection.html#NM-REMOTE-CONNECTION-REMOVED:CAPS"/>
@@ -619,7 +619,6 @@
     <keyword type="property" name="The “service-running” property" link="NMRemoteSettings.html#NMRemoteSettings--service-running"/>
     <keyword type="signal" name="The “connections-read” signal" link="NMRemoteSettings.html#NMRemoteSettings-connections-read"/>
     <keyword type="signal" name="The “new-connection” signal" link="NMRemoteSettings.html#NMRemoteSettings-new-connection"/>
-    <keyword type="macro" name="NM_SECRET_AGENT_ERROR" link="NMSecretAgent.html#NM-SECRET-AGENT-ERROR:CAPS"/>
     <keyword type="function" name="nm_secret_agent_error_quark ()" link="NMSecretAgent.html#nm-secret-agent-error-quark"/>
     <keyword type="function" name="NMSecretAgentGetSecretsFunc ()" link="NMSecretAgent.html#NMSecretAgentGetSecretsFunc"/>
     <keyword type="function" name="NMSecretAgentSaveSecretsFunc ()" link="NMSecretAgent.html#NMSecretAgentSaveSecretsFunc"/>
@@ -630,6 +629,7 @@
     <keyword type="function" name="nm_secret_agent_get_secrets ()" link="NMSecretAgent.html#nm-secret-agent-get-secrets"/>
     <keyword type="function" name="nm_secret_agent_save_secrets ()" link="NMSecretAgent.html#nm-secret-agent-save-secrets"/>
     <keyword type="function" name="nm_secret_agent_delete_secrets ()" link="NMSecretAgent.html#nm-secret-agent-delete-secrets"/>
+    <keyword type="macro" name="NM_SECRET_AGENT_ERROR" link="NMSecretAgent.html#NM-SECRET-AGENT-ERROR:CAPS"/>
     <keyword type="enum" name="enum NMSecretAgentError" link="NMSecretAgent.html#NMSecretAgentError"/>
     <keyword type="enum" name="enum NMSecretAgentCapabilities" link="NMSecretAgent.html#NMSecretAgentCapabilities" since="0.9.10"/>
     <keyword type="enum" name="enum NMSecretAgentGetSecretsFlags" link="NMSecretAgent.html#NMSecretAgentGetSecretsFlags"/>
@@ -690,7 +690,6 @@
     <keyword type="macro" name="NM_VPN_EDITOR_PLUGIN_NAME" link="libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-NAME:CAPS"/>
     <keyword type="macro" name="NM_VPN_EDITOR_PLUGIN_DESCRIPTION" link="libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-DESCRIPTION:CAPS"/>
     <keyword type="macro" name="NM_VPN_EDITOR_PLUGIN_SERVICE" link="libnm-glib-NMVpnPluginUiWidget.html#NM-VPN-EDITOR-PLUGIN-SERVICE:CAPS"/>
-    <keyword type="macro" name="NMVpnEditorPluginInterface" link="libnm-glib-NMVpnPluginUiWidget.html#NMVpnEditorPluginInterface"/>
     <keyword type="macro" name="get_editor" link="libnm-glib-NMVpnPluginUiWidget.html#get-editor"/>
     <keyword type="macro" name="get_suggested_filename" link="libnm-glib-NMVpnPluginUiWidget.html#get-suggested-filename"/>
     <keyword type="macro" name="nm_vpn_editor_plugin_get_editor" link="libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-get-editor"/>
@@ -698,7 +697,6 @@
     <keyword type="macro" name="nm_vpn_editor_plugin_import" link="libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-import"/>
     <keyword type="macro" name="nm_vpn_editor_plugin_export" link="libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-export"/>
     <keyword type="macro" name="nm_vpn_editor_plugin_get_suggested_filename" link="libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-plugin-get-suggested-filename"/>
-    <keyword type="macro" name="NMVpnEditorInterface" link="libnm-glib-NMVpnPluginUiWidget.html#NMVpnEditorInterface"/>
     <keyword type="macro" name="nm_vpn_editor_get_widget" link="libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-get-widget"/>
     <keyword type="macro" name="nm_vpn_editor_update_connection" link="libnm-glib-NMVpnPluginUiWidget.html#nm-vpn-editor-update-connection"/>
     <keyword type="function" name="nm_vpn_plugin_utils_read_vpn_details ()" link="libnm-glib-nm-vpn-plugin-utils.html#nm-vpn-plugin-utils-read-vpn-details"/>
@@ -715,6 +713,10 @@
     <keyword type="constant" name="NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM" link="NMClient.html#NM-CLIENT-PERMISSION-SETTINGS-MODIFY-SYSTEM:CAPS"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN" link="NMClient.html#NM-CLIENT-PERMISSION-SETTINGS-MODIFY-OWN:CAPS"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME" link="NMClient.html#NM-CLIENT-PERMISSION-SETTINGS-MODIFY-HOSTNAME:CAPS"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS" link="NMClient.html#NM-CLIENT-PERMISSION-SETTINGS-MODIFY-GLOBAL-DNS:CAPS"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_RELOAD" link="NMClient.html#NM-CLIENT-PERMISSION-RELOAD:CAPS"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK" link="NMClient.html#NM-CLIENT-PERMISSION-CHECKPOINT-ROLLBACK:CAPS"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS" link="NMClient.html#NM-CLIENT-PERMISSION-ENABLE-DISABLE-STATISTICS:CAPS"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_LAST" link="NMClient.html#NM-CLIENT-PERMISSION-LAST:CAPS"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_UNKNOWN" link="NMClient.html#NM-CLIENT-PERMISSION-RESULT-UNKNOWN:CAPS"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_YES" link="NMClient.html#NM-CLIENT-PERMISSION-RESULT-YES:CAPS"/>

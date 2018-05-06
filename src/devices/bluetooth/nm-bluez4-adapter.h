@@ -21,10 +21,7 @@
 #ifndef __NETWORKMANAGER_BLUEZ4_ADAPTER_H__
 #define __NETWORKMANAGER_BLUEZ4_ADAPTER_H__
 
-
-#include "nm-default.h"
 #include "nm-bluez-device.h"
-#include "nm-connection-provider.h"
 
 #define NM_TYPE_BLUEZ4_ADAPTER            (nm_bluez4_adapter_get_type ())
 #define NM_BLUEZ4_ADAPTER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_BLUEZ4_ADAPTER, NMBluez4Adapter))
@@ -33,28 +30,22 @@
 #define NM_IS_BLUEZ4_ADAPTER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_BLUEZ4_ADAPTER))
 #define NM_BLUEZ4_ADAPTER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_BLUEZ4_ADAPTER, NMBluez4AdapterClass))
 
+/* Properties */
 #define NM_BLUEZ4_ADAPTER_PATH    "path"
 #define NM_BLUEZ4_ADAPTER_ADDRESS "address"
 
-typedef struct {
-	GObject parent;
-} NMBluez4Adapter;
+/* Signals */
+#define NM_BLUEZ4_ADAPTER_INITIALIZED      "initialized"
+#define NM_BLUEZ4_ADAPTER_DEVICE_ADDED     "device-added"
+#define NM_BLUEZ4_ADAPTER_DEVICE_REMOVED   "device-removed"
 
-typedef struct {
-	GObjectClass parent;
-
-	/* virtual functions */
-	void (*initialized)    (NMBluez4Adapter *self, gboolean success);
-
-	void (*device_added)   (NMBluez4Adapter *self, NMBluezDevice *device);
-
-	void (*device_removed) (NMBluez4Adapter *self, NMBluezDevice *device);
-} NMBluez4AdapterClass;
+typedef struct _NMBluez4Adapter NMBluez4Adapter;
+typedef struct _NMBluez4AdapterClass NMBluez4AdapterClass;
 
 GType nm_bluez4_adapter_get_type (void);
 
 NMBluez4Adapter *nm_bluez4_adapter_new (const char *path,
-                                        NMConnectionProvider *provider);
+                                        NMSettings *settings);
 
 const char *nm_bluez4_adapter_get_path (NMBluez4Adapter *self);
 
@@ -65,4 +56,3 @@ gboolean nm_bluez4_adapter_get_initialized (NMBluez4Adapter *self);
 GSList *nm_bluez4_adapter_get_devices (NMBluez4Adapter *self);
 
 #endif /* __NETWORKMANAGER_BLUEZ4_ADAPTER_H__ */
-

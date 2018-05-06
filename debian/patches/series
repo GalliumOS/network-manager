@@ -1,50 +1,13 @@
-# git cherry-picks
-#none
-
-#breaks on Ubuntu! LP#1431774
-#Debian-specific-tweaks-for-NetworkManager-systemd-se.patch
 Force-online-state-with-unmanaged-devices.patch
 Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
-fix-arping-path.patch
-Check-at-runtime-whether-to-start-ModemManager.patch
+Fix-arping-path.patch
 Don-t-make-NetworkManager-D-Bus-activatable.patch
-Don-t-block-network.target-on-NetworkManager-wait-on.patch
 Fix-iscsiadm-path.patch
-Read-config-from-run.patch
-Read-system-connections-from-run.patch
-
-# ubuntu-specific
-whoopsie-daisy-dbus-support.patch
-#dont_mangle_bridges.patch
-
-# dnsmasq
-#0001-dns-use-DBus-to-make-dnsmasq-nameserver-changes.patch
-nm-change-dnsmasq-parameters.diff
-dnsmasq-vpn-dns-filtering.patch
-lp936712_dnsmasq_ip6_ns_ordering.patch
-
-# wifi
-adhoc_use_wpa_rsn_part1.patch
-adhoc_use_wpa_rsn_part2.patch
-wifi-Signal-on-the-wifi-device-when-its-supplicant-i.patch
-
-# touch-specific
-ignore_rild_modem_devices.patch
-lp1099983_ignore-p2p-wifi-devices.patch
-wwan-add-ofono-modem-support.patch
-lp1461593-add-nm-settings-connection-reset-retries-methods.patch
-add_ofono_settings_support.patch
-#lp1461593-add-modem-reconnect-delay-to-policy.patch
-lp1445080-modify-device-modem-avail.patch
-
-# killswitch
-ignore_rfkill_if_urfkill_is_present.patch
-
-# more fixes
-conditional_libteam_tests.patch
-disable_general_with_expect_test.patch
-#lp1574347-re-read-link-type-if-the-name-changed.diff
+libnm-register-empty-NMClient-and-NetworkManager-when-loa.patch
+Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+Update-dnsmasq-parameters.patch
+Disable-general-with-expect.patch
 libnm-Check-self-still-NMManager-or-not.patch
-libnm-don-t-require-initialized-out_encrypted-argume.patch
-cli-initialize-connection-list-in-do_device_connect.patch
-dns-manager-don-t-merge-split-DNS-search-domains.patch
+#dns-manager-don-t-merge-split-DNS-search-domains.patch
+Read-system-connections-from-run.patch
+e91f1a7d2a6b8400b6b331d5b72287dcb5164a39.patch

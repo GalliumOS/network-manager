@@ -82,7 +82,7 @@ enum {
 	PROP_LAST
 };
 
-/*************************************************************/
+/*****************************************************************************/
 
 static GHashTable *registered_settings = NULL;
 static GHashTable *registered_settings_by_type = NULL;
@@ -124,7 +124,7 @@ _ensure_registered_constructor (void)
 		} \
 	} G_STMT_END
 
-/*************************************************************/
+/*****************************************************************************/
 
 /*
  * _nm_register_setting:
@@ -286,7 +286,7 @@ _nm_setting_compare_priority (gconstpointer a, gconstpointer b)
 	return 1;
 }
 
-/*************************************************************/
+/*****************************************************************************/
 
 static void
 destroy_gvalue (gpointer data)
@@ -402,7 +402,7 @@ nm_setting_new_from_hash (GType setting_type, GHashTable *hash)
 			continue;
 		}
 
-		nm_g_object_set_property ((GObject *) setting, prop_name, src_value, NULL);
+		(void) nm_g_object_set_property ((GObject *) setting, prop_name, src_value, NULL);
 	}
 
 	g_type_class_unref (class);
@@ -1403,7 +1403,7 @@ _nm_setting_verify_deprecated_virtual_iface_name (const char *interface_name,
 		                     e_invalid_property,
 		                     _("property is invalid"));
 		g_prefix_error (error, "%s.%s: ", setting_name, setting_property);
-		/* we would like to make this a NORMALIZEABLE_ERROR, but that might
+		/* we would like to make this a NORMALIZABLE_ERROR, but that might
 		 * break older connections. */
 		return NM_SETTING_VERIFY_NORMALIZABLE;
 	}

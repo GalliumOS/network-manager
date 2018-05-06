@@ -3,15 +3,8 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Define if you we can build nm-setting-docs.xml, nm-keyfile-docs.xml and
-   nm-ifcfg-rh-docs.xml */
-#undef BUILD_SETTING_DOCS
-
 /* Path to ConsoleKit database */
 #undef CKDB_PATH
-
-/* Default configuration option for main.plugins setting */
-#undef CONFIG_PLUGINS_DEFAULT
 
 /* Define if dhcpcd supports IPv6 (6.x+) */
 #undef DHCPCD_SUPPORTS_IPV6
@@ -41,8 +34,19 @@
    */
 #undef HAVE_DCGETTEXT
 
+/* Define to 1 if you have the declaration of `explicit_bzero', and to 0 if
+   you don't. */
+#undef HAVE_DECL_EXPLICIT_BZERO
+
+/* Define to 1 if you have the declaration of `getrandom', and to 0 if you
+   don't. */
+#undef HAVE_DECL_GETRANDOM
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
+
+/* has getrandom */
+#undef HAVE_GETRANDOM
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
@@ -61,6 +65,9 @@
 
 /* Define if you have libaudit support */
 #undef HAVE_LIBAUDIT
+
+/* Define to 1 if libsystemd is available */
+#undef HAVE_LIBSYSTEMD
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -89,9 +96,6 @@
 /* Define if you have SELinux support */
 #undef HAVE_SELINUX
 
-/* Define if you have pre-built settings docs */
-#undef HAVE_SETTING_DOCS
-
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -106,6 +110,9 @@
 
 /* Define if systemd support is available */
 #undef HAVE_SYSTEMD
+
+/* Define to 1 if you have the <sys/auxv.h> header file. */
+#undef HAVE_SYS_AUXV_H
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
@@ -137,6 +144,9 @@
 /* Define to path of iptables binary */
 #undef IPTABLES_PATH
 
+/* Define to path to the Jansson shared library */
+#undef JANSSON_SONAME
+
 /* Define to path of the kernel firmware directory */
 #undef KERNEL_FIRMWARE_DIR
 
@@ -146,14 +156,24 @@
 /* Path to netconfig */
 #undef NETCONFIG_PATH
 
-/* The default value of the auth-polkit configuration option */
-#undef NM_CONFIG_DEFAULT_AUTH_POLKIT
-
 /* The default value of the logging.audit configuration option */
 #undef NM_CONFIG_DEFAULT_LOGGING_AUDIT
 
 /* Default configuration option for logging.backend */
-#undef NM_CONFIG_LOGGING_BACKEND_DEFAULT
+#undef NM_CONFIG_DEFAULT_LOGGING_BACKEND
+
+/* The default value of the auth-polkit configuration option */
+#undef NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT
+
+/* Default configuration option for main.dhcp setting */
+#undef NM_CONFIG_DEFAULT_MAIN_DHCP
+
+/* Default configuration option for main.plugins setting */
+#undef NM_CONFIG_DEFAULT_MAIN_PLUGINS
+
+/* Default value for main.rc-manager setting
+   (--with-config-dns-rc-manager-default) */
+#undef NM_CONFIG_DEFAULT_MAIN_RC_MANAGER
 
 /* Define the distribution version string */
 #undef NM_DIST_VERSION
@@ -197,11 +217,17 @@
 /* Define to 1 if ConsoleKit is available */
 #undef SESSION_TRACKING_CONSOLEKIT
 
+/* Define to 1 if libelogin is available */
+#undef SESSION_TRACKING_ELOGIND
+
 /* Define to 1 if libsystemd-login is available */
 #undef SESSION_TRACKING_SYSTEMD
 
 /* The size of `dev_t', as computed by sizeof. */
 #undef SIZEOF_DEV_T
+
+/* The size of `time_t', as computed by sizeof. */
+#undef SIZEOF_TIME_T
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
@@ -209,14 +235,23 @@
 /* Define to 1 to use ConsoleKit2 suspend api */
 #undef SUSPEND_RESUME_CONSOLEKIT
 
+/* Define to 1 to use elogind suspend api */
+#undef SUSPEND_RESUME_ELOGIND
+
 /* Define to 1 to use systemd suspend api */
 #undef SUSPEND_RESUME_SYSTEMD
+
+/* Define to 1 to use UPower suspend api */
+#undef SUSPEND_RESUME_UPOWER
 
 /* Define to 1 if libsystemd-journald is available */
 #undef SYSTEMD_JOURNAL
 
 /* Define to path to system CA certificates */
 #undef SYSTEM_CA_PATH
+
+/* Define python path for test binary */
+#undef TEST_NM_PYTHON
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
@@ -240,6 +275,9 @@
 #endif
 
 
+/* sys/random.h is usable */
+#undef USE_SYS_RANDOM_H
+
 /* Version number of package */
 #undef VERSION
 
@@ -252,14 +290,26 @@
 /* Define if you have dhclient */
 #undef WITH_DHCLIENT
 
+/* Define if you have dhcpcanon */
+#undef WITH_DHCPCANON
+
 /* Define if you have dhcpcd */
 #undef WITH_DHCPCD
 
-/* Define if you have libsoup */
-#undef WITH_LIBSOUP
+/* Define if JANSSON is enabled */
+#undef WITH_JANSSON
+
+/* Define if you have libpsl */
+#undef WITH_LIBPSL
 
 /* Define if you have ModemManager1 support */
 #undef WITH_MODEM_MANAGER_1
+
+/* Define if you have oFono support (experimental) */
+#undef WITH_OFONO
+
+/* Define if you have OpenVSwitch support */
+#undef WITH_OPENVSWITCH
 
 /* whether to compile polkit support */
 #undef WITH_POLKIT
@@ -293,6 +343,12 @@
 
 /* Define to 1 if on MINIX. */
 #undef _MINIX
+
+/* Define whether the compiler support gcc __auto_type */
+#undef _NM_CC_SUPPORT_AUTO_TYPE
+
+/* Define whether the compiler supports C11 _Generic() */
+#undef _NM_CC_SUPPORT_GENERIC
 
 /* Define to 2 if the system does not provide POSIX.1 features except with
    this defined. */

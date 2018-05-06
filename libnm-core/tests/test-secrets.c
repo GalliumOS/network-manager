@@ -38,7 +38,7 @@
 #include "nm-utils.h"
 #include "nm-core-internal.h"
 
-#include "nm-test-utils.h"
+#include "nm-utils/nm-test-utils.h"
 
 #define TEST_NEED_SECRETS_EAP_TLS_CA_CERT TEST_CERT_DIR "/test_ca_cert.pem"
 #define TEST_NEED_SECRETS_EAP_TLS_CLIENT_CERT TEST_CERT_DIR "/test_key_and_cert.pem"
@@ -119,6 +119,12 @@ make_tls_connection (const char *detail, NMSetting8021xCKScheme scheme)
 	                                             scheme,
 	                                             NULL,
 	                                             &error);
+	nmtst_assert_success (success, error);
+
+	success = nm_setting_set_secret_flags (NM_SETTING (s_8021x),
+	                                       NM_SETTING_802_1X_PRIVATE_KEY_PASSWORD,
+	                                       NM_SETTING_SECRET_FLAG_AGENT_OWNED,
+	                                       &error);
 	nmtst_assert_success (success, error);
 
 	/* IP4 setting */
@@ -246,6 +252,13 @@ make_tls_phase2_connection (const char *detail, NMSetting8021xCKScheme scheme)
 	                                                    NULL,
 	                                                    &error);
 	nmtst_assert_success (success, error);
+
+	success = nm_setting_set_secret_flags (NM_SETTING (s_8021x),
+	                                       NM_SETTING_802_1X_PHASE2_PRIVATE_KEY_PASSWORD,
+	                                       NM_SETTING_SECRET_FLAG_AGENT_OWNED,
+	                                       &error);
+	nmtst_assert_success (success, error);
+
 
 	/* IP4 setting */
 	s_ip4 = (NMSettingIP4Config *) nm_setting_ip4_config_new ();
@@ -639,7 +652,7 @@ test_update_secrets_null_setting_name_with_setting_hash (void)
 	secrets = build_wep_secrets (wepkey);
 
 	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL,
-	                       "*nm_connection_update_secrets*setting_name != NULL || full_connection*");
+	                       NMTST_G_RETURN_MSG (setting_name != NULL || full_connection));
 	success = nm_connection_update_secrets (connection, NULL, secrets, &error);
 	g_test_assert_expected_messages ();
 	g_assert_no_error (error);

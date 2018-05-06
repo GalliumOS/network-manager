@@ -4,20 +4,23 @@ Subject: Fix iscsiadm path
 
 The open-scsi package in Debian installs the iscisadm binary as
 /usr/bin/iscsiadm.
+
+This patch can be dropped post-stretch as open-iscsi now also ships the
+binary as /sbin/iscsiadm (and /usr/bin/iscsiadm is a compat symlink).
 ---
- src/settings/plugins/ibft/plugin.c | 2 +-
+ src/settings/plugins/ibft/nms-ibft-plugin.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/settings/plugins/ibft/plugin.c b/src/settings/plugins/ibft/plugin.c
-index 6f9b8c8..ce89599 100644
---- a/src/settings/plugins/ibft/plugin.c
-+++ b/src/settings/plugins/ibft/plugin.c
-@@ -60,7 +60,7 @@ read_connections (SettingsPluginIbft *self)
+diff --git a/src/settings/plugins/ibft/nms-ibft-plugin.c b/src/settings/plugins/ibft/nms-ibft-plugin.c
+index ea4d152..09a4579 100644
+--- a/src/settings/plugins/ibft/nms-ibft-plugin.c
++++ b/src/settings/plugins/ibft/nms-ibft-plugin.c
+@@ -74,7 +74,7 @@ read_connections (NMSIbftPlugin *self)
  	GError *error = NULL;
- 	NMIbftConnection *connection;
+ 	NMSIbftConnection *connection;
  
--	if (!read_ibft_blocks ("/sbin/iscsiadm", &blocks, &error)) {
-+	if (!read_ibft_blocks ("/usr/bin/iscsiadm", &blocks, &error)) {
+-	if (!nms_ibft_reader_load_blocks ("/sbin/iscsiadm", &blocks, &error)) {
++	if (!nms_ibft_reader_load_blocks ("/usr/bin/iscsiadm", &blocks, &error)) {
  		nm_log_dbg (LOGD_SETTINGS, "ibft: failed to read iscsiadm records: %s", error->message);
  		g_error_free (error);
  		return;

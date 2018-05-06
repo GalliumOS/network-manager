@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>nm-vpn-dbus-interface: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch06.html" title="VPN Plugin API Reference">
 <link rel="prev" href="ch06.html" title="VPN Plugin API Reference">
 <link rel="next" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -33,8 +33,23 @@
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect1">
+<a name="libnm-nm-vpn-dbus-interface.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody><tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-8-FOR:CAPS" title="NM_DEPRECATED_IN_1_8_FOR()">NM_DEPRECATED_IN_1_8_FOR</a><span class="c_punctuation">()</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="libnm-nm-vpn-dbus-interface.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -162,6 +177,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-CONFIG-PROXY-PAC:CAPS" title="NM_VPN_PLUGIN_CONFIG_PROXY_PAC">NM_VPN_PLUGIN_CONFIG_PROXY_PAC</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-CONFIG-BANNER:CAPS" title="NM_VPN_PLUGIN_CONFIG_BANNER">NM_VPN_PLUGIN_CONFIG_BANNER</a></td>
 </tr>
 <tr>
@@ -226,6 +245,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-IP4-CONFIG-PRESERVE-ROUTES:CAPS" title="NM_VPN_PLUGIN_IP4_CONFIG_PRESERVE_ROUTES">NM_VPN_PLUGIN_IP4_CONFIG_PRESERVE_ROUTES</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-IP4-CONFIG-NEVER-DEFAULT:CAPS" title="NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT">NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT</a></td>
 </tr>
 <tr>
@@ -286,6 +309,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-IP6-CONFIG-PRESERVE-ROUTES:CAPS" title="NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES">NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-vpn-dbus-interface.html#NM-VPN-PLUGIN-IP6-CONFIG-NEVER-DEFAULT:CAPS" title="NM_VPN_PLUGIN_IP6_CONFIG_NEVER_DEFAULT">NM_VPN_PLUGIN_IP6_CONFIG_NEVER_DEFAULT</a></td>
 </tr>
 </tbody>
@@ -293,7 +320,7 @@
 </div>
 <div class="refsect1">
 <a name="libnm-nm-vpn-dbus-interface.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GEnum
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">├──</span> NMVpnConnectionState
     <span class="lineart">├──</span> NMVpnConnectionStateReason
     <span class="lineart">├──</span> NMVpnPluginFailure
@@ -305,7 +332,10 @@
 </div>
 <div class="refsect1">
 <a name="libnm-nm-vpn-dbus-interface.functions_details"></a><h2>Functions</h2>
-<p></p>
+<div class="refsect2">
+<a name="NM-DEPRECATED-IN-1-8-FOR:CAPS"></a><h3>NM_DEPRECATED_IN_1_8_FOR()</h3>
+<pre class="programlisting">#define             NM_DEPRECATED_IN_1_8_FOR(f)</pre>
+</div>
 </div>
 <div class="refsect1">
 <a name="libnm-nm-vpn-dbus-interface.other_details"></a><h2>Types and Values</h2>
@@ -463,8 +493,8 @@
 <a name="NMVpnServiceState"></a><h3>enum NMVpnServiceState</h3>
 <p>VPN daemon states</p>
 <div class="refsect3">
-<a name="id-1.7.2.7.27.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMVpnServiceState.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -529,8 +559,8 @@
 <a name="NMVpnConnectionState"></a><h3>enum NMVpnConnectionState</h3>
 <p>VPN connection states</p>
 <div class="refsect3">
-<a name="id-1.7.2.7.28.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMVpnConnectionState.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -604,10 +634,11 @@
 <hr>
 <div class="refsect2">
 <a name="NMVpnConnectionStateReason"></a><h3>enum NMVpnConnectionStateReason</h3>
+<div class="warning"><p><code class="literal">NMVpnConnectionStateReason</code> is deprecated and should not be used in newly-written code.</p></div>
 <p>VPN connection state reasons</p>
 <div class="refsect3">
-<a name="id-1.7.2.7.29.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMVpnConnectionStateReason.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -719,8 +750,8 @@
 <a name="NMVpnPluginFailure"></a><h3>enum NMVpnPluginFailure</h3>
 <p>VPN plugin failure reasons</p>
 <div class="refsect3">
-<a name="id-1.7.2.7.30.4"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMVpnPluginFailure.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -757,6 +788,13 @@
 <div class="refsect2">
 <a name="NM-VPN-PLUGIN-CONFIG-TUNDEV:CAPS"></a><h3>NM_VPN_PLUGIN_CONFIG_TUNDEV</h3>
 <pre class="programlisting">#define NM_VPN_PLUGIN_CONFIG_TUNDEV      "tundev"
+</pre>
+<div class="warning"><p><code class="literal">NM_VPN_PLUGIN_CONFIG_TUNDEV</code> is deprecated and should not be used in newly-written code.</p></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-VPN-PLUGIN-CONFIG-PROXY-PAC:CAPS"></a><h3>NM_VPN_PLUGIN_CONFIG_PROXY_PAC</h3>
+<pre class="programlisting">#define NM_VPN_PLUGIN_CONFIG_PROXY_PAC   "pac"
 </pre>
 </div>
 <hr>
@@ -857,6 +895,12 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-VPN-PLUGIN-IP4-CONFIG-PRESERVE-ROUTES:CAPS"></a><h3>NM_VPN_PLUGIN_IP4_CONFIG_PRESERVE_ROUTES</h3>
+<pre class="programlisting">#define NM_VPN_PLUGIN_IP4_CONFIG_PRESERVE_ROUTES "preserve-routes"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-VPN-PLUGIN-IP4-CONFIG-NEVER-DEFAULT:CAPS"></a><h3>NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT</h3>
 <pre class="programlisting">#define NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT "never-default"
 </pre>
@@ -947,6 +991,12 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-VPN-PLUGIN-IP6-CONFIG-PRESERVE-ROUTES:CAPS"></a><h3>NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES</h3>
+<pre class="programlisting">#define NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES "preserve-routes"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-VPN-PLUGIN-IP6-CONFIG-NEVER-DEFAULT:CAPS"></a><h3>NM_VPN_PLUGIN_IP6_CONFIG_NEVER_DEFAULT</h3>
 <pre class="programlisting">#define NM_VPN_PLUGIN_IP6_CONFIG_NEVER_DEFAULT "never-default"
 </pre>
@@ -954,6 +1004,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

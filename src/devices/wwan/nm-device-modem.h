@@ -21,7 +21,7 @@
 #ifndef __NETWORKMANAGER_DEVICE_MODEM_H__
 #define __NETWORKMANAGER_DEVICE_MODEM_H__
 
-#include "nm-device.h"
+#include "devices/nm-device.h"
 #include "nm-modem.h"
 
 #define NM_TYPE_DEVICE_MODEM            (nm_device_modem_get_type ())
@@ -35,14 +35,8 @@
 #define NM_DEVICE_MODEM_CAPABILITIES "modem-capabilities"
 #define NM_DEVICE_MODEM_CURRENT_CAPABILITIES "current-capabilities"
 
-typedef struct {
-	NMDevice parent;
-} NMDeviceModem;
-
-typedef struct {
-	NMDeviceClass parent;
-
-} NMDeviceModemClass;
+typedef struct _NMDeviceModem NMDeviceModem;
+typedef struct _NMDeviceModemClass NMDeviceModemClass;
 
 GType nm_device_modem_get_type (void);
 

@@ -31,10 +31,10 @@
 
 #include <glib/gstdio.h>
 #include <glib-unix.h>
-#include <gmodule.h>
 
 #include "main-utils.h"
 #include "NetworkManagerUtils.h"
+#include "nm-config.h"
 
 static gboolean
 sighup_handler (gpointer user_data)
@@ -95,7 +95,7 @@ nm_main_utils_write_pidfile (const char *pidfile)
 	int fd;
 	gboolean success = FALSE;
 
-	if ((fd = open (pidfile, O_CREAT|O_WRONLY|O_TRUNC, 00644)) < 0) {
+	if ((fd = open (pidfile, O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 00644)) < 0) {
 		fprintf (stderr, _("Opening %s failed: %s\n"), pidfile, strerror (errno));
 		return FALSE;
 	}
@@ -106,7 +106,7 @@ nm_main_utils_write_pidfile (const char *pidfile)
 	else
 		success = TRUE;
 
-	if (close (fd))
+	if (nm_close (fd))
 		fprintf (stderr, _("Closing %s failed: %s\n"), pidfile, strerror (errno));
 
 	return success;
@@ -140,10 +140,25 @@ nm_main_utils_ensure_statedir ()
 void
 nm_main_utils_ensure_rundir ()
 {
+	int errsv;
+
 	/* Setup runtime directory */
 	if (g_mkdir_with_parents (NMRUNDIR, 0755) != 0) {
-		fprintf (stderr, _("Cannot create '%s': %s"), NMRUNDIR, strerror (errno));
+		errsv = errno;
+		fprintf (stderr, _("Cannot create '%s': %s"), NMRUNDIR, g_strerror (errsv));
 		exit (1);
+	}
+
+	/* NM_CONFIG_DEVICE_STATE_DIR is used to determine whether NM is restarted or not.
+	 * It is important to set NMConfigCmdLineOptions.first_start before creating
+	 * the directory. */
+	nm_assert (g_str_has_prefix (NM_CONFIG_DEVICE_STATE_DIR, NMRUNDIR"/"));
+	if (g_mkdir (NM_CONFIG_DEVICE_STATE_DIR, 0755) != 0) {
+		errsv = errno;
+		if (errsv != EEXIST) {
+			fprintf (stderr, _("Cannot create '%s': %s"), NM_CONFIG_DEVICE_STATE_DIR, g_strerror (errsv));
+			exit (1);
+		}
 	}
 }
 
@@ -243,6 +258,7 @@ nm_main_utils_early_setup (const char *progname,
 	textdomain (GETTEXT_PACKAGE);
 
 	for (i = 0; options[i].long_name; i++) {
+		NM_PRAGMA_WARNING_DISABLE("-Wformat-nonliteral")
 		if (!strcmp (options[i].long_name, "log-level")) {
 			opt_fmt_log_level = options[i].description;
 			opt_loc_log_level = &options[i].description;
@@ -252,6 +268,7 @@ nm_main_utils_early_setup (const char *progname,
 			opt_loc_log_domains = &options[i].description;
 			options[i].description = g_strdup_printf (options[i].description, nm_logging_all_domains_to_string ());
 		}
+		NM_PRAGMA_WARNING_REENABLE
 	}
 
 	/* Parse options */

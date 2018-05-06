@@ -42,25 +42,11 @@ unmanaged devices and /etc/network/interfaces
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Network devices which are configured in /etc/network/interfaces will typically
-be managed by ifupdown. Such devices will by default be marked as "unmanaged"
-in NetworkManager.
-
-You can tell NetworkManager to read and use the network configuration from
-/etc/network/interfaces by editing /etc/NetworkManager/NetworkManager.conf
-and changing the configuration as follows:
-
-  [ifupdown]
-  managed=true
-
-After modifying /etc/NetworkManager/NetworkManager.conf or
-/etc/network/interfaces you need to restart the NetworkManager service via
-"service network-manager restart".
-
-It needs to be considered though that the network interface will also still be
-managed by ifupdown. This can lead to unexpected behaviour if two network
-configuration systems manage the same device.
+be managed by ifupdown. NetworkManager respects such a configuration and will
+ignore those devices and mark them as "unmanaged".
 
 If you want to have a network interface managed by NetworkManager it is thus
 recommended to manually remove any configuration for that interface from
-/etc/network/interfaces.
+/etc/network/interfaces. You need to restart NetworkManager afterwards via
+"service network-manager restart".
 

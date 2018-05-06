@@ -26,4 +26,18 @@ NMCResultCode do_connections (NmCli *nmc, int argc, char **argv);
 
 void monitor_connections (NmCli *nmc);
 
+gboolean
+nmc_read_connection_properties (NmCli *nmc,
+                                NMConnection *connection,
+                                int *argc,
+                                char ***argv,
+                                GError **error);
+
+void nmc_active_connection_state_to_color (NMActiveConnectionState state, NMMetaTermColor *color);
+
+extern const NmcMetaGenericInfo *const nmc_fields_con_show[];
+extern const NmcMetaGenericInfo *const nmc_fields_con_active_details_general[];
+extern const NmcMetaGenericInfo *const nmc_fields_con_active_details_vpn[];
+extern const NmcMetaGenericInfo *const nmc_fields_con_active_details_groups[];
+
 #endif /* NMC_CONNECTIONS_H */

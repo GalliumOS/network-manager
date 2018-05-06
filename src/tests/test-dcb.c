@@ -24,7 +24,7 @@
 
 #include "nm-dcb.h"
 
-#include "nm-test-utils.h"
+#include "nm-test-utils-core.h"
 
 typedef struct {
 	guint num;
@@ -334,7 +334,7 @@ test_fcoe_cleanup (void)
 	g_assert (success);
 }
 
-/*******************************************/
+/*****************************************************************************/
 
 NMTST_DEFINE ();
 

@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMRemoteConnection: libnm-glib Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm-glib Reference Manual">
 <link rel="up" href="ch02.html" title="libnm-glib API Reference">
 <link rel="prev" href="NMObject.html" title="NMObject">
 <link rel="next" href="NMRemoteSettings.html" title="NMRemoteSettings">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -36,19 +36,15 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMRemoteConnection.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
 </colgroup>
 <tbody>
 <tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMRemoteConnection.html#NM-REMOTE-CONNECTION-ERROR:CAPS" title="NM_REMOTE_CONNECTION_ERROR">NM_REMOTE_CONNECTION_ERROR</a></td>
-</tr>
-<tr>
 <td class="function_type">
-<span class="returnvalue">GQuark</span>
+<a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMRemoteConnection.html#nm-remote-connection-error-quark" title="nm_remote_connection_error_quark ()">nm_remote_connection_error_quark</a> <span class="c_punctuation">()</span>
@@ -120,7 +116,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMRemoteConnection.html#nm-remote-connection-get-unsaved" title="nm_remote_connection_get_unsaved ()">nm_remote_connection_get_unsaved</a> <span class="c_punctuation">()</span>
@@ -131,7 +127,7 @@
 </div>
 <div class="refsect1">
 <a name="NMRemoteConnection.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -140,24 +136,24 @@
 <tbody>
 <tr>
 <td class="property_type">
-<a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *</td>
+<a href="../dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *</td>
 <td class="property_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection--bus" title="The “bus” property">bus</a></td>
 <td class="property_flags">Write / Construct Only</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *</td>
+<a href="../dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *</td>
 <td class="property_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection--dbus-connection" title="The “dbus-connection” property">dbus-connection</a></td>
 <td class="property_flags">Write / Construct Only</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection--dbus-path" title="The “dbus-path” property">dbus-path</a></td>
 <td class="property_flags">Write / Construct Only</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection--unsaved" title="The “unsaved” property">unsaved</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -166,7 +162,7 @@
 </div>
 <div class="refsect1">
 <a name="NMRemoteConnection.signals"></a><h2>Signals</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="signals_return">
 <col width="300px" class="signals_name">
@@ -176,24 +172,24 @@
 <tr>
 <td class="signal_type"><span class="returnvalue">void</span></td>
 <td class="signal_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection-removed" title="The “removed” signal">removed</a></td>
-<td class="signal_flags">Run First</td>
+<td class="signal_flags"><a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
 </tr>
 <tr>
 <td class="signal_type"><span class="returnvalue">void</span></td>
 <td class="signal_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection-updated" title="The “updated” signal">updated</a></td>
-<td class="signal_flags">Run First</td>
+<td class="signal_flags"><a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
 </tr>
 <tr>
 <td class="signal_type"><span class="returnvalue">void</span></td>
 <td class="signal_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnection-visible" title="The “visible” signal">visible</a></td>
-<td class="signal_flags">Run First</td>
+<td class="signal_flags"><a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect1">
 <a name="NMRemoteConnection.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -202,6 +198,10 @@
 <tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMRemoteConnection.html#NMRemoteConnectionError" title="enum NMRemoteConnectionError">NMRemoteConnectionError</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMRemoteConnection.html#NM-REMOTE-CONNECTION-ERROR:CAPS" title="NM_REMOTE_CONNECTION_ERROR">NM_REMOTE_CONNECTION_ERROR</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -228,8 +228,8 @@
 </div>
 <div class="refsect1">
 <a name="NMRemoteConnection.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
-    <span class="lineart">╰──</span> <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html">NMConnection</a>
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a href="../libnm-util/NMConnection.html#NMConnection-struct">NMConnection</a>
         <span class="lineart">╰──</span> NMRemoteConnection
 </pre>
 </div>
@@ -239,18 +239,12 @@
 <div class="refsect1">
 <a name="NMRemoteConnection.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
-<a name="NM-REMOTE-CONNECTION-ERROR:CAPS"></a><h3>NM_REMOTE_CONNECTION_ERROR</h3>
-<pre class="programlisting">#define NM_REMOTE_CONNECTION_ERROR (nm_remote_connection_error_quark ())
-</pre>
-</div>
-<hr>
-<div class="refsect2">
 <a name="nm-remote-connection-error-quark"></a><h3>nm_remote_connection_error_quark ()</h3>
-<pre class="programlisting"><span class="returnvalue">GQuark</span>
+<pre class="programlisting"><a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 nm_remote_connection_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Registers an error quark for <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> if necessary.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.3.5"></a><h4>Returns</h4>
+<a name="nm-remote-connection-error-quark.returns"></a><h4>Returns</h4>
 <p> the error quark used for <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> errors.</p>
 </div>
 </div>
@@ -259,13 +253,13 @@ nm_remote_connection_error_quark (<em class="parameter"><code><span class="type"
 <a name="NMRemoteConnectionResultFunc"></a><h3>NMRemoteConnectionResultFunc ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 <span class="c_punctuation">(</span>*NMRemoteConnectionResultFunc<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>,
-                                 <em class="parameter"><code><span class="type">GError</span> *error</code></em>,
-                                 <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+                                 <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> *error</code></em>,
+                                 <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Called when NetworkManager has finished an asynchronous operation on a
 connection, like commit changes, deleting, saving, etc.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMRemoteConnectionResultFunc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -296,14 +290,14 @@ connection, like commit changes, deleting, saving, etc.</p>
 <a name="NMRemoteConnectionGetSecretsFunc"></a><h3>NMRemoteConnectionGetSecretsFunc ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 <span class="c_punctuation">(</span>*NMRemoteConnectionGetSecretsFunc<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>,
-                                     <em class="parameter"><code><span class="type">GHashTable</span> *secrets</code></em>,
-                                     <em class="parameter"><code><span class="type">GError</span> *error</code></em>,
-                                     <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+                                     <em class="parameter"><code><a href="../glib/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *secrets</code></em>,
+                                     <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> *error</code></em>,
+                                     <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Called when NetworkManager returns secrets in response to a request for
 secrets via <a class="link" href="NMRemoteConnection.html#nm-remote-connection-get-secrets" title="nm_remote_connection_get_secrets ()"><code class="function">nm_remote_connection_get_secrets()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.5.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMRemoteConnectionGetSecretsFunc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -317,8 +311,8 @@ secrets via <a class="link" href="NMRemoteConnection.html#nm-remote-connection-g
 </tr>
 <tr>
 <td class="parameter_name"><p>secrets</p></td>
-<td class="parameter_description"><p> on success, a hash table of
-hash tables, with each inner hash mapping a setting property to a <span class="type">GValue</span>
+<td class="parameter_description"><p>on success, a hash table of
+hash tables, with each inner hash mapping a setting property to a <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a>
 containing that property's value. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GLib.HashTable]</span></td>
 </tr>
@@ -340,12 +334,12 @@ containing that property's value. </p></td>
 <div class="refsect2">
 <a name="nm-remote-connection-new"></a><h3>nm_remote_connection_new ()</h3>
 <pre class="programlisting"><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="returnvalue">NMRemoteConnection</span></a> *
-nm_remote_connection_new (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *bus</code></em>,
+nm_remote_connection_new (<em class="parameter"><code><a href="../dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *bus</code></em>,
                           <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
 <p>Creates a new object representing the remote connection.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.6.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-remote-connection-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -366,8 +360,8 @@ nm_remote_connection_new (<em class="parameter"><code><a href="/usr/share/gtk-do
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.25.9.6.6"></a><h4>Returns</h4>
-<p> the new remote connection object on success, or <code class="literal">NULL</code> on failure</p>
+<a name="nm-remote-connection-new.returns"></a><h4>Returns</h4>
+<p> the new remote connection object on success, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on failure</p>
 </div>
 </div>
 <hr>
@@ -376,12 +370,12 @@ nm_remote_connection_new (<em class="parameter"><code><a href="/usr/share/gtk-do
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_remote_connection_commit_changes (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>,
                                      <em class="parameter"><code><a class="link" href="NMRemoteConnection.html#NMRemoteConnectionResultFunc" title="NMRemoteConnectionResultFunc ()"><span class="type">NMRemoteConnectionResultFunc</span></a> callback</code></em>,
-                                     <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+                                     <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Send any local changes to the settings and properties of this connection to
 NetworkManager, which will immediately save them to disk.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.7.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-remote-connection-commit-changes.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -395,13 +389,13 @@ NetworkManager, which will immediately save them to disk.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>callback</p></td>
-<td class="parameter_description"><p> a function to be called when the
+<td class="parameter_description"><p>a function to be called when the
 commit completes. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p> caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
+<td class="parameter_description"><p>caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
 . </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span></td>
 </tr>
@@ -416,14 +410,14 @@ commit completes. </p></td>
 nm_remote_connection_commit_changes_unsaved
                                (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>,
                                 <em class="parameter"><code><a class="link" href="NMRemoteConnection.html#NMRemoteConnectionResultFunc" title="NMRemoteConnectionResultFunc ()"><span class="type">NMRemoteConnectionResultFunc</span></a> callback</code></em>,
-                                <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+                                <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Send any local changes to the settings and properties of this connection to
 NetworkManager.  The changes are not saved to disk until either
 <a class="link" href="NMRemoteConnection.html#nm-remote-connection-save" title="nm_remote_connection_save ()"><code class="function">nm_remote_connection_save()</code></a> or <a class="link" href="NMRemoteConnection.html#nm-remote-connection-commit-changes" title="nm_remote_connection_commit_changes ()"><code class="function">nm_remote_connection_commit_changes()</code></a> is
 called.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.8.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-remote-connection-commit-changes-unsaved.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -437,13 +431,13 @@ called.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>callback</p></td>
-<td class="parameter_description"><p> a function to be called when the
+<td class="parameter_description"><p>a function to be called when the
 commit completes. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p> caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
+<td class="parameter_description"><p>caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
 . </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span></td>
 </tr>
@@ -458,12 +452,12 @@ commit completes. </p></td>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_remote_connection_save (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>,
                            <em class="parameter"><code><a class="link" href="NMRemoteConnection.html#NMRemoteConnectionResultFunc" title="NMRemoteConnectionResultFunc ()"><span class="type">NMRemoteConnectionResultFunc</span></a> callback</code></em>,
-                           <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+                           <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Saves the connection to disk if the connection has changes that have not yet
 been written to disk, or if the connection has never been saved.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.9.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-remote-connection-save.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -477,13 +471,13 @@ been written to disk, or if the connection has never been saved.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>callback</p></td>
-<td class="parameter_description"><p> a function to be called when the
+<td class="parameter_description"><p>a function to be called when the
 save completes. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p> caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
+<td class="parameter_description"><p>caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
 . </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span></td>
 </tr>
@@ -498,11 +492,11 @@ save completes. </p></td>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_remote_connection_delete (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>,
                              <em class="parameter"><code><a class="link" href="NMRemoteConnection.html#NMRemoteConnectionResultFunc" title="NMRemoteConnectionResultFunc ()"><span class="type">NMRemoteConnectionResultFunc</span></a> callback</code></em>,
-                             <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+                             <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Delete the connection.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.10.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-remote-connection-delete.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -516,12 +510,12 @@ nm_remote_connection_delete (<em class="parameter"><code><a class="link" href="N
 </tr>
 <tr>
 <td class="parameter_name"><p>callback</p></td>
-<td class="parameter_description"><p> a function to be called when the delete completes. </p></td>
+<td class="parameter_description"><p>a function to be called when the delete completes. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p> caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
+<td class="parameter_description"><p>caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
 . </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span></td>
 </tr>
@@ -536,11 +530,11 @@ nm_remote_connection_delete (<em class="parameter"><code><a class="link" href="N
 nm_remote_connection_get_secrets (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>,
                                   <em class="parameter"><code>const <span class="type">char</span> *setting_name</code></em>,
                                   <em class="parameter"><code><a class="link" href="NMRemoteConnection.html#NMRemoteConnectionGetSecretsFunc" title="NMRemoteConnectionGetSecretsFunc ()"><span class="type">NMRemoteConnectionGetSecretsFunc</span></a> callback</code></em>,
-                                  <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+                                  <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Request the connection's secrets.</p>
 <div class="refsect3">
-<a name="id-1.3.25.9.11.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-remote-connection-get-secrets.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -554,18 +548,18 @@ nm_remote_connection_get_secrets (<em class="parameter"><code><a class="link" hr
 </tr>
 <tr>
 <td class="parameter_name"><p>setting_name</p></td>
-<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/libnm-util/NMSetting.html"><span class="type">NMSetting</span></a> object name to get secrets for</p></td>
+<td class="parameter_description"><p>the <a href="../libnm-util/NMSetting.html#NMSetting-struct"><span class="type">NMSetting</span></a> object name to get secrets for</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
 <td class="parameter_name"><p>callback</p></td>
-<td class="parameter_description"><p> a function to be called when the update completes;
-must not be <code class="literal">NULL</code>. </p></td>
+<td class="parameter_description"><p>a function to be called when the update completes;
+must not be <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p> caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
+<td class="parameter_description"><p>caller-specific data to be passed to <em class="parameter"><code>callback</code></em>
 . </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span></td>
 </tr>
@@ -576,11 +570,11 @@ must not be <code class="literal">NULL</code>. </p></td>
 <hr>
 <div class="refsect2">
 <a name="nm-remote-connection-get-unsaved"></a><h3>nm_remote_connection_get_unsaved ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_remote_connection_get_unsaved (<em class="parameter"><code><a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.3.25.9.12.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-remote-connection-get-unsaved.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -594,9 +588,9 @@ nm_remote_connection_get_unsaved (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.25.9.12.5"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the remote connection contains changes that have not
-been saved to disk, <code class="literal">FALSE</code> if the connection is the same as its on-disk
+<a name="nm-remote-connection-get-unsaved.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the remote connection contains changes that have not
+been saved to disk, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the connection is the same as its on-disk
 representation.</p>
 </div>
 <p class="since">Since: 0.9.10</p>
@@ -607,8 +601,8 @@ representation.</p>
 <div class="refsect2">
 <a name="NMRemoteConnectionError"></a><h3>enum NMRemoteConnectionError</h3>
 <div class="refsect3">
-<a name="id-1.3.25.10.2.3"></a><h4>Members</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMRemoteConnectionError.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
 <col class="enum_members_description">
@@ -632,6 +626,12 @@ representation.</p>
 </tbody>
 </table></div>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-REMOTE-CONNECTION-ERROR:CAPS"></a><h3>NM_REMOTE_CONNECTION_ERROR</h3>
+<pre class="programlisting">#define NM_REMOTE_CONNECTION_ERROR (nm_remote_connection_error_quark ())
+</pre>
 </div>
 <hr>
 <div class="refsect2">
@@ -668,29 +668,29 @@ representation.</p>
 <a name="NMRemoteConnection.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMRemoteConnection--bus"></a><h3>The <code class="literal">“bus”</code> property</h3>
-<pre class="programlisting">  “bus”                      <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *</pre>
-<p>The <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> that the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> is connected to.</p>
+<pre class="programlisting">  “bus”                      <a href="../dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *</pre>
+<p>The <a href="../dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> that the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> is connected to.</p>
 <p>Flags: Write / Construct Only</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMRemoteConnection--dbus-connection"></a><h3>The <code class="literal">“dbus-connection”</code> property</h3>
-<pre class="programlisting">  “dbus-connection”          <a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *</pre>
+<pre class="programlisting">  “dbus-connection”          <a href="../dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="type">DBusGConnection</span></a> *</pre>
 <p>Flags: Write / Construct Only</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMRemoteConnection--dbus-path"></a><h3>The <code class="literal">“dbus-path”</code> property</h3>
-<pre class="programlisting">  “dbus-path”                <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “dbus-path”                <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Flags: Write / Construct Only</p>
 <p>Default value: NULL</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMRemoteConnection--unsaved"></a><h3>The <code class="literal">“unsaved”</code> property</h3>
-<pre class="programlisting">  “unsaved”                  <span class="type">gboolean</span></pre>
-<p><code class="literal">TRUE</code> if the remote connection contains changes that have not been saved
-to disk, <code class="literal">FALSE</code> if the connection is the same as its on-disk representation.</p>
+<pre class="programlisting">  “unsaved”                  <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p><a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the remote connection contains changes that have not been saved
+to disk, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the connection is the same as its on-disk representation.</p>
 <p>Flags: Read</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 0.9.10</p>
@@ -702,12 +702,12 @@ to disk, <code class="literal">FALSE</code> if the connection is the same as its
 <a name="NMRemoteConnection-removed"></a><h3>The <code class="literal">“removed”</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 user_function (<a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection,
-               <span class="type">gpointer</span>            user_data)</pre>
+               <a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)</pre>
 <p>This signal is emitted when a connection is either deleted or becomes
 invisible to the current user.</p>
 <div class="refsect3">
-<a name="id-1.3.25.12.2.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMRemoteConnection-removed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -716,7 +716,7 @@ invisible to the current user.</p>
 <tbody>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_description"><p>a <a href="../libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -727,19 +727,19 @@ invisible to the current user.</p>
 </tbody>
 </table></div>
 </div>
-<p>Flags: Run First</p>
+<p>Flags: <a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMRemoteConnection-updated"></a><h3>The <code class="literal">“updated”</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 user_function (<a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection,
-               <span class="type">gpointer</span>            user_data)</pre>
+               <a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)</pre>
 <p>This signal is emitted when a connection changes, and it is
 still visible to the user.</p>
 <div class="refsect3">
-<a name="id-1.3.25.12.3.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="NMRemoteConnection-updated.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -748,7 +748,7 @@ still visible to the user.</p>
 <tbody>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html"><span class="type">NMConnection</span></a></p></td>
+<td class="parameter_description"><p>a <a href="../libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -759,20 +759,20 @@ still visible to the user.</p>
 </tbody>
 </table></div>
 </div>
-<p>Flags: Run First</p>
+<p>Flags: <a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMRemoteConnection-visible"></a><h3>The <code class="literal">“visible”</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 user_function (<a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *nmremoteconnection,
-               <span class="type">gboolean</span>            arg1,
-               <span class="type">gpointer</span>            user_data)</pre>
-<p>Flags: Run First</p>
+               <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>            arg1,
+               <a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)</pre>
+<p>Flags: <a href="../gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

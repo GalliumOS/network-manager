@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingBond: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingBluetooth.html" title="NMSettingBluetooth">
 <link rel="next" href="NMSettingBridge.html" title="NMSettingBridge">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingBond.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -51,7 +51,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint32</span>
+<a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingBond.html#nm-setting-bond-get-num-options" title="nm_setting_bond_get_num_options ()">nm_setting_bond_get_num_options</a> <span class="c_punctuation">()</span>
@@ -59,7 +59,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingBond.html#nm-setting-bond-get-option" title="nm_setting_bond_get_option ()">nm_setting_bond_get_option</a> <span class="c_punctuation">()</span>
@@ -74,7 +74,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingBond.html#nm-setting-bond-add-option" title="nm_setting_bond_add_option ()">nm_setting_bond_add_option</a> <span class="c_punctuation">()</span>
@@ -82,7 +82,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingBond.html#nm-setting-bond-remove-option" title="nm_setting_bond_remove_option ()">nm_setting_bond_remove_option</a> <span class="c_punctuation">()</span>
@@ -90,7 +90,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingBond.html#nm-setting-bond-validate-option" title="nm_setting_bond_validate_option ()">nm_setting_bond_validate_option</a> <span class="c_punctuation">()</span>
@@ -115,7 +115,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingBond.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -123,7 +123,7 @@
 </colgroup>
 <tbody><tr>
 <td class="property_type">
-<span class="type">GHashTable</span> *</td>
+<a href="../glib/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingBond.html#NMSettingBond--options" title="The “options” property">options</a></td>
 <td class="property_flags">Read / Write</td>
 </tr></tbody>
@@ -131,7 +131,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingBond.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -262,7 +262,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingBond.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingBond
 </pre>
@@ -280,22 +280,22 @@ necessary for bond connections.</p>
 nm_setting_bond_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.4.9.8.2.5"></a><h4>Returns</h4>
-<p> the new empty <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> object. </p>
+<a name="nm-setting-bond-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-bond-get-num-options"></a><h3>nm_setting_bond_get_num_options ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint32</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
 nm_setting_bond_get_num_options (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>);</pre>
 <p>Returns the number of options that should be set for this bond when it
 is activated. This can be used to retrieve each option individually
 using <a class="link" href="NMSettingBond.html#nm-setting-bond-get-option" title="nm_setting_bond_get_option ()"><code class="function">nm_setting_bond_get_option()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.9.8.3.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bond-get-num-options.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -309,16 +309,16 @@ using <a class="link" href="NMSettingBond.html#nm-setting-bond-get-option" title
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.9.8.3.6"></a><h4>Returns</h4>
+<a name="nm-setting-bond-get-num-options.returns"></a><h4>Returns</h4>
 <p> the number of bonding options</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-bond-get-option"></a><h3>nm_setting_bond_get_option ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_bond_get_option (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
-                            <em class="parameter"><code><span class="type">guint32</span> idx</code></em>,
+                            <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> idx</code></em>,
                             <em class="parameter"><code>const <span class="type">char</span> **out_name</code></em>,
                             <em class="parameter"><code>const <span class="type">char</span> **out_value</code></em>);</pre>
 <p>Given an index, return the value of the bonding option at that index.  Indexes
@@ -327,8 +327,8 @@ are *not* guaranteed to be static across modifications to options done by
 and should not be used to refer to options except for short periods of time
 such as during option iteration.</p>
 <div class="refsect3">
-<a name="id-1.4.9.8.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bond-get-option.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -348,13 +348,13 @@ such as during option iteration.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>out_name</p></td>
-<td class="parameter_description"><p> on return, the name of the bonding option;
+<td class="parameter_description"><p>on return, the name of the bonding option;
 this value is owned by the setting and should not be modified. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>out_value</p></td>
-<td class="parameter_description"><p> on return, the value of the name of the
+<td class="parameter_description"><p>on return, the value of the name of the
 bonding option; this value is owned by the setting and should not be
 modified. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
@@ -363,9 +363,9 @@ modified. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.9.8.4.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> on success if the index was valid and an option was found,
-<code class="literal">FALSE</code> if the index was invalid (ie, greater than the number of options
+<a name="nm-setting-bond-get-option.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success if the index was valid and an option was found,
+<a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the index was invalid (ie, greater than the number of options
 currently held by the setting)</p>
 </div>
 </div>
@@ -379,8 +379,8 @@ nm_setting_bond_get_option_by_name (<em class="parameter"><code><a class="link" 
 <em class="parameter"><code>name</code></em>
 , if it exists.</p>
 <div class="refsect3">
-<a name="id-1.4.9.8.5.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bond-get-option-by-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -401,15 +401,15 @@ nm_setting_bond_get_option_by_name (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.9.8.5.6"></a><h4>Returns</h4>
-<p> the value, or <code class="literal">NULL</code> if the key/value pair was never added to the
+<a name="nm-setting-bond-get-option-by-name.returns"></a><h4>Returns</h4>
+<p> the value, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the key/value pair was never added to the
 setting; the value is owned by the setting and must not be modified</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-bond-add-option"></a><h3>nm_setting_bond_add_option ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_bond_add_option (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
                             <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
                             <em class="parameter"><code>const <span class="type">char</span> *value</code></em>);</pre>
@@ -420,8 +420,8 @@ that may already exist.</p>
 <p>The order of how to set several options is relevant because there are options
 that conflict with each other.</p>
 <div class="refsect3">
-<a name="id-1.4.9.8.6.6"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bond-add-option.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -447,23 +447,23 @@ that conflict with each other.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.9.8.6.7"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the option was valid and was added to the internal option
-list, <code class="literal">FALSE</code> if it was not.</p>
+<a name="nm-setting-bond-add-option.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the option was valid and was added to the internal option
+list, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-bond-remove-option"></a><h3>nm_setting_bond_remove_option ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_bond_remove_option (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
                                <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
 <p>Remove the bonding option referenced by <em class="parameter"><code>name</code></em>
  from the internal option
 list.</p>
 <div class="refsect3">
-<a name="id-1.4.9.8.7.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bond-remove-option.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -484,15 +484,15 @@ list.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.9.8.7.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the option was found and removed from the internal option
-list, <code class="literal">FALSE</code> if it was not.</p>
+<a name="nm-setting-bond-remove-option.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the option was found and removed from the internal option
+list, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-bond-validate-option"></a><h3>nm_setting_bond_validate_option ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_bond_validate_option (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
                                  <em class="parameter"><code>const <span class="type">char</span> *value</code></em>);</pre>
 <p>Checks whether <em class="parameter"><code>name</code></em>
@@ -500,10 +500,10 @@ nm_setting_bond_validate_option (<em class="parameter"><code>const <span class="
  is a valid value for
 the <em class="parameter"><code>name</code></em>
 . If <em class="parameter"><code>value</code></em>
- is <code class="literal">NULL</code>, the function only validates the option name.</p>
+ is <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the function only validates the option name.</p>
 <div class="refsect3">
-<a name="id-1.4.9.8.8.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bond-validate-option.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -524,11 +524,11 @@ the <em class="parameter"><code>name</code></em>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.9.8.8.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code>, if the <em class="parameter"><code>value</code></em>
+<a name="nm-setting-bond-validate-option.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, if the <em class="parameter"><code>value</code></em>
 is valid for the given name.
 If the <em class="parameter"><code>name</code></em>
-is not a valid option, <code class="literal">FALSE</code> will be returned.</p>
+is not a valid option, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.</p>
 </div>
 </div>
 <hr>
@@ -537,9 +537,11 @@ is not a valid option, <code class="literal">FALSE</code> will be returned.</p>
 <pre class="programlisting">const <span class="returnvalue">char</span> **
 nm_setting_bond_get_valid_options (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>);</pre>
 <p>Returns a list of valid bond options.</p>
+<p>The <em class="parameter"><code>setting</code></em>
+ argument is unused and may be passed as <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.9.8.9.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bond-get-valid-options.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -547,14 +549,14 @@ nm_setting_bond_get_valid_options (<em class="parameter"><code><a class="link" h
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>setting</p></td>
-<td class="parameter_description"><p>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a></p></td>
-<td class="parameter_annotations"> </td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr></tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.9.8.9.6"></a><h4>Returns</h4>
-<p> a <code class="literal">NULL</code>-terminated array of strings of valid bond options. </p>
+<a name="nm-setting-bond-get-valid-options.returns"></a><h4>Returns</h4>
+<p>a <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of strings of valid bond options. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
@@ -565,8 +567,8 @@ nm_setting_bond_get_valid_options (<em class="parameter"><code><a class="link" h
 nm_setting_bond_get_option_default (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
                                     <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.9.8.10.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-bond-get-option-default.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -587,7 +589,7 @@ nm_setting_bond_get_option_default (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.9.8.10.5"></a><h4>Returns</h4>
+<a name="nm-setting-bond-get-option-default.returns"></a><h4>Returns</h4>
 <p> the value of the bond option if not overridden by an entry in
 the <a class="link" href="NMSettingBond.html#NMSettingBond--options" title="The “options” property"><span class="type">“options”</span></a> property.</p>
 </div>
@@ -772,13 +774,14 @@ the <a class="link" href="NMSettingBond.html#NMSettingBond--options" title="The 
 <div class="refsect2">
 <a name="NMSettingBond-struct"></a><h3>NMSettingBond</h3>
 <pre class="programlisting">typedef struct _NMSettingBond NMSettingBond;</pre>
+<p>Bonding Settings</p>
 </div>
 </div>
 <div class="refsect1">
 <a name="NMSettingBond.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingBond--options"></a><h3>The <code class="literal">“options”</code> property</h3>
-<pre class="programlisting">  “options”                  <span class="type">GHashTable</span> *</pre>
+<pre class="programlisting">  “options”                  <a href="../glib/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</pre>
 <p>Dictionary of key/value pairs of bonding options.  Both keys and values
 must be strings. Option names must contain only alphanumeric characters
 (ie, [a-zA-Z0-9]).</p>
@@ -788,6 +791,6 @@ must be strings. Option names must contain only alphanumeric characters
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

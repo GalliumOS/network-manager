@@ -39,7 +39,7 @@ int readlinkat_malloc(int fd, const char *p, char **ret);
 int readlink_malloc(const char *p, char **r);
 int readlink_value(const char *p, char **ret);
 int readlink_and_make_absolute(const char *p, char **r);
-int readlink_and_canonicalize(const char *p, char **r);
+int readlink_and_canonicalize(const char *p, const char *root, char **r);
 int readlink_and_make_absolute_root(const char *root, const char *path, char **ret);
 
 int chmod_and_chown(const char *path, mode_t mode, uid_t uid, gid_t gid);
@@ -61,6 +61,9 @@ int mkfifo_atomic(const char *path, mode_t mode);
 
 int get_files_in_directory(const char *path, char ***list);
 
+int tmp_dir(const char **ret);
+int var_tmp_dir(const char **ret);
+
 #define INOTIFY_EVENT_MAX (sizeof(struct inotify_event) + NAME_MAX + 1)
 
 #define FOREACH_INOTIFY_EVENT(e, buffer, sz) \
@@ -72,3 +75,26 @@ union inotify_event_buffer {
         struct inotify_event ev;
         uint8_t raw[INOTIFY_EVENT_MAX];
 };
+
+int inotify_add_watch_fd(int fd, int what, uint32_t mask);
+
+enum {
+        CHASE_PREFIX_ROOT = 1,   /* If set, the specified path will be prefixed by the specified root before beginning the iteration */
+        CHASE_NONEXISTENT = 2,   /* If set, it's OK if the path doesn't actually exist. */
+        CHASE_NO_AUTOFS = 4,     /* If set, return -EREMOTE if autofs mount point found */
+};
+
+int chase_symlinks(const char *path_with_prefix, const char *root, unsigned flags, char **ret);
+
+/* Useful for usage with _cleanup_(), removes a directory and frees the pointer */
+static inline void rmdir_and_free(char *p) {
+        (void) rmdir(p);
+        free(p);
+}
+DEFINE_TRIVIAL_CLEANUP_FUNC(char*, rmdir_and_free);
+
+static inline void unlink_and_free(char *p) {
+        (void) unlink(p);
+        free(p);
+}
+DEFINE_TRIVIAL_CLEANUP_FUNC(char*, unlink_and_free);

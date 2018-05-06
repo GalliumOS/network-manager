@@ -36,7 +36,7 @@
  **/
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingPpp, nm_setting_ppp, NM_TYPE_SETTING,
-                         _nm_register_setting (PPP, 3))
+                         _nm_register_setting (PPP, NM_SETTING_PRIORITY_AUX))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_PPP)
 
 #define NM_SETTING_PPP_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_PPP, NMSettingPppPrivate))
@@ -663,7 +663,7 @@ nm_setting_ppp_class_init (NMSettingPppClass *setting_class)
 	/**
 	 * NMSettingPpp:require-mppe:
 	 *
-	 * If %TRUE, MPPE (Microsoft Point-to-Point Encrpytion) will be required for
+	 * If %TRUE, MPPE (Microsoft Point-to-Point Encryption) will be required for
 	 * the PPP session.  If either 64-bit or 128-bit MPPE is not available the
 	 * session will fail.  Note that MPPE is not used on mobile broadband
 	 * connections.
@@ -679,7 +679,7 @@ nm_setting_ppp_class_init (NMSettingPppClass *setting_class)
 	/**
 	 * NMSettingPpp:require-mppe-128:
 	 *
-	 * If %TRUE, 128-bit MPPE (Microsoft Point-to-Point Encrpytion) will be
+	 * If %TRUE, 128-bit MPPE (Microsoft Point-to-Point Encryption) will be
 	 * required for the PPP session, and the "require-mppe" property must also
 	 * be set to %TRUE.  If 128-bit MPPE is not available the session will fail.
 	 **/

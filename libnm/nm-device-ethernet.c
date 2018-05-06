@@ -29,7 +29,6 @@
 #include "nm-utils.h"
 
 #include "nm-device-ethernet.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 
 G_DEFINE_TYPE (NMDeviceEthernet, nm_device_ethernet, NM_TYPE_DEVICE)
@@ -69,7 +68,7 @@ nm_device_ethernet_get_hw_address (NMDeviceEthernet *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_ETHERNET (device), NULL);
 
-	return NM_DEVICE_ETHERNET_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_ETHERNET_GET_PRIVATE (device)->hw_address);
 }
 
 /**
@@ -86,7 +85,7 @@ nm_device_ethernet_get_permanent_hw_address (NMDeviceEthernet *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_ETHERNET (device), NULL);
 
-	return NM_DEVICE_ETHERNET_GET_PRIVATE (device)->perm_hw_address;
+	return nm_str_not_empty (NM_DEVICE_ETHERNET_GET_PRIVATE (device)->perm_hw_address);
 }
 
 /**
@@ -227,9 +226,14 @@ connection_compatible (NMDevice *device, NMConnection *connection, GError **erro
 		perm_addr = nm_device_ethernet_get_permanent_hw_address (NM_DEVICE_ETHERNET (device));
 		s_mac = nm_setting_wired_get_mac_address (s_wired);
 		if (perm_addr) {
+			/* Virtual devices will have empty permanent addr but they should not be excluded
+			 * from the MAC address check specified in the connection */
+			if (*perm_addr == 0)
+				perm_addr = nm_device_ethernet_get_hw_address (NM_DEVICE_ETHERNET (device));
+
 			if (!nm_utils_hwaddr_valid (perm_addr, ETH_ALEN)) {
-				g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
-				                     _("Invalid device MAC address."));
+				g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
+				                     _("Invalid device MAC address %s."), perm_addr);
 				return FALSE;
 			}
 			if (try_mac && s_mac && !nm_utils_hwaddr_matches (s_mac, -1, perm_addr, -1)) {
@@ -272,12 +276,11 @@ get_hw_address (NMDevice *device)
 	return nm_device_ethernet_get_hw_address (NM_DEVICE_ETHERNET (device));
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_ethernet_init (NMDeviceEthernet *device)
 {
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_ETHERNET);
 }
 
 static void
@@ -351,8 +354,6 @@ nm_device_ethernet_class_init (NMDeviceEthernetClass *eth_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (eth_class);
 
 	g_type_class_add_private (eth_class, sizeof (NMDeviceEthernetPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_WIRED);
 
 	/* virtual methods */
 	object_class->finalize = finalize;

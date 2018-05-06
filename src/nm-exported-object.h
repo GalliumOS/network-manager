@@ -21,11 +21,9 @@
 #ifndef NM_EXPORTED_OBJECT_H
 #define NM_EXPORTED_OBJECT_H
 
-#include "nm-default.h"
-
-G_BEGIN_DECLS
-
 /*****************************************************************************/
+
+#define NM_EXPORT_PATH_NUMBERED(basepath) ""basepath"/%llu"
 
 char *nm_exported_object_skeletonify_method_name (const char *dbus_method_name);
 
@@ -51,8 +49,13 @@ void nm_exported_object_skeleton_release (GDBusInterfaceSkeleton *interface);
 #define NM_IS_EXPORTED_OBJECT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_EXPORTED_OBJECT))
 #define NM_EXPORTED_OBJECT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_EXPORTED_OBJECT, NMExportedObjectClass))
 
+#define NM_EXPORTED_OBJECT_PATH "path"
+
+struct _NMExportedObjectPrivate;
+
 struct _NMExportedObject {
 	GDBusObjectSkeleton parent;
+	struct _NMExportedObjectPrivate *_priv;
 };
 
 typedef struct {
@@ -79,6 +82,4 @@ GDBusInterfaceSkeleton *nm_exported_object_get_interface_by_type (NMExportedObje
 void        _nm_exported_object_clear_and_unexport (NMExportedObject **location);
 #define nm_exported_object_clear_and_unexport(location) _nm_exported_object_clear_and_unexport ((NMExportedObject **) (location))
 
-G_END_DECLS
-
-#endif	/* NM_EXPORTED_OBJECT_H */
+#endif /* NM_EXPORTED_OBJECT_H */

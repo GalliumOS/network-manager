@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2007 - 2013 Red Hat, Inc.
+ * Copyright 2007 - 2017 Red Hat, Inc.
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
@@ -27,9 +27,9 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-core-types.h>
-#include <nm-setting.h>
-#include <nm-errors.h>
+#include "nm-core-types.h"
+#include "nm-setting.h"
+#include "nm-errors.h"
 
 G_BEGIN_DECLS
 
@@ -179,6 +179,10 @@ void          nm_connection_for_each_setting_value (NMConnection *connection,
                                                     NMSettingValueIterFn func,
                                                     gpointer user_data);
 
+NM_AVAILABLE_IN_1_10
+NMSetting **  nm_connection_get_settings (NMConnection *connection,
+                                          guint *out_length);
+
 void          nm_connection_dump          (NMConnection *connection);
 
 /* Helpers */
@@ -199,6 +203,8 @@ NMSettingBridgePort *      nm_connection_get_setting_bridge_port       (NMConnec
 NMSettingCdma *            nm_connection_get_setting_cdma              (NMConnection *connection);
 NMSettingConnection *      nm_connection_get_setting_connection        (NMConnection *connection);
 NMSettingDcb *             nm_connection_get_setting_dcb               (NMConnection *connection);
+NM_AVAILABLE_IN_1_8
+NMSettingDummy *           nm_connection_get_setting_dummy             (NMConnection *connection);
 NMSettingGeneric *         nm_connection_get_setting_generic           (NMConnection *connection);
 NMSettingGsm *             nm_connection_get_setting_gsm               (NMConnection *connection);
 NMSettingInfiniband *      nm_connection_get_setting_infiniband        (NMConnection *connection);
@@ -206,12 +212,25 @@ NM_AVAILABLE_IN_1_2
 NMSettingIPTunnel *        nm_connection_get_setting_ip_tunnel         (NMConnection *connection);
 NMSettingIPConfig *        nm_connection_get_setting_ip4_config        (NMConnection *connection);
 NMSettingIPConfig *        nm_connection_get_setting_ip6_config        (NMConnection *connection);
+NM_AVAILABLE_IN_1_6
+NMSettingMacsec *          nm_connection_get_setting_macsec            (NMConnection *connection);
 NM_AVAILABLE_IN_1_2
 NMSettingMacvlan *         nm_connection_get_setting_macvlan           (NMConnection *connection);
 NMSettingOlpcMesh *        nm_connection_get_setting_olpc_mesh         (NMConnection *connection);
+NM_AVAILABLE_IN_1_10
+NMSettingOvsBridge *       nm_connection_get_setting_ovs_bridge        (NMConnection *connection);
+NM_AVAILABLE_IN_1_10
+NMSettingOvsInterface *    nm_connection_get_setting_ovs_interface     (NMConnection *connection);
+NMSettingOvsPatch *        nm_connection_get_setting_ovs_patch         (NMConnection *connection);
+NM_AVAILABLE_IN_1_10
+NMSettingOvsPort *         nm_connection_get_setting_ovs_port          (NMConnection *connection);
 NMSettingPpp *             nm_connection_get_setting_ppp               (NMConnection *connection);
 NMSettingPppoe *           nm_connection_get_setting_pppoe             (NMConnection *connection);
+NM_AVAILABLE_IN_1_6
+NMSettingProxy *           nm_connection_get_setting_proxy             (NMConnection *connection);
 NMSettingSerial *          nm_connection_get_setting_serial            (NMConnection *connection);
+NM_AVAILABLE_IN_1_10_2
+NMSettingTCConfig *        nm_connection_get_setting_tc_config         (NMConnection *connection);
 NMSettingTun *             nm_connection_get_setting_tun               (NMConnection *connection);
 NMSettingVpn *             nm_connection_get_setting_vpn               (NMConnection *connection);
 NMSettingWimax *           nm_connection_get_setting_wimax             (NMConnection *connection);

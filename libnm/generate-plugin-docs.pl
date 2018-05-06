@@ -43,10 +43,6 @@
 use strict;
 use warnings;
 use v5.10;
-#YAML:XS is based on libyaml C library and it is a good and fast YAML implementation.
-#However it may not be present everywhere. So use YAML instead.
-#use YAML::XS qw(Load);
-use YAML qw(Load);
 
 # global variables
 my @keywords = ("property", "variable", "format", "values", "default", "example", "description");
@@ -60,12 +56,12 @@ my $start_tag = "---$plugin---\\s*\$";
 my $end_tag   = '---end---';
 
 # get source files to scan for documentation comments (nm-setting-<something>.c)
-my $file = "$srcdir/Makefile.libnm-core";
+my $file = "$srcdir/Makefile.am";
 open my $fh, '<', $file or die "Can't open $file: $!";
 while (my $line = <$fh>) {
-  chomp $line;
-  my @strings = $line =~ /\/(nm-setting-[^.]*\.c)(?:\s|$)/g;
-  push @source_files, @strings
+  if ($line =~ /^\t*(libnm-core\/nm-setting-[^.]*\.c)( \\)?$/g) {
+    push @source_files, $1;
+  }
 }
 close $fh;
 
@@ -79,9 +75,11 @@ write_header();
 foreach my $c_file (@source_files) {
   my $path = "$srcdir/$c_file";
   my $setting_name = get_setting_name($path);
-  write_item("<setting name=\"$setting_name\">");
-  scan_doc_comments($path, $start_tag, $end_tag);
-  write_item("</setting>");
+  if ($setting_name) {
+    write_item("<setting name=\"$setting_name\">");
+    scan_doc_comments($path, $start_tag, $end_tag);
+    write_item("</setting>");
+  }
 }
 
 # write XML footer
@@ -124,35 +122,31 @@ sub scan_doc_comments {
   close $fi;
 }
 
-# process plugin property documentation comments (as a YAML document)
+# process plugin property documentation comments
 sub process_data {
   return if not @data;
   my $kwd_pat = join("|", @keywords);
-  my $yaml_literal_seq = "|\n";
+  my %parsed_data;
+  my $this_key;
 
   foreach (@data) {
-    # make a proper YAML document from @data
-    $_ =~ s/^\s*\**\s+|\s+$//;  # remove leading spaces and *, and traling spaces
-    # Properly indent the text so that it is a valid YAML, and insert | (for literal text)
-    if ($_ =~ /^($kwd_pat):\s+/) {
-      # add | after "keyword:" that allows using literal text (YAML won't break on special character)
-      # http://learnxinyminutes.com/docs/yaml/ and http://www.yaml.org/spec/1.2/spec.html#id2795688
-      $_ =~ s/(^($kwd_pat):)/$1 $yaml_literal_seq/;
-    } else {
-      $_ = " " . $_;  # indent the text
+    if (/^\s*\**\s+($kwd_pat):\s+(.*?)\s*$/) {
+      $this_key = $1;
+      $parsed_data{$this_key} = "$2\n";
+    } elsif (/^\s*\**\s+(.*?)\s*$/) {
+      die "Extra mess in a comment: $_" unless $this_key;
+      $parsed_data{$this_key} .= "$1\n";
     }
   }
-  my $str = join ("", @data);
-  my $yaml_data = Load($str);
 
   # now write a line into the XML
-  my $name   = $yaml_data->{property}    // "";
-  my $var    = $yaml_data->{variable}    // $name;  # fallback to "property: "
-  my $format = $yaml_data->{format}      // "";
-  my $values = $yaml_data->{values}      // "";
-  my $def    = $yaml_data->{default}     // "";
-  my $exam   = $yaml_data->{example}     // "";
-  my $desc   = $yaml_data->{description} // "";
+  my $name   = $parsed_data{property}    // "";
+  my $var    = $parsed_data{variable}    // $name;  # fallback to "property: "
+  my $format = $parsed_data{format}      // "";
+  my $values = $parsed_data{values}      // "";
+  my $def    = $parsed_data{default}     // "";
+  my $exam   = $parsed_data{example}     // "";
+  my $desc   = $parsed_data{description} // "";
 
   chomp($name, $var, $format, $values, $def, $exam, $desc);
   escape_xml_chars($name, $var, $format, $values, $def, $exam, $desc);

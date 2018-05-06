@@ -44,6 +44,22 @@ case "$1" in
                 echo "" 1>&2
             fi
         fi
+
+        # Fix up existing /etc/resolv.conf symlinks after the migration to /run
+        if dpkg --compare-versions "$2" lt-nl "1.8.0-4"; then
+            if [ "$(readlink /etc/resolv.conf)" = /var/run/NetworkManager/resolv.conf ] ; then
+                ln -sf  /run/NetworkManager/resolv.conf /etc/resolv.conf
+            fi
+        fi
+
+	if dpkg --compare-versions "$2" le-nl "9999"; then
+		mkdir -p /etc/NetworkManager/conf.d || true
+		# for old versions, override the global config with a null config,
+		# but only if the netplan config has not been modified by an user.
+		if find /etc/netplan -name "*.yaml" | wc -l | grep -qc 0; then
+			touch /etc/NetworkManager/conf.d/10-globally-managed-devices.conf
+		fi
+	fi
         ;;
 
     abort-upgrade|abort-deconfigure|abort-remove)

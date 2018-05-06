@@ -23,9 +23,7 @@
 #include <sys/timerfd.h>
 #include <sys/wait.h>
 
-#if 0 /* NM_IGNORED */
 #include "sd-daemon.h"
-#endif
 #include "sd-event.h"
 #include "sd-id128.h"
 
@@ -34,17 +32,11 @@
 #include "hashmap.h"
 #include "list.h"
 #include "macro.h"
-#if 0 /* NM_IGNORED */
 #include "missing.h"
-#endif
 #include "prioq.h"
-#if 0 /* NM_IGNORED */
 #include "process-util.h"
-#endif
 #include "set.h"
-#if 0 /* NM_IGNORED */
 #include "signal-util.h"
-#endif
 #include "string-table.h"
 #include "string-util.h"
 #include "time-util.h"
@@ -119,8 +111,8 @@ struct sd_event_source {
         int64_t priority;
         unsigned pending_index;
         unsigned prepare_index;
-        unsigned pending_iteration;
-        unsigned prepare_iteration;
+        uint64_t pending_iteration;
+        uint64_t prepare_iteration;
 
         LIST_FIELDS(sd_event_source, sources);
 
@@ -225,9 +217,8 @@ struct sd_event {
 
         pid_t original_pid;
 
-        unsigned iteration;
-        dual_timestamp timestamp;
-        usec_t timestamp_boottime;
+        uint64_t iteration;
+        triple_timestamp timestamp;
         int state;
 
         bool exit_requested:1;
@@ -447,7 +438,7 @@ _public_ int sd_event_new(sd_event** ret) {
         e->watchdog_fd = e->epoll_fd = e->realtime.fd = e->boottime.fd = e->monotonic.fd = e->realtime_alarm.fd = e->boottime_alarm.fd = -1;
         e->realtime.next = e->boottime.next = e->monotonic.next = e->realtime_alarm.next = e->boottime_alarm.next = USEC_INFINITY;
         e->realtime.wakeup = e->boottime.wakeup = e->monotonic.wakeup = e->realtime_alarm.wakeup = e->boottime_alarm.wakeup = WAKEUP_CLOCK_DATA;
-        e->original_pid = getpid();
+        e->original_pid = getpid_cached();
         e->perturb = USEC_INFINITY;
 
         r = prioq_ensure_allocated(&e->pending, pending_prioq_compare);
@@ -504,7 +495,7 @@ static bool event_pid_changed(sd_event *e) {
         /* We don't support people creating an event loop and keeping
          * it around over a fork(). Let's complain. */
 
-        return e->original_pid != getpid();
+        return e->original_pid != getpid_cached();
 }
 
 static void source_io_unregister(sd_event_source *s) {
@@ -741,7 +732,6 @@ static void event_unmask_signal_data(sd_event *e, struct signal_data *d, int sig
 
                 /* If all the mask is all-zero we can get rid of the structure */
                 hashmap_remove(e->signal_data, &d->priority);
-                assert(!d->current);
                 safe_close(d->fd);
                 free(d);
                 return;
@@ -1082,11 +1072,15 @@ _public_ int sd_event_add_time(
         assert_return(e->state != SD_EVENT_FINISHED, -ESTALE);
         assert_return(!event_pid_changed(e), -ECHILD);
 
+        if (!clock_supported(clock)) /* Checks whether the kernel supports the clock */
+                return -EOPNOTSUPP;
+
+        type = clock_to_event_source_type(clock); /* checks whether sd-event supports this clock */
+        if (type < 0)
+                return -EOPNOTSUPP;
+
         if (!callback)
                 callback = time_exit_callback;
-
-        type = clock_to_event_source_type(clock);
-        assert_return(type >= 0, -EOPNOTSUPP);
 
         d = event_get_clock_data(e, type);
         assert(d);
@@ -1156,8 +1150,7 @@ _public_ int sd_event_add_signal(
         int r;
 
         assert_return(e, -EINVAL);
-        assert_return(sig > 0, -EINVAL);
-        assert_return(sig < _NSIG, -EINVAL);
+        assert_return(SIGNAL_VALID(sig), -EINVAL);
         assert_return(e->state != SD_EVENT_FINISHED, -ESTALE);
         assert_return(!event_pid_changed(e), -ECHILD);
 
@@ -1549,7 +1542,8 @@ _public_ int sd_event_source_get_priority(sd_event_source *s, int64_t *priority)
         assert_return(s, -EINVAL);
         assert_return(!event_pid_changed(s->event), -ECHILD);
 
-        return s->priority;
+        *priority = s->priority;
+        return 0;
 }
 
 _public_ int sd_event_source_set_priority(sd_event_source *s, int64_t priority) {
@@ -1607,7 +1601,7 @@ _public_ int sd_event_source_set_enabled(sd_event_source *s, int m) {
         int r;
 
         assert_return(s, -EINVAL);
-        assert_return(m == SD_EVENT_OFF || m == SD_EVENT_ON || m == SD_EVENT_ONESHOT, -EINVAL);
+        assert_return(IN_SET(m, SD_EVENT_OFF, SD_EVENT_ON, SD_EVENT_ONESHOT), -EINVAL);
         assert_return(!event_pid_changed(s->event), -ECHILD);
 
         /* If we are dead anyway, we are fine with turning off
@@ -2060,7 +2054,7 @@ static int flush_timer(sd_event *e, int fd, uint32_t events, usec_t *next) {
 
         ss = read(fd, &x, sizeof(x));
         if (ss < 0) {
-                if (errno == EAGAIN || errno == EINTR)
+                if (IN_SET(errno, EAGAIN, EINTR))
                         return 0;
 
                 return -errno;
@@ -2149,10 +2143,7 @@ static int process_child(sd_event *e) {
                         return -errno;
 
                 if (s->child.siginfo.si_pid != 0) {
-                        bool zombie =
-                                s->child.siginfo.si_code == CLD_EXITED ||
-                                s->child.siginfo.si_code == CLD_KILLED ||
-                                s->child.siginfo.si_code == CLD_DUMPED;
+                        bool zombie = IN_SET(s->child.siginfo.si_code, CLD_EXITED, CLD_KILLED, CLD_DUMPED);
 
                         if (!zombie && (s->child.options & WEXITED)) {
                                 /* If the child isn't dead then let's
@@ -2203,7 +2194,7 @@ static int process_signal(sd_event *e, struct signal_data *d, uint32_t events) {
 
                 n = read(d->fd, &si, sizeof(si));
                 if (n < 0) {
-                        if (errno == EAGAIN || errno == EINTR)
+                        if (IN_SET(errno, EAGAIN, EINTR))
                                 return read_one;
 
                         return -errno;
@@ -2212,7 +2203,7 @@ static int process_signal(sd_event *e, struct signal_data *d, uint32_t events) {
                 if (_unlikely_(n != sizeof(si)))
                         return -EIO;
 
-                assert(si.ssi_signo < _NSIG);
+                assert(SIGNAL_VALID(si.ssi_signo));
 
                 read_one = true;
 
@@ -2235,12 +2226,17 @@ static int process_signal(sd_event *e, struct signal_data *d, uint32_t events) {
 }
 
 static int source_dispatch(sd_event_source *s) {
+        EventSourceType saved_type;
         int r = 0;
 
         assert(s);
         assert(s->pending || s->type == SOURCE_EXIT);
 
-        if (s->type != SOURCE_DEFER && s->type != SOURCE_EXIT) {
+        /* Save the event source type, here, so that we still know it after the event callback which might invalidate
+         * the event. */
+        saved_type = s->type;
+
+        if (!IN_SET(s->type, SOURCE_DEFER, SOURCE_EXIT)) {
                 r = source_set_pending(s, false);
                 if (r < 0)
                         return r;
@@ -2292,9 +2288,7 @@ static int source_dispatch(sd_event_source *s) {
         case SOURCE_CHILD: {
                 bool zombie;
 
-                zombie = s->child.siginfo.si_code == CLD_EXITED ||
-                         s->child.siginfo.si_code == CLD_KILLED ||
-                         s->child.siginfo.si_code == CLD_DUMPED;
+                zombie = IN_SET(s->child.siginfo.si_code, CLD_EXITED, CLD_KILLED, CLD_DUMPED);
 
                 r = s->child.callback(s, &s->child.siginfo, s->userdata);
 
@@ -2327,7 +2321,7 @@ static int source_dispatch(sd_event_source *s) {
 
         if (r < 0)
                 log_debug_errno(r, "Event source %s (type %s) returned error, disabling: %m",
-                                strna(s->description), event_source_type_to_string(s->type));
+                                strna(s->description), event_source_type_to_string(saved_type));
 
         if (s->n_ref == 0)
                 source_free(s);
@@ -2539,8 +2533,7 @@ _public_ int sd_event_wait(sd_event *e, uint64_t timeout) {
                 goto finish;
         }
 
-        dual_timestamp_get(&e->timestamp);
-        e->timestamp_boottime = now(CLOCK_BOOTTIME);
+        triple_timestamp_get(&e->timestamp);
 
         for (i = 0; i < m; i++) {
 
@@ -2581,7 +2574,7 @@ _public_ int sd_event_wait(sd_event *e, uint64_t timeout) {
         if (r < 0)
                 goto finish;
 
-        r = process_timer(e, e->timestamp_boottime, &e->boottime);
+        r = process_timer(e, e->timestamp.boottime, &e->boottime);
         if (r < 0)
                 goto finish;
 
@@ -2593,7 +2586,7 @@ _public_ int sd_event_wait(sd_event *e, uint64_t timeout) {
         if (r < 0)
                 goto finish;
 
-        r = process_timer(e, e->timestamp_boottime, &e->boottime_alarm);
+        r = process_timer(e, e->timestamp.boottime, &e->boottime_alarm);
         if (r < 0)
                 goto finish;
 
@@ -2767,40 +2760,24 @@ _public_ int sd_event_now(sd_event *e, clockid_t clock, uint64_t *usec) {
         assert_return(e, -EINVAL);
         assert_return(usec, -EINVAL);
         assert_return(!event_pid_changed(e), -ECHILD);
-        assert_return(IN_SET(clock,
-                             CLOCK_REALTIME,
-                             CLOCK_REALTIME_ALARM,
-                             CLOCK_MONOTONIC,
-                             CLOCK_BOOTTIME,
-                             CLOCK_BOOTTIME_ALARM), -EOPNOTSUPP);
 
-        if (!dual_timestamp_is_set(&e->timestamp)) {
+        if (!TRIPLE_TIMESTAMP_HAS_CLOCK(clock))
+                return -EOPNOTSUPP;
+
+        /* Generate a clean error in case CLOCK_BOOTTIME is not available. Note that don't use clock_supported() here,
+         * for a reason: there are systems where CLOCK_BOOTTIME is supported, but CLOCK_BOOTTIME_ALARM is not, but for
+         * the purpose of getting the time this doesn't matter. */
+        if (IN_SET(clock, CLOCK_BOOTTIME, CLOCK_BOOTTIME_ALARM) && !clock_boottime_supported())
+                return -EOPNOTSUPP;
+
+        if (!triple_timestamp_is_set(&e->timestamp)) {
                 /* Implicitly fall back to now() if we never ran
                  * before and thus have no cached time. */
                 *usec = now(clock);
                 return 1;
         }
 
-        switch (clock) {
-
-        case CLOCK_REALTIME:
-        case CLOCK_REALTIME_ALARM:
-                *usec = e->timestamp.realtime;
-                break;
-
-        case CLOCK_MONOTONIC:
-                *usec = e->timestamp.monotonic;
-                break;
-
-        case CLOCK_BOOTTIME:
-        case CLOCK_BOOTTIME_ALARM:
-                *usec = e->timestamp_boottime;
-                break;
-
-        default:
-                assert_not_reached("Unknown clock?");
-        }
-
+        *usec = triple_timestamp_by_clock(&e->timestamp, clock);
         return 0;
 }
 
@@ -2901,5 +2878,13 @@ _public_ int sd_event_get_watchdog(sd_event *e) {
         assert_return(!event_pid_changed(e), -ECHILD);
 
         return e->watchdog;
+}
+
+_public_ int sd_event_get_iteration(sd_event *e, uint64_t *ret) {
+        assert_return(e, -EINVAL);
+        assert_return(!event_pid_changed(e), -ECHILD);
+
+        *ret = e->iteration;
+        return 0;
 }
 #endif /* NM_IGNORED */

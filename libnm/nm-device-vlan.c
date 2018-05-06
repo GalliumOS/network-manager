@@ -28,7 +28,6 @@
 #include "nm-utils.h"
 
 #include "nm-device-vlan.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 
 G_DEFINE_TYPE (NMDeviceVlan, nm_device_vlan, NM_TYPE_DEVICE)
@@ -66,7 +65,7 @@ nm_device_vlan_get_hw_address (NMDeviceVlan *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_VLAN (device), NULL);
 
-	return NM_DEVICE_VLAN_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_VLAN_GET_PRIVATE (device)->hw_address);
 }
 
 /**
@@ -116,6 +115,7 @@ nm_device_vlan_get_vlan_id (NMDeviceVlan *device)
 static gboolean
 connection_compatible (NMDevice *device, NMConnection *connection, GError **error)
 {
+	NMDeviceVlanPrivate *priv;
 	NMSettingVlan *s_vlan;
 	NMSettingWired *s_wired;
 	const char *setting_hwaddr;
@@ -142,8 +142,10 @@ connection_compatible (NMDevice *device, NMConnection *connection, GError **erro
 	else
 		setting_hwaddr = NULL;
 	if (setting_hwaddr) {
-		if (!nm_utils_hwaddr_matches (setting_hwaddr, -1,
-		                              NM_DEVICE_VLAN_GET_PRIVATE (device)->hw_address, -1)) {
+		priv = NM_DEVICE_VLAN_GET_PRIVATE (device);
+		if (   !priv->hw_address
+		    || !nm_utils_hwaddr_matches (setting_hwaddr, -1,
+		                                 priv->hw_address, -1)) {
 			g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_INCOMPATIBLE_CONNECTION,
 			                     _("The hardware address of the device and the connection didn't match."));
 		}
@@ -164,12 +166,11 @@ get_hw_address (NMDevice *device)
 	return nm_device_vlan_get_hw_address (NM_DEVICE_VLAN (device));
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_vlan_init (NMDeviceVlan *device)
 {
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_VLAN);
 }
 
 static void
@@ -237,8 +238,6 @@ nm_device_vlan_class_init (NMDeviceVlanClass *vlan_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (vlan_class);
 
 	g_type_class_add_private (vlan_class, sizeof (NMDeviceVlanPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_VLAN);
 
 	/* virtual methods */
 	object_class->finalize = finalize;

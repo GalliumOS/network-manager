@@ -21,40 +21,23 @@
 #ifndef __NM_SETTING_PRIVATE_H__
 #define __NM_SETTING_PRIVATE_H__
 
-#include "nm-default.h"
 #include "nm-setting.h"
 #include "nm-connection.h"
 #include "nm-core-enum-types.h"
 
 #include "nm-core-internal.h"
 
-/**
- * NMSettingVerifyResult:
- * @NM_SETTING_VERIFY_SUCCESS: the setting verifies successfully
- * @NM_SETTING_VERIFY_ERROR: the setting has a serious misconfiguration
- * @NM_SETTING_VERIFY_NORMALIZABLE: the setting is valid but has properties
- * that should be normalized
- * @NM_SETTING_VERIFY_NORMALIZABLE_ERROR: the setting is invalid but the
- * errors can be fixed by nm_connection_normalize().
- */
-typedef enum {
-	NM_SETTING_VERIFY_SUCCESS       = TRUE,
-	NM_SETTING_VERIFY_ERROR         = FALSE,
-	NM_SETTING_VERIFY_NORMALIZABLE  = 2,
-	NM_SETTING_VERIFY_NORMALIZABLE_ERROR = 3,
-} NMSettingVerifyResult;
-
-void _nm_register_setting (const char *name,
-                           const GType type,
-                           const guint32 priority);
+void _nm_register_setting_impl (const char *name,
+                                GType type,
+                                NMSettingPriority priority);
 
 #define _nm_register_setting(name, priority) \
 	G_STMT_START { \
-		_nm_register_setting (NM_SETTING_ ## name ## _SETTING_NAME "", g_define_type_id, priority); \
+		_nm_register_setting_impl ("" NM_SETTING_ ## name ## _SETTING_NAME "", g_define_type_id, priority); \
 	} G_STMT_END
 
-gboolean _nm_setting_is_base_type (NMSetting *setting);
-gboolean _nm_setting_type_is_base_type (GType type);
+NMSettingPriority _nm_setting_get_base_type_priority (NMSetting *setting);
+NMSettingPriority _nm_setting_type_get_base_type_priority (GType type);
 gint _nm_setting_compare_priority (gconstpointer a, gconstpointer b);
 
 typedef enum NMSettingUpdateSecretResult {

@@ -23,9 +23,11 @@
 
 #include "sd-dhcp-lease.h"
 
-#if 0 /* NM_IGNORED */
 #include "condition.h"
 #include "udev.h"
+
+#define LINK_BRIDGE_PORT_PRIORITY_INVALID 128
+#define LINK_BRIDGE_PORT_PRIORITY_MAX 63
 
 bool net_match_config(const struct ether_addr *match_mac,
                       char * const *match_path,
@@ -51,10 +53,6 @@ int config_parse_hwaddr(const char *unit, const char *filename, unsigned line,
                         const char *section, unsigned section_line, const char *lvalue,
                         int ltype, const char *rvalue, void *data, void *userdata);
 
-int config_parse_ifname(const char *unit, const char *filename, unsigned line,
-                        const char *section, unsigned section_line, const char *lvalue,
-                        int ltype, const char *rvalue, void *data, void *userdata);
-
 int config_parse_ifnames(const char *unit, const char *filename, unsigned line,
                          const char *section, unsigned section_line, const char *lvalue,
                          int ltype, const char *rvalue, void *data, void *userdata);
@@ -67,9 +65,12 @@ int config_parse_iaid(const char *unit, const char *filename, unsigned line,
                       const char *section, unsigned section_line, const char *lvalue,
                       int ltype, const char *rvalue, void *data, void *userdata);
 
+int config_parse_bridge_port_priority(const char *unit, const char *filename, unsigned line,
+                      const char *section, unsigned section_line, const char *lvalue,
+                      int ltype, const char *rvalue, void *data, void *userdata);
+
 int net_get_unique_predictable_data(struct udev_device *device, uint64_t *result);
 const char *net_get_name(struct udev_device *device);
-#endif /* NM_IGNORED */
 
 void serialize_in_addrs(FILE *f, const struct in_addr *addresses, size_t size);
 int deserialize_in_addrs(struct in_addr **addresses, const char *string);

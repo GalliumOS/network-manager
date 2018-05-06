@@ -1,0 +1,42 @@
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
+/*
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301 USA.
+ *
+ * (C) Copyright 2011 Red Hat, Inc.
+ */
+
+#ifndef __NM_WIFI_UTILS_H__
+#define __NM_WIFI_UTILS_H__
+
+#include "nm-dbus-interface.h"
+#include "nm-connection.h"
+#include "nm-setting-wireless.h"
+#include "nm-setting-wireless-security.h"
+#include "nm-setting-8021x.h"
+
+gboolean nm_wifi_utils_complete_connection (const GByteArray *ssid,
+                                            const char *bssid,
+                                            NM80211Mode mode,
+                                            guint32 flags,
+                                            guint32 wpa_flags,
+                                            guint32 rsn_flags,
+                                            NMConnection *connection,
+                                            gboolean lock_bssid,
+                                            GError **error);
+
+guint32 nm_wifi_utils_level_to_quality (gint val);
+
+#endif  /* __NM_WIFI_UTILS_H__ */

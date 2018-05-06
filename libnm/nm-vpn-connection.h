@@ -26,8 +26,8 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-active-connection.h>
-#include <nm-vpn-dbus-interface.h>
+#include "nm-active-connection.h"
+#include "nm-vpn-dbus-interface.h"
 
 G_BEGIN_DECLS
 
@@ -52,9 +52,19 @@ typedef struct {
 	NMActiveConnectionClass parent;
 
 	/* Signals */
+
+	/* NMVpnConnectionStateReason got deprecated in 1.8.0. Thus, vpn_state_changed()
+	 * uses a deprecated type and is itself deprecated.
+	 *
+	 * If you use this signal slot, you are advised to cast the reason
+	 * to the NMActiveConnectionStateReason type, which is fully compatible.
+	 */
+	G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+	NM_DEPRECATED_IN_1_8
 	void (*vpn_state_changed) (NMVpnConnection *connection,
 	                           NMVpnConnectionState state,
 	                           NMVpnConnectionStateReason reason);
+	G_GNUC_END_IGNORE_DEPRECATIONS
 
 	/*< private >*/
 	gpointer padding[4];

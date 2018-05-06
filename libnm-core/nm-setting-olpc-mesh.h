@@ -27,7 +27,7 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-setting.h>
+#include "nm-setting.h"
 
 G_BEGIN_DECLS
 
@@ -46,6 +46,8 @@ G_BEGIN_DECLS
 
 /**
  * NMSettingOlpcMesh:
+ *
+ * OLPC Wireless Mesh Settings
  */
 struct _NMSettingOlpcMesh {
 	NMSetting parent;

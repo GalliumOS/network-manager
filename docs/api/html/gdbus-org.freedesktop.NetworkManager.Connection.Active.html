@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>org.freedesktop.NetworkManager.Connection.Active: NetworkManager Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
-<link rel="up" href="spec.html#dbus-interfaces" title="Interfaces">
-<link rel="prev" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html" title="org.freedesktop.NetworkManager.VPN.Connection">
-<link rel="next" href="gdbus-org.freedesktop.NetworkManager.Device.html" title="org.freedesktop.NetworkManager.Device">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<link rel="up" href="ref-dbus-active-connections.html" title="The /org/freedesktop/NetworkManager/ActiveConnection/* objects">
+<link rel="prev" href="ref-dbus-active-connections.html" title="The /org/freedesktop/NetworkManager/ActiveConnection/* objects">
+<link rel="next" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html" title="org.freedesktop.NetworkManager.VPN.Connection">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -20,27 +20,29 @@
                   <a href="#gdbus-org.freedesktop.NetworkManager.Connection.Active.signals" class="shortcut">Signals</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
-<td><a accesskey="u" href="spec.html#dbus-interfaces"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="gdbus-org.freedesktop.NetworkManager.Device.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="u" href="ref-dbus-active-connections.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ref-dbus-active-connections.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="gdbus-org.freedesktop.NetworkManager.Connection.Active"></a><div class="titlepage"></div>
 <div class="refnamediv"><table width="100%"><tr>
 <td valign="top">
 <h2><span class="refentrytitle"><a name="gdbus-interface-org-freedesktop-NetworkManager-Connection-Active.top_of_page"></a>org.freedesktop.NetworkManager.Connection.Active</span></h2>
-<p>org.freedesktop.NetworkManager.Connection.Active</p>
+<p>org.freedesktop.NetworkManager.Connection.Active — Active Connection</p>
 </td>
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect1">
-<a name="id-1.3.3.9.3"></a><h2>Signals</h2>
+<a name="id-1.4.9.2.3"></a><h2>Signals</h2>
 <pre class="synopsis">
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.StateChanged" title='The "StateChanged" signal'>StateChanged</a>      (u     state,
+                   u     reason);
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.PropertiesChanged" title='The "PropertiesChanged" signal'>PropertiesChanged</a> (a{sv} properties);
 </pre>
 </div>
 <div class="refsect1">
-<a name="id-1.3.3.9.4"></a><h2>Properties</h2>
+<a name="id-1.4.9.2.4"></a><h2>Properties</h2>
 <pre class="synopsis">
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Connection" title='The "Connection" property'>Connection</a>      readable   o
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.SpecificObject" title='The "SpecificObject" property'>SpecificObject</a>  readable   o
@@ -49,6 +51,7 @@
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Type" title='The "Type" property'>Type</a>            readable   s
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Devices" title='The "Devices" property'>Devices</a>         readable   ao
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.State" title='The "State" property'>State</a>           readable   u
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.StateFlags" title='The "StateFlags" property'>StateFlags</a>      readable   u
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Default" title='The "Default" property'>Default</a>         readable   b
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Ip4Config" title='The "Ip4Config" property'>Ip4Config</a>       readable   o
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Dhcp4Config" title='The "Dhcp4Config" property'>Dhcp4Config</a>     readable   o
@@ -80,11 +83,40 @@
 <div class="refsect1">
 <a name="gdbus-signals-org.freedesktop.NetworkManager.Connection.Active"></a><h2>Signal Details</h2>
 <div class="refsect2">
+<a name="gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.StateChanged"></a><h3>The "StateChanged" signal</h3>
+<pre class="programlisting">
+StateChanged (u state,
+              u reason);
+</pre>
+<p>        Emitted when the state of the active connection has changed.
+</p>
+<p>        Since: 1.8
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="literal">u <em class="parameter"><code>state</code></em></code>:</span></p></td>
+<td><p>(<a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a>) The new state of the active connection.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">u <em class="parameter"><code>reason</code></em></code>:</span></p></td>
+<td><p>(<a class="link" href="nm-dbus-types.html#NMActiveConnectionStateReason" title="enum NMActiveConnectionStateReason">NMActiveConnectionStateReason</a>) Reason code describing the change to the new state.</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.PropertiesChanged"></a><h3>The "PropertiesChanged" signal</h3>
 <pre class="programlisting">
 PropertiesChanged (a{sv} properties);
 </pre>
-<p></p>
+<p>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
+</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -167,6 +199,17 @@ State  readable   u
 <p>        The state of this active connection.
 </p>
 <p>        Returns: <a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager-Connection-Active.StateFlags"></a><h3>The "StateFlags" property</h3>
+<pre class="programlisting">
+StateFlags  readable   u
+</pre>
+<p>        The state flags of this active connection.
+</p>
+<p>        Returns: <a class="link" href="nm-dbus-types.html#NMActivationStateFlags" title="enum NMActivationStateFlags">NMActivationStateFlags</a>
 </p>
 </div>
 <hr>
@@ -254,6 +297,6 @@ Master  readable   o
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

@@ -31,7 +31,7 @@
  **/
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingIPTunnel, nm_setting_ip_tunnel, NM_TYPE_SETTING,
-                         _nm_register_setting (IP_TUNNEL, 1))
+                         _nm_register_setting (IP_TUNNEL, NM_SETTING_PRIORITY_HW_BASE))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_IP_TUNNEL)
 
 #define NM_SETTING_IP_TUNNEL_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_IP_TUNNEL, NMSettingIPTunnelPrivate))
@@ -285,13 +285,13 @@ nm_setting_ip_tunnel_get_mtu (NMSettingIPTunnel *setting)
 	return NM_SETTING_IP_TUNNEL_GET_PRIVATE (setting)->mtu;
 }
 
-/*********************************************************************/
+/*****************************************************************************/
 
 static gboolean
 verify (NMSetting *setting, NMConnection *connection, GError **error)
 {
 	NMSettingIPTunnelPrivate *priv = NM_SETTING_IP_TUNNEL_GET_PRIVATE (setting);
-	int family;
+	int family = AF_UNSPEC;
 
 	switch (priv->mode) {
 	case NM_IP_TUNNEL_MODE_IPIP:
@@ -307,8 +307,8 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	case NM_IP_TUNNEL_MODE_VTI6:
 		family = AF_INET6;
 		break;
-	default:
-		family = AF_UNSPEC;
+	case NM_IP_TUNNEL_MODE_UNKNOWN:
+		break;
 	}
 
 	if (family == AF_UNSPEC) {
@@ -322,7 +322,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	}
 
 	if (   priv->parent
-	    && !nm_utils_iface_valid_name (priv->parent)
+	    && !nm_utils_is_valid_iface_name (priv->parent, NULL)
 	    && !nm_utils_is_uuid (priv->parent)) {
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
@@ -345,7 +345,16 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
-	if (priv->remote && !nm_utils_ipaddr_valid (family, priv->remote)) {
+	if (!priv->remote) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property is missing"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP_TUNNEL_SETTING_NAME, NM_SETTING_IP_TUNNEL_REMOTE);
+		return FALSE;
+	}
+
+	if (!nm_utils_ipaddr_valid (family, priv->remote)) {
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
 		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -749,7 +758,7 @@ nm_setting_ip_tunnel_class_init (NMSettingIPTunnelClass *setting_class)
 		                    G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * NMSettingIPTunel:mtu:
+	 * NMSettingIPTunnel:mtu:
 	 *
 	 * If non-zero, only transmit packets of the specified size or smaller,
 	 * breaking larger packets up into multiple fragments.

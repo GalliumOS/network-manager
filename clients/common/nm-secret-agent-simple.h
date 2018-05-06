@@ -19,10 +19,8 @@
 #ifndef __NM_SECRET_AGENT_SIMPLE_H__
 #define __NM_SECRET_AGENT_SIMPLE_H__
 
-#include <NetworkManager.h>
-#include <nm-secret-agent-old.h>
-
-G_BEGIN_DECLS
+#include "NetworkManager.h"
+#include "nm-secret-agent-old.h"
 
 #define NM_TYPE_SECRET_AGENT_SIMPLE            (nm_secret_agent_simple_get_type ())
 #define NM_SECRET_AGENT_SIMPLE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SECRET_AGENT_SIMPLE, NMSecretAgentSimple))
@@ -30,6 +28,9 @@ G_BEGIN_DECLS
 #define NM_IS_SECRET_AGENT_SIMPLE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SECRET_AGENT_SIMPLE))
 #define NM_IS_SECRET_AGENT_SIMPLE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_SECRET_AGENT_SIMPLE))
 #define NM_SECRET_AGENT_SIMPLE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SECRET_AGENT_SIMPLE, NMSecretAgentSimpleClass))
+
+/* Signals */
+#define NM_SECRET_AGENT_SIMPLE_REQUEST_SECRETS  "request-secrets"
 
 typedef struct {
 	NMSecretAgentOld parent;
@@ -58,7 +59,5 @@ void              nm_secret_agent_simple_response            (NMSecretAgentSimpl
 
 void              nm_secret_agent_simple_enable              (NMSecretAgentSimple *self,
                                                               const char          *path);
-
-G_END_DECLS
 
 #endif /* __NM_SECRET_AGENT_SIMPLE_H__ */

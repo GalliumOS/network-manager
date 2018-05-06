@@ -26,7 +26,7 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-object.h>
+#include "nm-object.h"
 
 G_BEGIN_DECLS
 
@@ -44,6 +44,7 @@ G_BEGIN_DECLS
 #define NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT_PATH "specific-object-path"
 #define NM_ACTIVE_CONNECTION_DEVICES              "devices"
 #define NM_ACTIVE_CONNECTION_STATE                "state"
+#define NM_ACTIVE_CONNECTION_STATE_FLAGS          "state-flags"
 #define NM_ACTIVE_CONNECTION_DEFAULT              "default"
 #define NM_ACTIVE_CONNECTION_IP4_CONFIG           "ip4-config"
 #define NM_ACTIVE_CONNECTION_DHCP4_CONFIG         "dhcp4-config"
@@ -69,21 +70,25 @@ typedef struct {
 
 GType nm_active_connection_get_type (void);
 
-NMRemoteConnection      *nm_active_connection_get_connection           (NMActiveConnection *connection);
-const char              *nm_active_connection_get_id                   (NMActiveConnection *connection);
-const char              *nm_active_connection_get_uuid                 (NMActiveConnection *connection);
-const char              *nm_active_connection_get_connection_type      (NMActiveConnection *connection);
-const char              *nm_active_connection_get_specific_object_path (NMActiveConnection *connection);
-const GPtrArray         *nm_active_connection_get_devices              (NMActiveConnection *connection);
-NMActiveConnectionState  nm_active_connection_get_state                (NMActiveConnection *connection);
-NMDevice                *nm_active_connection_get_master               (NMActiveConnection *connection);
-gboolean                 nm_active_connection_get_default              (NMActiveConnection *connection);
-NMIPConfig              *nm_active_connection_get_ip4_config           (NMActiveConnection *connection);
-NMDhcpConfig            *nm_active_connection_get_dhcp4_config         (NMActiveConnection *connection);
-gboolean                 nm_active_connection_get_default6             (NMActiveConnection *connection);
-NMIPConfig              *nm_active_connection_get_ip6_config           (NMActiveConnection *connection);
-NMDhcpConfig            *nm_active_connection_get_dhcp6_config         (NMActiveConnection *connection);
-gboolean                 nm_active_connection_get_vpn                  (NMActiveConnection *connection);
+NMRemoteConnection            *nm_active_connection_get_connection           (NMActiveConnection *connection);
+const char                    *nm_active_connection_get_id                   (NMActiveConnection *connection);
+const char                    *nm_active_connection_get_uuid                 (NMActiveConnection *connection);
+const char                    *nm_active_connection_get_connection_type      (NMActiveConnection *connection);
+const char                    *nm_active_connection_get_specific_object_path (NMActiveConnection *connection);
+const GPtrArray               *nm_active_connection_get_devices              (NMActiveConnection *connection);
+NMActiveConnectionState        nm_active_connection_get_state                (NMActiveConnection *connection);
+NM_AVAILABLE_IN_1_10
+NMActivationStateFlags         nm_active_connection_get_state_flags          (NMActiveConnection *connection);
+NM_AVAILABLE_IN_1_8
+NMActiveConnectionStateReason  nm_active_connection_get_state_reason         (NMActiveConnection *connection);
+NMDevice                      *nm_active_connection_get_master               (NMActiveConnection *connection);
+gboolean                       nm_active_connection_get_default              (NMActiveConnection *connection);
+NMIPConfig                    *nm_active_connection_get_ip4_config           (NMActiveConnection *connection);
+NMDhcpConfig                  *nm_active_connection_get_dhcp4_config         (NMActiveConnection *connection);
+gboolean                       nm_active_connection_get_default6             (NMActiveConnection *connection);
+NMIPConfig                    *nm_active_connection_get_ip6_config           (NMActiveConnection *connection);
+NMDhcpConfig                  *nm_active_connection_get_dhcp6_config         (NMActiveConnection *connection);
+gboolean                       nm_active_connection_get_vpn                  (NMActiveConnection *connection);
 
 G_END_DECLS
 

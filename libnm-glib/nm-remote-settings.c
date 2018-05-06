@@ -170,7 +170,7 @@ enum {
 };
 static guint signals[LAST_SIGNAL] = { 0 };
 
-/**********************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_remote_settings_error_quark:
@@ -189,7 +189,7 @@ nm_remote_settings_error_quark (void)
 	return quark;
 }
 
-/**********************************************************************/
+/*****************************************************************************/
 
 static void
 _nm_remote_settings_ensure_inited (NMRemoteSettings *self)
@@ -212,7 +212,7 @@ _nm_remote_settings_ensure_inited (NMRemoteSettings *self)
 	}
 }
 
-/**********************************************************************/
+/*****************************************************************************/
 
 typedef struct {
 	NMRemoteSettings *self;
@@ -1057,7 +1057,7 @@ name_owner_changed (DBusGProxy *proxy,
 	}
 }
 
-/****************************************************************/
+/*****************************************************************************/
 
 /**
  * nm_remote_settings_new:
@@ -1115,6 +1115,8 @@ nm_remote_settings_new_async (DBusGConnection *bus, GCancellable *cancellable,
 	GSimpleAsyncResult *simple;
 
 	simple = g_simple_async_result_new (NULL, callback, user_data, nm_remote_settings_new_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 
 	self = g_object_new (NM_TYPE_REMOTE_SETTINGS,
 	                     NM_REMOTE_SETTINGS_BUS, bus,
@@ -1367,6 +1369,8 @@ init_async (GAsyncInitable *initable, int io_priority,
 	init_data->settings = NM_REMOTE_SETTINGS (initable);
 	init_data->result = g_simple_async_result_new (G_OBJECT (initable), callback,
 	                                               user_data, init_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (init_data->result, cancellable);
 
 	/* Check if NM is running */
 	dbus_g_proxy_begin_call (priv->dbus_proxy, "NameHasOwner",
@@ -1429,7 +1433,7 @@ set_property (GObject *object, guint prop_id,
 
 	switch (prop_id) {
 	case PROP_BUS:
-		/* Construct only */
+		/* construct-only */
 		priv->bus = g_value_dup_boxed (value);
 		if (!priv->bus)
 			priv->bus = _nm_dbus_new_connection (NULL);

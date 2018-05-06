@@ -48,7 +48,7 @@ class NetworkTestBase(unittest.TestCase):
 
         # set regulatory domain "EU", so that we can use 80211.a 5 GHz channels
         out = subprocess.check_output(['iw', 'reg', 'get'], universal_newlines=True)
-        m = re.match('^country (\S+):', out)
+        m = re.match('^(?:global\n)?country (\S+):', out)
         assert m
         klass.orig_country = m.group(1)
         subprocess.check_call(['iw', 'reg', 'set', 'EU'])
@@ -56,21 +56,29 @@ class NetworkTestBase(unittest.TestCase):
     @classmethod
     def tearDownClass(klass):
         subprocess.check_call(['iw', 'reg', 'set', klass.orig_country])
+        os.remove('/run/udev/rules.d/99-nm-veth-test.rules')
 
     @classmethod
     def create_devices(klass):
         '''Create Access Point and Client devices with mac80211_hwsim and veth'''
 
-        if os.path.exists('/sys/module/mac80211_hwsim'):
-            raise SystemError('mac80211_hwsim module already loaded')
-        if os.path.exists('/sys/class/net/eth42'):
-            raise SystemError('eth42 interface already exists')
-
-        # create virtual ethernet devs
-        subprocess.check_call(['ip', 'link', 'add', 'name', 'eth42', 'type',
-                               'veth', 'peer', 'name', 'veth42'])
         klass.dev_e_ap = 'veth42'
         klass.dev_e_client = 'eth42'
+
+        if os.path.exists('/sys/module/mac80211_hwsim'):
+            raise SystemError('mac80211_hwsim module already loaded')
+        if os.path.exists('/sys/class/net/' + klass.dev_e_client):
+            raise SystemError('%s interface already exists' % klass.dev_e_client)
+
+        # ensure NM can manage our fake eths
+        os.makedirs('/run/udev/rules.d', exist_ok=True)
+        with open('/run/udev/rules.d/99-nm-veth-test.rules', 'w') as f:
+            f.write('ENV{ID_NET_DRIVER}=="veth", ENV{INTERFACE}=="%s", ENV{NM_UNMANAGED}="0"\n' % klass.dev_e_client)
+        subprocess.check_call(['udevadm', 'control', '--reload'])
+
+        # create virtual ethernet devs
+        subprocess.check_call(['ip', 'link', 'add', 'name', klass.dev_e_client, 'type',
+                               'veth', 'peer', 'name', klass.dev_e_ap])
 
         # create virtual wlan devs
         before_wlan = set([c for c in os.listdir('/sys/class/net') if c.startswith('wlan')])

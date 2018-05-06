@@ -206,7 +206,7 @@ nm_setting_wireless_security_get_proto (NMSettingWirelessSecurity *setting, guin
  * by this connection only supports WPA2/RSN, the connection cannot be used
  * with the access point.
  *
- * Returns: %TRUE if the protocol was new and and was added to the allowed
+ * Returns: %TRUE if the protocol was new and was added to the allowed
  * protocol list, or %FALSE if it was already in the list
  **/
 gboolean
@@ -260,7 +260,7 @@ nm_setting_wireless_security_remove_proto (NMSettingWirelessSecurity *setting, g
  *
  * Removes a protocol from the allowed protocol list.
  *
- * Returns: %TRUE if the protocol was found and removed; %FALSE it it was not.
+ * Returns: %TRUE if the protocol was found and removed; %FALSE if it was not.
  *
  * Since: 0.9.10
  **/
@@ -408,7 +408,7 @@ nm_setting_wireless_security_remove_pairwise (NMSettingWirelessSecurity *setting
  * Removes an encryption algorithm from the allowed pairwise encryption
  * algorithm list.
  *
- * Returns: %TRUE if the encryption algorith was found and removed; %FALSE it it was not.
+ * Returns: %TRUE if the encryption algorith was found and removed; %FALSE if it was not.
  *
  * Since: 0.9.10
  **/
@@ -558,7 +558,7 @@ nm_setting_wireless_security_remove_group (NMSettingWirelessSecurity *setting, g
  * Removes an encryption algorithm from the allowed groupwise encryption
  * algorithm list.
  *
- * Returns: %TRUE if the algorithm was found and removed; %FALSE it it was not.
+ * Returns: %TRUE if the algorithm was found and removed; %FALSE if it was not.
  *
  * Since: 0.9.10
  **/
@@ -893,7 +893,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		return FALSE;
 	}
 
-	if (!_nm_utils_string_in_list (priv->key_mgmt, valid_key_mgmt)) {
+	if (!g_strv_contains (valid_key_mgmt, priv->key_mgmt)) {
 		g_set_error (error,
 		             NM_SETTING_WIRELESS_SECURITY_ERROR,
 		             NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
@@ -966,7 +966,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		return FALSE;
 	}
 
-	if (priv->auth_alg && !_nm_utils_string_in_list (priv->auth_alg, valid_auth_algs)) {
+	if (priv->auth_alg && !g_strv_contains (valid_auth_algs, priv->auth_alg)) {
 		g_set_error_literal (error,
 		                     NM_SETTING_WIRELESS_SECURITY_ERROR,
 		                     NM_SETTING_WIRELESS_SECURITY_ERROR_INVALID_PROPERTY,
@@ -988,7 +988,7 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 		const char *wpa_none[] = { "wpa-none", NULL };
 
 		/* For ad-hoc connections, pairwise must be "none" */
-		if (_nm_utils_string_in_list (priv->key_mgmt, wpa_none)) {
+		if (g_strv_contains (wpa_none, priv->key_mgmt)) {
 			GSList *iter;
 			gboolean found = FALSE;
 

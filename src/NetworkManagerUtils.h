@@ -39,8 +39,9 @@ void nm_utils_complete_generic (NMPlatform *platform,
 
 typedef gboolean (NMUtilsMatchFilterFunc) (NMConnection *connection, gpointer user_data);
 
-NMConnection *nm_utils_match_connection (GSList *connections,
+NMConnection *nm_utils_match_connection (NMConnection *const*connections,
                                          NMConnection *original,
+                                         gboolean indicated,
                                          gboolean device_has_carrier,
                                          gint64 default_v4_metric,
                                          gint64 default_v6_metric,

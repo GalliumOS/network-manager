@@ -22,7 +22,6 @@
 #define __NETWORKMANAGER_BLUEZ_DEVICE_H__
 
 #include "nm-connection.h"
-#include "nm-connection-provider.h"
 
 #define NM_TYPE_BLUEZ_DEVICE            (nm_bluez_device_get_type ())
 #define NM_BLUEZ_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_BLUEZ_DEVICE, NMBluezDevice))
@@ -40,26 +39,17 @@
 #define NM_BLUEZ_DEVICE_CONNECTED    "connected"
 
 /* Signals */
+#define NM_BLUEZ_DEVICE_INITIALIZED  "initialized"
 #define NM_BLUEZ_DEVICE_REMOVED      "removed"
 
-typedef struct {
-	GObject parent;
-} NMBluezDevice;
-
-typedef struct {
-	GObjectClass parent;
-
-	/* virtual functions */
-	void (*initialized) (NMBluezDevice *self, gboolean success);
-
-	void (*removed)     (NMBluezDevice *self);
-} NMBluezDeviceClass;
+typedef struct _NMBluezDevice NMBluezDevice;
+typedef struct _NMBluezDeviceClass NMBluezDeviceClass;
 
 GType nm_bluez_device_get_type (void);
 
 NMBluezDevice *nm_bluez_device_new (const char *path,
                                     const char *adapter_address,
-                                    NMConnectionProvider *provider,
+                                    NMSettings *settings,
                                     int bluez_version);
 
 const char *nm_bluez_device_get_path (NMBluezDevice *self);
@@ -71,8 +61,6 @@ gboolean nm_bluez_device_get_usable (NMBluezDevice *self);
 const char *nm_bluez_device_get_address (NMBluezDevice *self);
 
 const char *nm_bluez_device_get_name (NMBluezDevice *self);
-
-guint32 nm_bluez_device_get_class (NMBluezDevice *self);
 
 guint32 nm_bluez_device_get_capabilities (NMBluezDevice *self);
 

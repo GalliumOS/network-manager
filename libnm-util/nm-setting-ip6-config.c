@@ -868,14 +868,17 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 			return FALSE;
 		}
 
-		if (g_slist_length (priv->addresses)) {
-			g_set_error (error,
-			             NM_SETTING_IP6_CONFIG_ERROR,
-			             NM_SETTING_IP6_CONFIG_ERROR_NOT_ALLOWED_FOR_METHOD,
-			             _("this property is not allowed for '%s=%s'"),
-			             NM_SETTING_IP6_CONFIG_METHOD, priv->method);
-			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_ADDRESSES);
-			return FALSE;
+		/* Shared allows IP addresses; link-local and disabled do not */
+		if (strcmp (priv->method, NM_SETTING_IP6_CONFIG_METHOD_SHARED) != 0) {
+			if (g_slist_length (priv->addresses)) {
+				g_set_error (error,
+				             NM_SETTING_IP6_CONFIG_ERROR,
+				             NM_SETTING_IP6_CONFIG_ERROR_NOT_ALLOWED_FOR_METHOD,
+				             _("this property is not allowed for '%s=%s'"),
+				             NM_SETTING_IP6_CONFIG_METHOD, priv->method);
+				g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_ADDRESSES);
+				return FALSE;
+			}
 		}
 	} else if (   !strcmp (priv->method, NM_SETTING_IP6_CONFIG_METHOD_AUTO)
 	           || !strcmp (priv->method, NM_SETTING_IP6_CONFIG_METHOD_DHCP)) {
@@ -1201,7 +1204,7 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 	 * NMSettingIP6Config:route-metric:
 	 *
 	 * The default metric for routes that don't explicitly specify a metric.
-	 * The default value -1 means that the metric is choosen automatically
+	 * The default value -1 means that the metric is chosen automatically
 	 * based on the device type.
 	 * The metric applies to dynamic routes, manual (static) routes that
 	 * don't have an explicit metric setting, address prefix routes, and
@@ -1306,7 +1309,7 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *setting_class)
 		                   G_PARAM_STATIC_STRINGS));
 }
 
-/********************************************************************/
+/*****************************************************************************/
 
 struct NMIP6Address {
 	guint32 refcount;
@@ -1521,7 +1524,7 @@ nm_ip6_address_set_gateway (NMIP6Address *address, const struct in6_addr *gatewa
 	memcpy (&address->gateway, gateway, sizeof (struct in6_addr));
 }
 
-/********************************************************************/
+/*****************************************************************************/
 
 struct NMIP6Route {
 	guint32 refcount;

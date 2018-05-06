@@ -19,9 +19,7 @@
 #ifndef NM_EDITOR_BINDINGS_H
 #define NM_EDITOR_BINDINGS_H
 
-#include <NetworkManager.h>
-
-G_BEGIN_DECLS
+#include "NetworkManager.h"
 
 void nm_editor_bindings_init (void);
 
@@ -70,7 +68,5 @@ void nm_editor_bind_wireless_security_wep_key         (NMSettingWirelessSecurity
 
 void nm_editor_bind_vlan_name                         (NMSettingVlan       *s_vlan,
                                                        NMSettingConnection *s_con);
-
-G_END_DECLS
 
 #endif /* NM_EDITOR_BINDINGS_H */

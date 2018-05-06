@@ -1,9 +1,9 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: NetworkManager
-Source: http://ftp.gnome.org/pub/GNOME/sources/NetworkManager/
+Source: https://ftp.gnome.org/pub/GNOME/sources/NetworkManager/
 
 Files: *
-Copyright: 2004 - 2014 Red Hat, Inc.
+Copyright: 2004 - 2016 Red Hat, Inc.
            2005 - 2009 Novell, Inc.
 License: GPL-2+
 
@@ -11,15 +11,22 @@ Files: libnm-util/*
        libnm-glib/*
        libnm-core/*
        libnm/*
-Copyright: 2005 - 2014 Red Hat, Inc.
+       shared/*
+Copyright: 2005 - 2016 Red Hat, Inc.
            2005 - 2009 Novell, Inc.
 License: LGPL-2+
 
 Files: src/systemd/*
 Copyright: 2013 - 2015 Tom Gundersen
+           2010 - 2015 Lennart Poettering
            2014 Susant Sahani
            2014 - 2015 Intel Corporation. All rights reserved.
 License: LGPL-2.1+
+
+Files: doc/*
+       man/*
+Copyright: 2012 - 2016 The NetworkManager Authors
+License: GFDL-NIV-1.1+
 
 License: GPL-2+
  This package is free software; you can redistribute it and/or modify
@@ -72,3 +79,11 @@ License: LGPL-2.1+
  On Debian systems, the complete text of the GNU Lesser General
  Public License can be found in "/usr/share/common-licenses/LGPL-2.1".
 
+License: GFDL-NIV-1.1+
+ Permission is granted to copy, distribute and/or modify this document
+ under the terms of the GNU Free Documentation License, Version 1.1 or
+ any later version published by the Free Software Foundation; with no
+ Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+ .
+ On Debian systems, the complete text of the GNU Free Documentation
+ License version 1.1 can be found in "/usr/share/common-licenses/GFDL".

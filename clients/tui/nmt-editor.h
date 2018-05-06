@@ -19,11 +19,9 @@
 #ifndef NMT_EDITOR_H
 #define NMT_EDITOR_H
 
-#include <NetworkManager.h>
+#include "NetworkManager.h"
 
 #include "nmt-newt.h"
-
-G_BEGIN_DECLS
 
 #define NMT_TYPE_EDITOR            (nmt_editor_get_type ())
 #define NMT_EDITOR(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NMT_TYPE_EDITOR, NmtEditor))
@@ -45,7 +43,5 @@ typedef struct {
 GType nmt_editor_get_type (void);
 
 NmtNewtForm *nmt_editor_new (NMConnection *connection);
-
-G_END_DECLS
 
 #endif /* NMT_EDITOR_H */

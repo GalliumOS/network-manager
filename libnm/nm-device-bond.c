@@ -27,7 +27,6 @@
 #include "nm-utils.h"
 
 #include "nm-device-bond.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 #include "nm-core-internal.h"
 
@@ -64,7 +63,7 @@ nm_device_bond_get_hw_address (NMDeviceBond *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_BOND (device), NULL);
 
-	return NM_DEVICE_BOND_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_BOND_GET_PRIVATE (device)->hw_address);
 }
 
 /**
@@ -130,14 +129,12 @@ get_hw_address (NMDevice *device)
 	return nm_device_bond_get_hw_address (NM_DEVICE_BOND (device));
 }
 
-/***********************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_bond_init (NMDeviceBond *device)
 {
 	NMDeviceBondPrivate *priv = NM_DEVICE_BOND_GET_PRIVATE (device);
-
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_BOND);
 
 	priv->slaves = g_ptr_array_new ();
 }
@@ -212,8 +209,6 @@ nm_device_bond_class_init (NMDeviceBondClass *bond_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (bond_class);
 
 	g_type_class_add_private (bond_class, sizeof (NMDeviceBondPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_BOND);
 
 	/* virtual methods */
 	object_class->dispose = dispose;

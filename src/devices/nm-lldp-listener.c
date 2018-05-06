@@ -25,10 +25,10 @@
 #include <net/ethernet.h>
 #include <errno.h>
 
-#include "nm-platform.h"
+#include "platform/nm-platform.h"
 #include "nm-utils.h"
 
-#include "sd-lldp.h"
+#include "systemd/nm-sd.h"
 
 #define MAX_NEIGHBORS         4096
 #define MIN_UPDATE_INTERVAL_NS (2 * NM_UTILS_NS_PER_SECOND)
@@ -66,6 +66,12 @@ typedef struct {
 	};
 } LldpAttrData;
 
+/*****************************************************************************/
+
+NM_GOBJECT_PROPERTIES_DEFINE (NMLldpListener,
+	PROP_NEIGHBORS,
+);
+
 typedef struct {
 	char         *iface;
 	int           ifindex;
@@ -79,13 +85,20 @@ typedef struct {
 	GVariant     *variant;
 } NMLldpListenerPrivate;
 
-NM_GOBJECT_PROPERTIES_DEFINE (NMLldpListener,
-	PROP_NEIGHBORS,
-);
+struct _NMLldpListener {
+	GObject parent;
+	NMLldpListenerPrivate _priv;
+};
+
+struct _NMLldpListenerClass {
+	GObjectClass parent;
+};
 
 G_DEFINE_TYPE (NMLldpListener, nm_lldp_listener, G_TYPE_OBJECT)
 
-#define NM_LLDP_LISTENER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_LLDP_LISTENER, NMLldpListenerPrivate))
+#define NM_LLDP_LISTENER_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMLldpListener, NM_IS_LLDP_LISTENER)
+
+/*****************************************************************************/
 
 typedef struct {
 	guint8 chassis_id_type;
@@ -115,6 +128,8 @@ typedef struct {
             int _ifindex = (self) ? NM_LLDP_LISTENER_GET_PRIVATE (self)->ifindex : 0; \
             \
             _nm_log (_level, _NMLOG_DOMAIN, 0, \
+                     nm_platform_link_get_name (NM_PLATFORM_GET, _ifindex), \
+                     NULL, \
                      "%s%s: " _NM_UTILS_MACRO_FIRST (__VA_ARGS__), \
                      _NMLOG_PREFIX_NAME, \
                      ((_ifindex > 0) \
@@ -259,13 +274,15 @@ static guint
 lldp_neighbor_id_hash (gconstpointer ptr)
 {
 	const LldpNeighbor *neigh = ptr;
-	guint hash;
+	NMHashState h;
 
-	hash =   23423423u  + ((guint) (neigh->chassis_id ? g_str_hash (neigh->chassis_id) : 12321u));
-	hash = (hash * 33u) + ((guint) (neigh->port_id ? g_str_hash (neigh->port_id) : 34342343u));
-	hash = (hash * 33u) + ((guint) neigh->chassis_id_type);
-	hash = (hash * 33u) + ((guint) neigh->port_id_type);
-	return hash;
+	nm_hash_init (&h, 23423423u);
+	nm_hash_update_str0 (&h, neigh->chassis_id);
+	nm_hash_update_str0 (&h, neigh->port_id);
+	nm_hash_update_vals (&h,
+	                     neigh->chassis_id_type,
+	                     neigh->port_id_type);
+	return nm_hash_complete (&h);
 }
 
 static int
@@ -531,7 +548,7 @@ lldp_neighbor_new (sd_lldp_neighbor *neighbor_sd, GError **error)
 	neigh->valid = TRUE;
 
 out:
-	return nm_unauto (&neigh);
+	return g_steal_pointer (&neigh);
 }
 
 static GVariant *
@@ -682,7 +699,7 @@ process_lldp_neighbor (NMLldpListener *self, sd_lldp_neighbor *neighbor_sd, gboo
 		return;
 	}
 
-	/* ensure that we have at most MAX_NEIGHBORS entires */
+	/* ensure that we have at most MAX_NEIGHBORS entries */
 	if (   !neigh_old /* only matters in the "add" case. */
 	    && (g_hash_table_size (priv->lldp_neighbors) + 1 > MAX_NEIGHBORS)) {
 		_LOGT ("process: ignore neighbor due to overall limit of %d", MAX_NEIGHBORS);
@@ -694,7 +711,7 @@ process_lldp_neighbor (NMLldpListener *self, sd_lldp_neighbor *neighbor_sd, gboo
 	        LOG_NEIGH_ARG (neigh));
 
 	changed = TRUE;
-	g_hash_table_add (priv->lldp_neighbors, nm_unauto (&neigh));
+	g_hash_table_add (priv->lldp_neighbors, g_steal_pointer (&neigh));
 
 done:
 	if (changed)
@@ -725,11 +742,18 @@ nm_lldp_listener_start (NMLldpListener *self, int ifindex, GError **error)
 		return FALSE;
 	}
 
-	ret = sd_lldp_new (&priv->lldp_handle, ifindex);
+	ret = sd_lldp_new (&priv->lldp_handle);
 	if (ret < 0) {
 		g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
 		                     "initialization failed");
 		return FALSE;
+	}
+
+	ret = sd_lldp_set_ifindex (priv->lldp_handle, ifindex);
+	if (ret < 0) {
+		g_set_error_literal (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_FAILED,
+		                     "failed setting ifindex");
+		goto err;
 	}
 
 	ret = sd_lldp_set_callback (priv->lldp_handle, lldp_event_handler, self);
@@ -895,8 +919,6 @@ static void
 nm_lldp_listener_class_init (NMLldpListenerClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-	g_type_class_add_private (klass, sizeof (NMLldpListenerPrivate));
 
 	object_class->dispose = dispose;
 	object_class->finalize = finalize;

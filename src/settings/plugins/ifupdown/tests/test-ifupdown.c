@@ -23,10 +23,11 @@
 #include <string.h>
 
 #include "nm-core-internal.h"
-#include "interface_parser.h"
-#include "parser.h"
 
-#include "nm-test-utils.h"
+#include "settings/plugins/ifupdown/nms-ifupdown-interface-parser.h"
+#include "settings/plugins/ifupdown/nms-ifupdown-parser.h"
+
+#include "nm-test-utils-core.h"
 
 typedef struct {
 	char *key;
@@ -506,6 +507,7 @@ test17_read_static_ipv4 (const char *path)
 	g_assert_cmpstr (nm_setting_ip_config_get_dns_search (s_ip4, 0), ==, "example.com");
 	g_assert_cmpstr (nm_setting_ip_config_get_dns_search (s_ip4, 1), ==, "foo.example.com");
 
+	ifparser_destroy ();
 	g_object_unref (connection);
 }
 
@@ -560,6 +562,7 @@ test18_read_static_ipv6 (const char *path)
 	g_assert_cmpstr (nm_setting_ip_config_get_dns_search (s_ip6, 0), ==, "example.com");
 	g_assert_cmpstr (nm_setting_ip_config_get_dns_search (s_ip6, 1), ==, "foo.example.com");
 
+	ifparser_destroy ();
 	g_object_unref (connection);
 }
 
@@ -594,6 +597,7 @@ test19_read_static_ipv4_plen (const char *path)
 	g_assert_cmpstr (nm_ip_address_get_address (ip4_addr), ==, "10.0.0.3");
 	g_assert_cmpint (nm_ip_address_get_prefix (ip4_addr), ==, 8);
 
+	ifparser_destroy ();
 	g_object_unref (connection);
 }
 
@@ -618,6 +622,27 @@ test20_source_stanza (const char *path)
 	expected_block_add_key (b, expected_key_new ("inet", "dhcp"));
 
 	init_ifparser_with_file (path, "test20-source-stanza");
+	compare_expected_to_ifparser (e);
+
+	ifparser_destroy ();
+	expected_free (e);
+}
+
+static void
+test21_source_dir_stanza (const char *path)
+{
+	Expected *e;
+	ExpectedBlock *b;
+
+	e = expected_new ();
+
+	b = expected_block_new ("auto", "eth0");
+	expected_add_block (e, b);
+	b = expected_block_new ("iface", "eth0");
+	expected_add_block (e, b);
+	expected_block_add_key (b, expected_key_new ("inet", "dhcp"));
+
+	init_ifparser_with_file (path, "test21-source-dir-stanza");
 	compare_expected_to_ifparser (e);
 
 	ifparser_destroy ();
@@ -672,6 +697,8 @@ main (int argc, char **argv)
 	                      (GTestDataFunc) test19_read_static_ipv4_plen);
 	g_test_add_data_func ("/ifupdate/source_stanza", TEST_ENI_DIR,
 	                      (GTestDataFunc) test20_source_stanza);
+	g_test_add_data_func ("/ifupdate/source_dir_stanza", TEST_ENI_DIR,
+	                      (GTestDataFunc) test21_source_dir_stanza);
 
 	return g_test_run ();
 }

@@ -39,7 +39,7 @@
  **/
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingTun, nm_setting_tun, NM_TYPE_SETTING,
-                         _nm_register_setting (TUN, 1))
+                         _nm_register_setting (TUN, NM_SETTING_PRIORITY_HW_BASE))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_TUN)
 
 #define NM_SETTING_TUN_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_TUN, NMSettingTunPrivate))
@@ -184,7 +184,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
 		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-		             _("'%u': invalid mode"), (unsigned int) priv->mode);
+		             _("'%u': invalid mode"), (unsigned) priv->mode);
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_TUN_SETTING_NAME, NM_SETTING_TUN_MODE);
 		return FALSE;
 	}

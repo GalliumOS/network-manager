@@ -21,6 +21,7 @@
 
 #include <errno.h>
 #include <net/ethernet.h>
+#include <net/if.h>
 #include <net/if_arp.h>
 #include <stdio.h>
 #include <string.h>
@@ -38,7 +39,8 @@ static int _bind_raw_socket(int ifindex, union sockaddr_union *link,
                             size_t mac_addr_len,
                             const uint8_t *bcast_addr,
                             const struct ether_addr *eth_mac,
-                            uint16_t arp_type, uint8_t dhcp_hlen) {
+                            uint16_t arp_type, uint8_t dhcp_hlen,
+                            uint16_t port) {
         struct sock_filter filter[] = {
                 BPF_STMT(BPF_LD + BPF_W + BPF_LEN, 0),                                 /* A <- packet length */
                 BPF_JUMP(BPF_JMP + BPF_JGE + BPF_K, sizeof(DHCPPacket), 1, 0),         /* packet >= DHCPPacket ? */
@@ -55,7 +57,7 @@ static int _bind_raw_socket(int ifindex, union sockaddr_union *link,
                 BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, 0, 1, 0),                          /* A == 0 ? */
                 BPF_STMT(BPF_RET + BPF_K, 0),                                          /* ignore */
                 BPF_STMT(BPF_LD + BPF_H + BPF_ABS, offsetof(DHCPPacket, udp.dest)),    /* A <- UDP destination port */
-                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, DHCP_PORT_CLIENT, 1, 0),           /* UDP destination port == DHCP client port ? */
+                BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, port, 1, 0),                       /* UDP destination port == DHCP client port ? */
                 BPF_STMT(BPF_RET + BPF_K, 0),                                          /* ignore */
                 BPF_STMT(BPF_LD + BPF_B + BPF_ABS, offsetof(DHCPPacket, dhcp.op)),     /* A <- DHCP op */
                 BPF_JUMP(BPF_JMP + BPF_JEQ + BPF_K, BOOTREPLY, 1, 0),                  /* op == BOOTREPLY ? */
@@ -108,14 +110,16 @@ static int _bind_raw_socket(int ifindex, union sockaddr_union *link,
         if (r < 0)
                 return -errno;
 
-        link->ll.sll_family = AF_PACKET;
-        link->ll.sll_protocol = htons(ETH_P_IP);
-        link->ll.sll_ifindex = ifindex;
-        link->ll.sll_hatype = htons(arp_type);
-        link->ll.sll_halen = mac_addr_len;
+        link->ll = (struct sockaddr_ll) {
+                .sll_family = AF_PACKET,
+                .sll_protocol = htobe16(ETH_P_IP),
+                .sll_ifindex = ifindex,
+                .sll_hatype = htobe16(arp_type),
+                .sll_halen = mac_addr_len,
+        };
         memcpy(link->ll.sll_addr, bcast_addr, mac_addr_len);
 
-        r = bind(s, &link->sa, sizeof(link->ll));
+        r = bind(s, &link->sa, SOCKADDR_LL_LEN(link->ll));
         if (r < 0)
                 return -errno;
 
@@ -127,7 +131,8 @@ static int _bind_raw_socket(int ifindex, union sockaddr_union *link,
 
 int dhcp_network_bind_raw_socket(int ifindex, union sockaddr_union *link,
                                  uint32_t xid, const uint8_t *mac_addr,
-                                 size_t mac_addr_len, uint16_t arp_type) {
+                                 size_t mac_addr_len, uint16_t arp_type,
+                                 uint16_t port) {
         static const uint8_t eth_bcast[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
         /* Default broadcast address for IPoIB */
         static const uint8_t ib_bcast[] = {
@@ -153,16 +158,17 @@ int dhcp_network_bind_raw_socket(int ifindex, union sockaddr_union *link,
                 return -EINVAL;
 
         return _bind_raw_socket(ifindex, link, xid, mac_addr, mac_addr_len,
-                                bcast_addr, &eth_mac, arp_type, dhcp_hlen);
+                                bcast_addr, &eth_mac, arp_type, dhcp_hlen, port);
 }
 
-int dhcp_network_bind_udp_socket(be32_t address, uint16_t port) {
+int dhcp_network_bind_udp_socket(int ifindex, be32_t address, uint16_t port) {
         union sockaddr_union src = {
                 .in.sin_family = AF_INET,
                 .in.sin_port = htobe16(port),
                 .in.sin_addr.s_addr = address,
         };
         _cleanup_close_ int s = -1;
+        char ifname[IF_NAMESIZE] = "";
         int r, on = 1, tos = IPTOS_CLASS_CS6;
 
         s = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
@@ -177,6 +183,15 @@ int dhcp_network_bind_udp_socket(be32_t address, uint16_t port) {
         if (r < 0)
                 return -errno;
 
+        if (ifindex > 0) {
+                if (if_indextoname(ifindex, ifname) == 0)
+                        return -errno;
+
+                r = setsockopt(s, SOL_SOCKET, SO_BINDTODEVICE, ifname, strlen(ifname));
+                if (r < 0)
+                        return -errno;
+        }
+
         if (address == INADDR_ANY) {
                 r = setsockopt(s, IPPROTO_IP, IP_PKTINFO, &on, sizeof(on));
                 if (r < 0)
@@ -185,6 +200,7 @@ int dhcp_network_bind_udp_socket(be32_t address, uint16_t port) {
                 r = setsockopt(s, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on));
                 if (r < 0)
                         return -errno;
+
         } else {
                 r = setsockopt(s, IPPROTO_IP, IP_FREEBIND, &on, sizeof(on));
                 if (r < 0)
@@ -209,7 +225,7 @@ int dhcp_network_send_raw_socket(int s, const union sockaddr_union *link,
         assert(packet);
         assert(len);
 
-        r = sendto(s, packet, len, 0, &link->sa, sizeof(link->ll));
+        r = sendto(s, packet, len, 0, &link->sa, SOCKADDR_LL_LEN(link->ll));
         if (r < 0)
                 return -errno;
 

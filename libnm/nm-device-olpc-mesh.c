@@ -26,7 +26,6 @@
 #include "nm-setting-olpc-mesh.h"
 
 #include "nm-device-olpc-mesh.h"
-#include "nm-device-private.h"
 #include "nm-object-private.h"
 #include "nm-device-wifi.h"
 
@@ -63,7 +62,7 @@ nm_device_olpc_mesh_get_hw_address (NMDeviceOlpcMesh *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE_OLPC_MESH (device), NULL);
 
-	return NM_DEVICE_OLPC_MESH_GET_PRIVATE (device)->hw_address;
+	return nm_str_not_empty (NM_DEVICE_OLPC_MESH_GET_PRIVATE (device)->hw_address);
 }
 
 /**
@@ -125,12 +124,11 @@ get_setting_type (NMDevice *device)
 	return NM_TYPE_SETTING_OLPC_MESH;
 }
 
-/**************************************************************/
+/*****************************************************************************/
 
 static void
 nm_device_olpc_mesh_init (NMDeviceOlpcMesh *device)
 {
-	_nm_device_set_device_type (NM_DEVICE (device), NM_DEVICE_TYPE_OLPC_MESH);
 }
 
 static void
@@ -203,8 +201,6 @@ nm_device_olpc_mesh_class_init (NMDeviceOlpcMeshClass *olpc_mesh_class)
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (olpc_mesh_class);
 
 	g_type_class_add_private (olpc_mesh_class, sizeof (NMDeviceOlpcMeshPrivate));
-
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE_OLPC_MESH);
 
 	/* virtual methods */
 	object_class->dispose = dispose;

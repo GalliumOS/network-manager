@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>org.freedesktop.NetworkManager.Settings.Connection: NetworkManager Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
-<link rel="up" href="spec.html#dbus-interfaces" title="Interfaces">
-<link rel="prev" href="gdbus-org.freedesktop.NetworkManager.PPP.html" title="org.freedesktop.NetworkManager.PPP">
-<link rel="next" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html" title="org.freedesktop.NetworkManager.VPN.Connection">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<link rel="up" href="ref-dbus-settings.html" title="The /org/freedesktop/NetworkManager/Settings/* objects">
+<link rel="prev" href="ref-dbus-settings.html" title="The /org/freedesktop/NetworkManager/Settings/* objects">
+<link rel="next" href="ref-dbus-devices.html" title="The /org/freedesktop/NetworkManager/Devices/* objects">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -20,16 +20,16 @@
                   <a href="#gdbus-org.freedesktop.NetworkManager.Settings.Connection.signals" class="shortcut">Signals</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
-<td><a accesskey="u" href="spec.html#dbus-interfaces"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="gdbus-org.freedesktop.NetworkManager.PPP.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="u" href="ref-dbus-settings.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ref-dbus-settings.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ref-dbus-devices.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="gdbus-org.freedesktop.NetworkManager.Settings.Connection"></a><div class="titlepage"></div>
 <div class="refnamediv"><table width="100%"><tr>
 <td valign="top">
 <h2><span class="refentrytitle"><a name="gdbus-interface-org-freedesktop-NetworkManager-Settings-Connection.top_of_page"></a>org.freedesktop.NetworkManager.Settings.Connection</span></h2>
-<p>org.freedesktop.NetworkManager.Settings.Connection</p>
+<p>org.freedesktop.NetworkManager.Settings.Connection — Connection Settings Profile</p>
 </td>
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
@@ -44,10 +44,14 @@
                OUT a{sa{sv}} secrets);
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.ClearSecrets" title="The ClearSecrets() method">ClearSecrets</a>  ();
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Save" title="The Save() method">Save</a>          ();
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Update2" title="The Update2() method">Update2</a>       (IN  a{sa{sv}} settings,
+               IN  u         flags,
+               IN  a{sv}     args,
+               OUT a{sv}     result);
 </pre>
 </div>
 <div class="refsect1">
-<a name="id-1.3.3.7.4"></a><h2>Signals</h2>
+<a name="id-1.4.7.2.4"></a><h2>Signals</h2>
 <pre class="synopsis">
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.Updated" title='The "Updated" signal'>Updated</a>           ();
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.Removed" title='The "Removed" signal'>Removed</a>           ();
@@ -55,7 +59,7 @@
 </pre>
 </div>
 <div class="refsect1">
-<a name="id-1.3.3.7.5"></a><h2>Properties</h2>
+<a name="id-1.4.7.2.5"></a><h2>Properties</h2>
 <pre class="synopsis">
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Unsaved" title='The "Unsaved" property'>Unsaved</a>  readable   b
 </pre>
@@ -194,6 +198,68 @@ Save ();
         UpdateUnsaved) to persistent storage.
 </p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Update2"></a><h3>The Update2() method</h3>
+<pre class="programlisting">
+Update2 (IN  a{sa{sv}} settings,
+         IN  u         flags,
+         IN  a{sv}     args,
+         OUT a{sv}     result);
+</pre>
+<p>          Provide an empty array, to use the current settings.
+        <em class="parameter"><code>flags</code></em>: optional flags argument. Currently supported flags are:
+          "0x1" (to-disk),
+          "0x2" (in-memory),
+          "0x4" (in-memory-detached),
+          "0x8" (in-memory-only),
+          "0x10" (volatile),
+          "0x20" (block-autoconnect).
+          Unknown flags cause the call to fail.
+        <em class="parameter"><code>args</code></em>: optional arguments dictionary, for extensibility. Currently no
+          arguments are accepted. Specifying unknown keys causes the call
+          to fail.
+        <em class="parameter"><code>result</code></em>: output argument, currently no results are returned.
+</p>
+<p>        Update the connection with new settings and properties (replacing all
+        previous settings and properties). If the flag 0x1 is present,
+        the connection is persisted to disk. If the flag 0x2 is present,
+        the change is only made in memory (without touching an eventual
+        profile on disk). If neither 0x1 nor 0x2 is set, the change is made
+        in memory only, if the connection is already in memory only.
+        Secrets may be part of the update request, and will be either stored in persistent
+        storage or sent to a Secret Agent for storage, depending on the flags
+        associated with each secret.
+</p>
+<p>        Update2 is a extensible alternative to Update, UpdateUnsaved and Save.
+</p>
+<p>        Since: 1.10.2
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>settings</code></em></code>:</span></p></td>
+<td><p>New connection settings, properties, and (optionally) secrets.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></p></td>
+<td><p></p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>args</code></em></code>:</span></p></td>
+<td><p></p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>result</code></em></code>:</span></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
 </div>
 <div class="refsect1">
 <a name="gdbus-signals-org.freedesktop.NetworkManager.Settings.Connection"></a><h2>Signal Details</h2>
@@ -226,7 +292,8 @@ Removed ();
 <pre class="programlisting">
 PropertiesChanged (a{sv} properties);
 </pre>
-<p></p>
+<p>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
+</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -255,6 +322,6 @@ Unsaved  readable   b
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

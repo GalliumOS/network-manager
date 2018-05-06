@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2015 Red Hat, Inc.
+ * Copyright (C) 2015 - 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -23,13 +23,15 @@
 #include "nmp-object.h"
 
 #include <unistd.h>
+#include <linux/rtnetlink.h>
+#include <libudev.h>
 
 #include "nm-utils.h"
 
 #include "nm-core-utils.h"
 #include "nm-platform-utils.h"
 
-/*********************************************************************************************/
+/*****************************************************************************/
 
 #define _NMLOG_DOMAIN LOGD_PLATFORM
 #define _NMLOG(level, obj, ...) \
@@ -39,7 +41,7 @@
         if (nm_logging_enabled (__level, _NMLOG_DOMAIN)) { \
             const NMPObject *const __obj = (obj); \
             \
-            _nm_log (__level, _NMLOG_DOMAIN, 0, \
+            _nm_log (__level, _NMLOG_DOMAIN, 0, NULL, NULL, \
                      "nmp-object[%p/%s]: " _NM_UTILS_MACRO_FIRST (__VA_ARGS__), \
                      __obj, \
                      (__obj ? NMP_OBJECT_GET_CLASS (__obj)->obj_type_name : "???") \
@@ -47,7 +49,12 @@
         } \
     } G_STMT_END
 
-/*********************************************************************************************/
+/*****************************************************************************/
+
+typedef struct {
+	NMDedupMultiIdxType parent;
+	NMPCacheIdType cache_id_type;
+} DedupMultiIdxType;
 
 struct _NMPCache {
 	/* the cache contains only one hash table for all object types, and similarly
@@ -64,23 +71,240 @@ struct _NMPCache {
 	 * This effectively merges the udev-device cache into the NMPCache.
 	 */
 
-	GHashTable *idx_main;
-	NMMultiIndex *idx_multi;
+	NMDedupMultiIndex *multi_idx;
+
+	/* an idx_type entry for each NMP_CACHE_ID_TYPE. Note that NONE (zero)
+	 * is skipped, so the index is shifted by one: idx_type[cache_id_type - 1].
+	 *
+	 * Don't bother, use _idx_type_get() instead! */
+	DedupMultiIdxType idx_types[NMP_CACHE_ID_TYPE_MAX];
 
 	gboolean use_udev;
 };
 
-/******************************************************************/
+/*****************************************************************************/
 
-static inline guint
-_id_hash_ip6_addr (const struct in6_addr *addr)
+static const NMDedupMultiIdxTypeClass _dedup_multi_idx_type_class;
+
+static void
+_idx_obj_id_hash_update (const NMDedupMultiIdxType *idx_type,
+                         const NMDedupMultiObj *obj,
+                         NMHashState *h)
 {
-	guint hash = (guint) 0x897da53981a13ULL;
-	int i;
+	const NMPObject *o = (NMPObject *) obj;
 
-	for (i = 0; i < sizeof (*addr); i++)
-		hash = (hash * 33) + ((const guint8 *) addr)[i];
-	return hash;
+	nm_assert (idx_type && idx_type->klass == &_dedup_multi_idx_type_class);
+	nm_assert (NMP_OBJECT_GET_TYPE (o) != NMP_OBJECT_TYPE_UNKNOWN);
+
+	nmp_object_id_hash_update (o, h);
+}
+
+static gboolean
+_idx_obj_id_equal (const NMDedupMultiIdxType *idx_type,
+                   const NMDedupMultiObj *obj_a,
+                   const NMDedupMultiObj *obj_b)
+{
+	const NMPObject *o_a = (NMPObject *) obj_a;
+	const NMPObject *o_b = (NMPObject *) obj_b;
+
+	nm_assert (idx_type && idx_type->klass == &_dedup_multi_idx_type_class);
+	nm_assert (NMP_OBJECT_GET_TYPE (o_a) != NMP_OBJECT_TYPE_UNKNOWN);
+	nm_assert (NMP_OBJECT_GET_TYPE (o_b) != NMP_OBJECT_TYPE_UNKNOWN);
+
+	return nmp_object_id_equal (o_a, o_b);
+}
+
+static guint
+_idx_obj_part (const DedupMultiIdxType *idx_type,
+               const NMPObject *obj_a,
+               const NMPObject *obj_b,
+               NMHashState *h)
+{
+	NMPObjectType obj_type;
+
+	/* the hash/equals functions are strongly related. So, keep them
+	 * side-by-side and do it all in _idx_obj_part(). */
+
+	nm_assert (idx_type);
+	nm_assert (idx_type->parent.klass == &_dedup_multi_idx_type_class);
+	nm_assert (obj_a);
+	nm_assert (NMP_OBJECT_GET_TYPE (obj_a) != NMP_OBJECT_TYPE_UNKNOWN);
+	nm_assert (!obj_b || (NMP_OBJECT_GET_TYPE (obj_b) != NMP_OBJECT_TYPE_UNKNOWN));
+	nm_assert (!h || !obj_b);
+
+	switch (idx_type->cache_id_type) {
+
+	case NMP_CACHE_ID_TYPE_OBJECT_TYPE:
+		if (obj_b)
+			return NMP_OBJECT_GET_TYPE (obj_a) == NMP_OBJECT_GET_TYPE (obj_b);
+		if (h) {
+			nm_hash_update_vals (h,
+			                     idx_type->cache_id_type,
+			                     NMP_OBJECT_GET_TYPE (obj_a));
+		}
+		return 1;
+
+	case NMP_CACHE_ID_TYPE_LINK_BY_IFNAME:
+		if (NMP_OBJECT_GET_TYPE (obj_a) != NMP_OBJECT_TYPE_LINK) {
+			/* first check, whether obj_a is suitable for this idx_type.
+			 * If not, return 0 (which is correct for partitionable(), hash() and equal()
+			 * functions. */
+			if (h)
+				nm_hash_update_val (h, obj_a);
+			return 0;
+		}
+		if (obj_b) {
+			/* we are in equal() mode. Compare obj_b with obj_a. */
+			return    NMP_OBJECT_GET_TYPE (obj_b) == NMP_OBJECT_TYPE_LINK
+			       && nm_streq (obj_a->link.name, obj_b->link.name);
+		}
+		if (h) {
+			nm_hash_update_val (h, idx_type->cache_id_type);
+			nm_hash_update_strarr (h, obj_a->link.name);
+		}
+		/* just return 1, to indicate that obj_a is partitionable by this idx_type. */
+		return 1;
+
+	case NMP_CACHE_ID_TYPE_DEFAULT_ROUTES:
+		if (   !NM_IN_SET (NMP_OBJECT_GET_TYPE (obj_a), NMP_OBJECT_TYPE_IP4_ROUTE,
+		                                                NMP_OBJECT_TYPE_IP6_ROUTE)
+		    || !NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&obj_a->ip_route)
+		    || !nmp_object_is_visible (obj_a)) {
+			if (h)
+				nm_hash_update_val (h, obj_a);
+			return 0;
+		}
+		if (obj_b) {
+			return    NMP_OBJECT_GET_TYPE (obj_a) == NMP_OBJECT_GET_TYPE (obj_b)
+			       && NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&obj_b->ip_route)
+			       && nmp_object_is_visible (obj_b);
+		}
+		if (h) {
+			nm_hash_update_vals (h,
+			                     idx_type->cache_id_type,
+			                     NMP_OBJECT_GET_TYPE (obj_a));
+		}
+		return 1;
+
+	case NMP_CACHE_ID_TYPE_OBJECT_BY_IFINDEX:
+		if (   !NM_IN_SET (NMP_OBJECT_GET_TYPE (obj_a), NMP_OBJECT_TYPE_IP4_ADDRESS,
+		                                                NMP_OBJECT_TYPE_IP6_ADDRESS,
+		                                                NMP_OBJECT_TYPE_IP4_ROUTE,
+		                                                NMP_OBJECT_TYPE_IP6_ROUTE,
+		                                                NMP_OBJECT_TYPE_QDISC,
+		                                                NMP_OBJECT_TYPE_TFILTER)
+		    || !nmp_object_is_visible (obj_a)) {
+			if (h)
+				nm_hash_update_val (h, obj_a);
+			return 0;
+		}
+		nm_assert (obj_a->object.ifindex > 0);
+		if (obj_b) {
+			return    NMP_OBJECT_GET_TYPE (obj_a) == NMP_OBJECT_GET_TYPE (obj_b)
+			       && obj_a->object.ifindex == obj_b->object.ifindex
+			       && nmp_object_is_visible (obj_b);
+		}
+		if (h) {
+			nm_hash_update_vals (h,
+			                     idx_type->cache_id_type,
+			                     obj_a->object.ifindex);
+		}
+		return 1;
+
+	case NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID:
+		obj_type = NMP_OBJECT_GET_TYPE (obj_a);
+		if (   !NM_IN_SET (obj_type, NMP_OBJECT_TYPE_IP4_ROUTE,
+		                             NMP_OBJECT_TYPE_IP6_ROUTE)
+		    || obj_a->object.ifindex <= 0) {
+			if (h)
+				nm_hash_update_val (h, obj_a);
+			return 0;
+		}
+		if (obj_b) {
+			return    obj_type == NMP_OBJECT_GET_TYPE (obj_b)
+			       && obj_b->object.ifindex > 0
+			       && (obj_type == NMP_OBJECT_TYPE_IP4_ROUTE
+			           ? (nm_platform_ip4_route_cmp (&obj_a->ip4_route, &obj_b->ip4_route, NM_PLATFORM_IP_ROUTE_CMP_TYPE_WEAK_ID) == 0)
+			           : (nm_platform_ip6_route_cmp (&obj_a->ip6_route, &obj_b->ip6_route, NM_PLATFORM_IP_ROUTE_CMP_TYPE_WEAK_ID) == 0));
+		}
+		if (h) {
+			nm_hash_update_val (h, idx_type->cache_id_type);
+			if (obj_type == NMP_OBJECT_TYPE_IP4_ROUTE)
+				nm_platform_ip4_route_hash_update (&obj_a->ip4_route, NM_PLATFORM_IP_ROUTE_CMP_TYPE_WEAK_ID, h);
+			else
+				nm_platform_ip6_route_hash_update (&obj_a->ip6_route, NM_PLATFORM_IP_ROUTE_CMP_TYPE_WEAK_ID, h);
+		}
+		return 1;
+
+	case NMP_CACHE_ID_TYPE_NONE:
+	case __NMP_CACHE_ID_TYPE_MAX:
+		break;
+	}
+	nm_assert_not_reached ();
+	return 0;
+}
+
+static gboolean
+_idx_obj_partitionable (const NMDedupMultiIdxType *idx_type,
+                        const NMDedupMultiObj *obj)
+{
+	return _idx_obj_part ((DedupMultiIdxType *) idx_type,
+	                      (NMPObject *) obj,
+	                      NULL,
+	                      NULL) != 0;
+}
+
+static void
+_idx_obj_partition_hash_update (const NMDedupMultiIdxType *idx_type,
+                                const NMDedupMultiObj *obj,
+                                NMHashState *h)
+{
+	_idx_obj_part ((DedupMultiIdxType *) idx_type,
+	               (NMPObject *) obj,
+	               NULL,
+	               h);
+}
+
+static gboolean
+_idx_obj_partition_equal (const NMDedupMultiIdxType *idx_type,
+                          const NMDedupMultiObj *obj_a,
+                          const NMDedupMultiObj *obj_b)
+{
+	return _idx_obj_part ((DedupMultiIdxType *) idx_type,
+	                      (NMPObject *) obj_a,
+	                      (NMPObject *) obj_b,
+	                      NULL);
+}
+
+static const NMDedupMultiIdxTypeClass _dedup_multi_idx_type_class = {
+	.idx_obj_id_hash_update = _idx_obj_id_hash_update,
+	.idx_obj_id_equal = _idx_obj_id_equal,
+	.idx_obj_partitionable = _idx_obj_partitionable,
+	.idx_obj_partition_hash_update = _idx_obj_partition_hash_update,
+	.idx_obj_partition_equal = _idx_obj_partition_equal,
+};
+
+static void
+_dedup_multi_idx_type_init (DedupMultiIdxType *idx_type, NMPCacheIdType cache_id_type)
+{
+	nm_dedup_multi_idx_type_init ((NMDedupMultiIdxType *) idx_type,
+	                              &_dedup_multi_idx_type_class);
+	idx_type->cache_id_type = cache_id_type;
+}
+
+/*****************************************************************************/
+
+static void
+_vlan_xgress_qos_mappings_hash_update (guint n_map,
+                                       const NMVlanQosMapping *map,
+                                       NMHashState *h)
+{
+	/* ensure no padding. */
+	G_STATIC_ASSERT (sizeof (NMVlanQosMapping) == 2 * sizeof (guint32));
+
+	nm_hash_update_val (h, n_map);
+	if (n_map)
+		nm_hash_update (h, map, n_map * sizeof (*map));
 }
 
 static int
@@ -117,17 +341,17 @@ _vlan_xgress_qos_mappings_cpy (guint *dst_n_map,
 	}
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
 static const char *
-_link_get_driver (GUdevDevice *udev_device, const char *kind, const char *ifname)
+_link_get_driver (struct udev_device *udevice, const char *kind, int ifindex)
 {
 	const char *driver = NULL;
 
 	nm_assert (kind == g_intern_string (kind));
 
-	if (udev_device) {
-		driver = nmp_utils_udev_get_driver (udev_device);
+	if (udevice) {
+		driver = nmp_utils_udev_get_driver (udevice);
 		if (driver)
 			return driver;
 	}
@@ -135,14 +359,12 @@ _link_get_driver (GUdevDevice *udev_device, const char *kind, const char *ifname
 	if (kind)
 		return kind;
 
-	if (ifname) {
-		char *d;
+	if (ifindex > 0) {
+		NMPUtilsEthtoolDriverInfo driver_info;
 
-		if (nmp_utils_ethtool_get_driver_info (ifname, &d, NULL, NULL)) {
-			driver = d && d[0] ? g_intern_string (d) : NULL;
-			g_free (d);
-			if (driver)
-				return driver;
+		if (nmp_utils_ethtool_get_driver_info (ifindex, &driver_info)) {
+			if (driver_info.driver[0])
+				return g_intern_string (driver_info.driver);
 		}
 	}
 
@@ -150,12 +372,18 @@ _link_get_driver (GUdevDevice *udev_device, const char *kind, const char *ifname
 }
 
 void
-_nmp_object_fixup_link_udev_fields (NMPObject *obj, gboolean use_udev)
+_nmp_object_fixup_link_udev_fields (NMPObject **obj_new, NMPObject *obj_orig, gboolean use_udev)
 {
 	const char *driver = NULL;
 	gboolean initialized = FALSE;
+	NMPObject *obj;
 
-	nm_assert (NMP_OBJECT_GET_TYPE (obj) == NMP_OBJECT_TYPE_LINK);
+	nm_assert (obj_orig || *obj_new);
+	nm_assert (obj_new);
+	nm_assert (!obj_orig || NMP_OBJECT_GET_TYPE (obj_orig) == NMP_OBJECT_TYPE_LINK);
+	nm_assert (!*obj_new || NMP_OBJECT_GET_TYPE (*obj_new) == NMP_OBJECT_TYPE_LINK);
+
+	obj = *obj_new ?: obj_orig;
 
 	/* The link contains internal fields that are combined by
 	 * properties from netlink and udev. Update those properties */
@@ -164,7 +392,7 @@ _nmp_object_fixup_link_udev_fields (NMPObject *obj, gboolean use_udev)
 	if (obj->_link.netlink.is_in_netlink) {
 		driver = _link_get_driver (obj->_link.udev.device,
 		                           obj->link.kind,
-		                           obj->link.name);
+		                           obj->link.ifindex);
 		if (obj->_link.udev.device)
 			initialized = TRUE;
 		else if (!use_udev) {
@@ -179,20 +407,37 @@ _nmp_object_fixup_link_udev_fields (NMPObject *obj, gboolean use_udev)
 		}
 	}
 
+	if (   nm_streq0 (obj->link.driver, driver)
+	    && obj->link.initialized == initialized)
+		return;
+
+	if (!*obj_new)
+		obj = *obj_new = nmp_object_clone (obj, FALSE);
+
 	obj->link.driver = driver;
 	obj->link.initialized = initialized;
 }
 
 static void
-_nmp_object_fixup_link_master_connected (NMPObject *obj, const NMPCache *cache)
+_nmp_object_fixup_link_master_connected (NMPObject **obj_new, NMPObject *obj_orig, const NMPCache *cache)
 {
-	nm_assert (NMP_OBJECT_GET_TYPE (obj) == NMP_OBJECT_TYPE_LINK);
+	NMPObject *obj;
 
-	if (nmp_cache_link_connected_needs_toggle (cache, obj, NULL, NULL))
+	nm_assert (obj_orig || *obj_new);
+	nm_assert (obj_new);
+	nm_assert (!obj_orig || NMP_OBJECT_GET_TYPE (obj_orig) == NMP_OBJECT_TYPE_LINK);
+	nm_assert (!*obj_new || NMP_OBJECT_GET_TYPE (*obj_new) == NMP_OBJECT_TYPE_LINK);
+
+	obj = *obj_new ?: obj_orig;
+
+	if (nmp_cache_link_connected_needs_toggle (cache, obj, NULL, NULL)) {
+		if (!*obj_new)
+			obj = *obj_new = nmp_object_clone (obj, FALSE);
 		obj->link.connected = !obj->link.connected;
+	}
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
 const NMPClass *
 nmp_class_from_type (NMPObjectType obj_type)
@@ -202,44 +447,15 @@ nmp_class_from_type (NMPObjectType obj_type)
 	return &_nmp_classes[obj_type - 1];
 }
 
-/******************************************************************/
-
-NMPObject *
-nmp_object_ref (NMPObject *obj)
-{
-	g_return_val_if_fail (NMP_OBJECT_IS_VALID (obj), NULL);
-	g_return_val_if_fail (obj->_ref_count != NMP_REF_COUNT_STACKINIT, NULL);
-	obj->_ref_count++;
-
-	_LOGt (obj, "ref: %d", obj->_ref_count);
-
-	return obj;
-}
-
-void
-nmp_object_unref (NMPObject *obj)
-{
-	if (obj) {
-		g_return_if_fail (obj->_ref_count > 0);
-		g_return_if_fail (obj->_ref_count != NMP_REF_COUNT_STACKINIT);
-		_LOGt (obj, "%s: %d",
-		       obj->_ref_count <= 1 ? "destroy" : "unref",
-		       obj->_ref_count - 1);
-		if (--obj->_ref_count <= 0) {
-			const NMPClass *klass = obj->_class;
-
-			nm_assert (!obj->is_cached);
-			if (klass->cmd_obj_dispose)
-				klass->cmd_obj_dispose (obj);
-			g_slice_free1 (klass->sizeof_data + G_STRUCT_OFFSET (NMPObject, object), obj);
-		}
-	}
-}
+/*****************************************************************************/
 
 static void
 _vt_cmd_obj_dispose_link (NMPObject *obj)
 {
-	g_clear_object (&obj->_link.udev.device);
+	if (obj->_link.udev.device) {
+		udev_device_unref (obj->_link.udev.device);
+		obj->_link.udev.device = NULL;
+	}
 	nmp_object_unref (obj->_link.netlink.lnk);
 }
 
@@ -261,8 +477,7 @@ _nmp_object_new_from_class (const NMPClass *klass)
 
 	obj = g_slice_alloc0 (klass->sizeof_data + G_STRUCT_OFFSET (NMPObject, object));
 	obj->_class = klass;
-	obj->_ref_count = 1;
-	_LOGt (obj, "new");
+	obj->parent._ref_count = 1;
 	return obj;
 }
 
@@ -288,16 +503,31 @@ nmp_object_new_link (int ifindex)
 	return obj;
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
-static const NMPObject *
+static void
 _nmp_object_stackinit_from_class (NMPObject *obj, const NMPClass *klass)
 {
+	nm_assert (obj);
 	nm_assert (klass);
 
 	memset (obj, 0, sizeof (NMPObject));
 	obj->_class = klass;
-	obj->_ref_count = NMP_REF_COUNT_STACKINIT;
+	obj->parent._ref_count = NM_OBJ_REF_COUNT_STACKINIT;
+}
+
+static NMPObject *
+_nmp_object_stackinit_from_type (NMPObject *obj, NMPObjectType obj_type)
+{
+	const NMPClass *klass;
+
+	nm_assert (obj);
+	klass = nmp_class_from_type (obj_type);
+	nm_assert (klass);
+
+	memset (obj, 0, sizeof (NMPObject));
+	obj->_class = klass;
+	obj->parent._ref_count = NM_OBJ_REF_COUNT_STACKINIT;
 	return obj;
 }
 
@@ -321,31 +551,24 @@ nmp_object_stackinit_id  (NMPObject *obj, const NMPObject *src)
 	nm_assert (obj);
 
 	klass = NMP_OBJECT_GET_CLASS (src);
-	if (!klass->cmd_obj_stackinit_id)
-		nmp_object_stackinit (obj, klass->obj_type, NULL);
-	else
-		klass->cmd_obj_stackinit_id (obj, src);
+	_nmp_object_stackinit_from_class (obj, klass);
+	if (klass->cmd_plobj_id_copy)
+		klass->cmd_plobj_id_copy (&obj->object, &src->object);
 	return obj;
 }
 
 const NMPObject *
 nmp_object_stackinit_id_link (NMPObject *obj, int ifindex)
 {
-	nmp_object_stackinit (obj, NMP_OBJECT_TYPE_LINK, NULL);
+	_nmp_object_stackinit_from_type (obj, NMP_OBJECT_TYPE_LINK);
 	obj->link.ifindex = ifindex;
 	return obj;
-}
-
-static void
-_vt_cmd_obj_stackinit_id_link (NMPObject *obj, const NMPObject *src)
-{
-	nmp_object_stackinit_id_link (obj, src->link.ifindex);
 }
 
 const NMPObject *
 nmp_object_stackinit_id_ip4_address (NMPObject *obj, int ifindex, guint32 address, guint8 plen, guint32 peer_address)
 {
-	nmp_object_stackinit (obj, NMP_OBJECT_TYPE_IP4_ADDRESS, NULL);
+	_nmp_object_stackinit_from_type (obj, NMP_OBJECT_TYPE_IP4_ADDRESS);
 	obj->ip4_address.ifindex = ifindex;
 	obj->ip4_address.address = address;
 	obj->ip4_address.plen = plen;
@@ -353,65 +576,17 @@ nmp_object_stackinit_id_ip4_address (NMPObject *obj, int ifindex, guint32 addres
 	return obj;
 }
 
-static void
-_vt_cmd_obj_stackinit_id_ip4_address (NMPObject *obj, const NMPObject *src)
-{
-	nmp_object_stackinit_id_ip4_address (obj, src->ip_address.ifindex, src->ip4_address.address, src->ip_address.plen, src->ip4_address.peer_address);
-}
-
 const NMPObject *
-nmp_object_stackinit_id_ip6_address (NMPObject *obj, int ifindex, const struct in6_addr *address, guint8 plen)
+nmp_object_stackinit_id_ip6_address (NMPObject *obj, int ifindex, const struct in6_addr *address)
 {
-	nmp_object_stackinit (obj, NMP_OBJECT_TYPE_IP6_ADDRESS, NULL);
+	_nmp_object_stackinit_from_type (obj, NMP_OBJECT_TYPE_IP6_ADDRESS);
 	obj->ip4_address.ifindex = ifindex;
 	if (address)
 		obj->ip6_address.address = *address;
-	obj->ip6_address.plen = plen;
 	return obj;
 }
 
-static void
-_vt_cmd_obj_stackinit_id_ip6_address (NMPObject *obj, const NMPObject *src)
-{
-	nmp_object_stackinit_id_ip6_address (obj, src->ip_address.ifindex, &src->ip6_address.address, src->ip_address.plen);
-}
-
-const NMPObject *
-nmp_object_stackinit_id_ip4_route (NMPObject *obj, int ifindex, guint32 network, guint8 plen, guint32 metric)
-{
-	nmp_object_stackinit (obj, NMP_OBJECT_TYPE_IP4_ROUTE, NULL);
-	obj->ip4_route.ifindex = ifindex;
-	obj->ip4_route.network = network;
-	obj->ip4_route.plen = plen;
-	obj->ip4_route.metric = metric;
-	return obj;
-}
-
-static void
-_vt_cmd_obj_stackinit_id_ip4_route (NMPObject *obj, const NMPObject *src)
-{
-	nmp_object_stackinit_id_ip4_route (obj, src->ip_route.ifindex, src->ip4_route.network, src->ip_route.plen, src->ip_route.metric);
-}
-
-const NMPObject *
-nmp_object_stackinit_id_ip6_route (NMPObject *obj, int ifindex, const struct in6_addr *network, guint8 plen, guint32 metric)
-{
-	nmp_object_stackinit (obj, NMP_OBJECT_TYPE_IP6_ROUTE, NULL);
-	obj->ip6_route.ifindex = ifindex;
-	if (network)
-		obj->ip6_route.network = *network;
-	obj->ip6_route.plen = plen;
-	obj->ip6_route.metric = metric;
-	return obj;
-}
-
-static void
-_vt_cmd_obj_stackinit_id_ip6_route (NMPObject *obj, const NMPObject *src)
-{
-	nmp_object_stackinit_id_ip6_route (obj, src->ip_route.ifindex, &src->ip6_route.network, src->ip_route.plen, src->ip_route.metric);
-}
-
-/******************************************************************/
+/*****************************************************************************/
 
 const char *
 nmp_object_to_string (const NMPObject *obj, NMPObjectToStringMode to_string_mode, char *buf, gsize buf_size)
@@ -438,9 +613,8 @@ nmp_object_to_string (const NMPObject *obj, NMPObjectToStringMode to_string_mode
 		return klass->cmd_plobj_to_string_id (&obj->object, buf, buf_size);
 	case NMP_OBJECT_TO_STRING_ALL:
 		g_snprintf (buf, buf_size,
-		            "[%s,%p,%d,%ccache,%calive,%cvisible; %s]",
-		            klass->obj_type_name, obj, obj->_ref_count,
-		            obj->is_cached ? '+' : '-',
+		            "[%s,%p,%u,%calive,%cvisible; %s]",
+		            klass->obj_type_name, obj, obj->parent._ref_count,
 		            nmp_object_is_alive (obj) ? '+' : '-',
 		            nmp_object_is_visible (obj) ? '+' : '-',
 		            NMP_OBJECT_GET_CLASS (obj)->cmd_plobj_to_string (&obj->object, buf2, sizeof (buf2)));
@@ -465,9 +639,8 @@ _vt_cmd_obj_to_string_link (const NMPObject *obj, NMPObjectToStringMode to_strin
 		return klass->cmd_plobj_to_string_id (&obj->object, buf, buf_size);
 	case NMP_OBJECT_TO_STRING_ALL:
 		g_snprintf (buf, buf_size,
-		            "[%s,%p,%d,%ccache,%calive,%cvisible,%cin-nl,%p; %s]",
-		            klass->obj_type_name, obj, obj->_ref_count,
-		            obj->is_cached ? '+' : '-',
+		            "[%s,%p,%u,%calive,%cvisible,%cin-nl,%p; %s]",
+		            klass->obj_type_name, obj, obj->parent._ref_count,
 		            nmp_object_is_alive (obj) ? '+' : '-',
 		            nmp_object_is_visible (obj) ? '+' : '-',
 		            obj->_link.netlink.is_in_netlink ? '+' : '-',
@@ -492,7 +665,7 @@ _vt_cmd_obj_to_string_link (const NMPObject *obj, NMPObjectToStringMode to_strin
 static const char *
 _vt_cmd_obj_to_string_lnk_vlan (const NMPObject *obj, NMPObjectToStringMode to_string_mode, char *buf, gsize buf_size)
 {
-	const NMPClass *klass = NMP_OBJECT_GET_CLASS (obj);
+	const NMPClass *klass;
 	char buf2[sizeof (_nm_utils_to_string_buffer)];
 	char *b;
 	gsize l;
@@ -506,9 +679,8 @@ _vt_cmd_obj_to_string_lnk_vlan (const NMPObject *obj, NMPObjectToStringMode to_s
 	case NMP_OBJECT_TO_STRING_ALL:
 
 		g_snprintf (buf, buf_size,
-		            "[%s,%p,%d,%ccache,%calive,%cvisible; %s]",
-		            klass->obj_type_name, obj, obj->_ref_count,
-		            obj->is_cached ? '+' : '-',
+		            "[%s,%p,%u,%calive,%cvisible; %s]",
+		            klass->obj_type_name, obj, obj->parent._ref_count,
 		            nmp_object_is_alive (obj) ? '+' : '-',
 		            nmp_object_is_visible (obj) ? '+' : '-',
 		            nmp_object_to_string (obj, NMP_OBJECT_TO_STRING_PUBLIC, buf2, sizeof (buf2)));
@@ -565,10 +737,55 @@ _vt_cmd_plobj_to_string_id_##type (const NMPlatformObject *_obj, char *buf, gsiz
 _vt_cmd_plobj_to_string_id (link,        NMPlatformLink,       "%d",            obj->ifindex);
 _vt_cmd_plobj_to_string_id (ip4_address, NMPlatformIP4Address, "%d: %s/%d%s%s", obj->ifindex, nm_utils_inet4_ntop ( obj->address, buf1), obj->plen,
                                                                obj->peer_address != obj->address ? "," : "",
-                                                               obj->peer_address != obj->address ? nm_utils_inet4_ntop (obj->peer_address & nm_utils_ip4_prefix_to_netmask (obj->plen), buf2) : "");
+                                                               obj->peer_address != obj->address ? nm_utils_inet4_ntop (nm_utils_ip4_address_clear_host_address (obj->peer_address, obj->plen), buf2) : "");
 _vt_cmd_plobj_to_string_id (ip6_address, NMPlatformIP6Address, "%d: %s",        obj->ifindex, nm_utils_inet6_ntop (&obj->address, buf1));
-_vt_cmd_plobj_to_string_id (ip4_route,   NMPlatformIP4Route,   "%d: %s/%d %d",  obj->ifindex, nm_utils_inet4_ntop ( obj->network, buf1), obj->plen, obj->metric);
-_vt_cmd_plobj_to_string_id (ip6_route,   NMPlatformIP6Route,   "%d: %s/%d %d",  obj->ifindex, nm_utils_inet6_ntop (&obj->network, buf1), obj->plen, obj->metric);
+_vt_cmd_plobj_to_string_id (qdisc,       NMPlatformQdisc,      "%d: %d",        obj->ifindex, obj->parent);
+_vt_cmd_plobj_to_string_id (tfilter,     NMPlatformTfilter,    "%d: %d",        obj->ifindex, obj->parent);
+
+void
+nmp_object_hash_update (const NMPObject *obj, NMHashState *h)
+{
+	const NMPClass *klass;
+
+	g_return_if_fail (NMP_OBJECT_IS_VALID (obj));
+
+	klass = NMP_OBJECT_GET_CLASS (obj);
+
+	nm_hash_update_val (h, klass->obj_type);
+	if (klass->cmd_obj_hash_update)
+		klass->cmd_obj_hash_update (obj, h);
+	else if (klass->cmd_plobj_hash_update)
+		klass->cmd_plobj_hash_update (&obj->object, h);
+	else
+		nm_hash_update_val (h, obj);
+}
+
+static void
+_vt_cmd_obj_hash_update_link (const NMPObject *obj, NMHashState *h)
+{
+	nm_assert (NMP_OBJECT_GET_TYPE (obj) == NMP_OBJECT_TYPE_LINK);
+
+	nm_platform_link_hash_update (&obj->link, h);
+	nm_hash_update_vals (h,
+	                     obj->_link.netlink.is_in_netlink,
+	                     obj->_link.udev.device);
+	if (obj->_link.netlink.lnk)
+		nmp_object_hash_update (obj->_link.netlink.lnk, h);
+}
+
+static void
+_vt_cmd_obj_hash_update_lnk_vlan (const NMPObject *obj, NMHashState *h)
+{
+	nm_assert (NMP_OBJECT_GET_TYPE (obj) == NMP_OBJECT_TYPE_LNK_VLAN);
+
+	nm_platform_lnk_vlan_hash_update (&obj->lnk_vlan, h);
+	_vlan_xgress_qos_mappings_hash_update (obj->_lnk_vlan.n_ingress_qos_map,
+	                                       obj->_lnk_vlan.ingress_qos_map,
+	                                       h);
+	_vlan_xgress_qos_mappings_hash_update (obj->_lnk_vlan.n_egress_qos_map,
+	                                       obj->_lnk_vlan.egress_qos_map,
+	                                       h);
+}
 
 int
 nmp_object_cmp (const NMPObject *obj1, const NMPObject *obj2)
@@ -588,8 +805,10 @@ nmp_object_cmp (const NMPObject *obj1, const NMPObject *obj2)
 	klass1 = NMP_OBJECT_GET_CLASS (obj1);
 	klass2 = NMP_OBJECT_GET_CLASS (obj2);
 
-	if (klass1 != klass2)
+	if (klass1 != klass2) {
+		nm_assert (klass1->obj_type != klass2->obj_type);
 		return klass1->obj_type < klass2->obj_type ? -1 : 1;
+	}
 
 	if (klass1->cmd_obj_cmp)
 		return klass1->cmd_obj_cmp (obj1, obj2);
@@ -616,8 +835,7 @@ _vt_cmd_obj_cmp_link (const NMPObject *obj1, const NMPObject *obj2)
 			return 1;
 
 		/* Only compare based on pointer values. That is ugly because it's not a
-		 * stable sort order, but probably udev gives us always the same GUdevDevice
-		 * instance.
+		 * stable sort order.
 		 *
 		 * Have this check as very last. */
 		return (obj1->_link.udev.device < obj2->_link.udev.device) ? -1 : 1;
@@ -684,15 +902,17 @@ _vt_cmd_obj_copy_link (NMPObject *dst, const NMPObject *src)
 {
 	if (dst->_link.udev.device != src->_link.udev.device) {
 		if (src->_link.udev.device)
-			g_object_ref (src->_link.udev.device);
+			udev_device_ref (src->_link.udev.device);
 		if (dst->_link.udev.device)
-			g_object_unref (dst->_link.udev.device);
+			udev_device_unref (dst->_link.udev.device);
+		dst->_link.udev.device = src->_link.udev.device;
 	}
 	if (dst->_link.netlink.lnk != src->_link.netlink.lnk) {
 		if (src->_link.netlink.lnk)
 			nmp_object_ref (src->_link.netlink.lnk);
 		if (dst->_link.netlink.lnk)
 			nmp_object_unref (dst->_link.netlink.lnk);
+		dst->_link.netlink.lnk = src->_link.netlink.lnk;
 	}
 	dst->_link = src->_link;
 }
@@ -733,16 +953,12 @@ _vt_cmd_plobj_id_copy (ip6_address, NMPlatformIP6Address, {
 	dst->address = src->address;
 });
 _vt_cmd_plobj_id_copy (ip4_route, NMPlatformIP4Route, {
-	dst->ifindex = src->ifindex;
-	dst->plen = src->plen;
-	dst->metric = src->metric;
-	dst->network = src->network;
+	*dst = *src;
+	nm_assert (nm_platform_ip4_route_cmp (dst, src, NM_PLATFORM_IP_ROUTE_CMP_TYPE_ID) == 0);
 });
 _vt_cmd_plobj_id_copy (ip6_route, NMPlatformIP6Route, {
-	dst->ifindex = src->ifindex;
-	dst->plen = src->plen;
-	dst->metric = src->metric;
-	dst->network = src->network;
+	*dst = *src;
+	nm_assert (nm_platform_ip6_route_cmp (dst, src, NM_PLATFORM_IP_ROUTE_CMP_TYPE_ID) == 0);
 });
 
 /* Uses internally nmp_object_copy(), hence it also violates the const
@@ -763,118 +979,174 @@ nmp_object_clone (const NMPObject *obj, gboolean id_only)
 	return dst;
 }
 
-gboolean
-nmp_object_id_equal (const NMPObject *obj1, const NMPObject *obj2)
+int
+nmp_object_id_cmp (const NMPObject *obj1, const NMPObject *obj2)
 {
-	const NMPClass *klass;
+	const NMPClass *klass, *klass2;
 
-	if (obj1 == obj2)
-		return TRUE;
-	if (!obj1 || !obj2)
-		return FALSE;
+	NM_CMP_SELF (obj1, obj2);
 
 	g_return_val_if_fail (NMP_OBJECT_IS_VALID (obj1), FALSE);
 	g_return_val_if_fail (NMP_OBJECT_IS_VALID (obj2), FALSE);
 
 	klass = NMP_OBJECT_GET_CLASS (obj1);
-	return    klass == NMP_OBJECT_GET_CLASS (obj2)
-	       && klass->cmd_plobj_id_equal
-	       && klass->cmd_plobj_id_equal (&obj1->object, &obj2->object);
+	nm_assert (!klass->cmd_plobj_id_hash_update == !klass->cmd_plobj_id_cmp);
+
+	klass2 = NMP_OBJECT_GET_CLASS (obj2);
+	nm_assert (klass);
+	if (klass != klass2) {
+		nm_assert (klass2);
+		NM_CMP_DIRECT (klass->obj_type, klass2->obj_type);
+		/* resort to pointer comparison */
+		if (klass < klass2)
+			return -1;
+		return 1;
+	}
+
+	if (!klass->cmd_plobj_id_cmp) {
+		/* the klass doesn't implement ID cmp(). That means, different objects
+		 * never compare equal, but the cmp() according to their pointer value. */
+		return (obj1 < obj2) ? -1 : 1;
+	}
+
+	return klass->cmd_plobj_id_cmp (&obj1->object, &obj2->object);
 }
 
-#define _vt_cmd_plobj_id_equal(type, plat_type, cmd) \
-static gboolean \
-_vt_cmd_plobj_id_equal_##type (const NMPlatformObject *_obj1, const NMPlatformObject *_obj2) \
+#define _vt_cmd_plobj_id_cmp(type, plat_type, cmd) \
+static int \
+_vt_cmd_plobj_id_cmp_##type (const NMPlatformObject *_obj1, const NMPlatformObject *_obj2) \
 { \
 	const plat_type *const obj1 = (const plat_type *) _obj1; \
 	const plat_type *const obj2 = (const plat_type *) _obj2; \
-	return (cmd); \
+	\
+	NM_CMP_SELF (obj1, obj2); \
+	{ cmd; } \
+	return 0; \
 }
-_vt_cmd_plobj_id_equal (link, NMPlatformLink,
-                           obj1->ifindex == obj2->ifindex);
-_vt_cmd_plobj_id_equal (ip4_address, NMPlatformIP4Address,
-                           obj1->ifindex == obj2->ifindex
-                        && obj1->plen == obj2->plen
-                        && obj1->address == obj2->address
-                        /* for IPv4 addresses, you can add the same local address with differing peer-adddress
-                         * (IFA_ADDRESS), provided that their net-part differs. */
-                        && ((obj1->peer_address ^ obj2->peer_address) & nm_utils_ip4_prefix_to_netmask (obj1->plen)) == 0);
-_vt_cmd_plobj_id_equal (ip6_address, NMPlatformIP6Address,
-                           obj1->ifindex == obj2->ifindex
-                        /* for IPv6 addresses, the prefix length is not part of the primary identifier. */
-                        && IN6_ARE_ADDR_EQUAL (&obj1->address, &obj2->address));
-_vt_cmd_plobj_id_equal (ip4_route, NMPlatformIP4Route,
-                           obj1->ifindex == obj2->ifindex
-                        && obj1->plen == obj2->plen
-                        && obj1->metric == obj2->metric
-                        && obj1->network == obj2->network);
-_vt_cmd_plobj_id_equal (ip6_route, NMPlatformIP6Route,
-                           obj1->ifindex == obj2->ifindex
-                        && obj1->plen == obj2->plen
-                        && obj1->metric == obj2->metric
-                        && IN6_ARE_ADDR_EQUAL( &obj1->network, &obj2->network));
+_vt_cmd_plobj_id_cmp (link, NMPlatformLink,
+                      NM_CMP_FIELD (obj1, obj2, ifindex);
+)
+_vt_cmd_plobj_id_cmp (ip4_address, NMPlatformIP4Address,
+                      NM_CMP_FIELD (obj1, obj2, ifindex);
+                      NM_CMP_FIELD (obj1, obj2, plen);
+                      NM_CMP_FIELD (obj1, obj2, address);
+                      /* for IPv4 addresses, you can add the same local address with differing peer-adddress
+                       * (IFA_ADDRESS), provided that their net-part differs. */
+                      NM_CMP_DIRECT_IN4ADDR_SAME_PREFIX (obj1->peer_address, obj2->peer_address, obj1->plen);
+)
+_vt_cmd_plobj_id_cmp (ip6_address, NMPlatformIP6Address,
+                      NM_CMP_FIELD (obj1, obj2, ifindex);
+                      /* for IPv6 addresses, the prefix length is not part of the primary identifier. */
+                      NM_CMP_FIELD_IN6ADDR (obj1, obj2, address);
+)
+_vt_cmd_plobj_id_cmp (qdisc, NMPlatformQdisc,
+                      NM_CMP_FIELD (obj1, obj2, ifindex);
+                      NM_CMP_FIELD (obj1, obj2, parent);
+)
+_vt_cmd_plobj_id_cmp (tfilter, NMPlatformTfilter,
+                      NM_CMP_FIELD (obj1, obj2, ifindex);
+                      NM_CMP_FIELD (obj1, obj2, handle);
+)
+
+static int
+_vt_cmd_plobj_id_cmp_ip4_route (const NMPlatformObject *obj1, const NMPlatformObject *obj2)
+{
+	return nm_platform_ip4_route_cmp ((NMPlatformIP4Route *) obj1, (NMPlatformIP4Route *) obj2, NM_PLATFORM_IP_ROUTE_CMP_TYPE_ID);
+}
+
+static int
+_vt_cmd_plobj_id_cmp_ip6_route (const NMPlatformObject *obj1, const NMPlatformObject *obj2)
+{
+	return nm_platform_ip6_route_cmp ((NMPlatformIP6Route *) obj1, (NMPlatformIP6Route *) obj2, NM_PLATFORM_IP_ROUTE_CMP_TYPE_ID);
+}
+
+void
+nmp_object_id_hash_update (const NMPObject *obj, NMHashState *h)
+{
+	const NMPClass *klass;
+
+	g_return_if_fail (NMP_OBJECT_IS_VALID (obj));
+
+	klass = NMP_OBJECT_GET_CLASS (obj);
+
+	nm_assert (!klass->cmd_plobj_id_hash_update == !klass->cmd_plobj_id_cmp);
+
+	if (!klass->cmd_plobj_id_hash_update) {
+		/* The klass doesn't implement ID compare. It means, to use pointer
+		 * equality. */
+		nm_hash_update_val (h, obj);
+		return;
+	}
+
+	nm_hash_update_val (h, klass->obj_type);
+	klass->cmd_plobj_id_hash_update (&obj->object, h);
+}
 
 guint
 nmp_object_id_hash (const NMPObject *obj)
 {
-	const NMPClass *klass;
+	NMHashState h;
 
 	if (!obj)
 		return 0;
 
-	g_return_val_if_fail (NMP_OBJECT_IS_VALID (obj), 0);
-
-	klass = NMP_OBJECT_GET_CLASS (obj);
-
-	if (klass->cmd_plobj_id_hash)
-		return klass->cmd_plobj_id_hash (&obj->object);
-
-	/* unhashable objects implement pointer equality. */
-	return g_direct_hash (obj);
+	nm_hash_init (&h, 914932607u);
+	nmp_object_id_hash_update (obj, &h);
+	return nm_hash_complete (&h);
 }
 
-#define _vt_cmd_plobj_id_hash(type, plat_type, cmd) \
-static guint \
-_vt_cmd_plobj_id_hash_##type (const NMPlatformObject *_obj) \
+#define _vt_cmd_plobj_id_hash_update(type, plat_type, cmd) \
+static void \
+_vt_cmd_plobj_id_hash_update_##type (const NMPlatformObject *_obj, NMHashState *h) \
 { \
 	const plat_type *const obj = (const plat_type *) _obj; \
-	guint hash; \
 	{ cmd; } \
-	return hash; \
 }
-_vt_cmd_plobj_id_hash (link, NMPlatformLink, {
-	hash = (guint) 3982791431u;
-	hash = hash      + ((guint) obj->ifindex);
+_vt_cmd_plobj_id_hash_update (link, NMPlatformLink, {
+	nm_hash_update_val (h, obj->ifindex);
 })
-_vt_cmd_plobj_id_hash (ip4_address, NMPlatformIP4Address, {
-	hash = (guint) 3591309853u;
-	hash = hash      + ((guint) obj->ifindex);
-	hash = hash * 33 + ((guint) obj->plen);
-	hash = hash * 33 + ((guint) obj->address);
+_vt_cmd_plobj_id_hash_update (ip4_address, NMPlatformIP4Address, {
+	nm_hash_update_vals (h,
+	                     obj->ifindex,
+	                     obj->plen,
+	                     obj->address,
+	                     /* for IPv4 we must also consider the net-part of the peer-address (IFA_ADDRESS) */
+	                     nm_utils_ip4_address_clear_host_address (obj->peer_address, obj->plen));
+})
+_vt_cmd_plobj_id_hash_update (ip6_address, NMPlatformIP6Address, {
+	nm_hash_update_vals (h,
+	                     obj->ifindex,
+	                     /* for IPv6 addresses, the prefix length is not part of the primary identifier. */
+	                     obj->address);
+})
+_vt_cmd_plobj_id_hash_update (ip4_route, NMPlatformIP4Route, {
+	nm_platform_ip4_route_hash_update (obj, NM_PLATFORM_IP_ROUTE_CMP_TYPE_ID, h);
+})
+_vt_cmd_plobj_id_hash_update (ip6_route, NMPlatformIP6Route, {
+	nm_platform_ip6_route_hash_update (obj, NM_PLATFORM_IP_ROUTE_CMP_TYPE_ID, h);
+})
+_vt_cmd_plobj_id_hash_update (qdisc, NMPlatformQdisc, {
+	nm_hash_update_vals (h,
+	                     obj->ifindex,
+	                     obj->parent);
+})
+_vt_cmd_plobj_id_hash_update (tfilter, NMPlatformTfilter, {
+	nm_hash_update_vals (h,
+	                     obj->ifindex,
+	                     obj->handle);
+})
 
-	/* for IPv4 we must also consider the net-part of the peer-address (IFA_ADDRESS) */
-	hash = hash * 33 + ((guint) (obj->peer_address & nm_utils_ip4_prefix_to_netmask (obj->plen)));
-})
-_vt_cmd_plobj_id_hash (ip6_address, NMPlatformIP6Address, {
-	hash = (guint) 2907861637u;
-	hash = hash      + ((guint) obj->ifindex);
-	/* for IPv6 addresses, the prefix length is not part of the primary identifier. */
-	hash = hash * 33 + _id_hash_ip6_addr (&obj->address);
-})
-_vt_cmd_plobj_id_hash (ip4_route, NMPlatformIP4Route, {
-	hash = (guint) 2569857221u;
-	hash = hash      + ((guint) obj->ifindex);
-	hash = hash * 33 + ((guint) obj->plen);
-	hash = hash * 33 + ((guint) obj->metric);
-	hash = hash * 33 + ((guint) obj->network);
-})
-_vt_cmd_plobj_id_hash (ip6_route, NMPlatformIP6Route, {
-	hash = (guint) 3999787007u;
-	hash = hash      + ((guint) obj->ifindex);
-	hash = hash * 33 + ((guint) obj->plen);
-	hash = hash * 33 + ((guint) obj->metric);
-	hash = hash * 33 + _id_hash_ip6_addr (&obj->network);
-})
+static inline void
+_vt_cmd_plobj_hash_update_ip4_route (const NMPlatformObject *obj, NMHashState *h)
+{
+	return nm_platform_ip4_route_hash_update ((const NMPlatformIP4Route *) obj, NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL, h);
+}
+
+static inline void
+_vt_cmd_plobj_hash_update_ip6_route (const NMPlatformObject *obj, NMHashState *h)
+{
+	return nm_platform_ip6_route_hash_update ((const NMPlatformIP6Route *) obj, NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL, h);
+}
 
 gboolean
 nmp_object_is_alive (const NMPObject *obj)
@@ -915,12 +1187,25 @@ _vt_cmd_obj_is_alive_ipx_route (const NMPObject *obj)
 	 *
 	 * If nmp_object_from_nl() would just return NULL, we couldn't look
 	 * into the cache to see if it contains a route that now disappears
-	 * (because it is cloned).
+	 * (because it changed to be cloned).
 	 *
 	 * Instead we create a dead object, and nmp_cache_update_netlink()
 	 * will remove the old version of the update.
 	 **/
-	return obj->object.ifindex > 0 && (obj->ip_route.source != _NM_IP_CONFIG_SOURCE_RTM_F_CLONED);
+	return    obj->object.ifindex > 0
+	       && !NM_FLAGS_HAS (obj->ip_route.r_rtm_flags, RTM_F_CLONED);
+}
+
+static gboolean
+_vt_cmd_obj_is_alive_qdisc (const NMPObject *obj)
+{
+	return obj->object.ifindex > 0;
+}
+
+static gboolean
+_vt_cmd_obj_is_alive_tfilter (const NMPObject *obj)
+{
+	return obj->object.ifindex > 0;
 }
 
 gboolean
@@ -950,354 +1235,78 @@ _vt_cmd_obj_is_visible_link (const NMPObject *obj)
 	       && obj->link.name[0];
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
-#define _STRUCT_SIZE(struct_type, field) \
-	(G_STRUCT_OFFSET (struct_type, field) + sizeof (((struct_type *) NULL)->field))
-
-_NM_UTILS_LOOKUP_DEFINE (static, _nmp_cache_id_size_by_type, NMPCacheIdType, guint,
-	NM_UTILS_LOOKUP_DEFAULT (({ nm_assert_not_reached (); sizeof (NMPCacheId); })),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_OBJECT_TYPE,                            _STRUCT_SIZE (NMPCacheId, object_type)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_OBJECT_TYPE_VISIBLE_ONLY,               _STRUCT_SIZE (NMPCacheId, object_type)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_NO_DEFAULT,              _STRUCT_SIZE (NMPCacheId, object_type)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_ONLY_DEFAULT,            _STRUCT_SIZE (NMPCacheId, object_type)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_ADDRROUTE_VISIBLE_BY_IFINDEX,           _STRUCT_SIZE (NMPCacheId, object_type_by_ifindex)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_NO_DEFAULT,   _STRUCT_SIZE (NMPCacheId, object_type_by_ifindex)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_ONLY_DEFAULT, _STRUCT_SIZE (NMPCacheId, object_type_by_ifindex)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_LINK_BY_IFNAME,                         _STRUCT_SIZE (NMPCacheId, link_by_ifname)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_ROUTES_BY_DESTINATION_IP4,              _STRUCT_SIZE (NMPCacheId, routes_by_destination_ip4)),
-	NM_UTILS_LOOKUP_ITEM (NMP_CACHE_ID_TYPE_ROUTES_BY_DESTINATION_IP6,              _STRUCT_SIZE (NMPCacheId, routes_by_destination_ip6)),
-	NM_UTILS_LOOKUP_ITEM_IGNORE (NMP_CACHE_ID_TYPE_NONE),
-	NM_UTILS_LOOKUP_ITEM_IGNORE (__NMP_CACHE_ID_TYPE_MAX),
-);
-
-gboolean
-nmp_cache_id_equal (const NMPCacheId *a, const NMPCacheId *b)
-{
-	if (a->_id_type != b->_id_type)
-		return FALSE;
-	return memcmp (a, b, _nmp_cache_id_size_by_type (a->_id_type)) == 0;
-}
-
-guint
-nmp_cache_id_hash (const NMPCacheId *id)
-{
-	guint hash = 5381;
-	guint i, n;
-
-	/* for hashing we only iterate over the actually set bytes and skip the
-	 * zero padding at the end (which depends on the type of the id).
-	 *
-	 * For the equal implementation, we don't care about that and compare the
-	 * entire NMPCacheId sized struct. */
-	n = _nmp_cache_id_size_by_type (id->_id_type);
-	for (i = 0; i < n; i++)
-		hash = ((hash << 5) + hash) + ((char *) id)[i]; /* hash * 33 + c */
-	return hash;
-}
-
-NMPCacheId *
-nmp_cache_id_clone (const NMPCacheId *id)
-{
-	NMPCacheId *id2;
-	guint n;
-
-	n = _nmp_cache_id_size_by_type (id->_id_type);
-	id2 = g_slice_alloc (n);
-	memcpy (id2, id, n);
-	return id2;
-}
-
-void
-nmp_cache_id_destroy (NMPCacheId *id)
-{
-	guint n;
-
-	n = _nmp_cache_id_size_by_type (id->_id_type);
-	g_slice_free1 (n, id);
-}
-
-/******************************************************************/
-
-NMPCacheId _nmp_cache_id_static;
-
-static void
-_nmp_cache_id_init (NMPCacheId *id, NMPCacheIdType id_type)
-{
-	memset (id, 0, sizeof (NMPCacheId));
-	id->_id_type = id_type;
-}
-
-NMPCacheId *
-nmp_cache_id_copy (NMPCacheId *id, const NMPCacheId *src)
-{
-	guint n;
-
-	memset (id, 0, sizeof (NMPCacheId));
-	n = _nmp_cache_id_size_by_type (src->_id_type);
-	memcpy (id, src, n);
-	return id;
-}
-
-NMPCacheId *
-nmp_cache_id_init_object_type (NMPCacheId *id, NMPObjectType obj_type, gboolean visible_only)
-{
-	_nmp_cache_id_init (id, visible_only
-	                        ? NMP_CACHE_ID_TYPE_OBJECT_TYPE_VISIBLE_ONLY
-	                        : NMP_CACHE_ID_TYPE_OBJECT_TYPE);
-	id->object_type.obj_type = obj_type;
-	return id;
-}
-
-NMPCacheId *
-nmp_cache_id_init_addrroute_visible_by_ifindex (NMPCacheId *id,
-                                                NMPObjectType obj_type,
-                                                int ifindex)
-{
-	g_return_val_if_fail (NM_IN_SET (obj_type,
-	                                 NMP_OBJECT_TYPE_IP4_ADDRESS, NMP_OBJECT_TYPE_IP4_ROUTE,
-	                                 NMP_OBJECT_TYPE_IP6_ADDRESS, NMP_OBJECT_TYPE_IP6_ROUTE), NULL);
-
-	if (ifindex <= 0)
-		return nmp_cache_id_init_object_type (id, obj_type, TRUE);
-
-	_nmp_cache_id_init (id, NMP_CACHE_ID_TYPE_ADDRROUTE_VISIBLE_BY_IFINDEX);
-	id->object_type_by_ifindex.obj_type = obj_type;
-	memcpy (&id->object_type_by_ifindex._misaligned_ifindex, &ifindex, sizeof (int));
-	return id;
-}
-
-NMPCacheId *
-nmp_cache_id_init_routes_visible (NMPCacheId *id,
-                                  NMPObjectType obj_type,
-                                  gboolean with_default,
-                                  gboolean with_non_default,
-                                  int ifindex)
-{
-	g_return_val_if_fail (NM_IN_SET (obj_type, NMP_OBJECT_TYPE_IP4_ROUTE, NMP_OBJECT_TYPE_IP6_ROUTE), NULL);
-
-	if (with_default && with_non_default) {
-		if (ifindex <= 0)
-			return nmp_cache_id_init_object_type (id, obj_type, TRUE);
-		return nmp_cache_id_init_addrroute_visible_by_ifindex (id, obj_type, ifindex);
-	}
-
-	if (with_default)
-		_nmp_cache_id_init (id, NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_ONLY_DEFAULT);
-	else if (with_non_default)
-		_nmp_cache_id_init (id, NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_NO_DEFAULT);
-	else
-		g_return_val_if_reached (NULL);
-
-	id->object_type_by_ifindex.obj_type = obj_type;
-	memcpy (&id->object_type_by_ifindex._misaligned_ifindex, &ifindex, sizeof (int));
-	return id;
-}
-
-NMPCacheId *
-nmp_cache_id_init_link_by_ifname (NMPCacheId *id,
-                                  const char *ifname)
-{
-	gsize l;
-
-	_nmp_cache_id_init (id, NMP_CACHE_ID_TYPE_LINK_BY_IFNAME);
-
-	if (   !ifname
-	    || (l = strlen (ifname)) > sizeof (id->link_by_ifname.ifname_short))
-		g_return_val_if_reached (id);
-
-	/* the trailing NUL is dropped!! */
-	memcpy (id->link_by_ifname.ifname_short, ifname, l);
-
-	return id;
-}
-
-NMPCacheId *
-nmp_cache_id_init_routes_by_destination_ip4 (NMPCacheId *id,
-                                             guint32 network,
-                                             guint8 plen,
-                                             guint32 metric)
-{
-	_nmp_cache_id_init (id, NMP_CACHE_ID_TYPE_ROUTES_BY_DESTINATION_IP4);
-	id->routes_by_destination_ip4.plen = plen;
-	memcpy (&id->routes_by_destination_ip4._misaligned_metric,  &metric, sizeof (guint32));
-	memcpy (&id->routes_by_destination_ip4._misaligned_network, &network, sizeof (guint32));
-	return id;
-}
-
-NMPCacheId *
-nmp_cache_id_init_routes_by_destination_ip6 (NMPCacheId *id,
-                                             const struct in6_addr *network,
-                                             guint8 plen,
-                                             guint32 metric)
-{
-	_nmp_cache_id_init (id, NMP_CACHE_ID_TYPE_ROUTES_BY_DESTINATION_IP6);
-	id->routes_by_destination_ip4.plen = plen;
-	memcpy (&id->routes_by_destination_ip6._misaligned_metric,  &metric, sizeof (guint32));
-	if (network)
-		memcpy (&id->routes_by_destination_ip6._misaligned_network, network, sizeof (struct in6_addr));
-	return id;
-}
-
-/******************************************************************/
-
-static gboolean
-_nmp_object_init_cache_id (const NMPObject *obj, NMPCacheIdType id_type, NMPCacheId *id, const NMPCacheId **out_id)
-{
-	const NMPClass *klass = NMP_OBJECT_GET_CLASS (obj);
-
-	switch (id_type) {
-	case NMP_CACHE_ID_TYPE_OBJECT_TYPE:
-		*out_id = nmp_cache_id_init_object_type (id, klass->obj_type, FALSE);
-		return TRUE;
-	case NMP_CACHE_ID_TYPE_OBJECT_TYPE_VISIBLE_ONLY:
-		if (nmp_object_is_visible (obj))
-			*out_id = nmp_cache_id_init_object_type (id, klass->obj_type, TRUE);
-		else
-			*out_id = NULL;
-		return TRUE;
-	default:
-		return    klass->cmd_obj_init_cache_id
-		       && klass->cmd_obj_init_cache_id (obj, id_type, id, out_id);
-	}
-}
+static const guint8 _supported_cache_ids_object[] = {
+	NMP_CACHE_ID_TYPE_OBJECT_TYPE,
+	NMP_CACHE_ID_TYPE_OBJECT_BY_IFINDEX,
+	0,
+};
 
 static const guint8 _supported_cache_ids_link[] = {
 	NMP_CACHE_ID_TYPE_OBJECT_TYPE,
-	NMP_CACHE_ID_TYPE_OBJECT_TYPE_VISIBLE_ONLY,
 	NMP_CACHE_ID_TYPE_LINK_BY_IFNAME,
 	0,
 };
 
-static gboolean
-_vt_cmd_obj_init_cache_id_link (const NMPObject *obj, NMPCacheIdType id_type, NMPCacheId *id, const NMPCacheId **out_id)
-{
-	switch (id_type) {
-	case NMP_CACHE_ID_TYPE_LINK_BY_IFNAME:
-		if (obj->link.name[0]) {
-			*out_id = nmp_cache_id_init_link_by_ifname (id, obj->link.name);
-			return TRUE;
-		}
-		break;
-	default:
-		return FALSE;
-	}
-	*out_id = NULL;
-	return TRUE;
-}
-
 static const guint8 _supported_cache_ids_ipx_address[] = {
 	NMP_CACHE_ID_TYPE_OBJECT_TYPE,
-	NMP_CACHE_ID_TYPE_OBJECT_TYPE_VISIBLE_ONLY,
-	NMP_CACHE_ID_TYPE_ADDRROUTE_VISIBLE_BY_IFINDEX,
+	NMP_CACHE_ID_TYPE_OBJECT_BY_IFINDEX,
 	0,
 };
 
-static gboolean
-_vt_cmd_obj_init_cache_id_ipx_address (const NMPObject *obj, NMPCacheIdType id_type, NMPCacheId *id, const NMPCacheId **out_id)
+static const guint8 _supported_cache_ids_ipx_route[] = {
+	NMP_CACHE_ID_TYPE_OBJECT_TYPE,
+	NMP_CACHE_ID_TYPE_OBJECT_BY_IFINDEX,
+	NMP_CACHE_ID_TYPE_DEFAULT_ROUTES,
+	NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID,
+	0,
+};
+
+/*****************************************************************************/
+
+static void
+_vt_dedup_obj_destroy (NMDedupMultiObj *obj)
 {
-	switch (id_type) {
-	case NMP_CACHE_ID_TYPE_ADDRROUTE_VISIBLE_BY_IFINDEX:
-		if (nmp_object_is_visible (obj)) {
-			nm_assert (obj->object.ifindex > 0);
-			*out_id = nmp_cache_id_init_addrroute_visible_by_ifindex (id, NMP_OBJECT_GET_TYPE (obj), obj->object.ifindex);
-			return TRUE;
-		}
-		break;
-	default:
-		return FALSE;
-	}
-	*out_id = NULL;
-	return TRUE;
+	NMPObject *o = (NMPObject *) obj;
+	const NMPClass *klass;
+
+	nm_assert (o->parent._ref_count == 0);
+	nm_assert (!o->parent._multi_idx);
+
+	klass = o->_class;
+	if (klass->cmd_obj_dispose)
+		klass->cmd_obj_dispose (o);
+	g_slice_free1 (klass->sizeof_data + G_STRUCT_OFFSET (NMPObject, object), o);
 }
 
-static const guint8 _supported_cache_ids_ip4_route[] = {
-	NMP_CACHE_ID_TYPE_OBJECT_TYPE,
-	NMP_CACHE_ID_TYPE_OBJECT_TYPE_VISIBLE_ONLY,
-	NMP_CACHE_ID_TYPE_ADDRROUTE_VISIBLE_BY_IFINDEX,
-	NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_NO_DEFAULT,
-	NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_ONLY_DEFAULT,
-	NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_NO_DEFAULT,
-	NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_ONLY_DEFAULT,
-	NMP_CACHE_ID_TYPE_ROUTES_BY_DESTINATION_IP4,
-	0,
-};
-
-static const guint8 _supported_cache_ids_ip6_route[] = {
-	NMP_CACHE_ID_TYPE_OBJECT_TYPE,
-	NMP_CACHE_ID_TYPE_OBJECT_TYPE_VISIBLE_ONLY,
-	NMP_CACHE_ID_TYPE_ADDRROUTE_VISIBLE_BY_IFINDEX,
-	NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_NO_DEFAULT,
-	NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_ONLY_DEFAULT,
-	NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_NO_DEFAULT,
-	NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_ONLY_DEFAULT,
-	NMP_CACHE_ID_TYPE_ROUTES_BY_DESTINATION_IP6,
-	0,
-};
-
-static gboolean
-_vt_cmd_obj_init_cache_id_ipx_route (const NMPObject *obj, NMPCacheIdType id_type, NMPCacheId *id, const NMPCacheId **out_id)
+static const NMDedupMultiObj *
+_vt_dedup_obj_clone (const NMDedupMultiObj *obj)
 {
-	switch (id_type) {
-	case NMP_CACHE_ID_TYPE_ADDRROUTE_VISIBLE_BY_IFINDEX:
-		if (nmp_object_is_visible (obj)) {
-			nm_assert (obj->object.ifindex > 0);
-			*out_id = nmp_cache_id_init_addrroute_visible_by_ifindex (id, NMP_OBJECT_GET_TYPE (obj), obj->object.ifindex);
-			return TRUE;
-		}
-		break;
-	case NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_NO_DEFAULT:
-		if (   nmp_object_is_visible  (obj)
-		    && !NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&obj->ip_route)) {
-			nm_assert (obj->object.ifindex > 0);
-			*out_id = nmp_cache_id_init_routes_visible (id, NMP_OBJECT_GET_TYPE (obj), FALSE, TRUE, 0);
-			return TRUE;
-		}
-		break;
-	case NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_ONLY_DEFAULT:
-		if (   nmp_object_is_visible  (obj)
-		    && NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&obj->ip_route)) {
-			nm_assert (obj->object.ifindex > 0);
-			*out_id = nmp_cache_id_init_routes_visible (id, NMP_OBJECT_GET_TYPE (obj), TRUE, FALSE, 0);
-			return TRUE;
-		}
-		break;
-	case NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_NO_DEFAULT:
-		if (   nmp_object_is_visible (obj)
-		    && !NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&obj->ip_route)) {
-			nm_assert (obj->object.ifindex > 0);
-			*out_id = nmp_cache_id_init_routes_visible (id, NMP_OBJECT_GET_TYPE (obj), FALSE, TRUE, obj->object.ifindex);
-			return TRUE;
-		}
-		break;
-	case NMP_CACHE_ID_TYPE_ROUTES_VISIBLE_BY_IFINDEX_ONLY_DEFAULT:
-		if (   nmp_object_is_visible (obj)
-		    && NM_PLATFORM_IP_ROUTE_IS_DEFAULT (&obj->ip_route)) {
-			nm_assert (obj->object.ifindex > 0);
-			*out_id = nmp_cache_id_init_routes_visible (id, NMP_OBJECT_GET_TYPE (obj), TRUE, FALSE, obj->object.ifindex);
-			return TRUE;
-		}
-		break;
-	case NMP_CACHE_ID_TYPE_ROUTES_BY_DESTINATION_IP4:
-		if (NMP_OBJECT_GET_CLASS (obj)->obj_type == NMP_OBJECT_TYPE_IP4_ROUTE) {
-			*out_id = nmp_cache_id_init_routes_by_destination_ip4 (id, obj->ip4_route.network, obj->ip_route.plen, obj->ip_route.metric);
-			return TRUE;
-		}
-		return FALSE;
-	case NMP_CACHE_ID_TYPE_ROUTES_BY_DESTINATION_IP6:
-		if (NMP_OBJECT_GET_CLASS (obj)->obj_type == NMP_OBJECT_TYPE_IP6_ROUTE) {
-			*out_id = nmp_cache_id_init_routes_by_destination_ip6 (id, &obj->ip6_route.network, obj->ip_route.plen, obj->ip_route.metric);
-			return TRUE;
-		}
-		return FALSE;
-	default:
-		return FALSE;
-	}
-	*out_id = NULL;
-	return TRUE;
+	return (const NMDedupMultiObj *) nmp_object_clone ((const NMPObject *) obj, FALSE);
 }
 
-/******************************************************************/
+#define DEDUP_MULTI_OBJ_CLASS_INIT() \
+	{ \
+		.obj_clone                      = _vt_dedup_obj_clone, \
+		.obj_destroy                    = _vt_dedup_obj_destroy, \
+		.obj_full_hash_update           = (void (*)(const NMDedupMultiObj *obj, NMHashState *h)) nmp_object_hash_update, \
+		.obj_full_equal                 = (gboolean (*)(const NMDedupMultiObj *obj_a, const NMDedupMultiObj *obj_b)) nmp_object_equal, \
+	}
+
+/*****************************************************************************/
+
+static NMDedupMultiIdxType *
+_idx_type_get (const NMPCache *cache, NMPCacheIdType cache_id_type)
+{
+	nm_assert (cache);
+	nm_assert (cache_id_type > NMP_CACHE_ID_TYPE_NONE);
+	nm_assert (cache_id_type <= NMP_CACHE_ID_TYPE_MAX);
+	nm_assert ((int) cache_id_type - 1 >= 0);
+	nm_assert ((int) cache_id_type - 1 < G_N_ELEMENTS (cache->idx_types));
+
+	return (NMDedupMultiIdxType *) &cache->idx_types[cache_id_type - 1];
+}
 
 gboolean
 nmp_cache_use_udev_get (const NMPCache *cache)
@@ -1307,7 +1316,18 @@ nmp_cache_use_udev_get (const NMPCache *cache)
 	return cache->use_udev;
 }
 
-/******************************************************************/
+/*****************************************************************************/
+
+gboolean
+nmp_cache_link_connected_for_slave (int ifindex_master, const NMPObject *slave)
+{
+	nm_assert (NMP_OBJECT_GET_TYPE (slave) == NMP_OBJECT_TYPE_LINK);
+
+	return    ifindex_master > 0
+	       && slave->link.master == ifindex_master
+	       && slave->link.connected
+	       && nmp_object_is_visible (slave);
+}
 
 /**
  * nmp_cache_link_connected_needs_toggle:
@@ -1333,9 +1353,7 @@ nmp_cache_use_udev_get (const NMPCache *cache)
 gboolean
 nmp_cache_link_connected_needs_toggle (const NMPCache *cache, const NMPObject *master, const NMPObject *potential_slave, const NMPObject *ignore_slave)
 {
-	const NMPlatformLink *const *links;
 	gboolean is_lower_up = FALSE;
-	guint len, i;
 
 	if (   !master
 	    || NMP_OBJECT_GET_TYPE (master) != NMP_OBJECT_TYPE_LINK
@@ -1353,25 +1371,23 @@ nmp_cache_link_connected_needs_toggle (const NMPCache *cache, const NMPObject *m
 		potential_slave = NULL;
 
 	if (   potential_slave
-	    && nmp_object_is_visible (potential_slave)
-	    && potential_slave->link.ifindex > 0
-	    && potential_slave->link.master == master->link.ifindex
-	    && potential_slave->link.connected) {
+	    && nmp_cache_link_connected_for_slave (master->link.ifindex, potential_slave))
 		is_lower_up = TRUE;
-	} else {
-		links = (const NMPlatformLink *const *) nmp_cache_lookup_multi (cache, nmp_cache_id_init_object_type (NMP_CACHE_ID_STATIC, NMP_OBJECT_TYPE_LINK, FALSE), &len);
-		for (i = 0; i < len; i++) {
-			const NMPlatformLink *link = links[i];
-			const NMPObject *obj = NMP_OBJECT_UP_CAST ((NMPlatformObject *) link);
+	else {
+		NMPLookup lookup;
+		NMDedupMultiIter iter;
+		const NMPlatformLink *link = NULL;
 
-			nm_assert (NMP_OBJECT_GET_TYPE (NMP_OBJECT_UP_CAST ((NMPlatformObject *) link)) == NMP_OBJECT_TYPE_LINK);
+		nmp_cache_iter_for_each_link (&iter,
+		                              nmp_cache_lookup (cache,
+		                                                nmp_lookup_init_obj_type (&lookup,
+		                                                                          NMP_OBJECT_TYPE_LINK)),
+		                              &link) {
+			const NMPObject *obj = NMP_OBJECT_UP_CAST ((NMPlatformObject *) link);
 
 			if (   (!potential_slave || potential_slave->link.ifindex != link->ifindex)
 			    && ignore_slave != obj
-			    && link->ifindex > 0
-			    && link->master == master->link.ifindex
-			    && nmp_object_is_visible (obj)
-			    && link->connected) {
+			    && nmp_cache_link_connected_for_slave (master->link.ifindex, obj)) {
 				is_lower_up = TRUE;
 				break;
 			}
@@ -1412,96 +1428,298 @@ nmp_cache_link_connected_needs_toggle_by_ifindex (const NMPCache *cache, int mas
 	return NULL;
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
-const NMPlatformObject *const *
-nmp_cache_lookup_multi (const NMPCache *cache, const NMPCacheId *cache_id, guint *out_len)
+static const NMDedupMultiEntry *
+_lookup_entry_with_idx_type (const NMPCache *cache,
+                             NMPCacheIdType cache_id_type,
+                             const NMPObject *obj)
 {
-	return (const NMPlatformObject *const *) nm_multi_index_lookup (cache->idx_multi,
-	                                                                (const NMMultiIndexId *) cache_id,
-	                                                                out_len);
+	const NMDedupMultiEntry *entry;
+
+	nm_assert (cache);
+	nm_assert (NMP_OBJECT_IS_VALID (obj));
+
+	entry = nm_dedup_multi_index_lookup_obj (cache->multi_idx,
+	                                         _idx_type_get (cache, cache_id_type),
+	                                         obj);
+	nm_assert (!entry
+	           || (   NMP_OBJECT_IS_VALID (entry->obj)
+	               && NMP_OBJECT_GET_CLASS (entry->obj) == NMP_OBJECT_GET_CLASS (obj)));
+	return entry;
 }
 
-GArray *
-nmp_cache_lookup_multi_to_array (const NMPCache *cache, NMPObjectType obj_type, const NMPCacheId *cache_id)
+static const NMDedupMultiEntry *
+_lookup_entry (const NMPCache *cache, const NMPObject *obj)
 {
-	const NMPClass *klass = nmp_class_from_type (obj_type);
-	guint len, i;
-	const NMPlatformObject *const *objects;
-	GArray *array;
+	return _lookup_entry_with_idx_type (cache, NMP_CACHE_ID_TYPE_OBJECT_TYPE, obj);
+}
 
-	g_return_val_if_fail (klass, NULL);
+const NMDedupMultiEntry *
+nmp_cache_lookup_entry_with_idx_type (const NMPCache *cache,
+                                      NMPCacheIdType cache_id_type,
+                                      const NMPObject *obj)
+{
+	g_return_val_if_fail (cache, NULL);
+	g_return_val_if_fail (obj, NULL);
+	g_return_val_if_fail (cache_id_type > NMP_CACHE_ID_TYPE_NONE && cache_id_type <= NMP_CACHE_ID_TYPE_MAX, NULL);
 
-	objects = nmp_cache_lookup_multi (cache, cache_id, &len);
-	array = g_array_sized_new (FALSE, FALSE, klass->sizeof_public, len);
+	return _lookup_entry_with_idx_type (cache, cache_id_type, obj);
+}
 
-	for (i = 0; i < len; i++) {
-		nm_assert (NMP_OBJECT_GET_CLASS (NMP_OBJECT_UP_CAST (objects[i])) == klass);
-		g_array_append_vals (array, objects[i], 1);
-	}
-	return array;
+const NMDedupMultiEntry *
+nmp_cache_lookup_entry (const NMPCache *cache, const NMPObject *obj)
+{
+	g_return_val_if_fail (cache, NULL);
+	g_return_val_if_fail (obj, NULL);
+
+	return _lookup_entry (cache, obj);
+}
+
+const NMDedupMultiEntry *
+nmp_cache_lookup_entry_link (const NMPCache *cache, int ifindex)
+{
+	NMPObject obj_needle;
+
+	g_return_val_if_fail (cache, NULL);
+	g_return_val_if_fail (ifindex > 0, NULL);
+
+	nmp_object_stackinit_id_link (&obj_needle, ifindex);
+	return _lookup_entry (cache, &obj_needle);
 }
 
 const NMPObject *
 nmp_cache_lookup_obj (const NMPCache *cache, const NMPObject *obj)
 {
-	g_return_val_if_fail (obj, NULL);
-
-	return g_hash_table_lookup (cache->idx_main, obj);
+	return nm_dedup_multi_entry_get_obj (nmp_cache_lookup_entry (cache, obj));
 }
 
 const NMPObject *
 nmp_cache_lookup_link (const NMPCache *cache, int ifindex)
 {
-	NMPObject obj_needle;
-
-	return nmp_cache_lookup_obj (cache, nmp_object_stackinit_id_link (&obj_needle, ifindex));
+	return nm_dedup_multi_entry_get_obj (nmp_cache_lookup_entry_link (cache, ifindex));
 }
 
-/**
- * nmp_cache_find_other_route_for_same_destination:
- * @cache:
- * @route:
- *
- * Look into the cache whether there is a route to the same destination,
- * in terms of network/plen,metric.
- *
- * Returns: (transfer none): the first found route object from the cache
- *   that has the same (network/plen,metric) values as @route, but has different
- *   ID. Or %NULL, if no such route exists.
- */
-const NMPObject *
-nmp_cache_find_other_route_for_same_destination (const NMPCache *cache, const NMPObject *route)
+/*****************************************************************************/
+
+const NMDedupMultiHeadEntry *
+nmp_cache_lookup_all (const NMPCache *cache,
+                      NMPCacheIdType cache_id_type,
+                      const NMPObject *select_obj)
 {
-	NMPCacheId cache_id;
-	const NMPlatformObject *const *list;
-
 	nm_assert (cache);
+	nm_assert (NMP_OBJECT_IS_VALID (select_obj));
 
-	switch (NMP_OBJECT_GET_TYPE (route)) {
-	case NMP_OBJECT_TYPE_IP4_ROUTE:
-		nmp_cache_id_init_routes_by_destination_ip4 (&cache_id, route->ip4_route.network, route->ip_route.plen, route->ip_route.metric);
-		break;
-	case NMP_OBJECT_TYPE_IP6_ROUTE:
-		nmp_cache_id_init_routes_by_destination_ip6 (&cache_id, &route->ip6_route.network, route->ip_route.plen, route->ip_route.metric);
-		break;
-	default:
-		g_return_val_if_reached (NULL);
-	}
-
-	list = nmp_cache_lookup_multi (cache, &cache_id, NULL);
-	if (list) {
-		for (; *list; list++) {
-			const NMPObject *candidate = NMP_OBJECT_UP_CAST (*list);
-
-			nm_assert (NMP_OBJECT_GET_CLASS (route) == NMP_OBJECT_GET_CLASS (candidate));
-
-			if (!nmp_object_id_equal (route, candidate))
-				return candidate;
-		}
-	}
-	return NULL;
+	return nm_dedup_multi_index_lookup_head (cache->multi_idx,
+	                                         _idx_type_get (cache, cache_id_type),
+	                                         select_obj);
 }
+
+static const NMPLookup *
+_L (const NMPLookup *lookup)
+{
+#if NM_MORE_ASSERTS
+	DedupMultiIdxType idx_type;
+
+	nm_assert (lookup);
+	_dedup_multi_idx_type_init (&idx_type, lookup->cache_id_type);
+	nm_assert (idx_type.parent.klass->idx_obj_partitionable  ((NMDedupMultiIdxType *) &idx_type, (NMDedupMultiObj *) &lookup->selector_obj));
+#endif
+	return lookup;
+}
+
+const NMPLookup *
+nmp_lookup_init_obj_type (NMPLookup *lookup,
+                          NMPObjectType obj_type)
+{
+	NMPObject *o;
+
+	nm_assert (lookup);
+
+	switch (obj_type) {
+	case NMP_OBJECT_TYPE_LINK:
+	case NMP_OBJECT_TYPE_IP4_ADDRESS:
+	case NMP_OBJECT_TYPE_IP6_ADDRESS:
+	case NMP_OBJECT_TYPE_IP4_ROUTE:
+	case NMP_OBJECT_TYPE_IP6_ROUTE:
+	case NMP_OBJECT_TYPE_QDISC:
+	case NMP_OBJECT_TYPE_TFILTER:
+		o = _nmp_object_stackinit_from_type (&lookup->selector_obj, obj_type);
+		lookup->cache_id_type = NMP_CACHE_ID_TYPE_OBJECT_TYPE;
+		return _L (lookup);
+	default:
+		nm_assert_not_reached ();
+		return NULL;
+	}
+}
+
+const NMPLookup *
+nmp_lookup_init_link_by_ifname (NMPLookup *lookup,
+                                const char *ifname)
+{
+	NMPObject *o;
+
+	nm_assert (lookup);
+	nm_assert (ifname);
+	nm_assert (strlen (ifname) < IFNAMSIZ);
+
+	o = _nmp_object_stackinit_from_type (&lookup->selector_obj, NMP_OBJECT_TYPE_LINK);
+	if (g_strlcpy (o->link.name, ifname, sizeof (o->link.name)) >= sizeof (o->link.name))
+		g_return_val_if_reached (NULL);
+	lookup->cache_id_type = NMP_CACHE_ID_TYPE_LINK_BY_IFNAME;
+	return _L (lookup);
+}
+
+const NMPLookup *
+nmp_lookup_init_object (NMPLookup *lookup,
+                        NMPObjectType obj_type,
+                        int ifindex)
+{
+	NMPObject *o;
+
+	nm_assert (lookup);
+	nm_assert (NM_IN_SET (obj_type, NMP_OBJECT_TYPE_IP4_ADDRESS,
+	                                NMP_OBJECT_TYPE_IP6_ADDRESS,
+	                                NMP_OBJECT_TYPE_IP4_ROUTE,
+	                                NMP_OBJECT_TYPE_IP6_ROUTE,
+	                                NMP_OBJECT_TYPE_QDISC,
+	                                NMP_OBJECT_TYPE_TFILTER));
+
+	if (ifindex <= 0) {
+		return nmp_lookup_init_obj_type (lookup,
+		                                 obj_type);
+	}
+
+	o = _nmp_object_stackinit_from_type (&lookup->selector_obj, obj_type);
+	o->object.ifindex = ifindex;
+	lookup->cache_id_type = NMP_CACHE_ID_TYPE_OBJECT_BY_IFINDEX;
+	return _L (lookup);
+}
+
+const NMPLookup *
+nmp_lookup_init_route_default (NMPLookup *lookup,
+                               NMPObjectType obj_type)
+{
+	NMPObject *o;
+
+	nm_assert (lookup);
+	nm_assert (NM_IN_SET (obj_type, NMP_OBJECT_TYPE_IP4_ROUTE,
+	                                NMP_OBJECT_TYPE_IP6_ROUTE));
+
+	o = _nmp_object_stackinit_from_type (&lookup->selector_obj, obj_type);
+	o->object.ifindex = 1;
+	lookup->cache_id_type = NMP_CACHE_ID_TYPE_DEFAULT_ROUTES;
+	return _L (lookup);
+}
+
+const NMPLookup *
+nmp_lookup_init_route_by_weak_id (NMPLookup *lookup,
+                                  const NMPObject *obj)
+{
+	const NMPlatformIP4Route *r4;
+	const NMPlatformIP6Route *r6;
+
+	nm_assert (lookup);
+
+	switch (NMP_OBJECT_GET_TYPE (obj)) {
+	case NMP_OBJECT_TYPE_IP4_ROUTE:
+		r4 = NMP_OBJECT_CAST_IP4_ROUTE (obj);
+		return nmp_lookup_init_ip4_route_by_weak_id (lookup,
+		                                             r4->network,
+		                                             r4->plen,
+		                                             r4->metric,
+		                                             r4->tos);
+	case NMP_OBJECT_TYPE_IP6_ROUTE:
+		r6 = NMP_OBJECT_CAST_IP6_ROUTE (obj);
+		return nmp_lookup_init_ip6_route_by_weak_id (lookup,
+		                                             &r6->network,
+		                                             r6->plen,
+		                                             r6->metric,
+		                                             &r6->src,
+		                                             r6->src_plen);
+	default:
+		nm_assert_not_reached ();
+		return NULL;
+	}
+}
+
+const NMPLookup *
+nmp_lookup_init_ip4_route_by_weak_id (NMPLookup *lookup,
+                                      in_addr_t network,
+                                      guint plen,
+                                      guint32 metric,
+                                      guint8 tos)
+{
+	NMPObject *o;
+
+	nm_assert (lookup);
+
+	o = _nmp_object_stackinit_from_type (&lookup->selector_obj, NMP_OBJECT_TYPE_IP4_ROUTE);
+	o->object.ifindex = 1;
+	o->ip_route.plen = plen;
+	o->ip_route.metric = metric;
+	if (network)
+		o->ip4_route.network = network;
+	o->ip4_route.tos = tos;
+	lookup->cache_id_type = NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID;
+	return _L (lookup);
+}
+
+const NMPLookup *
+nmp_lookup_init_ip6_route_by_weak_id (NMPLookup *lookup,
+                                      const struct in6_addr *network,
+                                      guint plen,
+                                      guint32 metric,
+                                      const struct in6_addr *src,
+                                      guint8 src_plen)
+{
+	NMPObject *o;
+
+	nm_assert (lookup);
+
+	o = _nmp_object_stackinit_from_type (&lookup->selector_obj, NMP_OBJECT_TYPE_IP6_ROUTE);
+	o->object.ifindex = 1;
+	o->ip_route.plen = plen;
+	o->ip_route.metric = metric;
+	if (network)
+		o->ip6_route.network = *network;
+	if (src)
+		o->ip6_route.src = *src;
+	o->ip6_route.src_plen = src_plen;
+	lookup->cache_id_type = NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID;
+	return _L (lookup);
+}
+
+/*****************************************************************************/
+
+GArray *
+nmp_cache_lookup_to_array (const NMDedupMultiHeadEntry *head_entry,
+                           NMPObjectType obj_type,
+                           gboolean visible_only)
+{
+	const NMPClass *klass = nmp_class_from_type (obj_type);
+	NMDedupMultiIter iter;
+	const NMPObject *o;
+	GArray *array;
+
+	g_return_val_if_fail (klass, NULL);
+
+	array = g_array_sized_new (FALSE, FALSE,
+	                           klass->sizeof_public,
+	                           head_entry ? head_entry->len : 0);
+	nmp_cache_iter_for_each (&iter,
+	                         head_entry,
+	                         &o) {
+		nm_assert (NMP_OBJECT_GET_CLASS (o) == klass);
+		if (   visible_only
+		    && !nmp_object_is_visible (o))
+			continue;
+		g_array_append_vals (array, &o->object, 1);
+	}
+	return array;
+}
+
+/*****************************************************************************/
 
 const NMPObject *
 nmp_cache_lookup_link_full (const NMPCache *cache,
@@ -1514,9 +1732,10 @@ nmp_cache_lookup_link_full (const NMPCache *cache,
 {
 	NMPObject obj_needle;
 	const NMPObject *obj;
-	const NMPlatformObject *const *list;
-	guint i, len;
-	NMPCacheId cache_id, *p_cache_id;
+	NMDedupMultiIter iter;
+	const NMDedupMultiHeadEntry *head_entry;
+	const NMPlatformLink *link = NULL;
+	NMPLookup lookup;
 
 	if (ifindex > 0) {
 		obj = nmp_cache_lookup_obj (cache, nmp_object_stackinit_id_link (&obj_needle, ifindex));
@@ -1531,20 +1750,20 @@ nmp_cache_lookup_link_full (const NMPCache *cache,
 	} else if (!ifname && !match_fn)
 		return NULL;
 	else {
-		if (   ifname
-		    && strlen (ifname) <= sizeof (cache_id.link_by_ifname.ifname_short)) {
-			p_cache_id = nmp_cache_id_init_link_by_ifname (&cache_id, ifname);
-			ifname = NULL;
+		if (ifname) {
+			if (strlen (ifname) >= IFNAMSIZ)
+				return NULL;
+			nmp_lookup_init_link_by_ifname (&lookup, ifname);
 		} else
-			p_cache_id = nmp_cache_id_init_object_type (&cache_id, NMP_OBJECT_TYPE_LINK, visible_only);
+			nmp_lookup_init_obj_type (&lookup, NMP_OBJECT_TYPE_LINK);
 
-		list = nmp_cache_lookup_multi (cache, p_cache_id, &len);
-		for (i = 0; i < len; i++) {
-			obj = NMP_OBJECT_UP_CAST (list[i]);
+		head_entry = nmp_cache_lookup (cache, &lookup);
+		nmp_cache_iter_for_each_link (&iter, head_entry, &link) {
+			obj = NMP_OBJECT_UP_CAST (link);
 
-			if (link_type != NM_LINK_TYPE_NONE && obj->link.type != link_type)
+			if (visible_only && !nmp_object_is_visible (obj))
 				continue;
-			if (ifname && strcmp (ifname, obj->link.name))
+			if (link_type != NM_LINK_TYPE_NONE && obj->link.type != link_type)
 				continue;
 			if (match_fn && !match_fn (obj, user_data))
 				continue;
@@ -1555,455 +1774,710 @@ nmp_cache_lookup_link_full (const NMPCache *cache,
 	}
 }
 
-GHashTable *
-nmp_cache_lookup_all_to_hash (const NMPCache *cache,
-                              NMPCacheId *cache_id,
-                              GHashTable *hash)
-{
-	NMMultiIndexIdIter iter;
-	gpointer plobj;
-
-	nm_multi_index_id_iter_init (&iter, cache->idx_multi, (const NMMultiIndexId *) cache_id);
-
-	if (nm_multi_index_id_iter_next (&iter, &plobj)) {
-		if (!hash)
-			hash = g_hash_table_new_full (NULL, NULL, (GDestroyNotify) nmp_object_unref, NULL);
-
-		do {
-			g_hash_table_add (hash, nmp_object_ref (NMP_OBJECT_UP_CAST (plobj)));
-		} while (nm_multi_index_id_iter_next (&iter, &plobj));
-	}
-
-	return hash;
-}
-
-/******************************************************************/
+/*****************************************************************************/
 
 static void
-_nmp_cache_update_cache (NMPCache *cache, NMPObject *obj, gboolean remove)
+_idxcache_update_other_cache_ids (NMPCache *cache,
+                                  NMPCacheIdType cache_id_type,
+                                  const NMPObject *obj_old,
+                                  const NMPObject *obj_new,
+                                  gboolean is_dump)
 {
-	const guint8 *id_type;
+	const NMDedupMultiEntry *entry_new;
+	const NMDedupMultiEntry *entry_old;
+	const NMDedupMultiEntry *entry_order;
+	NMDedupMultiIdxType *idx_type;
 
-	for (id_type = NMP_OBJECT_GET_CLASS (obj)->supported_cache_ids; *id_type; id_type++) {
-		NMPCacheId cache_id_storage;
-		const NMPCacheId *cache_id;
+	nm_assert (obj_new || obj_old);
+	nm_assert (!obj_new || NMP_OBJECT_GET_TYPE (obj_new) != NMP_OBJECT_TYPE_UNKNOWN);
+	nm_assert (!obj_old || NMP_OBJECT_GET_TYPE (obj_old) != NMP_OBJECT_TYPE_UNKNOWN);
+	nm_assert (!obj_old || !obj_new || NMP_OBJECT_GET_CLASS (obj_new) == NMP_OBJECT_GET_CLASS (obj_old));
+	nm_assert (!obj_old || !obj_new || !nmp_object_equal (obj_new, obj_old));
+	nm_assert (!obj_new || obj_new == nm_dedup_multi_index_obj_find (cache->multi_idx, obj_new));
+	nm_assert (!obj_old || obj_old == nm_dedup_multi_index_obj_find (cache->multi_idx, obj_old));
 
-		if (!_nmp_object_init_cache_id (obj, *id_type, &cache_id_storage, &cache_id))
-			continue;
-		if (!cache_id)
-			continue;
+	idx_type = _idx_type_get (cache, cache_id_type);
 
-		/* We don't put @obj itself into the multi index, but &obj->object. As of now, all
-		 * users expect a pointer to NMPlatformObject, not NMPObject.
-		 * You can use NMP_OBJECT_UP_CAST() to retrieve the original @obj pointer.
-		 *
-		 * If need be, we could determine based on @id_type which pointer we want to store. */
-
-		if (remove) {
-			if (!nm_multi_index_remove (cache->idx_multi, &cache_id->base, &obj->object))
-				g_assert_not_reached ();
-		} else {
-			if (!nm_multi_index_add (cache->idx_multi, &cache_id->base, &obj->object))
-				g_assert_not_reached ();
+	if (obj_old) {
+		entry_old = nm_dedup_multi_index_lookup_obj (cache->multi_idx,
+		                                             idx_type,
+		                                             obj_old);
+		if (!obj_new) {
+			if (entry_old)
+				nm_dedup_multi_index_remove_entry (cache->multi_idx, entry_old);
+			return;
 		}
-	}
+	} else
+		entry_old = NULL;
+
+	if (obj_new) {
+		if (   obj_old
+		    && nm_dedup_multi_idx_type_id_equal (idx_type, obj_old, obj_new)
+		    && nm_dedup_multi_idx_type_partition_equal (idx_type, obj_old, obj_new)) {
+			/* optimize. We just looked up the @obj_old entry and @obj_new compares equal
+			 * according to idx_obj_id_equal(). entry_new is the same as entry_old. */
+			entry_new = entry_old;
+		} else {
+			entry_new = nm_dedup_multi_index_lookup_obj (cache->multi_idx,
+			                                             idx_type,
+			                                             obj_new);
+		}
+
+		if (entry_new)
+			entry_order = entry_new;
+		else if (   entry_old
+		         && nm_dedup_multi_idx_type_partition_equal (idx_type, entry_old->obj, obj_new))
+			entry_order = entry_old;
+		else
+			entry_order = NULL;
+		nm_dedup_multi_index_add_full (cache->multi_idx,
+		                               idx_type,
+		                               obj_new,
+		                               is_dump
+		                                 ? NM_DEDUP_MULTI_IDX_MODE_APPEND_FORCE
+		                                 : NM_DEDUP_MULTI_IDX_MODE_APPEND,
+		                               is_dump
+		                                 ? NULL
+		                                 : entry_order,
+		                               entry_new ?: NM_DEDUP_MULTI_ENTRY_MISSING,
+		                               entry_new ? entry_new->head : (entry_order ? entry_order->head : NULL),
+		                               &entry_new,
+		                               NULL);
+
+#if NM_MORE_ASSERTS
+		if (entry_new) {
+			nm_assert (idx_type->klass->idx_obj_partitionable);
+			nm_assert (idx_type->klass->idx_obj_partition_equal);
+			nm_assert (idx_type->klass->idx_obj_partitionable (idx_type, entry_new->obj));
+			nm_assert (idx_type->klass->idx_obj_partition_equal (idx_type, (gpointer) obj_new, entry_new->obj));
+		}
+#endif
+	} else
+		entry_new = NULL;
+
+	if (   entry_old
+	    && entry_old != entry_new)
+		nm_dedup_multi_index_remove_entry (cache->multi_idx, entry_old);
 }
 
 static void
-_nmp_cache_update_add (NMPCache *cache, NMPObject *obj)
+_idxcache_update (NMPCache *cache,
+                  const NMDedupMultiEntry *entry_old,
+                  NMPObject *obj_new,
+                  gboolean is_dump,
+                  const NMDedupMultiEntry **out_entry_new)
 {
-	nm_assert (!obj->is_cached);
-	nmp_object_ref (obj);
-	nm_assert (!nm_multi_index_lookup_first_by_value (cache->idx_multi, &obj->object));
-	if (!nm_g_hash_table_add (cache->idx_main, obj))
-		g_assert_not_reached ();
-	obj->is_cached = TRUE;
-	_nmp_cache_update_cache (cache, obj, FALSE);
-}
+	const NMPClass *klass;
+	const guint8 *i_idx_type;
+	NMDedupMultiIdxType *idx_type_o = _idx_type_get (cache, NMP_CACHE_ID_TYPE_OBJECT_TYPE);
+	const NMDedupMultiEntry *entry_new = NULL;
+	nm_auto_nmpobj const NMPObject *obj_old = NULL;
 
-static void
-_nmp_cache_update_remove (NMPCache *cache, NMPObject *obj)
-{
-	nm_assert (obj->is_cached);
-	_nmp_cache_update_cache (cache, obj, TRUE);
-	obj->is_cached = FALSE;
-	if (!g_hash_table_remove (cache->idx_main, obj))
-		g_assert_not_reached ();
+	/* we update an object in the cache.
+	 *
+	 * Note that @entry_old MUST be what is currently tracked in multi_idx, and it must
+	 * have the same ID as @obj_new. */
 
-	/* @obj is possibly a dangling pointer at this point. No problem, multi-index doesn't dereference. */
-	nm_assert (!nm_multi_index_lookup_first_by_value (cache->idx_multi, &obj->object));
-}
+	nm_assert (cache);
+	nm_assert (entry_old || obj_new);
+	nm_assert (!obj_new || nmp_object_is_alive (obj_new));
+	nm_assert (!entry_old || entry_old == nm_dedup_multi_index_lookup_obj (cache->multi_idx, idx_type_o, entry_old->obj));
+	nm_assert (!obj_new || entry_old == nm_dedup_multi_index_lookup_obj (cache->multi_idx, idx_type_o, obj_new));
+	nm_assert (!entry_old || entry_old->head->idx_type == idx_type_o);
+	nm_assert (   !entry_old
+	           || !obj_new
+	           || nm_dedup_multi_idx_type_partition_equal (idx_type_o, entry_old->obj, obj_new));
+	nm_assert (   !entry_old
+	           || !obj_new
+	           || nm_dedup_multi_idx_type_id_equal (idx_type_o, entry_old->obj, obj_new));
+	nm_assert (   !entry_old
+	           || !obj_new
+	           || (   obj_new->parent.klass == ((const NMPObject *) entry_old->obj)->parent.klass
+	               && !obj_new->parent.klass->obj_full_equal ((NMDedupMultiObj *) obj_new, entry_old->obj)));
 
-static void
-_nmp_cache_update_update (NMPCache *cache, NMPObject *obj, const NMPObject *new)
-{
-	const guint8 *id_type;
+	/* keep a reference to the pre-existing entry */
+	if (entry_old)
+		obj_old = nmp_object_ref (entry_old->obj);
 
-	nm_assert (NMP_OBJECT_GET_CLASS (obj) == NMP_OBJECT_GET_CLASS (new));
-	nm_assert (obj->is_cached);
-	nm_assert (!new->is_cached);
+	/* first update the main index NMP_CACHE_ID_TYPE_OBJECT_TYPE.
+	 * We already know the pre-existing @entry old, so all that
+	 * nm_dedup_multi_index_add_full() effectively does, is update the
+	 * obj reference.
+	 *
+	 * We also get the new boxed object, which we need below. */
+	if (obj_new) {
+		nm_auto_nmpobj NMPObject *obj_old2 = NULL;
 
-	for (id_type = NMP_OBJECT_GET_CLASS (obj)->supported_cache_ids; *id_type; id_type++) {
-		NMPCacheId cache_id_storage_obj, cache_id_storage_new;
-		const NMPCacheId *cache_id_obj, *cache_id_new;
+		nm_dedup_multi_index_add_full (cache->multi_idx,
+		                               idx_type_o,
+		                               obj_new,
+		                               is_dump
+		                                 ? NM_DEDUP_MULTI_IDX_MODE_APPEND_FORCE
+		                                 : NM_DEDUP_MULTI_IDX_MODE_APPEND,
+		                               NULL,
+		                               entry_old ?: NM_DEDUP_MULTI_ENTRY_MISSING,
+		                               NULL,
+		                               &entry_new,
+		                               (const NMDedupMultiObj **) &obj_old2);
+		nm_assert (entry_new);
+		nm_assert (obj_old == obj_old2);
+		nm_assert (!entry_old || entry_old == entry_new);
+	} else
+		nm_dedup_multi_index_remove_entry (cache->multi_idx, entry_old);
 
-		if (!_nmp_object_init_cache_id (obj, *id_type, &cache_id_storage_obj, &cache_id_obj))
+	/* now update all other indexes. We know the previously boxed entry, and the
+	 * newly boxed one. */
+	klass = NMP_OBJECT_GET_CLASS (entry_new ? entry_new->obj : obj_old);
+	for (i_idx_type = klass->supported_cache_ids; *i_idx_type; i_idx_type++) {
+		NMPCacheIdType id_type = *i_idx_type;
+
+		if (id_type == NMP_CACHE_ID_TYPE_OBJECT_TYPE)
 			continue;
-		if (!_nmp_object_init_cache_id (new, *id_type, &cache_id_storage_new, &cache_id_new))
-			g_assert_not_reached ();
-		if (!nm_multi_index_move (cache->idx_multi, (NMMultiIndexId *) cache_id_obj, (NMMultiIndexId *) cache_id_new, &obj->object))
-			g_assert_not_reached ();
+		_idxcache_update_other_cache_ids (cache, id_type,
+		                                  obj_old,
+		                                  entry_new ? entry_new->obj : NULL,
+		                                  is_dump);
 	}
-	nmp_object_copy (obj, new, FALSE);
+
+	NM_SET_OUT (out_entry_new, entry_new);
 }
 
 NMPCacheOpsType
-nmp_cache_remove (NMPCache *cache, const NMPObject *obj, gboolean equals_by_ptr, NMPObject **out_obj, gboolean *out_was_visible, NMPCachePreHook pre_hook, gpointer user_data)
+nmp_cache_remove (NMPCache *cache,
+                  const NMPObject *obj_needle,
+                  gboolean equals_by_ptr,
+                  gboolean only_dirty,
+                  const NMPObject **out_obj_old)
 {
-	NMPObject *old;
+	const NMDedupMultiEntry *entry_old;
+	const NMPObject *obj_old;
 
-	nm_assert (NMP_OBJECT_IS_VALID (obj));
+	entry_old = _lookup_entry (cache, obj_needle);
 
-	old = g_hash_table_lookup (cache->idx_main, obj);
-	if (!old) {
-		if (out_obj)
-			*out_obj = NULL;
-		if (out_was_visible)
-			*out_was_visible = FALSE;
+	if (!entry_old) {
+		NM_SET_OUT (out_obj_old, NULL);
 		return NMP_CACHE_OPS_UNCHANGED;
 	}
 
-	if (out_obj)
-		*out_obj = nmp_object_ref (old);
-	if (out_was_visible)
-		*out_was_visible = nmp_object_is_visible (old);
-	if (equals_by_ptr && old != obj) {
+	obj_old = entry_old->obj;
+
+	NM_SET_OUT (out_obj_old, nmp_object_ref (obj_old));
+
+	if (   equals_by_ptr
+	    && obj_old != obj_needle) {
 		/* We found an identical object, but we only delete it if it's the same pointer as
-		 * @obj. */
+		 * @obj_needle. */
 		return NMP_CACHE_OPS_UNCHANGED;
 	}
-	if (pre_hook)
-		pre_hook (cache, old, NULL, NMP_CACHE_OPS_REMOVED, user_data);
-	_nmp_cache_update_remove (cache, old);
+	if (   only_dirty
+	    && !entry_old->dirty) {
+		/* the entry is not dirty. Skip. */
+		return NMP_CACHE_OPS_UNCHANGED;
+	}
+	_idxcache_update (cache, entry_old, NULL, FALSE, NULL);
 	return NMP_CACHE_OPS_REMOVED;
 }
 
 NMPCacheOpsType
-nmp_cache_remove_netlink (NMPCache *cache, const NMPObject *obj_needle, NMPObject **out_obj, gboolean *out_was_visible, NMPCachePreHook pre_hook, gpointer user_data)
+nmp_cache_remove_netlink (NMPCache *cache,
+                          const NMPObject *obj_needle,
+                          const NMPObject **out_obj_old,
+                          const NMPObject **out_obj_new)
 {
-	if (NMP_OBJECT_GET_TYPE (obj_needle) == NMP_OBJECT_TYPE_LINK) {
-		NMPObject *old;
-		nm_auto_nmpobj NMPObject *obj = NULL;
+	const NMDedupMultiEntry *entry_old;
+	const NMDedupMultiEntry *entry_new = NULL;
+	const NMPObject *obj_old;
+	nm_auto_nmpobj NMPObject *obj_new = NULL;
 
+	entry_old = _lookup_entry (cache, obj_needle);
+
+	if (!entry_old) {
+		NM_SET_OUT (out_obj_old, NULL);
+		NM_SET_OUT (out_obj_new, NULL);
+		return NMP_CACHE_OPS_UNCHANGED;
+	}
+
+	obj_old = entry_old->obj;
+
+	if (NMP_OBJECT_GET_TYPE (obj_needle) == NMP_OBJECT_TYPE_LINK) {
 		/* For nmp_cache_remove_netlink() we have an incomplete @obj_needle instance to be
 		 * removed from netlink. Link objects are alive without being in netlink when they
 		 * have a udev-device. All we want to do in this case is clear the netlink.is_in_netlink
 		 * flag. */
 
-		old = (NMPObject *) nmp_cache_lookup_link (cache, obj_needle->link.ifindex);
-		if (!old) {
-			if (out_obj)
-				*out_obj = NULL;
-			if (out_was_visible)
-				*out_was_visible = FALSE;
+		NM_SET_OUT (out_obj_old, nmp_object_ref (obj_old));
+
+		if (!obj_old->_link.netlink.is_in_netlink) {
+			nm_assert (obj_old->_link.udev.device);
+			NM_SET_OUT (out_obj_new, nmp_object_ref (obj_old));
 			return NMP_CACHE_OPS_UNCHANGED;
 		}
 
-		if (out_obj)
-			*out_obj = nmp_object_ref (old);
-		if (out_was_visible)
-			*out_was_visible = nmp_object_is_visible (old);
-
-		if (!old->_link.netlink.is_in_netlink) {
-			nm_assert (old->_link.udev.device);
-			return NMP_CACHE_OPS_UNCHANGED;
-		}
-
-		if (!old->_link.udev.device) {
-			/* the update would make @old invalid. Remove it. */
-			if (pre_hook)
-				pre_hook (cache, old, NULL, NMP_CACHE_OPS_REMOVED, user_data);
-			_nmp_cache_update_remove (cache, old);
+		if (!obj_old->_link.udev.device) {
+			/* the update would make @obj_old invalid. Remove it. */
+			_idxcache_update (cache, entry_old, NULL, FALSE, NULL);
+			NM_SET_OUT (out_obj_new, NULL);
 			return NMP_CACHE_OPS_REMOVED;
 		}
 
-		obj = nmp_object_clone (old, FALSE);
-		obj->_link.netlink.is_in_netlink = FALSE;
+		obj_new = nmp_object_clone (obj_old, FALSE);
+		obj_new->_link.netlink.is_in_netlink = FALSE;
 
-		_nmp_object_fixup_link_master_connected (obj, cache);
-		_nmp_object_fixup_link_udev_fields (obj, cache->use_udev);
+		_nmp_object_fixup_link_master_connected (&obj_new, NULL, cache);
+		_nmp_object_fixup_link_udev_fields (&obj_new, NULL, cache->use_udev);
 
-		if (pre_hook)
-			pre_hook (cache, old, obj, NMP_CACHE_OPS_UPDATED, user_data);
-		_nmp_cache_update_update (cache, old, obj);
+		_idxcache_update (cache,
+		                  entry_old,
+		                  obj_new,
+		                  FALSE,
+		                  &entry_new);
+		NM_SET_OUT (out_obj_new, nmp_object_ref (entry_new->obj));
 		return NMP_CACHE_OPS_UPDATED;
-	} else
-		return nmp_cache_remove (cache, obj_needle, FALSE, out_obj, out_was_visible, pre_hook, user_data);
+	}
+
+	NM_SET_OUT (out_obj_old, nmp_object_ref (obj_old));
+	NM_SET_OUT (out_obj_new, NULL);
+	_idxcache_update (cache, entry_old, NULL, FALSE, NULL);
+	return NMP_CACHE_OPS_REMOVED;
 }
 
 /**
  * nmp_cache_update_netlink:
  * @cache: the platform cache
- * @obj: a #NMPObject instance as received from netlink and created via
+ * @obj_hand_over: a #NMPObject instance as received from netlink and created via
  *    nmp_object_from_nl(). Especially for link, it must not have the udev
  *    replated fields set.
  *    This instance will be modified and might be put into the cache. When
  *    calling nmp_cache_update_netlink() you hand @obj over to the cache.
  *    Except, that the cache will increment the ref count as appropriate. You
  *    must still unref the obj to release your part of the ownership.
- * @out_obj: (allow-none): (out): return the object instance that is inside
- *    the cache. If you specify non %NULL, you must always unref the returned
- *    instance. If the return value indicates that the object was removed,
- *    the object is no longer in the cache. Even if the return value indicates
- *    that the object was unchanged, it will still return @out_obj -- if
- *    such an object is in the cache.
- * @out_was_visible: (allow-none): (out): whether the object was visible before
- *    the update operation.
- * @pre_hook: (allow-none): a callback *before* the object gets updated. You cannot
- *    influence the outcome and must not do anything beyong inspecting the changes.
- * @user_data:
+ * @is_dump: whether this update comes during a dump of object of the same kind.
+ *    kernel dumps objects in a certain order, which matters especially for routes.
+ *    Before a dump we mark all objects as dirty, and remove all untouched objects
+ *    afterwards. Hence, during a dump, every update should move the object to the
+ *    end of the list, to obtain the correct order. That means, to use NM_DEDUP_MULTI_IDX_MODE_APPEND_FORCE,
+ *    instead of NM_DEDUP_MULTI_IDX_MODE_APPEND.
+ * @out_obj_old: (allow-none): (out): return the object with same ID as @obj_hand_over,
+ *    that was in the cache before update. If an object is returned, the caller must
+ *    unref it afterwards.
+ * @out_obj_new: (allow-none): (out): return the object from the cache after update.
+ *    The caller must unref this object.
  *
  * Returns: how the cache changed.
+ *
+ * Even if there was no change in the cace (NMP_CACHE_OPS_UNCHANGED), @out_obj_old
+ * and @out_obj_new will be set accordingly.
  **/
 NMPCacheOpsType
-nmp_cache_update_netlink (NMPCache *cache, NMPObject *obj, NMPObject **out_obj, gboolean *out_was_visible, NMPCachePreHook pre_hook, gpointer user_data)
+nmp_cache_update_netlink (NMPCache *cache,
+                          NMPObject *obj_hand_over,
+                          gboolean is_dump,
+                          const NMPObject **out_obj_old,
+                          const NMPObject **out_obj_new)
 {
-	NMPObject *old;
+	const NMDedupMultiEntry *entry_old;
+	const NMDedupMultiEntry *entry_new;
+	const NMPObject *obj_old;
+	gboolean is_alive;
 
-	nm_assert (NMP_OBJECT_IS_VALID (obj));
-	nm_assert (!NMP_OBJECT_IS_STACKINIT (obj));
-	nm_assert (!obj->is_cached);
-
+	nm_assert (cache);
+	nm_assert (NMP_OBJECT_IS_VALID (obj_hand_over));
+	nm_assert (!NMP_OBJECT_IS_STACKINIT (obj_hand_over));
 	/* A link object from netlink must have the udev related fields unset.
 	 * We could implement to handle that, but there is no need to support such
 	 * a use-case */
-	nm_assert (NMP_OBJECT_GET_TYPE (obj) != NMP_OBJECT_TYPE_LINK ||
-	           (   !obj->_link.udev.device
-	            && !obj->link.driver));
+	nm_assert (NMP_OBJECT_GET_TYPE (obj_hand_over) != NMP_OBJECT_TYPE_LINK ||
+	           (   !obj_hand_over->_link.udev.device
+	            && !obj_hand_over->link.driver));
+	nm_assert (nm_dedup_multi_index_obj_find (cache->multi_idx, obj_hand_over) != obj_hand_over);
 
-	old = g_hash_table_lookup (cache->idx_main, obj);
+	entry_old = _lookup_entry (cache, obj_hand_over);
 
-	if (out_obj)
-		*out_obj = NULL;
-	if (out_was_visible)
-		*out_was_visible = FALSE;
+	if (!entry_old) {
 
-	if (!old) {
-		if (!nmp_object_is_alive (obj))
+		NM_SET_OUT (out_obj_old, NULL);
+
+		if (!nmp_object_is_alive (obj_hand_over)) {
+			NM_SET_OUT (out_obj_new, NULL);
 			return NMP_CACHE_OPS_UNCHANGED;
-
-		if (NMP_OBJECT_GET_TYPE (obj) == NMP_OBJECT_TYPE_LINK) {
-			_nmp_object_fixup_link_master_connected (obj, cache);
-			_nmp_object_fixup_link_udev_fields (obj, cache->use_udev);
 		}
 
-		if (out_obj)
-			*out_obj = nmp_object_ref (obj);
+		if (NMP_OBJECT_GET_TYPE (obj_hand_over) == NMP_OBJECT_TYPE_LINK) {
+			_nmp_object_fixup_link_master_connected (&obj_hand_over, NULL, cache);
+			_nmp_object_fixup_link_udev_fields (&obj_hand_over, NULL, cache->use_udev);
+		}
 
-		if (pre_hook)
-			pre_hook (cache, NULL, obj, NMP_CACHE_OPS_ADDED, user_data);
-		_nmp_cache_update_add (cache, obj);
+		_idxcache_update (cache,
+		                  entry_old,
+		                  obj_hand_over,
+		                  is_dump,
+		                  &entry_new);
+		NM_SET_OUT (out_obj_new, nmp_object_ref (entry_new->obj));
 		return NMP_CACHE_OPS_ADDED;
-	} else if (old == obj) {
-		/* updating a cached object inplace is not supported because the object contributes to hash-key
-		 * for NMMultiIndex. Modifying an object that is inside NMMultiIndex means that these
-		 * keys change.
-		 * The problem is, that for a given object NMMultiIndex does not support (efficient)
-		 * reverse lookup to get all the NMPCacheIds to which it belongs. If that would be implemented,
-		 * it would be possible to implement inplace-update.
-		 *
-		 * There is an un-optimized reverse lookup via nm_multi_index_iter_init(), but we don't want
-		 * that because we might have a large number of indexes to search.
-		 *
-		 * We could add efficient reverse lookup by adding a reverse index to NMMultiIndex. But that
-		 * also adds some cost to support an (uncommon?) usage pattern.
-		 *
-		 * Instead we just don't support it, instead we expect the user to
-		 * create a new instance from netlink.
-		 *
-		 * TL;DR: a cached object must never be modified.
-		 */
-		g_assert_not_reached ();
-	} else {
-		gboolean is_alive = FALSE;
+	}
 
-		nm_assert (old->is_cached);
+	obj_old = entry_old->obj;
 
-		if (out_obj)
-			*out_obj = nmp_object_ref (old);
-		if (out_was_visible)
-			*out_was_visible = nmp_object_is_visible (old);
-
-		if (NMP_OBJECT_GET_TYPE (obj) == NMP_OBJECT_TYPE_LINK) {
-			if (!obj->_link.netlink.is_in_netlink) {
-				if (!old->_link.netlink.is_in_netlink) {
-					nm_assert (old->_link.udev.device);
-					return NMP_CACHE_OPS_UNCHANGED;
-				}
-				if (old->_link.udev.device) {
-					/* @obj is not in netlink.
-					 *
-					 * This is similar to nmp_cache_remove_netlink(), but there we preserve the
-					 * preexisting netlink properties. The use case of that is when kernel_get_object()
-					 * cannot load an object (based on the id of a needle).
-					 *
-					 * Here we keep the data provided from @obj. The usecase is when receiving
-					 * a valid @obj instance from netlink with RTM_DELROUTE.
-					 */
-					is_alive = TRUE;
-				}
-			} else
-				is_alive = TRUE;
-
-			if (is_alive) {
-				_nmp_object_fixup_link_master_connected (obj, cache);
-
-				/* Merge the netlink parts with what we have from udev. */
-				g_clear_object (&obj->_link.udev.device);
-				obj->_link.udev.device = old->_link.udev.device ? g_object_ref (old->_link.udev.device) : NULL;
-				_nmp_object_fixup_link_udev_fields (obj, cache->use_udev);
+	if (NMP_OBJECT_GET_TYPE (obj_hand_over) == NMP_OBJECT_TYPE_LINK) {
+		if (!obj_hand_over->_link.netlink.is_in_netlink) {
+			if (!obj_old->_link.netlink.is_in_netlink) {
+				nm_assert (obj_old->_link.udev.device);
+				NM_SET_OUT (out_obj_old, nmp_object_ref (obj_old));
+				NM_SET_OUT (out_obj_new, nmp_object_ref (obj_old));
+				return NMP_CACHE_OPS_UNCHANGED;
 			}
+			if (obj_old->_link.udev.device) {
+				/* @obj_hand_over is not in netlink.
+				 *
+				 * This is similar to nmp_cache_remove_netlink(), but there we preserve the
+				 * preexisting netlink properties. The use case of that is when kernel_get_object()
+				 * cannot load an object (based on the id of a needle).
+				 *
+				 * Here we keep the data provided from @obj_hand_over. The usecase is when receiving
+				 * a valid @obj_hand_over instance from netlink with RTM_DELROUTE.
+				 */
+				is_alive = TRUE;
+			} else
+				is_alive = FALSE;
 		} else
-			is_alive = nmp_object_is_alive (obj);
+			is_alive = TRUE;
 
-		if (!is_alive) {
-			/* the update would make @old invalid. Remove it. */
-			if (pre_hook)
-				pre_hook (cache, old, NULL, NMP_CACHE_OPS_REMOVED, user_data);
-			_nmp_cache_update_remove (cache, old);
-			return NMP_CACHE_OPS_REMOVED;
+		if (is_alive) {
+			_nmp_object_fixup_link_master_connected (&obj_hand_over, NULL, cache);
+
+			/* Merge the netlink parts with what we have from udev. */
+			udev_device_unref (obj_hand_over->_link.udev.device);
+			obj_hand_over->_link.udev.device = obj_old->_link.udev.device ? udev_device_ref (obj_old->_link.udev.device) : NULL;
+			_nmp_object_fixup_link_udev_fields (&obj_hand_over, NULL, cache->use_udev);
+
+			if (obj_hand_over->_link.netlink.lnk) {
+				nm_auto_nmpobj const NMPObject *lnk_old = obj_hand_over->_link.netlink.lnk;
+
+				/* let's dedup/intern the lnk object. */
+				obj_hand_over->_link.netlink.lnk = nm_dedup_multi_index_obj_intern (cache->multi_idx, lnk_old);
+			}
 		}
+	} else
+		is_alive = nmp_object_is_alive (obj_hand_over);
 
-		if (nmp_object_equal (old, obj))
-			return NMP_CACHE_OPS_UNCHANGED;
+	NM_SET_OUT (out_obj_old, nmp_object_ref (obj_old));
 
-		if (pre_hook)
-			pre_hook (cache, old, obj, NMP_CACHE_OPS_UPDATED, user_data);
-		_nmp_cache_update_update (cache, old, obj);
-		return NMP_CACHE_OPS_UPDATED;
+	if (!is_alive) {
+		/* the update would make @obj_old invalid. Remove it. */
+		_idxcache_update (cache, entry_old, NULL, FALSE, NULL);
+		NM_SET_OUT (out_obj_new, NULL);
+		return NMP_CACHE_OPS_REMOVED;
 	}
-}
 
-NMPCacheOpsType
-nmp_cache_update_link_udev (NMPCache *cache, int ifindex, GUdevDevice *udev_device, NMPObject **out_obj, gboolean *out_was_visible, NMPCachePreHook pre_hook, gpointer user_data)
-{
-	NMPObject *old;
-	nm_auto_nmpobj NMPObject *obj = NULL;
-
-	old = (NMPObject *) nmp_cache_lookup_link (cache, ifindex);
-
-	if (out_obj)
-		*out_obj = NULL;
-	if (out_was_visible)
-		*out_was_visible = FALSE;
-
-	if (!old) {
-		if (!udev_device)
-			return NMP_CACHE_OPS_UNCHANGED;
-
-		obj = nmp_object_new (NMP_OBJECT_TYPE_LINK, NULL);
-		obj->link.ifindex = ifindex;
-		obj->_link.udev.device = g_object_ref (udev_device);
-
-		_nmp_object_fixup_link_udev_fields (obj, cache->use_udev);
-
-		nm_assert (nmp_object_is_alive (obj));
-
-		if (out_obj)
-			*out_obj = nmp_object_ref (obj);
-
-		if (pre_hook)
-			pre_hook (cache, NULL, obj, NMP_CACHE_OPS_ADDED, user_data);
-		_nmp_cache_update_add (cache, obj);
-		return NMP_CACHE_OPS_ADDED;
-	} else {
-		nm_assert (old->is_cached);
-
-		if (out_obj)
-			*out_obj = nmp_object_ref (old);
-		if (out_was_visible)
-			*out_was_visible = nmp_object_is_visible (old);
-
-		if (old->_link.udev.device == udev_device)
-			return NMP_CACHE_OPS_UNCHANGED;
-
-		if (!udev_device && !old->_link.netlink.is_in_netlink) {
-			/* the update would make @old invalid. Remove it. */
-			if (pre_hook)
-				pre_hook (cache, old, NULL, NMP_CACHE_OPS_REMOVED, user_data);
-			_nmp_cache_update_remove (cache, old);
-			return NMP_CACHE_OPS_REMOVED;
-		}
-
-		obj = nmp_object_clone (old, FALSE);
-
-		g_clear_object (&obj->_link.udev.device);
-		obj->_link.udev.device = udev_device ? g_object_ref (udev_device) : NULL;
-
-		_nmp_object_fixup_link_udev_fields (obj, cache->use_udev);
-
-		nm_assert (nmp_object_is_alive (obj));
-
-		if (pre_hook)
-			pre_hook (cache, old, obj, NMP_CACHE_OPS_UPDATED, user_data);
-		_nmp_cache_update_update (cache, old, obj);
-		return NMP_CACHE_OPS_UPDATED;
-	}
-}
-
-NMPCacheOpsType
-nmp_cache_update_link_master_connected (NMPCache *cache, int ifindex, NMPObject **out_obj, gboolean *out_was_visible, NMPCachePreHook pre_hook, gpointer user_data)
-{
-	NMPObject *old;
-	nm_auto_nmpobj NMPObject *obj = NULL;
-
-	old = (NMPObject *) nmp_cache_lookup_link (cache, ifindex);
-
-	if (!old) {
-		if (out_obj)
-			*out_obj = NULL;
-		if (out_was_visible)
-			*out_was_visible = FALSE;
-
+	if (nmp_object_equal (obj_old, obj_hand_over)) {
+		nm_dedup_multi_entry_set_dirty (entry_old, FALSE);
+		NM_SET_OUT (out_obj_new, nmp_object_ref (obj_old));
 		return NMP_CACHE_OPS_UNCHANGED;
 	}
 
-	nm_assert (old->is_cached);
-
-	if (out_obj)
-		*out_obj = nmp_object_ref (old);
-	if (out_was_visible)
-		*out_was_visible = nmp_object_is_visible (old);
-
-	if (!nmp_cache_link_connected_needs_toggle (cache, old, NULL, NULL))
-		return NMP_CACHE_OPS_UNCHANGED;
-
-	obj = nmp_object_clone (old, FALSE);
-	obj->link.connected = !old->link.connected;
-
-	nm_assert (nmp_object_is_alive (obj));
-
-	if (pre_hook)
-		pre_hook (cache, old, obj, NMP_CACHE_OPS_UPDATED, user_data);
-	_nmp_cache_update_update (cache, old, obj);
+	_idxcache_update (cache,
+	                  entry_old,
+	                  obj_hand_over,
+	                  is_dump,
+	                  &entry_new);
+	NM_SET_OUT (out_obj_new, nmp_object_ref (entry_new->obj));
 	return NMP_CACHE_OPS_UPDATED;
 }
 
-/******************************************************************/
+NMPCacheOpsType
+nmp_cache_update_netlink_route (NMPCache *cache,
+                                NMPObject *obj_hand_over,
+                                gboolean is_dump,
+                                guint16 nlmsgflags,
+                                const NMPObject **out_obj_old,
+                                const NMPObject **out_obj_new,
+                                const NMPObject **out_obj_replace,
+                                gboolean *out_resync_required)
+{
+	NMDedupMultiIter iter;
+	const NMDedupMultiEntry *entry_old;
+	const NMDedupMultiEntry *entry_new;
+	const NMDedupMultiEntry *entry_cur;
+	const NMDedupMultiEntry *entry_replace;
+	const NMDedupMultiHeadEntry *head_entry;
+	gboolean is_alive;
+	NMPCacheOpsType ops_type = NMP_CACHE_OPS_UNCHANGED;
+	gboolean resync_required;
+
+	nm_assert (cache);
+	nm_assert (NMP_OBJECT_IS_VALID (obj_hand_over));
+	nm_assert (!NMP_OBJECT_IS_STACKINIT (obj_hand_over));
+	/* A link object from netlink must have the udev related fields unset.
+	 * We could implement to handle that, but there is no need to support such
+	 * a use-case */
+	nm_assert (NM_IN_SET (NMP_OBJECT_GET_TYPE (obj_hand_over), NMP_OBJECT_TYPE_IP4_ROUTE,
+	                                                           NMP_OBJECT_TYPE_IP6_ROUTE));
+	nm_assert (nm_dedup_multi_index_obj_find (cache->multi_idx, obj_hand_over) != obj_hand_over);
+
+	entry_old = _lookup_entry (cache, obj_hand_over);
+	entry_new = NULL;
+
+	NM_SET_OUT (out_obj_old, nmp_object_ref (nm_dedup_multi_entry_get_obj (entry_old)));
+
+	if (!entry_old) {
+
+		if (!nmp_object_is_alive (obj_hand_over))
+			goto update_done;
+
+		_idxcache_update (cache,
+		                  NULL,
+		                  obj_hand_over,
+		                  is_dump,
+		                  &entry_new);
+		ops_type = NMP_CACHE_OPS_ADDED;
+		goto update_done;
+	}
+
+	is_alive = nmp_object_is_alive (obj_hand_over);
+
+	if (!is_alive) {
+		/* the update would make @entry_old invalid. Remove it. */
+		_idxcache_update (cache, entry_old, NULL, FALSE, NULL);
+		ops_type = NMP_CACHE_OPS_REMOVED;
+		goto update_done;
+	}
+
+	if (nmp_object_equal (entry_old->obj, obj_hand_over)) {
+		nm_dedup_multi_entry_set_dirty (entry_old, FALSE);
+		goto update_done;
+	}
+
+	_idxcache_update (cache,
+	                  entry_old,
+	                  obj_hand_over,
+	                  is_dump,
+	                  &entry_new);
+	ops_type = NMP_CACHE_OPS_UPDATED;
+
+update_done:
+	NM_SET_OUT (out_obj_new, nmp_object_ref (nm_dedup_multi_entry_get_obj (entry_new)));
+
+	/* a RTM_GETROUTE event may signal that another object was replaced.
+	 * Find out whether that is the case and return it as @obj_replaced.
+	 *
+	 * Also, fixup the order of @entry_new within NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID
+	 * index. For most parts, we don't care about the order of objects (including routes).
+	 * But NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID we must keep in the correct order, to
+	 * properly find @obj_replaced. */
+	resync_required = FALSE;
+	entry_replace = NULL;
+	if (is_dump) {
+		goto out;
+	}
+
+	if (!entry_new) {
+		if (   NM_FLAGS_HAS (nlmsgflags, NLM_F_REPLACE)
+		    && nmp_cache_lookup_all (cache,
+		                             NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID,
+		                             obj_hand_over)) {
+			/* hm. @obj_hand_over was not added, meaning it was not alive.
+			 * However, we track some other objects with the same weak-id.
+			 * It's unclear what that means. To be sure, resync. */
+			resync_required = TRUE;
+		}
+		goto out;
+	}
+
+	entry_cur = _lookup_entry_with_idx_type (cache,
+	                                         NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID,
+	                                         entry_new->obj);
+	if (!entry_cur) {
+		nm_assert_not_reached ();
+		goto out;
+	}
+	nm_assert (entry_cur->obj == entry_new->obj);
+
+	head_entry = entry_cur->head;
+	nm_assert (head_entry == nmp_cache_lookup_all (cache,
+	                                               NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID,
+	                                               entry_cur->obj));
+
+	if (head_entry->len == 1) {
+		/* there is only one object, and we expect it to be @obj_new. */
+		nm_assert (nm_dedup_multi_head_entry_get_idx (head_entry, 0) == entry_cur);
+		goto out;
+	}
+
+	switch (nlmsgflags & (NLM_F_REPLACE | NLM_F_EXCL | NLM_F_CREATE | NLM_F_APPEND)) {
+	case NLM_F_REPLACE:
+		/* ip route change */
+
+		/* get the first element (but skip @obj_new). */
+		nm_dedup_multi_iter_init (&iter, head_entry);
+		if (!nm_dedup_multi_iter_next (&iter))
+			nm_assert_not_reached ();
+		if (iter.current == entry_cur) {
+			if (!nm_dedup_multi_iter_next (&iter))
+				nm_assert_not_reached ();
+		}
+		entry_replace = iter.current;
+
+		nm_assert (   entry_replace
+		           && entry_cur != entry_replace);
+
+		nm_dedup_multi_entry_reorder (entry_cur, entry_replace, FALSE);
+		break;
+	case NLM_F_CREATE | NLM_F_APPEND:
+		/* ip route append */
+		nm_dedup_multi_entry_reorder (entry_cur, NULL, TRUE);
+		break;
+	case NLM_F_CREATE:
+		/* ip route prepend */
+		nm_dedup_multi_entry_reorder (entry_cur, NULL, FALSE);
+		break;
+	default:
+		/* this is an unexecpted case, probably a bug that we need to handle better. */
+		resync_required = TRUE;
+		break;
+	}
+
+out:
+	NM_SET_OUT (out_obj_replace, nmp_object_ref (nm_dedup_multi_entry_get_obj (entry_replace)));
+	NM_SET_OUT (out_resync_required, resync_required);
+	return ops_type;
+}
+
+
+NMPCacheOpsType
+nmp_cache_update_link_udev (NMPCache *cache,
+                            int ifindex,
+                            struct udev_device *udevice,
+                            const NMPObject **out_obj_old,
+                            const NMPObject **out_obj_new)
+{
+	const NMPObject *obj_old;
+	nm_auto_nmpobj NMPObject *obj_new = NULL;
+	const NMDedupMultiEntry *entry_old;
+	const NMDedupMultiEntry *entry_new;
+
+	entry_old = nmp_cache_lookup_entry_link (cache, ifindex);
+
+	if (!entry_old) {
+		if (!udevice) {
+			NM_SET_OUT (out_obj_old, NULL);
+			NM_SET_OUT (out_obj_new, NULL);
+			return NMP_CACHE_OPS_UNCHANGED;
+		}
+
+		obj_new = nmp_object_new (NMP_OBJECT_TYPE_LINK, NULL);
+		obj_new->link.ifindex = ifindex;
+		obj_new->_link.udev.device = udev_device_ref (udevice);
+
+		_nmp_object_fixup_link_udev_fields (&obj_new, NULL, cache->use_udev);
+
+		_idxcache_update (cache,
+		                  NULL,
+		                  obj_new,
+		                  FALSE,
+		                  &entry_new);
+		NM_SET_OUT (out_obj_old, NULL);
+		NM_SET_OUT (out_obj_new, nmp_object_ref (entry_new->obj));
+		return NMP_CACHE_OPS_ADDED;
+	} else {
+		obj_old = entry_old->obj;
+		NM_SET_OUT (out_obj_old, nmp_object_ref (obj_old));
+
+		if (obj_old->_link.udev.device == udevice) {
+			NM_SET_OUT (out_obj_new, nmp_object_ref (obj_old));
+			return NMP_CACHE_OPS_UNCHANGED;
+		}
+
+		if (!udevice && !obj_old->_link.netlink.is_in_netlink) {
+			/* the update would make @obj_old invalid. Remove it. */
+			_idxcache_update (cache, entry_old, NULL, FALSE, NULL);
+			NM_SET_OUT (out_obj_new, NULL);
+			return NMP_CACHE_OPS_REMOVED;
+		}
+
+		obj_new = nmp_object_clone (obj_old, FALSE);
+
+		udev_device_unref (obj_new->_link.udev.device);
+		obj_new->_link.udev.device = udevice ? udev_device_ref (udevice) : NULL;
+
+		_nmp_object_fixup_link_udev_fields (&obj_new, NULL, cache->use_udev);
+
+		_idxcache_update (cache,
+		                  entry_old,
+		                  obj_new,
+		                  FALSE,
+		                  &entry_new);
+		NM_SET_OUT (out_obj_new, nmp_object_ref (entry_new->obj));
+		return NMP_CACHE_OPS_UPDATED;
+	}
+}
+
+NMPCacheOpsType
+nmp_cache_update_link_master_connected (NMPCache *cache,
+                                        int ifindex,
+                                        const NMPObject **out_obj_old,
+                                        const NMPObject **out_obj_new)
+{
+	const NMDedupMultiEntry *entry_old;
+	const NMDedupMultiEntry *entry_new = NULL;
+	const NMPObject *obj_old;
+	nm_auto_nmpobj NMPObject *obj_new = NULL;
+
+	entry_old = nmp_cache_lookup_entry_link (cache, ifindex);
+
+	if (!entry_old) {
+		NM_SET_OUT (out_obj_old, NULL);
+		NM_SET_OUT (out_obj_new, NULL);
+		return NMP_CACHE_OPS_UNCHANGED;
+	}
+
+	obj_old = entry_old->obj;
+
+	if (!nmp_cache_link_connected_needs_toggle (cache, obj_old, NULL, NULL)) {
+		NM_SET_OUT (out_obj_old, nmp_object_ref (obj_old));
+		NM_SET_OUT (out_obj_new, nmp_object_ref (obj_old));
+		return NMP_CACHE_OPS_UNCHANGED;
+	}
+
+	obj_new = nmp_object_clone (obj_old, FALSE);
+	obj_new->link.connected = !obj_old->link.connected;
+
+	NM_SET_OUT (out_obj_old, nmp_object_ref (obj_old));
+	_idxcache_update (cache,
+	                  entry_old,
+	                  obj_new,
+	                  FALSE,
+	                  &entry_new);
+	NM_SET_OUT (out_obj_new, nmp_object_ref (entry_new->obj));
+	return NMP_CACHE_OPS_UPDATED;
+}
+
+/*****************************************************************************/
+
+void
+nmp_cache_dirty_set_all (NMPCache *cache, NMPObjectType obj_type)
+{
+	NMPObject obj_needle;
+
+	nm_assert (cache);
+
+	nm_dedup_multi_index_dirty_set_head (cache->multi_idx,
+	                                     _idx_type_get (cache, NMP_CACHE_ID_TYPE_OBJECT_TYPE),
+	                                     _nmp_object_stackinit_from_type (&obj_needle, obj_type));
+}
+
+/*****************************************************************************/
 
 NMPCache *
-nmp_cache_new (gboolean use_udev)
+nmp_cache_new (NMDedupMultiIndex *multi_idx, gboolean use_udev)
 {
-	NMPCache *cache = g_new (NMPCache, 1);
+	NMPCache *cache = g_slice_new0 (NMPCache);
+	guint i;
 
-	cache->idx_main = g_hash_table_new_full ((GHashFunc) nmp_object_id_hash,
-	                                         (GEqualFunc) nmp_object_id_equal,
-	                                         (GDestroyNotify) nmp_object_unref,
-	                                         NULL);
-	cache->idx_multi = nm_multi_index_new ((NMMultiIndexFuncHash) nmp_cache_id_hash,
-	                                       (NMMultiIndexFuncEqual) nmp_cache_id_equal,
-	                                       (NMMultiIndexFuncClone) nmp_cache_id_clone,
-	                                       (NMMultiIndexFuncDestroy) nmp_cache_id_destroy);
+	for (i = NMP_CACHE_ID_TYPE_NONE + 1; i <= NMP_CACHE_ID_TYPE_MAX; i++)
+		_dedup_multi_idx_type_init ((DedupMultiIdxType *) _idx_type_get (cache, i), i);
+
+	cache->multi_idx = nm_dedup_multi_index_ref (multi_idx);
+
 	cache->use_udev = !!use_udev;
 	return cache;
 }
@@ -2011,87 +2485,28 @@ nmp_cache_new (gboolean use_udev)
 void
 nmp_cache_free (NMPCache *cache)
 {
-	GHashTableIter iter;
-	NMPObject *obj;
+	guint i;
 
-	/* No need to cumbersomely remove the objects properly. They are not hooked up
-	 * in a complicated way, we can just unref them together with cache->idx_main.
-	 *
-	 * But we must clear the @is_cached flag. */
-	g_hash_table_iter_init (&iter, cache->idx_main);
-	while (g_hash_table_iter_next (&iter, (gpointer *) &obj, NULL)) {
-		nm_assert (obj->is_cached);
-		obj->is_cached = FALSE;
-	}
+	for (i = NMP_CACHE_ID_TYPE_NONE + 1; i <= NMP_CACHE_ID_TYPE_MAX; i++)
+		nm_dedup_multi_index_remove_idx (cache->multi_idx, _idx_type_get (cache, i));
 
-	nm_multi_index_free (cache->idx_multi);
-	g_hash_table_unref (cache->idx_main);
+	nm_dedup_multi_index_unref (cache->multi_idx);
 
-	g_free (cache);
+	g_slice_free (NMPCache, cache);
 }
 
-/******************************************************************/
+/*****************************************************************************/
 
 void
 ASSERT_nmp_cache_is_consistent (const NMPCache *cache)
 {
-#if NM_MORE_ASSERTS
-	NMMultiIndexIter iter_multi;
-	GHashTableIter iter_hash;
-	guint i, len;
-	NMPCacheId cache_id_storage;
-	const NMPCacheId *cache_id, *cache_id2;
-	const NMPlatformObject *const *objects;
-	const NMPObject *obj;
-
-	g_assert (cache);
-
-	g_hash_table_iter_init (&iter_hash, cache->idx_main);
-	while (g_hash_table_iter_next (&iter_hash, (gpointer *) &obj, NULL)) {
-		const guint8 *id_type;
-
-		g_assert (NMP_OBJECT_IS_VALID (obj));
-		g_assert (nmp_object_is_alive (obj));
-
-		for (id_type = NMP_OBJECT_GET_CLASS (obj)->supported_cache_ids; *id_type; id_type++) {
-			if (!_nmp_object_init_cache_id (obj, *id_type, &cache_id_storage, &cache_id))
-				continue;
-			if (!cache_id)
-				continue;
-			g_assert (nm_multi_index_contains (cache->idx_multi, &cache_id->base, &obj->object));
-		}
-	}
-
-	nm_multi_index_iter_init (&iter_multi, cache->idx_multi, NULL);
-	while (nm_multi_index_iter_next (&iter_multi,
-	                                 (const NMMultiIndexId **) &cache_id,
-	                                 (void *const**) &objects,
-	                                 &len)) {
-		g_assert (len > 0 && objects && objects[len] == NULL);
-
-		for (i = 0; i < len; i++) {
-			g_assert (objects[i]);
-			obj = NMP_OBJECT_UP_CAST (objects[i]);
-			g_assert (NMP_OBJECT_IS_VALID (obj));
-
-			/* for now, enforce that all objects for a certain index are of the same type. */
-			g_assert (NMP_OBJECT_GET_CLASS (obj) == NMP_OBJECT_GET_CLASS (NMP_OBJECT_UP_CAST (objects[0])));
-
-			if (!_nmp_object_init_cache_id (obj, cache_id->_id_type, &cache_id_storage, &cache_id2))
-				g_assert_not_reached ();
-			g_assert (cache_id2);
-			g_assert (nmp_cache_id_equal (cache_id, cache_id2));
-			g_assert_cmpint (nmp_cache_id_hash (cache_id), ==, nmp_cache_id_hash (cache_id2));
-
-			g_assert (obj == g_hash_table_lookup (cache->idx_main, obj));
-		}
-	}
-#endif
 }
-/******************************************************************/
+
+/*****************************************************************************/
 
 const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 	[NMP_OBJECT_TYPE_LINK - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LINK,
 		.sizeof_data                        = sizeof (NMPObjectLink),
 		.sizeof_public                      = sizeof (NMPlatformLink),
@@ -2101,22 +2516,23 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.signal_type_id                     = NM_PLATFORM_SIGNAL_ID_LINK,
 		.signal_type                        = NM_PLATFORM_SIGNAL_LINK_CHANGED,
 		.supported_cache_ids                = _supported_cache_ids_link,
-		.cmd_obj_init_cache_id              = _vt_cmd_obj_init_cache_id_link,
+		.cmd_obj_hash_update                = _vt_cmd_obj_hash_update_link,
 		.cmd_obj_cmp                        = _vt_cmd_obj_cmp_link,
 		.cmd_obj_copy                       = _vt_cmd_obj_copy_link,
-		.cmd_obj_stackinit_id               = _vt_cmd_obj_stackinit_id_link,
 		.cmd_obj_dispose                    = _vt_cmd_obj_dispose_link,
 		.cmd_obj_is_alive                   = _vt_cmd_obj_is_alive_link,
 		.cmd_obj_is_visible                 = _vt_cmd_obj_is_visible_link,
 		.cmd_obj_to_string                  = _vt_cmd_obj_to_string_link,
 		.cmd_plobj_id_copy                  = _vt_cmd_plobj_id_copy_link,
-		.cmd_plobj_id_equal                 = _vt_cmd_plobj_id_equal_link,
-		.cmd_plobj_id_hash                  = _vt_cmd_plobj_id_hash_link,
+		.cmd_plobj_id_cmp                   = _vt_cmd_plobj_id_cmp_link,
+		.cmd_plobj_id_hash_update           = _vt_cmd_plobj_id_hash_update_link,
 		.cmd_plobj_to_string_id             = _vt_cmd_plobj_to_string_id_link,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_link_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_link_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_link_cmp,
 	},
 	[NMP_OBJECT_TYPE_IP4_ADDRESS - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_IP4_ADDRESS,
 		.sizeof_data                        = sizeof (NMPObjectIP4Address),
 		.sizeof_public                      = sizeof (NMPlatformIP4Address),
@@ -2126,17 +2542,17 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.signal_type_id                     = NM_PLATFORM_SIGNAL_ID_IP4_ADDRESS,
 		.signal_type                        = NM_PLATFORM_SIGNAL_IP4_ADDRESS_CHANGED,
 		.supported_cache_ids                = _supported_cache_ids_ipx_address,
-		.cmd_obj_init_cache_id              = _vt_cmd_obj_init_cache_id_ipx_address,
-		.cmd_obj_stackinit_id               = _vt_cmd_obj_stackinit_id_ip4_address,
 		.cmd_obj_is_alive                   = _vt_cmd_obj_is_alive_ipx_address,
 		.cmd_plobj_id_copy                  = _vt_cmd_plobj_id_copy_ip4_address,
-		.cmd_plobj_id_equal                 = _vt_cmd_plobj_id_equal_ip4_address,
-		.cmd_plobj_id_hash                  = _vt_cmd_plobj_id_hash_ip4_address,
+		.cmd_plobj_id_cmp                   = _vt_cmd_plobj_id_cmp_ip4_address,
+		.cmd_plobj_id_hash_update           = _vt_cmd_plobj_id_hash_update_ip4_address,
 		.cmd_plobj_to_string_id             = _vt_cmd_plobj_to_string_id_ip4_address,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_ip4_address_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_ip4_address_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_ip4_address_cmp,
 	},
 	[NMP_OBJECT_TYPE_IP6_ADDRESS - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_IP6_ADDRESS,
 		.sizeof_data                        = sizeof (NMPObjectIP6Address),
 		.sizeof_public                      = sizeof (NMPlatformIP6Address),
@@ -2146,17 +2562,17 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.signal_type_id                     = NM_PLATFORM_SIGNAL_ID_IP6_ADDRESS,
 		.signal_type                        = NM_PLATFORM_SIGNAL_IP6_ADDRESS_CHANGED,
 		.supported_cache_ids                = _supported_cache_ids_ipx_address,
-		.cmd_obj_init_cache_id              = _vt_cmd_obj_init_cache_id_ipx_address,
-		.cmd_obj_stackinit_id               = _vt_cmd_obj_stackinit_id_ip6_address,
 		.cmd_obj_is_alive                   = _vt_cmd_obj_is_alive_ipx_address,
 		.cmd_plobj_id_copy                  = _vt_cmd_plobj_id_copy_ip6_address,
-		.cmd_plobj_id_equal                 = _vt_cmd_plobj_id_equal_ip6_address,
-		.cmd_plobj_id_hash                  = _vt_cmd_plobj_id_hash_ip6_address,
+		.cmd_plobj_id_cmp                   = _vt_cmd_plobj_id_cmp_ip6_address,
+		.cmd_plobj_id_hash_update           = _vt_cmd_plobj_id_hash_update_ip6_address,
 		.cmd_plobj_to_string_id             = _vt_cmd_plobj_to_string_id_ip6_address,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_ip6_address_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_ip6_address_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_ip6_address_cmp
 	},
 	[NMP_OBJECT_TYPE_IP4_ROUTE - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_IP4_ROUTE,
 		.sizeof_data                        = sizeof (NMPObjectIP4Route),
 		.sizeof_public                      = sizeof (NMPlatformIP4Route),
@@ -2165,18 +2581,18 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.rtm_gettype                        = RTM_GETROUTE,
 		.signal_type_id                     = NM_PLATFORM_SIGNAL_ID_IP4_ROUTE,
 		.signal_type                        = NM_PLATFORM_SIGNAL_IP4_ROUTE_CHANGED,
-		.supported_cache_ids                = _supported_cache_ids_ip4_route,
-		.cmd_obj_init_cache_id              = _vt_cmd_obj_init_cache_id_ipx_route,
-		.cmd_obj_stackinit_id               = _vt_cmd_obj_stackinit_id_ip4_route,
+		.supported_cache_ids                = _supported_cache_ids_ipx_route,
 		.cmd_obj_is_alive                   = _vt_cmd_obj_is_alive_ipx_route,
 		.cmd_plobj_id_copy                  = _vt_cmd_plobj_id_copy_ip4_route,
-		.cmd_plobj_id_equal                 = _vt_cmd_plobj_id_equal_ip4_route,
-		.cmd_plobj_id_hash                  = _vt_cmd_plobj_id_hash_ip4_route,
-		.cmd_plobj_to_string_id             = _vt_cmd_plobj_to_string_id_ip4_route,
+		.cmd_plobj_id_cmp                   = _vt_cmd_plobj_id_cmp_ip4_route,
+		.cmd_plobj_id_hash_update           = _vt_cmd_plobj_id_hash_update_ip4_route,
+		.cmd_plobj_to_string_id             = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_ip4_route_to_string,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_ip4_route_to_string,
-		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_ip4_route_cmp,
+		.cmd_plobj_hash_update              = _vt_cmd_plobj_hash_update_ip4_route,
+		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_ip4_route_cmp_full,
 	},
 	[NMP_OBJECT_TYPE_IP6_ROUTE - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_IP6_ROUTE,
 		.sizeof_data                        = sizeof (NMPObjectIP6Route),
 		.sizeof_public                      = sizeof (NMPlatformIP6Route),
@@ -2185,100 +2601,165 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.rtm_gettype                        = RTM_GETROUTE,
 		.signal_type_id                     = NM_PLATFORM_SIGNAL_ID_IP6_ROUTE,
 		.signal_type                        = NM_PLATFORM_SIGNAL_IP6_ROUTE_CHANGED,
-		.supported_cache_ids                = _supported_cache_ids_ip6_route,
-		.cmd_obj_init_cache_id              = _vt_cmd_obj_init_cache_id_ipx_route,
-		.cmd_obj_stackinit_id               = _vt_cmd_obj_stackinit_id_ip6_route,
+		.supported_cache_ids                = _supported_cache_ids_ipx_route,
 		.cmd_obj_is_alive                   = _vt_cmd_obj_is_alive_ipx_route,
 		.cmd_plobj_id_copy                  = _vt_cmd_plobj_id_copy_ip6_route,
-		.cmd_plobj_id_equal                 = _vt_cmd_plobj_id_equal_ip6_route,
-		.cmd_plobj_id_hash                  = _vt_cmd_plobj_id_hash_ip6_route,
-		.cmd_plobj_to_string_id             = _vt_cmd_plobj_to_string_id_ip6_route,
+		.cmd_plobj_id_cmp                   = _vt_cmd_plobj_id_cmp_ip6_route,
+		.cmd_plobj_id_hash_update           = _vt_cmd_plobj_id_hash_update_ip6_route,
+		.cmd_plobj_to_string_id             = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_ip6_route_to_string,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_ip6_route_to_string,
-		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_ip6_route_cmp,
+		.cmd_plobj_hash_update              = _vt_cmd_plobj_hash_update_ip6_route,
+		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_ip6_route_cmp_full,
+	},
+	[NMP_OBJECT_TYPE_QDISC - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
+		.obj_type                           = NMP_OBJECT_TYPE_QDISC,
+		.sizeof_data                        = sizeof (NMPObjectQdisc),
+		.sizeof_public                      = sizeof (NMPlatformQdisc),
+		.obj_type_name                      = "qdisc",
+		.rtm_gettype                        = RTM_GETQDISC,
+		.signal_type_id                     = NM_PLATFORM_SIGNAL_ID_QDISC,
+		.signal_type                        = NM_PLATFORM_SIGNAL_QDISC_CHANGED,
+		.supported_cache_ids                = _supported_cache_ids_object,
+		.cmd_obj_is_alive                   = _vt_cmd_obj_is_alive_qdisc,
+		.cmd_plobj_id_cmp                   = _vt_cmd_plobj_id_cmp_qdisc,
+		.cmd_plobj_id_hash_update           = _vt_cmd_plobj_id_hash_update_qdisc,
+		.cmd_plobj_to_string_id             = _vt_cmd_plobj_to_string_id_qdisc,
+		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_qdisc_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_qdisc_hash_update,
+		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_qdisc_cmp,
+	},
+	[NMP_OBJECT_TYPE_TFILTER - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
+		.obj_type                           = NMP_OBJECT_TYPE_TFILTER,
+		.sizeof_data                        = sizeof (NMPObjectTfilter),
+		.sizeof_public                      = sizeof (NMPlatformTfilter),
+		.obj_type_name                      = "tfilter",
+		.rtm_gettype                        = RTM_GETTFILTER,
+		.signal_type_id                     = NM_PLATFORM_SIGNAL_ID_TFILTER,
+		.signal_type                        = NM_PLATFORM_SIGNAL_TFILTER_CHANGED,
+		.supported_cache_ids                = _supported_cache_ids_object,
+		.cmd_obj_is_alive                   = _vt_cmd_obj_is_alive_tfilter,
+		.cmd_plobj_id_cmp                   = _vt_cmd_plobj_id_cmp_tfilter,
+		.cmd_plobj_id_hash_update           = _vt_cmd_plobj_id_hash_update_tfilter,
+		.cmd_plobj_to_string_id             = _vt_cmd_plobj_to_string_id_tfilter,
+		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_tfilter_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_tfilter_hash_update,
+		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_tfilter_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_GRE - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_GRE,
 		.sizeof_data                        = sizeof (NMPObjectLnkGre),
 		.sizeof_public                      = sizeof (NMPlatformLnkGre),
 		.obj_type_name                      = "gre",
 		.lnk_link_type                      = NM_LINK_TYPE_GRE,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_gre_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_gre_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_gre_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_INFINIBAND - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_INFINIBAND,
 		.sizeof_data                        = sizeof (NMPObjectLnkInfiniband),
 		.sizeof_public                      = sizeof (NMPlatformLnkInfiniband),
 		.obj_type_name                      = "infiniband",
 		.lnk_link_type                      = NM_LINK_TYPE_INFINIBAND,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_infiniband_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_infiniband_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_infiniband_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_IP6TNL - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_IP6TNL,
 		.sizeof_data                        = sizeof (NMPObjectLnkIp6Tnl),
 		.sizeof_public                      = sizeof (NMPlatformLnkIp6Tnl),
 		.obj_type_name                      = "ip6tnl",
 		.lnk_link_type                      = NM_LINK_TYPE_IP6TNL,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_ip6tnl_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_ip6tnl_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_ip6tnl_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_IPIP - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_IPIP,
 		.sizeof_data                        = sizeof (NMPObjectLnkIpIp),
 		.sizeof_public                      = sizeof (NMPlatformLnkIpIp),
 		.obj_type_name                      = "ipip",
 		.lnk_link_type                      = NM_LINK_TYPE_IPIP,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_ipip_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_ipip_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_ipip_cmp,
 	},
+	[NMP_OBJECT_TYPE_LNK_MACSEC - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
+		.obj_type                           = NMP_OBJECT_TYPE_LNK_MACSEC,
+		.sizeof_data                        = sizeof (NMPObjectLnkMacsec),
+		.sizeof_public                      = sizeof (NMPlatformLnkMacsec),
+		.obj_type_name                      = "macsec",
+		.lnk_link_type                      = NM_LINK_TYPE_MACSEC,
+		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_macsec_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_macsec_hash_update,
+		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_macsec_cmp,
+	},
 	[NMP_OBJECT_TYPE_LNK_MACVLAN - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_MACVLAN,
 		.sizeof_data                        = sizeof (NMPObjectLnkMacvlan),
 		.sizeof_public                      = sizeof (NMPlatformLnkMacvlan),
 		.obj_type_name                      = "macvlan",
 		.lnk_link_type                      = NM_LINK_TYPE_MACVLAN,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_macvlan_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_macvlan_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_macvlan_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_MACVTAP - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_MACVTAP,
 		.sizeof_data                        = sizeof (NMPObjectLnkMacvtap),
 		.sizeof_public                      = sizeof (NMPlatformLnkMacvtap),
 		.obj_type_name                      = "macvtap",
 		.lnk_link_type                      = NM_LINK_TYPE_MACVTAP,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_macvlan_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_macvlan_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_macvlan_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_SIT - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_SIT,
 		.sizeof_data                        = sizeof (NMPObjectLnkSit),
 		.sizeof_public                      = sizeof (NMPlatformLnkSit),
 		.obj_type_name                      = "sit",
 		.lnk_link_type                      = NM_LINK_TYPE_SIT,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_sit_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_sit_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_sit_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_VLAN - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_VLAN,
 		.sizeof_data                        = sizeof (NMPObjectLnkVlan),
 		.sizeof_public                      = sizeof (NMPlatformLnkVlan),
 		.obj_type_name                      = "vlan",
 		.lnk_link_type                      = NM_LINK_TYPE_VLAN,
+		.cmd_obj_hash_update                = _vt_cmd_obj_hash_update_lnk_vlan,
 		.cmd_obj_cmp                        = _vt_cmd_obj_cmp_lnk_vlan,
 		.cmd_obj_copy                       = _vt_cmd_obj_copy_lnk_vlan,
 		.cmd_obj_dispose                    = _vt_cmd_obj_dispose_lnk_vlan,
 		.cmd_obj_to_string                  = _vt_cmd_obj_to_string_lnk_vlan,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_vlan_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_vlan_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_vlan_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_VXLAN - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_VXLAN,
 		.sizeof_data                        = sizeof (NMPObjectLnkVxlan),
 		.sizeof_public                      = sizeof (NMPlatformLnkVxlan),
 		.obj_type_name                      = "vxlan",
 		.lnk_link_type                      = NM_LINK_TYPE_VXLAN,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_vxlan_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_vxlan_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_vxlan_cmp,
 	},
 };

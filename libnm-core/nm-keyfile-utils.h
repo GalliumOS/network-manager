@@ -29,7 +29,7 @@ const char *nm_keyfile_plugin_get_alias_for_setting_name (const char *setting_na
 
 const char *nm_keyfile_plugin_get_setting_name_for_alias (const char *alias);
 
-/*********************************************************/
+/*****************************************************************************/
 
 /* List helpers */
 #define DEFINE_KF_LIST_WRAPPER_PROTO(stype, get_ctype, set_ctype) \
@@ -46,6 +46,12 @@ void nm_keyfile_plugin_kf_set_##stype##_list  (GKeyFile *kf, \
                                                gsize length);
 DEFINE_KF_LIST_WRAPPER_PROTO(integer, gint*, gint)
 DEFINE_KF_LIST_WRAPPER_PROTO(string, gchar**, const gchar* const)
+
+void nm_keyfile_plugin_kf_set_integer_list_uint8 (GKeyFile *kf,
+                                                  const char *group,
+                                                  const char *key,
+                                                  const guint8 *list,
+                                                  gsize length);
 
 /* Single-value helpers */
 #define DEFINE_KF_WRAPPER_PROTO(stype, get_ctype, set_ctype) \
@@ -74,6 +80,12 @@ gboolean nm_keyfile_plugin_kf_has_key     (GKeyFile *kf,
                                            const char *group,
                                            const char *key,
                                            GError **error);
+
+const char *nm_keyfile_key_encode (const char *name,
+                                   char **out_to_free);
+
+const char *nm_keyfile_key_decode (const char *key,
+                                   char **out_to_free);
 
 #endif  /* __NM_KEYFILE_UTILS_H__ */
 

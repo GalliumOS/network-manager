@@ -47,6 +47,7 @@ bool hostname_is_set(void) {
         return true;
 }
 
+#if 0 /* NM_IGNORED */
 char* gethostname_malloc(void) {
         struct utsname u;
 
@@ -57,10 +58,11 @@ char* gethostname_malloc(void) {
         assert_se(uname(&u) >= 0);
 
         if (isempty(u.nodename) || streq(u.nodename, "(none)"))
-                return strdup(u.sysname);
+                return strdup(FALLBACK_HOSTNAME);
 
         return strdup(u.nodename);
 }
+#endif /* NM_IGNORED */
 
 int gethostname_strict(char **ret) {
         struct utsname u;
@@ -92,9 +94,7 @@ static bool hostname_valid_char(char c) {
                 (c >= 'a' && c <= 'z') ||
                 (c >= 'A' && c <= 'Z') ||
                 (c >= '0' && c <= '9') ||
-                c == '-' ||
-                c == '_' ||
-                c == '.';
+                IN_SET(c, '-', '_', '.');
 }
 
 /**
@@ -165,7 +165,6 @@ char* hostname_cleanup(char *s) {
                         *(d++) = *p;
                         dot = false;
                 }
-
         }
 
         if (dot && d > s)
@@ -180,16 +179,16 @@ bool is_localhost(const char *hostname) {
         assert(hostname);
 
         /* This tries to identify local host and domain names
-         * described in RFC6761 plus the redhatism of .localdomain */
+         * described in RFC6761 plus the redhatism of localdomain */
 
         return strcaseeq(hostname, "localhost") ||
                strcaseeq(hostname, "localhost.") ||
-               strcaseeq(hostname, "localdomain.") ||
-               strcaseeq(hostname, "localdomain") ||
+               strcaseeq(hostname, "localhost.localdomain") ||
+               strcaseeq(hostname, "localhost.localdomain.") ||
                endswith_no_case(hostname, ".localhost") ||
                endswith_no_case(hostname, ".localhost.") ||
-               endswith_no_case(hostname, ".localdomain") ||
-               endswith_no_case(hostname, ".localdomain.");
+               endswith_no_case(hostname, ".localhost.localdomain") ||
+               endswith_no_case(hostname, ".localhost.localdomain.");
 }
 
 #if 0 /* NM_IGNORED */
@@ -200,8 +199,11 @@ bool is_gateway_hostname(const char *hostname) {
          * synthetic "gateway" host. */
 
         return
-                strcaseeq(hostname, "gateway") ||
-                strcaseeq(hostname, "gateway.");
+                strcaseeq(hostname, "_gateway") || strcaseeq(hostname, "_gateway.")
+#if ENABLE_COMPAT_GATEWAY_HOSTNAME
+                || strcaseeq(hostname, "gateway") || strcaseeq(hostname, "gateway.")
+#endif
+                ;
 }
 
 int sethostname_idempotent(const char *s) {
@@ -236,7 +238,7 @@ int read_hostname_config(const char *path, char **hostname) {
         /* may have comments, ignore them */
         FOREACH_LINE(l, f, return -errno) {
                 truncate_nl(l);
-                if (l[0] != '\0' && l[0] != '#') {
+                if (!IN_SET(l[0], '\0', '#')) {
                         /* found line with value */
                         name = hostname_cleanup(l);
                         name = strdup(name);

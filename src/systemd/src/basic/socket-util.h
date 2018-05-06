@@ -27,9 +27,11 @@
 #include <sys/types.h>
 #include <sys/un.h>
 #include <linux/netlink.h>
+#include <linux/if_infiniband.h>
 #include <linux/if_packet.h>
 
 #include "macro.h"
+#include "missing.h"
 #include "util.h"
 
 union sockaddr_union {
@@ -40,6 +42,11 @@ union sockaddr_union {
         struct sockaddr_nl nl;
         struct sockaddr_storage storage;
         struct sockaddr_ll ll;
+#if 0 /* NM_IGNORED */
+        struct sockaddr_vm vm;
+#endif /* NM_IGNORED */
+        /* Ensure there is enough space to store Infiniband addresses */
+        uint8_t ll_buffer[offsetof(struct sockaddr_ll, sll_addr) + CONST_MAX(ETH_ALEN, INFINIBAND_ALEN)];
 };
 
 typedef struct SocketAddress {
@@ -100,7 +107,7 @@ const char* socket_address_get_path(const SocketAddress *a);
 
 bool socket_ipv6_is_supported(void);
 
-int sockaddr_port(const struct sockaddr *_sa) _pure_;
+int sockaddr_port(const struct sockaddr *_sa, unsigned *port);
 
 int sockaddr_pretty(const struct sockaddr *_sa, socklen_t salen, bool translate_ipv6, bool include_port, char **ret);
 int getpeername_pretty(int fd, bool include_port, char **ret);
@@ -123,6 +130,9 @@ int fd_inc_rcvbuf(int fd, size_t n);
 int ip_tos_to_string_alloc(int i, char **s);
 int ip_tos_from_string(const char *s);
 
+bool ifname_valid(const char *p);
+bool address_label_valid(const char *p);
+
 int getpeercred(int fd, struct ucred *ucred);
 int getpeersec(int fd, char **ret);
 
@@ -135,5 +145,39 @@ int receive_one_fd(int transport_fd, int flags);
 
 ssize_t next_datagram_size_fd(int fd);
 
+int flush_accept(int fd);
+
 #define CMSG_FOREACH(cmsg, mh)                                          \
         for ((cmsg) = CMSG_FIRSTHDR(mh); (cmsg); (cmsg) = CMSG_NXTHDR((mh), (cmsg)))
+
+struct cmsghdr* cmsg_find(struct msghdr *mh, int level, int type, socklen_t length);
+
+/*
+ * Certain hardware address types (e.g Infiniband) do not fit into sll_addr
+ * (8 bytes) and run over the structure. This macro returns the correct size that
+ * must be passed to kernel.
+ */
+#define SOCKADDR_LL_LEN(sa)                                             \
+        ({                                                              \
+                const struct sockaddr_ll *_sa = &(sa);                  \
+                size_t _mac_len = sizeof(_sa->sll_addr);                \
+                assert(_sa->sll_family == AF_PACKET);                   \
+                if (be16toh(_sa->sll_hatype) == ARPHRD_ETHER)           \
+                        _mac_len = MAX(_mac_len, (size_t) ETH_ALEN);    \
+                if (be16toh(_sa->sll_hatype) == ARPHRD_INFINIBAND)      \
+                        _mac_len = MAX(_mac_len, (size_t) INFINIBAND_ALEN); \
+                offsetof(struct sockaddr_ll, sll_addr) + _mac_len;      \
+        })
+
+/* Covers only file system and abstract AF_UNIX socket addresses, but not unnamed socket addresses. */
+#define SOCKADDR_UN_LEN(sa)                                             \
+        ({                                                              \
+                const struct sockaddr_un *_sa = &(sa);                  \
+                assert(_sa->sun_family == AF_UNIX);                     \
+                offsetof(struct sockaddr_un, sun_path) +                \
+                        (_sa->sun_path[0] == 0 ?                        \
+                         1 + strnlen(_sa->sun_path+1, sizeof(_sa->sun_path)-1) : \
+                         strnlen(_sa->sun_path, sizeof(_sa->sun_path))); \
+        })
+
+int socket_ioctl_fd(void);

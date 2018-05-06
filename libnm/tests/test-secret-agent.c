@@ -28,7 +28,7 @@
 
 #include "nm-test-libnm-utils.h"
 
-/*******************************************************************/
+/*****************************************************************************/
 
 enum {
 	SECRET_REQUESTED,
@@ -176,7 +176,7 @@ test_secret_agent_new (void)
 	return agent;
 }
 
-/*******************************************************************/
+/*****************************************************************************/
 
 typedef struct {
 	NMTstcServiceInfo *sinfo;
@@ -341,7 +341,7 @@ test_cleanup (TestSecretAgentData *sadata, gconstpointer test_data)
 	g_free (sadata->con_id);
 }
 
-/*******************************************************************/
+/*****************************************************************************/
 
 static void
 connection_activated_none_cb (GObject *c,
@@ -371,7 +371,7 @@ test_secret_agent_none (TestSecretAgentData *sadata, gconstpointer test_data)
 	g_main_loop_run (sadata->loop);
 }
 
-/*******************************************************************/
+/*****************************************************************************/
 
 static char *
 secrets_requested_no_secrets_cb (TestSecretAgent *agent,
@@ -422,7 +422,7 @@ test_secret_agent_no_secrets (TestSecretAgentData *sadata, gconstpointer test_da
 	g_assert_cmpint (sadata->secrets_requested, ==, 1);
 }
 
-/*******************************************************************/
+/*****************************************************************************/
 
 static void
 connection_activated_cancel_cb (GObject *c,
@@ -473,7 +473,7 @@ test_secret_agent_cancel (TestSecretAgentData *sadata, gconstpointer test_data)
 	g_assert_cmpint (sadata->secrets_requested, ==, 1);
 }
 
-/*******************************************************************/
+/*****************************************************************************/
 
 static void
 connection_activated_good_cb (GObject *c,
@@ -599,6 +599,12 @@ test_secret_agent_auto_register (void)
 	g_assert_no_error (error);
 	g_assert (nm_secret_agent_old_get_registered (agent));
 
+	/* The GLib ObjectManager doesn't like when we drop the service
+	 * in between it sees the service disappear and the call to
+	 * GetManagedObjects. Give it a chance to do its business.
+	 * Arguably a bug. */
+	g_main_context_iteration (NULL, FALSE);
+
 	/* Shut down test service */
 	nmtstc_service_cleanup (sinfo);
 	g_main_loop_run (loop);
@@ -609,6 +615,9 @@ test_secret_agent_auto_register (void)
 	g_main_loop_run (loop);
 	g_assert (nm_secret_agent_old_get_registered (agent));
 
+	/* Let ObjectManager initialize (see above). */
+	g_main_context_iteration (NULL, FALSE);
+
 	/* Shut down test service again */
 	nmtstc_service_cleanup (sinfo);
 	g_main_loop_run (loop);
@@ -618,7 +627,7 @@ test_secret_agent_auto_register (void)
 	g_main_loop_unref (loop);
 }
 
-/*******************************************************************/
+/*****************************************************************************/
 
 NMTST_DEFINE ();
 

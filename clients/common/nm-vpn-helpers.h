@@ -19,22 +19,20 @@
 #ifndef __NM_VPN_HELPERS_H__
 #define __NM_VPN_HELPERS_H__
 
-#include <NetworkManager.h>
+#include "NetworkManager.h"
 
-#include "nm-default.h"
-
-struct {
+typedef struct {
 	const char *name;
 	const char *ui_name;
-} typedef VpnPasswordName;
+} VpnPasswordName;
 
-GSList *nm_vpn_get_plugins (void);
+GSList *nm_vpn_get_plugin_infos (void);
 
-NMVpnEditorPlugin *nm_vpn_get_plugin_by_service (const char *service, GError **error);
+NMVpnEditorPlugin *nm_vpn_get_editor_plugin (const char *service_type, GError **error);
 
 gboolean nm_vpn_supports_ipv6 (NMConnection *connection);
 
-const VpnPasswordName * nm_vpn_get_secret_names (const char *vpn_type);
+const VpnPasswordName * nm_vpn_get_secret_names (const char *service_type);
 
 gboolean nm_vpn_openconnect_authenticate_helper (const char *host,
                                                  char **cookie,

@@ -26,7 +26,7 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-types.h>
+#include "nm-types.h"
 
 G_BEGIN_DECLS
 
@@ -50,6 +50,8 @@ G_BEGIN_DECLS
 #define NM_CLIENT_WIMAX_HARDWARE_ENABLED "wimax-hardware-enabled"
 #define NM_CLIENT_ACTIVE_CONNECTIONS "active-connections"
 #define NM_CLIENT_CONNECTIVITY "connectivity"
+#define NM_CLIENT_CONNECTIVITY_CHECK_AVAILABLE "connectivity-check-available"
+#define NM_CLIENT_CONNECTIVITY_CHECK_ENABLED "connectivity-check-enabled"
 #define NM_CLIENT_PRIMARY_CONNECTION "primary-connection"
 #define NM_CLIENT_ACTIVATING_CONNECTION "activating-connection"
 #define NM_CLIENT_DEVICES "devices"
@@ -58,6 +60,9 @@ G_BEGIN_DECLS
 #define NM_CLIENT_HOSTNAME "hostname"
 #define NM_CLIENT_CAN_MODIFY "can-modify"
 #define NM_CLIENT_METERED "metered"
+#define NM_CLIENT_DNS_MODE "dns-mode"
+#define NM_CLIENT_DNS_RC_MANAGER "dns-rc-manager"
+#define NM_CLIENT_DNS_CONFIGURATION "dns-configuration"
 
 #define NM_CLIENT_DEVICE_ADDED "device-added"
 #define NM_CLIENT_DEVICE_REMOVED "device-removed"
@@ -66,6 +71,8 @@ G_BEGIN_DECLS
 #define NM_CLIENT_PERMISSION_CHANGED "permission-changed"
 #define NM_CLIENT_CONNECTION_ADDED "connection-added"
 #define NM_CLIENT_CONNECTION_REMOVED "connection-removed"
+#define NM_CLIENT_ACTIVE_CONNECTION_ADDED "active-connection-added"
+#define NM_CLIENT_ACTIVE_CONNECTION_REMOVED "active-connection-removed"
 
 /**
  * NMClientPermission:
@@ -92,6 +99,14 @@ G_BEGIN_DECLS
  *  owned by the current user can be modified
  * @NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME: controls whether the
  *  persistent hostname can be changed
+ * @NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS: modify persistent global
+ *  DNS configuration
+ * @NM_CLIENT_PERMISSION_RELOAD: controls access to Reload.
+ * @NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK: permission to create checkpoints.
+ * @NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS: controls whether device
+ *  statistics can be globally enabled or disabled
+ * @NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK: controls whether
+ *  connectivity check can be enabled or disabled
  * @NM_CLIENT_PERMISSION_LAST: a reserved boundary value
  *
  * #NMClientPermission values indicate various permissions that NetworkManager
@@ -110,8 +125,13 @@ typedef enum {
 	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM = 9,
 	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN = 10,
 	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME = 11,
+	NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS = 12,
+	NM_CLIENT_PERMISSION_RELOAD = 13,
+	NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK = 14,
+	NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS = 15,
+	NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK = 16,
 
-	NM_CLIENT_PERMISSION_LAST = NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME
+	NM_CLIENT_PERMISSION_LAST = 16,
 } NMClientPermission;
 
 /**
@@ -156,6 +176,25 @@ typedef enum {
 
 #define NM_CLIENT_ERROR nm_client_error_quark ()
 GQuark nm_client_error_quark (void);
+
+/* DNS stuff */
+
+typedef struct NMDnsEntry NMDnsEntry;
+
+NM_AVAILABLE_IN_1_6
+GType              nm_dns_entry_get_type (void);
+NM_AVAILABLE_IN_1_6
+void                nm_dns_entry_unref (NMDnsEntry *entry);
+NM_AVAILABLE_IN_1_6
+const char *        nm_dns_entry_get_interface (NMDnsEntry *entry);
+NM_AVAILABLE_IN_1_6
+const char * const *nm_dns_entry_get_nameservers (NMDnsEntry *entry);
+NM_AVAILABLE_IN_1_6
+const char * const *nm_dns_entry_get_domains (NMDnsEntry *entry);
+NM_AVAILABLE_IN_1_6
+int                 nm_dns_entry_get_priority (NMDnsEntry *entry);
+NM_AVAILABLE_IN_1_6
+gboolean            nm_dns_entry_get_vpn (NMDnsEntry *entry);
 
 /**
  * NMClient:
@@ -214,6 +253,16 @@ gboolean nm_client_wwan_hardware_get_enabled (NMClient *client);
 gboolean nm_client_wimax_get_enabled (NMClient *client);
 void     nm_client_wimax_set_enabled (NMClient *client, gboolean enabled);
 gboolean nm_client_wimax_hardware_get_enabled (NMClient *client);
+
+NM_AVAILABLE_IN_1_10
+gboolean nm_client_connectivity_check_get_available (NMClient *client);
+
+NM_AVAILABLE_IN_1_10
+gboolean nm_client_connectivity_check_get_enabled (NMClient *client);
+
+NM_AVAILABLE_IN_1_10
+void     nm_client_connectivity_check_set_enabled (NMClient *client,
+                                                   gboolean enabled);
 
 gboolean nm_client_get_logging (NMClient *client,
                                 char **level,
@@ -346,6 +395,13 @@ void     nm_client_reload_connections_async  (NMClient *client,
 gboolean nm_client_reload_connections_finish (NMClient *client,
                                               GAsyncResult *result,
                                               GError **error);
+
+NM_AVAILABLE_IN_1_6
+const char *nm_client_get_dns_mode            (NMClient *client);
+NM_AVAILABLE_IN_1_6
+const char *nm_client_get_dns_rc_manager      (NMClient *client);
+NM_AVAILABLE_IN_1_6
+const GPtrArray  *nm_client_get_dns_configuration (NMClient *client);
 
 G_END_DECLS
 

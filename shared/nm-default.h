@@ -52,13 +52,133 @@
 #define NM_VERSION_MAX_ALLOWED   NM_VERSION_NEXT_STABLE
 #define NM_VERSION_MIN_REQUIRED  NM_VERSION_0_9_8
 
-#include <stdlib.h>
+#ifndef NM_MORE_ASSERTS
+#define NM_MORE_ASSERTS 0
+#endif
 
-#include "nm-glib.h"
+#if NM_MORE_ASSERTS == 0
+/* The cast macros like NM_TYPE() are implemented via G_TYPE_CHECK_INSTANCE_CAST()
+ * and _G_TYPE_CIC(). The latter, by default performs runtime checks of the type
+ * by calling g_type_check_instance_cast().
+ * This check has a certain overhead without being helpful.
+ *
+ * Example 1:
+ *     static void foo (NMType *obj)
+ *     {
+ *         access_obj_without_check (obj);
+ *     }
+ *     foo ((NMType *) obj);
+ *     // There is no runtime check and passing an invalid pointer
+ *     // leads to a crash.
+ *
+ * Example 2:
+ *     static void foo (NMType *obj)
+ *     {
+ *         access_obj_without_check (obj);
+ *     }
+ *     foo (NM_TYPE (obj));
+ *     // There is a runtime check which prints a g_warning(), but that doesn't
+ *     // avoid the crash as NM_TYPE() cannot do anything then passing on the
+ *     // invalid pointer.
+ *
+ * Example 3:
+ *     static void foo (NMType *obj)
+ *     {
+ *         g_return_if_fail (NM_IS_TYPE (obj));
+ *         access_obj_without_check (obj);
+ *     }
+ *     foo ((NMType *) obj);
+ *     // There is a runtime check which prints a g_critical() which also avoids
+ *     // the crash. That is actually helpful to catch bugs and avoid crashes.
+ *
+ * Example 4:
+ *     static void foo (NMType *obj)
+ *     {
+ *         g_return_if_fail (NM_IS_TYPE (obj));
+ *         access_obj_without_check (obj);
+ *     }
+ *     foo (NM_TYPE (obj));
+ *     // The runtime check is performed twice, with printing a g_warning() and
+ *     // a g_critical() and avoiding the crash.
+ *
+ * Example 3 is how it should be done. Type checks in NM_TYPE() are pointless.
+ * Disable them for our production builds.
+ */
+#ifndef G_DISABLE_CAST_CHECKS
+#define G_DISABLE_CAST_CHECKS
+#endif
+#endif
+
+#include <stdlib.h>
+#include <glib.h>
+
+/*****************************************************************************/
+
+#if NM_MORE_ASSERTS == 0
+
+/* glib assertions (g_return_*(), g_assert*()) contain a textual representation
+ * of the checked statement. This part of the assertion blows up the size of the
+ * binary. Unless we compile a debug-build with NM_MORE_ASSERTS, drop these
+ * parts. Note that the failed assertion still prints the file and line where the
+ * assertion fails. That shall suffice. */
+
+static inline void
+_nm_g_return_if_fail_warning (const char *log_domain,
+                              const char *file,
+                              int line)
+{
+	char file_buf[256 + 15];
+
+	g_snprintf (file_buf, sizeof (file_buf), "((%s:%d))", file, line);
+	g_return_if_fail_warning (log_domain, file_buf, "<dropped>");
+}
+
+#define g_return_if_fail_warning(log_domain, pretty_function, expression) \
+	_nm_g_return_if_fail_warning (log_domain, __FILE__, __LINE__)
+
+#define g_assertion_message_expr(domain, file, line, func, expr) \
+	g_assertion_message_expr(domain, file, line, "<unknown-fcn>", (expr) ? "<dropped>" : NULL)
+
+#undef g_return_val_if_reached
+#define g_return_val_if_reached(val) \
+    G_STMT_START { \
+        g_log (G_LOG_DOMAIN, \
+               G_LOG_LEVEL_CRITICAL, \
+               "file %s: line %d (%s): should not be reached", \
+               __FILE__, \
+               __LINE__, \
+               "<dropped>"); \
+        return (val); \
+    } G_STMT_END
+
+#undef g_return_if_reached
+#define g_return_if_reached() \
+    G_STMT_START { \
+        g_log (G_LOG_DOMAIN, \
+               G_LOG_LEVEL_CRITICAL, \
+               "file %s: line %d (%s): should not be reached", \
+               __FILE__, \
+               __LINE__, \
+               "<dropped>"); \
+        return; \
+    } G_STMT_END
+
+#define NM_ASSERT_G_RETURN_EXPR(expr) "<dropped>"
+#define NM_ASSERT_NO_MSG 1
+
+#else
+
+#define NM_ASSERT_G_RETURN_EXPR(expr) ""expr""
+#define NM_ASSERT_NO_MSG 0
+
+#endif
+
+/*****************************************************************************/
+
+#include "nm-utils/nm-macros-internal.h"
+#include "nm-utils/nm-shared-utils.h"
+
 #include "nm-version.h"
-#include "gsystem-local-alloc.h"
-#include "nm-macros-internal.h"
-#include "nm-shared-utils.h"
 
 /*****************************************************************************/
 

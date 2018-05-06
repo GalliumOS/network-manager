@@ -36,6 +36,7 @@
 #include "nmt-password-dialog.h"
 #include "nm-secret-agent-simple.h"
 #include "nm-vpn-helpers.h"
+#include "nm-client-utils.h"
 #include "nmt-utils.h"
 
 /**
@@ -148,16 +149,44 @@ secrets_requested (NMSecretAgentSimple *agent,
 	g_object_unref (form);
 }
 
+typedef struct {
+	NMDevice *device;
+	NMActiveConnection *active;
+	NmtSyncOp *op;
+} ActivateConnectionInfo;
+
 static void
 connect_cancelled (NmtNewtForm *form,
                    gpointer     user_data)
 {
-	NmtSyncOp *op = user_data;
+	ActivateConnectionInfo *info = user_data;
 	GError *error = NULL;
 
 	error = g_error_new_literal (G_IO_ERROR, G_IO_ERROR_CANCELLED, "Cancelled");
-	nmt_sync_op_complete_boolean (op, FALSE, error);
+	nmt_sync_op_complete_boolean (info->op, FALSE, error);
 	g_clear_error (&error);
+}
+
+static void
+check_activated (ActivateConnectionInfo *info)
+{
+	NMActiveConnectionState ac_state;
+	const char *reason = NULL;
+	gs_free_error GError *error = NULL;
+
+	ac_state = nmc_activation_get_effective_state (info->active, info->device, &reason);
+	if (!NM_IN_SET (ac_state,
+	                NM_ACTIVE_CONNECTION_STATE_ACTIVATED,
+	                NM_ACTIVE_CONNECTION_STATE_DEACTIVATED))
+		return;
+
+	if (ac_state == NM_ACTIVE_CONNECTION_STATE_DEACTIVATED) {
+		nm_assert (reason);
+		error = g_error_new (NM_CLIENT_ERROR, NM_CLIENT_ERROR_FAILED,
+		                     _("Activation failed: %s"), reason);
+	}
+
+	nmt_sync_op_complete_boolean (info->op, error == NULL, error);
 }
 
 static void
@@ -165,21 +194,15 @@ activate_ac_state_changed (GObject    *object,
                            GParamSpec *pspec,
                            gpointer    user_data)
 {
-	NmtSyncOp *op = user_data;
-	NMActiveConnectionState state;
-	GError *error = NULL;
+	check_activated (user_data);
+}
 
-	state = nm_active_connection_get_state (NM_ACTIVE_CONNECTION (object));
-	if (state == NM_ACTIVE_CONNECTION_STATE_ACTIVATING)
-		return;
-
-	if (state != NM_ACTIVE_CONNECTION_STATE_ACTIVATED) {
-		error = g_error_new_literal (NM_CLIENT_ERROR, NM_CLIENT_ERROR_FAILED,
-		                             _("Activation failed"));
-	}
-
-	nmt_sync_op_complete_boolean (op, error == NULL, error);
-	g_clear_error (&error);
+static void
+activate_device_state_changed (GObject    *object,
+                               GParamSpec *pspec,
+                               gpointer    user_data)
+{
+	check_activated (user_data);
 }
 
 static void
@@ -226,6 +249,7 @@ activate_connection (NMConnection *connection,
 	const char *specific_object_path;
 	NMActiveConnection *ac;
 	GError *error = NULL;
+	ActivateConnectionInfo info = { };
 
 	form = g_object_new (NMT_TYPE_NEWT_FORM,
 	                     "escape-exits", TRUE,
@@ -239,7 +263,10 @@ activate_connection (NMConnection *connection,
 			nm_secret_agent_simple_enable (NM_SECRET_AGENT_SIMPLE (agent),
 			                               nm_object_get_path (NM_OBJECT (connection)));
 		}
-		g_signal_connect (agent, "request-secrets", G_CALLBACK (secrets_requested), connection);
+		g_signal_connect (agent,
+		                  NM_SECRET_AGENT_SIMPLE_REQUEST_SECRETS,
+		                  G_CALLBACK (secrets_requested),
+		                  connection);
 	}
 
 	specific_object_path = specific_object ? nm_object_get_path (specific_object) : NULL;
@@ -287,12 +314,18 @@ activate_connection (NMConnection *connection,
 	/* Now wait for the connection to actually reach the ACTIVATED state,
 	 * allowing the user to cancel if it takes too long.
 	 */
-
 	nmt_sync_op_init (&op);
+	info.active = ac;
+	info.device = device;
+	info.op = &op;
 
-	g_signal_connect (form, "quit", G_CALLBACK (connect_cancelled), &op);
+	g_signal_connect (form, "quit", G_CALLBACK (connect_cancelled), &info);
 	g_signal_connect (ac, "notify::" NM_ACTIVE_CONNECTION_STATE,
-	                  G_CALLBACK (activate_ac_state_changed), &op);
+	                  G_CALLBACK (activate_ac_state_changed), &info);
+	if (device) {
+		g_signal_connect (device, "notify::" NM_DEVICE_STATE,
+		                  G_CALLBACK (activate_device_state_changed), &info);
+	}
 
 	if (!nmt_sync_op_wait_boolean (&op, &error)) {
 		if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -300,8 +333,10 @@ activate_connection (NMConnection *connection,
 		g_clear_error (&error);
 	}
 
-	g_signal_handlers_disconnect_by_func (form, G_CALLBACK (connect_cancelled), &op);
-	g_signal_handlers_disconnect_by_func (ac, G_CALLBACK (activate_ac_state_changed), &op);
+	g_signal_handlers_disconnect_by_func (form, G_CALLBACK (connect_cancelled), &info);
+	g_signal_handlers_disconnect_by_func (ac, G_CALLBACK (activate_ac_state_changed), &info);
+	if (device)
+		g_signal_handlers_disconnect_by_func (device, G_CALLBACK (activate_device_state_changed), &info);
 
  done:
 	if (nmt_newt_widget_get_realized (NMT_NEWT_WIDGET (form)))
@@ -378,7 +413,7 @@ listbox_active_changed (GObject    *object,
 }
 
 static NmtNewtForm *
-nmt_connect_connection_list (void)
+nmt_connect_connection_list (gboolean is_top)
 {
 	int screen_width, screen_height;
 	NmtNewtForm *form;
@@ -410,7 +445,7 @@ nmt_connect_connection_list (void)
 	listbox_active_changed (G_OBJECT (list), NULL, activate);
 	g_signal_connect (activate, "clicked", G_CALLBACK (activate_clicked), list);
 
-	quit = nmt_newt_button_box_add_end (NMT_NEWT_BUTTON_BOX (bbox), _("Quit"));
+	quit = nmt_newt_button_box_add_end (NMT_NEWT_BUTTON_BOX (bbox), is_top ? _("Quit") : _("Back"));
 	nmt_newt_widget_set_exit_on_activate (quit, TRUE);
 
 	nmt_newt_form_set_content (form, grid);
@@ -444,10 +479,10 @@ nmt_connect_connection (const char *identifier)
 }
 
 NmtNewtForm *
-nmtui_connect (int argc, char **argv)
+nmtui_connect (gboolean is_top, int argc, char **argv)
 {
 	if (argc == 2)
 		return nmt_connect_connection (argv[1]);
 	else
-		return nmt_connect_connection_list ();
+		return nmt_connect_connection_list (is_top);
 }

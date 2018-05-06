@@ -28,15 +28,15 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <nm-types.h>
+#include "nm-types.h"
 
 #include "nm-vpn-editor-plugin.h"
 
 G_BEGIN_DECLS
 
-/**************************************************/
+/*****************************************************************************/
 /* Editor interface                               */
-/**************************************************/
+/*****************************************************************************/
 
 #define NM_TYPE_VPN_EDITOR               (nm_vpn_editor_get_type ())
 #define NM_VPN_EDITOR(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_VPN_EDITOR, NMVpnEditor))

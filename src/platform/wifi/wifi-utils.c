@@ -21,24 +21,28 @@
 
 #include "nm-default.h"
 
+#include "wifi-utils.h"
+
 #include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
 
-#include "wifi-utils.h"
 #include "wifi-utils-private.h"
 #include "wifi-utils-nl80211.h"
 #if HAVE_WEXT
 #include "wifi-utils-wext.h"
 #endif
+#include "nm-core-utils.h"
+
+#include "platform/nm-platform-utils.h"
 
 gpointer
-wifi_data_new (const char *iface, int ifindex, gsize len)
+wifi_data_new (int ifindex, gsize len)
 {
 	WifiData *data;
 
 	data = g_malloc0 (len);
-	data->iface = g_strdup (iface);
 	data->ifindex = ifindex;
 	return data;
 }
@@ -46,28 +50,34 @@ wifi_data_new (const char *iface, int ifindex, gsize len)
 void
 wifi_data_free (WifiData *data)
 {
-	g_free (data->iface);
 	memset (data, 0, sizeof (*data));
 	g_free (data);
 }
 
-/***************************************************************/
+/*****************************************************************************/
 
 WifiData *
-wifi_utils_init (const char *iface, int ifindex, gboolean check_scan)
+wifi_utils_init (int ifindex, gboolean check_scan)
 {
 	WifiData *ret;
 
-	g_return_val_if_fail (iface != NULL, NULL);
 	g_return_val_if_fail (ifindex > 0, NULL);
 
-	ret = wifi_nl80211_init (iface, ifindex);
+	ret = wifi_nl80211_init (ifindex);
 	if (ret == NULL) {
 #if HAVE_WEXT
-		ret = wifi_wext_init (iface, ifindex, check_scan);
+		ret = wifi_wext_init (ifindex, check_scan);
 #endif
 	}
 	return ret;
+}
+
+int
+wifi_utils_get_ifindex (WifiData *data)
+{
+	g_return_val_if_fail (data != NULL, -1);
+
+	return data->ifindex;
 }
 
 NMDeviceWifiCapabilities
@@ -162,28 +172,18 @@ wifi_utils_deinit (WifiData *data)
 }
 
 gboolean
-wifi_utils_is_wifi (const char *iface, const char *sysfs_path)
+wifi_utils_is_wifi (int dirfd, const char *ifname)
 {
-	char phy80211_path[255];
-	struct stat s;
+	g_return_val_if_fail (dirfd >= 0, FALSE);
 
-	g_return_val_if_fail (iface != NULL, FALSE);
-
-	if (sysfs_path) {
-		/* Check for nl80211 sysfs paths */
-		g_snprintf (phy80211_path, sizeof (phy80211_path), "%s/phy80211", sysfs_path);
-		if ((stat (phy80211_path, &s) == 0 && (s.st_mode & S_IFDIR)))
-			return TRUE;
-	}
-
+	if (faccessat (dirfd, "phy80211", F_OK, 0) == 0)
+		return TRUE;
 #if HAVE_WEXT
-	if (wifi_wext_is_wifi (iface))
+	if (wifi_wext_is_wifi (ifname))
 		return TRUE;
 #endif
-
 	return FALSE;
 }
-
 
 /* OLPC Mesh-only functions */
 

@@ -46,10 +46,12 @@ G_BEGIN_DECLS
 
 #define NM_SETTING_CONNECTION_ID             "id"
 #define NM_SETTING_CONNECTION_UUID           "uuid"
+#define NM_SETTING_CONNECTION_STABLE_ID      "stable-id"
 #define NM_SETTING_CONNECTION_INTERFACE_NAME "interface-name"
 #define NM_SETTING_CONNECTION_TYPE           "type"
 #define NM_SETTING_CONNECTION_AUTOCONNECT    "autoconnect"
 #define NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY "autoconnect-priority"
+#define NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES "autoconnect-retries"
 #define NM_SETTING_CONNECTION_TIMESTAMP      "timestamp"
 #define NM_SETTING_CONNECTION_READ_ONLY      "read-only"
 #define NM_SETTING_CONNECTION_PERMISSIONS    "permissions"
@@ -61,6 +63,7 @@ G_BEGIN_DECLS
 #define NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT "gateway-ping-timeout"
 #define NM_SETTING_CONNECTION_METERED        "metered"
 #define NM_SETTING_CONNECTION_LLDP           "lldp"
+#define NM_SETTING_CONNECTION_AUTH_RETRIES   "auth-retries"
 
 /* Types for property values */
 /**
@@ -97,8 +100,7 @@ typedef enum {
 /**
  * NMSettingConnection:
  *
- * The NMSettingConnection struct contains only private data.
- * It should only be accessed through the functions described below.
+ * General Connection Profile Settings
  */
 struct _NMSettingConnection {
 	NMSetting parent;
@@ -116,10 +118,14 @@ GType nm_setting_connection_get_type (void);
 NMSetting * nm_setting_connection_new                  (void);
 const char *nm_setting_connection_get_id               (NMSettingConnection *setting);
 const char *nm_setting_connection_get_uuid             (NMSettingConnection *setting);
+NM_AVAILABLE_IN_1_4
+const char *nm_setting_connection_get_stable_id        (NMSettingConnection *setting);
 const char *nm_setting_connection_get_interface_name   (NMSettingConnection *setting);
 const char *nm_setting_connection_get_connection_type  (NMSettingConnection *setting);
 gboolean    nm_setting_connection_get_autoconnect      (NMSettingConnection *setting);
 gint        nm_setting_connection_get_autoconnect_priority (NMSettingConnection *setting);
+NM_AVAILABLE_IN_1_6
+gint        nm_setting_connection_get_autoconnect_retries (NMSettingConnection *setting);
 guint64     nm_setting_connection_get_timestamp        (NMSettingConnection *setting);
 gboolean    nm_setting_connection_get_read_only        (NMSettingConnection *setting);
 
@@ -160,6 +166,9 @@ NM_AVAILABLE_IN_1_2
 NMMetered   nm_setting_connection_get_metered (NMSettingConnection *setting);
 NM_AVAILABLE_IN_1_2
 NMSettingConnectionLldp nm_setting_connection_get_lldp (NMSettingConnection *setting);
+
+NM_AVAILABLE_IN_1_10
+gint        nm_setting_connection_get_auth_retries     (NMSettingConnection *setting);
 
 G_END_DECLS
 

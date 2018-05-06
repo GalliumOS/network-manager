@@ -37,13 +37,15 @@ G_DEFINE_TYPE (NmtNewtEntryNumeric, nmt_newt_entry_numeric, NMT_TYPE_NEWT_ENTRY)
 #define NMT_NEWT_ENTRY_NUMERIC_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NMT_TYPE_NEWT_ENTRY_NUMERIC, NmtNewtEntryNumericPrivate))
 
 typedef struct {
-	int min, max;
+	gint64 min, max;
+	bool optional;
 } NmtNewtEntryNumericPrivate;
 
 enum {
 	PROP_0,
 	PROP_MINIMUM,
 	PROP_MAXIMUM,
+	PROP_OPTIONAL,
 
 	LAST_PROP
 };
@@ -61,13 +63,38 @@ enum {
  */
 NmtNewtWidget *
 nmt_newt_entry_numeric_new (int width,
-                            int min,
-                            int max)
+                            gint64 min,
+                            gint64 max)
+{
+	return nmt_newt_entry_numeric_new_full (width,
+	                                        min,
+	                                        max,
+	                                        FALSE);
+}
+
+/**
+ * nmt_newt_entry_numeric_new_full:
+ * @width: the entry's width in characters
+ * @min: the minimum valid value
+ * @max: the maximum valid value
+ * @optional: whether an empty entry is valid
+ *
+ * Creates a new #NmtNewtEntryNumeric, accepting values in the
+ * indicated range.
+ *
+ * Returns: a new #NmtNewtEntryNumeric
+ */
+NmtNewtWidget *
+nmt_newt_entry_numeric_new_full (int width,
+                                 gint64 min,
+                                 gint64 max,
+                                 gboolean optional)
 {
 	return g_object_new (NMT_TYPE_NEWT_ENTRY_NUMERIC,
 	                     "width", width,
 	                     "minimum", min,
 	                     "maximum", max,
+	                     "optional", optional,
 	                     NULL);
 }
 
@@ -95,19 +122,13 @@ newt_entry_numeric_validate (NmtNewtEntry *entry,
                              gpointer      user_data)
 {
 	NmtNewtEntryNumericPrivate *priv = NMT_NEWT_ENTRY_NUMERIC_GET_PRIVATE (entry);
-	int val;
-	char *end;
+	gint64 val;
 
 	if (!*text)
-		return FALSE;
+		return priv->optional ? TRUE : FALSE;
 
-	val = strtoul (text, &end, 10);
-	if (*end)
-		return FALSE;
-	if (val < priv->min || val > priv->max)
-		return FALSE;
-
-	return TRUE;
+	val = _nm_utils_ascii_str_to_int64 (text, 10, priv->min, priv->max, 0);
+	return val != 0 || errno == 0;
 }
 
 static void
@@ -125,7 +146,7 @@ nmt_newt_entry_numeric_constructed (GObject *object)
 	if (!*nmt_newt_entry_get_text (NMT_NEWT_ENTRY (object))) {
 		char buf[32];
 
-		g_snprintf (buf, sizeof (buf), "%d", priv->min);
+		g_snprintf (buf, sizeof (buf), "%lld", (long long) priv->min);
 		nmt_newt_entry_set_text (NMT_NEWT_ENTRY (object), buf);
 	}
 
@@ -142,10 +163,13 @@ nmt_newt_entry_numeric_set_property (GObject      *object,
 
 	switch (prop_id) {
 	case PROP_MINIMUM:
-		priv->min = g_value_get_int (value);
+		priv->min = g_value_get_int64 (value);
 		break;
 	case PROP_MAXIMUM:
-		priv->max = g_value_get_int (value);
+		priv->max = g_value_get_int64 (value);
+		break;
+	case PROP_OPTIONAL:
+		priv->optional = g_value_get_boolean (value);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -163,10 +187,13 @@ nmt_newt_entry_numeric_get_property (GObject    *object,
 
 	switch (prop_id) {
 	case PROP_MINIMUM:
-		g_value_set_int (value, priv->min);
+		g_value_set_int64 (value, priv->min);
 		break;
 	case PROP_MAXIMUM:
-		g_value_set_int (value, priv->max);
+		g_value_set_int64 (value, priv->max);
+		break;
+	case PROP_OPTIONAL:
+		g_value_set_boolean (value, priv->optional);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -195,11 +222,11 @@ nmt_newt_entry_numeric_class_init (NmtNewtEntryNumericClass *entry_class)
 	 */
 	g_object_class_install_property
 		(object_class, PROP_MINIMUM,
-		 g_param_spec_int ("minimum", "", "",
-		                   G_MININT, G_MAXINT, 0,
-		                   G_PARAM_READWRITE |
-		                   G_PARAM_CONSTRUCT_ONLY |
-		                   G_PARAM_STATIC_STRINGS));
+		 g_param_spec_int64 ("minimum", "", "",
+		                     G_MININT64, G_MAXINT64, 0,
+		                     G_PARAM_READWRITE |
+		                     G_PARAM_CONSTRUCT_ONLY |
+		                     G_PARAM_STATIC_STRINGS));
 	/**
 	 * NmtNewtEntryNumeric:maximum:
 	 *
@@ -207,9 +234,22 @@ nmt_newt_entry_numeric_class_init (NmtNewtEntryNumericClass *entry_class)
 	 */
 	g_object_class_install_property
 		(object_class, PROP_MAXIMUM,
-		 g_param_spec_int ("maximum", "", "",
-		                   G_MININT, G_MAXINT, G_MAXINT,
-		                   G_PARAM_READWRITE |
-		                   G_PARAM_CONSTRUCT_ONLY |
-		                   G_PARAM_STATIC_STRINGS));
+		 g_param_spec_int64 ("maximum", "", "",
+		                     G_MININT64, G_MAXINT64, G_MAXINT64,
+		                     G_PARAM_READWRITE |
+		                     G_PARAM_CONSTRUCT_ONLY |
+		                     G_PARAM_STATIC_STRINGS));
+	/**
+	 * NmtNewtEntryNumeric:optional:
+	 *
+	 * If %TRUE, allow empty string to indicate some default value.
+	 * It means the property is optional and can be left at the default
+	 */
+	g_object_class_install_property
+		(object_class, PROP_OPTIONAL,
+		 g_param_spec_boolean ("optional", "", "",
+		                       FALSE,
+		                       G_PARAM_READWRITE |
+		                       G_PARAM_CONSTRUCT_ONLY |
+		                       G_PARAM_STATIC_STRINGS));
 }

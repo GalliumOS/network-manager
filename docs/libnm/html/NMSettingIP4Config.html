@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingIP4Config: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingInfiniband.html" title="NMSettingInfiniband">
 <link rel="next" href="NMSettingIP6Config.html" title="NMSettingIP6Config">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,7 +35,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingIP4Config.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -68,7 +68,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIP4Config.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -77,13 +77,13 @@
 <tbody>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-client-id" title="The “dhcp-client-id” property">dhcp-client-id</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-fqdn" title="The “dhcp-fqdn” property">dhcp-fqdn</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -92,7 +92,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIP4Config.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
@@ -139,7 +139,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIP4Config.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
             <span class="lineart">╰──</span> NMSettingIP4Config
@@ -172,8 +172,8 @@ connection.</p>
 nm_setting_ip4_config_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> object with default values.</p>
 <div class="refsect3">
-<a name="id-1.4.17.8.2.5"></a><h4>Returns</h4>
-<p> the new empty <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> object. </p>
+<a name="nm-setting-ip4-config-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> object. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
@@ -186,8 +186,8 @@ nm_setting_ip4_config_get_dhcp_client_id
 <p>Returns the value contained in the <a class="link" href="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-client-id" title="The “dhcp-client-id” property"><span class="type">“dhcp-client-id”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.17.8.3.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip4-config-get-dhcp-client-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -201,7 +201,7 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.17.8.3.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip4-config-get-dhcp-client-id.returns"></a><h4>Returns</h4>
 <p> the configured Client ID to send to the DHCP server when requesting
 addresses via DHCP.</p>
 </div>
@@ -214,8 +214,8 @@ nm_setting_ip4_config_get_dhcp_fqdn (<em class="parameter"><code><a class="link"
 <p>Returns the value contained in the <a class="link" href="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-fqdn" title="The “dhcp-fqdn” property"><span class="type">“dhcp-fqdn”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.17.8.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip4-config-get-dhcp-fqdn.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -229,7 +229,7 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.17.8.4.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip4-config-get-dhcp-fqdn.returns"></a><h4>Returns</h4>
 <p> the configured FQDN to send to the DHCP server</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -302,23 +302,31 @@ through that interface to the default network.</p>
 <div class="refsect2">
 <a name="NMSettingIP4Config-struct"></a><h3>NMSettingIP4Config</h3>
 <pre class="programlisting">typedef struct _NMSettingIP4Config NMSettingIP4Config;</pre>
+<p>IPv4 Settings</p>
 </div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP4Config.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingIP4Config--dhcp-client-id"></a><h3>The <code class="literal">“dhcp-client-id”</code> property</h3>
-<pre class="programlisting">  “dhcp-client-id”           <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “dhcp-client-id”           <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>A string sent to the DHCP server to identify the local machine which the
-DHCP server may use to customize the DHCP lease and options.</p>
+DHCP server may use to customize the DHCP lease and options.
+When the property is a hex string ('aa:bb:cc') it is interpreted as a
+binary client ID, in which case the first byte is assumed to be the
+'type' field as per RFC 2132 section 9.14 and the remaining bytes may be
+an hardware address (e.g. '01:xx:xx:xx:xx:xx:xx' where 1 is the Ethernet
+ARP type and the rest is a MAC address).
+If the property is not a hex string it is considered as a
+non-hardware-address client ID and the 'type' field is set to 0.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIP4Config--dhcp-fqdn"></a><h3>The <code class="literal">“dhcp-fqdn”</code> property</h3>
-<pre class="programlisting">  “dhcp-fqdn”                <span class="type">gchar</span> *</pre>
-<p>If the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname" title="The “dhcp-send-hostname” property"><span class="type">“dhcp-send-hostname”</span></a> property is <code class="literal">TRUE</code>, then the
+<pre class="programlisting">  “dhcp-fqdn”                <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>If the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname" title="The “dhcp-send-hostname” property"><span class="type">“dhcp-send-hostname”</span></a> property is <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, then the
 specified FQDN will be sent to the DHCP server when acquiring a lease. This
 property and <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname" title="The “dhcp-hostname” property"><span class="type">“dhcp-hostname”</span></a> are mutually exclusive and
 cannot be set at the same time.</p>
@@ -329,6 +337,6 @@ cannot be set at the same time.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>bridge: NetworkManager Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="NetworkManager Reference Manual">
+<link rel="up" href="ch01.html" title="Configuration Settings">
+<link rel="prev" href="settings-bond.html" title="bond">
+<link rel="next" href="settings-bridge-port.html" title="bridge-port">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#settings-bridge.properties" class="shortcut">
+            Properties
+        </a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="settings-bond.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="settings-bridge-port.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="settings-bridge"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2>bridge</h2>
+<p>bridge — Bridging Settings</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="id-1.3.3.7.2"></a><h2>
+            Properties
+        </h2>
+<div class="table">
+<a name="id-1.3.3.7.2.2.1"></a><p class="title"><b>Table 61. </b></p>
+<div class="table-contents"><table class="table" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><pre class="screen">ageing-time</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">300</pre></td>
+<td>The Ethernet MAC address aging time, in seconds.</td>
+</tr>
+<tr>
+<td><pre class="screen">forward-delay</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">15</pre></td>
+<td>The Spanning Tree Protocol (STP) forwarding delay, in seconds.</td>
+</tr>
+<tr>
+<td><pre class="screen">group-forward-mask</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">0</pre></td>
+<td>A mask of group addresses to forward. Usually, group addresses in the range from 01:80:C2:00:00:00 to 01:80:C2:00:00:0F are not forwarded according to standards. This property is a mask of 16 bits, each corresponding to a group address in that range that must be forwarded. The mask can't have bits 0, 1 or 2 set because they are used for STP, MAC pause frames and LACP.</td>
+</tr>
+<tr>
+<td><pre class="screen">hello-time</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">2</pre></td>
+<td>The Spanning Tree Protocol (STP) hello time, in seconds.</td>
+</tr>
+<tr>
+<td><pre class="screen">interface-name</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Deprecated in favor of connection.interface-name, but can be used for backward-compatibility with older daemons, to set the bridge's interface name.</td>
+</tr>
+<tr>
+<td><pre class="screen">mac-address</pre></td>
+<td><pre class="screen">byte array</pre></td>
+<td><pre class="screen"></pre></td>
+<td>If specified, the MAC address of bridge. When creating a new bridge, this MAC address will be set. If this field is left unspecified, the "ethernet.cloned-mac-address" is referred instead to generate the initial MAC address. Note that setting "ethernet.cloned-mac-address" anyway overwrites the MAC address of the bridge later while activating the bridge. Hence, this property is deprecated.</td>
+</tr>
+<tr>
+<td><pre class="screen">max-age</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">20</pre></td>
+<td>The Spanning Tree Protocol (STP) maximum message age, in seconds.</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-snooping</pre></td>
+<td><pre class="screen">boolean</pre></td>
+<td><pre class="screen">TRUE</pre></td>
+<td>Controls whether IGMP snooping is enabled for this bridge. Note that if snooping was automatically disabled due to hash collisions, the system may refuse to enable the feature until the collisions are resolved.</td>
+</tr>
+<tr>
+<td><pre class="screen">name</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen">bridge</pre></td>
+<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
+</tr>
+<tr>
+<td><pre class="screen">priority</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">32768</pre></td>
+<td>Sets the Spanning Tree Protocol (STP) priority for this bridge.  Lower values are "better"; the lowest priority bridge will be elected the root bridge.</td>
+</tr>
+<tr>
+<td><pre class="screen">stp</pre></td>
+<td><pre class="screen">boolean</pre></td>
+<td><pre class="screen">TRUE</pre></td>
+<td>Controls whether Spanning Tree Protocol (STP) is enabled for this bridge.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p><br class="table-break"></p>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.27</div>
+</body>
+</html>

@@ -25,6 +25,8 @@
 
 #include "nm-default.h"
 
+#include "nm-settings.h"
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -36,6 +38,7 @@
 #include <selinux/selinux.h>
 #endif
 
+#include "nm-common-macros.h"
 #include "nm-dbus-interface.h"
 #include "nm-connection.h"
 #include "nm-setting-8021x.h"
@@ -54,89 +57,61 @@
 #include "nm-setting-adsl.h"
 #include "nm-setting-wireless.h"
 #include "nm-setting-wireless-security.h"
+#include "nm-setting-proxy.h"
 #include "nm-setting-bond.h"
 #include "nm-utils.h"
 #include "nm-core-internal.h"
 
-#include "nm-device-ethernet.h"
-#include "nm-settings.h"
+#include "devices/nm-device-ethernet.h"
 #include "nm-settings-connection.h"
 #include "nm-settings-plugin.h"
 #include "nm-bus-manager.h"
 #include "nm-auth-utils.h"
 #include "nm-auth-subject.h"
 #include "nm-session-monitor.h"
-#include "plugins/keyfile/plugin.h"
+#include "plugins/keyfile/nms-keyfile-plugin.h"
 #include "nm-agent-manager.h"
-#include "nm-connection-provider.h"
 #include "nm-config.h"
 #include "nm-audit-manager.h"
 #include "NetworkManagerUtils.h"
 #include "nm-dispatcher.h"
+#include "nm-hostname-manager.h"
 
-#include "nmdbus-settings.h"
+#include "introspection/org.freedesktop.NetworkManager.Settings.h"
 
-#define _NMLOG_DOMAIN         LOGD_SETTINGS
-#define _NMLOG_PREFIX_NAME    "settings"
-#define _NMLOG(level, ...) \
-    G_STMT_START { \
-        nm_log ((level), _NMLOG_DOMAIN, \
-                "%s" _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
-                _NMLOG_PREFIX_NAME": " \
-                _NM_UTILS_MACRO_REST(__VA_ARGS__)); \
-    } G_STMT_END
+/*****************************************************************************/
 
-/* LINKER CRACKROCK */
 #define EXPORT(sym) void * __export_##sym = &sym;
 
-#include "nm-inotify-helper.h"
-EXPORT(nm_inotify_helper_get_type)
-EXPORT(nm_inotify_helper_get)
-EXPORT(nm_inotify_helper_add_watch)
-EXPORT(nm_inotify_helper_remove_watch)
-
 EXPORT(nm_settings_connection_get_type)
-EXPORT(nm_settings_connection_replace_settings)
-EXPORT(nm_settings_connection_replace_and_commit)
-/* END LINKER CRACKROCK */
+EXPORT(nm_settings_connection_update)
 
-#define HOSTNAMED_SERVICE_NAME      "org.freedesktop.hostname1"
-#define HOSTNAMED_SERVICE_PATH      "/org/freedesktop/hostname1"
-#define HOSTNAMED_SERVICE_INTERFACE "org.freedesktop.hostname1"
+/*****************************************************************************/
 
-#define HOSTNAME_FILE_DEFAULT        "/etc/hostname"
-#define HOSTNAME_FILE_UCASE_HOSTNAME "/etc/HOSTNAME"
-#define HOSTNAME_FILE_GENTOO         "/etc/conf.d/hostname"
-#define IFCFG_DIR                    SYSCONFDIR "/sysconfig/network"
-#define CONF_DHCP                    IFCFG_DIR "/dhcp"
+static NM_CACHED_QUARK_FCN ("plugin-module-path", plugin_module_path_quark)
+static NM_CACHED_QUARK_FCN ("default-wired-connection", _default_wired_connection_quark)
+static NM_CACHED_QUARK_FCN ("default-wired-device", _default_wired_device_quark)
 
-#define PLUGIN_MODULE_PATH      "plugin-module-path"
+/*****************************************************************************/
 
-#if (defined(HOSTNAME_PERSIST_SUSE) + defined(HOSTNAME_PERSIST_SLACKWARE) + defined(HOSTNAME_PERSIST_GENTOO)) > 1
-#error "Can only define one of HOSTNAME_PERSIST_*"
-#endif
+NM_GOBJECT_PROPERTIES_DEFINE (NMSettings,
+	PROP_UNMANAGED_SPECS,
+	PROP_HOSTNAME,
+	PROP_CAN_MODIFY,
+	PROP_CONNECTIONS,
+	PROP_STARTUP_COMPLETE,
+);
 
-#if defined(HOSTNAME_PERSIST_SUSE)
-#define HOSTNAME_FILE           HOSTNAME_FILE_UCASE_HOSTNAME
-#elif defined(HOSTNAME_PERSIST_SLACKWARE)
-#define HOSTNAME_FILE           HOSTNAME_FILE_UCASE_HOSTNAME
-#elif defined(HOSTNAME_PERSIST_GENTOO)
-#define HOSTNAME_FILE           HOSTNAME_FILE_GENTOO
-#else
-#define HOSTNAME_FILE           HOSTNAME_FILE_DEFAULT
-#endif
+enum {
+	CONNECTION_ADDED,
+	CONNECTION_UPDATED,
+	CONNECTION_REMOVED,
+	CONNECTION_FLAGS_CHANGED,
+	NEW_CONNECTION, /* exported, not used internally */
+	LAST_SIGNAL
+};
 
-static void claim_connection (NMSettings *self,
-                              NMSettingsConnection *connection);
-
-static void unmanaged_specs_changed (NMSettingsPlugin *config, gpointer user_data);
-static void unrecognized_specs_changed (NMSettingsPlugin *config, gpointer user_data);
-
-static void connection_provider_iface_init (NMConnectionProviderInterface *cp_iface);
-
-G_DEFINE_TYPE_EXTENDED (NMSettings, nm_settings, NM_TYPE_EXPORTED_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_CONNECTION_PROVIDER, connection_provider_iface_init))
-
+static guint signals[LAST_SIGNAL] = { 0 };
 
 typedef struct {
 	NMAgentManager *agent_mgr;
@@ -148,49 +123,48 @@ typedef struct {
 	GSList *plugins;
 	gboolean connections_loaded;
 	GHashTable *connections;
+	NMSettingsConnection **connections_cached_list;
 	GSList *unmanaged_specs;
 	GSList *unrecognized_specs;
-	GSList *get_connections_cache;
 
 	gboolean started;
 	gboolean startup_complete;
 
-	struct {
-		char *value;
-		char *file;
-		GFileMonitor *monitor;
-		GFileMonitor *dhcp_monitor;
-		gulong monitor_id;
-		gulong dhcp_monitor_id;
-		GDBusProxy *hostnamed_proxy;
-	} hostname;
+	NMHostnameManager *hostname_manager;
+
 } NMSettingsPrivate;
 
-#define NM_SETTINGS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTINGS, NMSettingsPrivate))
-
-enum {
-	CONNECTION_ADDED,
-	CONNECTION_UPDATED,
-	CONNECTION_UPDATED_BY_USER,
-	CONNECTION_REMOVED,
-	CONNECTION_VISIBILITY_CHANGED,
-	AGENT_REGISTERED,
-
-	NEW_CONNECTION, /* exported, not used internally */
-	LAST_SIGNAL
+struct _NMSettings {
+	NMExportedObject parent;
+	NMSettingsPrivate _priv;
 };
-static guint signals[LAST_SIGNAL] = { 0 };
 
-enum {
-	PROP_0,
-	PROP_UNMANAGED_SPECS,
-	PROP_HOSTNAME,
-	PROP_CAN_MODIFY,
-	PROP_CONNECTIONS,
-	PROP_STARTUP_COMPLETE,
-
-	LAST_PROP
+struct _NMSettingsClass {
+	NMExportedObjectClass parent;
 };
+
+G_DEFINE_TYPE (NMSettings, nm_settings, NM_TYPE_EXPORTED_OBJECT);
+
+#define NM_SETTINGS_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMSettings, NM_IS_SETTINGS)
+
+/*****************************************************************************/
+
+#define _NMLOG_DOMAIN         LOGD_SETTINGS
+#define _NMLOG(level, ...) __NMLOG_DEFAULT (level, _NMLOG_DOMAIN, "settings", __VA_ARGS__)
+
+/*****************************************************************************/
+
+static void claim_connection (NMSettings *self,
+                              NMSettingsConnection *connection);
+
+static void unmanaged_specs_changed (NMSettingsPlugin *config, gpointer user_data);
+static void unrecognized_specs_changed (NMSettingsPlugin *config, gpointer user_data);
+
+static void connection_ready_changed (NMSettingsConnection *conn,
+                                      GParamSpec *pspec,
+                                      gpointer user_data);
+
+/*****************************************************************************/
 
 static void
 check_startup_complete (NMSettings *self)
@@ -208,8 +182,13 @@ check_startup_complete (NMSettings *self)
 			return;
 	}
 
+	/* the connection_ready_changed signal handler is no longer needed. */
+	g_hash_table_iter_init (&iter, priv->connections);
+	while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &conn))
+		g_signal_handlers_disconnect_by_func (conn, G_CALLBACK (connection_ready_changed), self);
+
 	priv->startup_complete = TRUE;
-	g_object_notify (G_OBJECT (self), NM_SETTINGS_STARTUP_COMPLETE);
+	_notify (self, PROP_STARTUP_COMPLETE);
 }
 
 static void
@@ -262,7 +241,7 @@ load_connections (NMSettings *self)
 	}
 
 	priv->connections_loaded = TRUE;
-	g_object_notify (G_OBJECT (self), NM_SETTINGS_CONNECTIONS);
+	_notify (self, PROP_CONNECTIONS);
 
 	unmanaged_specs_changed (NULL, self);
 	unrecognized_specs_changed (NULL, self);
@@ -279,7 +258,7 @@ nm_settings_for_each_connection (NMSettings *self,
 
 	g_return_if_fail (NM_IS_SETTINGS (self));
 	g_return_if_fail (for_each_func != NULL);
-	
+
 	priv = NM_SETTINGS_GET_PRIVATE (self);
 
 	g_hash_table_iter_init (&iter, priv->connections);
@@ -376,52 +355,111 @@ error:
 	g_clear_object (&subject);
 }
 
-static int
-connection_sort (gconstpointer pa, gconstpointer pb)
-{
-	NMConnection *a = NM_CONNECTION (pa);
-	NMSettingConnection *con_a;
-	NMConnection *b = NM_CONNECTION (pb);
-	NMSettingConnection *con_b;
-	guint64 ts_a = 0, ts_b = 0;
-	gboolean can_ac_a, can_ac_b;
-
-	con_a = nm_connection_get_setting_connection (a);
-	g_assert (con_a);
-	con_b = nm_connection_get_setting_connection (b);
-	g_assert (con_b);
-
-	can_ac_a = !!nm_setting_connection_get_autoconnect (con_a);
-	can_ac_b = !!nm_setting_connection_get_autoconnect (con_b);
-	if (can_ac_a != can_ac_b)
-		return can_ac_a ? -1 : 1;
-
-	nm_settings_connection_get_timestamp (NM_SETTINGS_CONNECTION (pa), &ts_a);
-	nm_settings_connection_get_timestamp (NM_SETTINGS_CONNECTION (pb), &ts_b);
-	if (ts_a > ts_b)
-		return -1;
-	else if (ts_a == ts_b)
-		return 0;
-	return 1;
-}
-
-/* Returns a list of NMSettingsConnections.
- * The list is sorted in the order suitable for auto-connecting, i.e.
- * first go connections with autoconnect=yes and most recent timestamp.
- * Caller must free the list with g_slist_free().
+/**
+ * nm_settings_get_connections:
+ * @self: the #NMSettings
+ * @out_len: (out): (allow-none): returns the number of returned
+ *   connections.
+ *
+ * Returns: (transfer-none): a list of NMSettingsConnections. The list is
+ * unsorted and NULL terminated. The result is never %NULL, in case of no
+ * connections, it returns an empty list.
+ * The returned list is cached internally, only valid until the next
+ * NMSettings operation.
  */
-GSList *
-nm_settings_get_connections (NMSettings *self)
+NMSettingsConnection *const*
+nm_settings_get_connections (NMSettings *self, guint *out_len)
 {
 	GHashTableIter iter;
-	gpointer data = NULL;
-	GSList *list = NULL;
+	NMSettingsPrivate *priv;
+	guint l, i;
+	NMSettingsConnection **v;
+	NMSettingsConnection *con;
 
 	g_return_val_if_fail (NM_IS_SETTINGS (self), NULL);
 
-	g_hash_table_iter_init (&iter, NM_SETTINGS_GET_PRIVATE (self)->connections);
-	while (g_hash_table_iter_next (&iter, NULL, &data))
-		list = g_slist_insert_sorted (list, data, connection_sort);
+	priv = NM_SETTINGS_GET_PRIVATE (self);
+
+	if (G_LIKELY (priv->connections_cached_list)) {
+		NM_SET_OUT (out_len, g_hash_table_size (priv->connections));
+		return priv->connections_cached_list;
+	}
+
+	l = g_hash_table_size (priv->connections);
+
+	v = g_new (NMSettingsConnection *, (gsize) l + 1);
+
+	i = 0;
+	g_hash_table_iter_init (&iter, priv->connections);
+	while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &con)) {
+		nm_assert (i < l);
+		v[i++] = con;
+	}
+	nm_assert (i == l);
+	v[i] = NULL;
+
+	NM_SET_OUT (out_len, l);
+	priv->connections_cached_list = v;
+	return v;
+}
+
+/**
+ * nm_settings_get_connections_clone:
+ * @self: the #NMSetting
+ * @out_len: (allow-none): optional output argument
+ * @func: caller-supplied function for filtering connections
+ * @func_data: caller-supplied data passed to @func
+ * @sort_compare_func: (allow-none): optional function pointer for
+ *   sorting the returned list.
+ * @sort_data: user data for @sort_compare_func.
+ *
+ * Returns: (transfer container) (element-type NMSettingsConnection):
+ *   an NULL terminated array of #NMSettingsConnection objects that were
+ *   filtered by @func (or all connections if no filter was specified).
+ *   The order is arbitrary.
+ *   Caller is responsible for freeing the returned array with free(),
+ *   the contained values do not need to be unrefed.
+ */
+NMSettingsConnection **
+nm_settings_get_connections_clone (NMSettings *self,
+                                   guint *out_len,
+                                   NMSettingsConnectionFilterFunc func,
+                                   gpointer func_data,
+                                   GCompareDataFunc sort_compare_func,
+                                   gpointer sort_data)
+{
+	NMSettingsConnection *const*list_cached;
+	NMSettingsConnection **list;
+	guint len, i, j;
+
+	g_return_val_if_fail (NM_IS_SETTINGS (self), NULL);
+
+	list_cached = nm_settings_get_connections (self, &len);
+
+#if NM_MORE_ASSERTS
+	nm_assert (list_cached);
+	for (i = 0; i < len; i++)
+		nm_assert (NM_IS_SETTINGS_CONNECTION (list_cached[i]));
+	nm_assert (!list_cached[i]);
+#endif
+
+	list = g_new (NMSettingsConnection *, ((gsize) len + 1));
+	if (func) {
+		for (i = 0, j = 0; i < len; i++) {
+			if (func (self, list_cached[i], func_data))
+				list[j++] = list_cached[i];
+		}
+		list[j] = NULL;
+		len = j;
+	} else
+		memcpy (list, list_cached, sizeof (list[0]) * ((gsize) len + 1));
+
+	if (   len > 1
+	    && sort_compare_func) {
+		g_qsort_with_data (list, len, sizeof (NMSettingsConnection *),
+		                   sort_compare_func, sort_data);
+	}
+	NM_SET_OUT (out_len, len);
 	return list;
 }
 
@@ -481,131 +519,6 @@ get_plugin (NMSettings *self, guint32 capability)
 	return NULL;
 }
 
-#if defined(HOSTNAME_PERSIST_GENTOO)
-static gchar *
-read_hostname_gentoo (const char *path)
-{
-	gs_free char *contents = NULL;
-	gs_strfreev char **all_lines = NULL;
-	const char *tmp;
-	guint i;
-
-	if (!g_file_get_contents (path, &contents, NULL, NULL))
-		return NULL;
-
-	all_lines = g_strsplit (contents, "\n", 0);
-	for (i = 0; all_lines[i]; i++) {
-		g_strstrip (all_lines[i]);
-		if (all_lines[i][0] == '#' || all_lines[i][0] == '\0')
-			continue;
-		if (g_str_has_prefix (all_lines[i], "hostname=")) {
-			tmp = &all_lines[i][NM_STRLEN ("hostname=")];
-			return g_shell_unquote (tmp, NULL);
-		}
-	}
-	return NULL;
-}
-#endif
-
-#if defined(HOSTNAME_PERSIST_SLACKWARE)
-static gchar *
-read_hostname_slackware (const char *path)
-{
-	gs_free char *contents = NULL;
-	gs_strfreev char **all_lines = NULL;
-	char *tmp;
-	guint i, j = 0;
-
-	if (!g_file_get_contents (path, &contents, NULL, NULL))
-		return NULL;
-
-	all_lines = g_strsplit (contents, "\n", 0);
-	for (i = 0; all_lines[i]; i++) {
-		g_strstrip (all_lines[i]);
-		if (all_lines[i][0] == '#' || all_lines[i][0] == '\0')
-			continue;
-		tmp = &all_lines[i][0];
-		/* We only want up to the first '.' -- the rest of the */
-		/* fqdn is defined in /etc/hosts */
-		while (tmp[j] != '\0') {
-			if (tmp[j] == '.') {
-				tmp[j] = '\0';
-				break;
-			}
-			j++;
-		}
-		return g_shell_unquote (tmp, NULL);
-	}
-	return NULL;
-}
-#endif
-
-#if defined(HOSTNAME_PERSIST_SUSE)
-static gboolean
-hostname_is_dynamic (void)
-{
-	GIOChannel *channel;
-	char *str = NULL;
-	gboolean dynamic = FALSE;
-
-	channel = g_io_channel_new_file (CONF_DHCP, "r", NULL);
-	if (!channel)
-		return dynamic;
-
-	while (g_io_channel_read_line (channel, &str, NULL, NULL, NULL) != G_IO_STATUS_EOF) {
-		if (str) {
-			g_strstrip (str);
-			if (g_str_has_prefix (str, "DHCLIENT_SET_HOSTNAME="))
-				dynamic = strcmp (&str[NM_STRLEN ("DHCLIENT_SET_HOSTNAME=")], "\"yes\"") == 0;
-			g_free (str);
-		}
-	}
-
-	g_io_channel_shutdown (channel, FALSE, NULL);
-	g_io_channel_unref (channel);
-
-	return dynamic;
-}
-#endif
-
-/* Returns an allocated string which the caller owns and must eventually free */
-char *
-nm_settings_get_hostname (NMSettings *self)
-{
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
-	char *hostname = NULL;
-
-	if (!priv->started)
-		return NULL;
-
-	if (priv->hostname.hostnamed_proxy) {
-		hostname = g_strdup (priv->hostname.value);
-		goto out;
-	}
-
-#if defined(HOSTNAME_PERSIST_SUSE)
-	if (priv->hostname.dhcp_monitor_id && hostname_is_dynamic ())
-		return NULL;
-#endif
-
-#if defined(HOSTNAME_PERSIST_GENTOO)
-	hostname = read_hostname_gentoo (priv->hostname.file);
-#elif defined(HOSTNAME_PERSIST_SLACKWARE)
-	hostname = read_hostname_slackware (priv->hostname.file);
-#else
-	if (g_file_get_contents (priv->hostname.file, &hostname, NULL, NULL))
-		g_strchomp (hostname);
-#endif
-
-out:
-	if (hostname && !hostname[0]) {
-		g_free (hostname);
-		hostname = NULL;
-	}
-
-	return hostname;
-}
-
 static gboolean
 find_spec (GSList *spec_list, const char *spec)
 {
@@ -652,7 +565,7 @@ unmanaged_specs_changed (NMSettingsPlugin *config,
 
 	update_specs (self, &priv->unmanaged_specs,
 	              nm_settings_plugin_get_unmanaged_specs);
-	g_object_notify (G_OBJECT (self), NM_SETTINGS_UNMANAGED_SPECS);
+	_notify (self, PROP_UNMANAGED_SPECS);
 }
 
 static void
@@ -692,7 +605,7 @@ add_plugin (NMSettings *self, NMSettingsPlugin *plugin)
 	              NM_SETTINGS_PLUGIN_INFO, &pinfo,
 	              NULL);
 
-	path = g_object_get_data (G_OBJECT (plugin), PLUGIN_MODULE_PATH);
+	path = g_object_get_qdata (G_OBJECT (plugin), plugin_module_path_quark ());
 
 	_LOGI ("loaded plugin %s: %s%s%s%s", pname, pinfo,
 	       NM_PRINT_FMT_QUOTED (path, " (", path, ")", ""));
@@ -730,10 +643,9 @@ find_plugin (GSList *list, const char *pname)
 static void
 add_keyfile_plugin (NMSettings *self)
 {
-	gs_unref_object GObject *keyfile_plugin = NULL;
+	gs_unref_object NMSKeyfilePlugin *keyfile_plugin = NULL;
 
-	keyfile_plugin = nm_settings_keyfile_plugin_new ();
-	g_assert (keyfile_plugin);
+	keyfile_plugin = nms_keyfile_plugin_new ();
 	if (!add_plugin (self, NM_SETTINGS_PLUGIN (keyfile_plugin)))
 		g_return_if_reached ();
 }
@@ -749,8 +661,8 @@ load_plugins (NMSettings *self, const char **plugins, GError **error)
 	gboolean has_no_ibft;
 	gssize idx_no_ibft, idx_ibft;
 
-	idx_ibft    = _nm_utils_strv_find_first ((char **) plugins, -1, "ibft");
-	idx_no_ibft = _nm_utils_strv_find_first ((char **) plugins, -1, "no-ibft");
+	idx_ibft    = nm_utils_strv_find_first ((char **) plugins, -1, "ibft");
+	idx_no_ibft = nm_utils_strv_find_first ((char **) plugins, -1, "no-ibft");
 	has_no_ibft = idx_no_ibft >= 0 && idx_no_ibft > idx_ibft;
 #if WITH_SETTINGS_PLUGIN_IBFT
 	add_ibft = idx_no_ibft < 0 && idx_ibft < 0;
@@ -784,9 +696,9 @@ load_plugins (NMSettings *self, const char **plugins, GError **error)
 			continue;
 		}
 
-		if (_nm_utils_strv_find_first ((char **) plugins,
-		                               iter - plugins,
-		                               pname) >= 0) {
+		if (nm_utils_strv_find_first ((char **) plugins,
+		                              iter - plugins,
+		                              pname) >= 0) {
 			/* the plugin is already mentioned in the list previously.
 			 * Don't load a duplicate. */
 			continue;
@@ -856,7 +768,7 @@ load_plugin:
 				break;
 			}
 
-			g_object_set_data_full (obj, PLUGIN_MODULE_PATH, path, g_free);
+			g_object_set_qdata_full (obj, plugin_module_path_quark (), path, g_free);
 			path = NULL;
 			if (add_plugin (self, NM_SETTINGS_PLUGIN (obj)))
 				list = g_slist_append (list, obj);
@@ -883,34 +795,22 @@ next:
 }
 
 static void
-connection_updated (NMSettingsConnection *connection, gpointer user_data)
+connection_updated (NMSettingsConnection *connection, gboolean by_user, gpointer user_data)
 {
-	/* Re-emit for listeners like NMPolicy */
 	g_signal_emit (NM_SETTINGS (user_data),
 	               signals[CONNECTION_UPDATED],
 	               0,
-	               connection);
-	g_signal_emit_by_name (NM_SETTINGS (user_data), NM_CP_SIGNAL_CONNECTION_UPDATED, connection);
+	               connection,
+	               by_user);
 }
 
 static void
-connection_updated_by_user (NMSettingsConnection *connection, gpointer user_data)
+connection_flags_changed (NMSettingsConnection *connection,
+                          GParamSpec *pspec,
+                          gpointer user_data)
 {
-	/* Re-emit for listeners like NMPolicy */
 	g_signal_emit (NM_SETTINGS (user_data),
-	               signals[CONNECTION_UPDATED_BY_USER],
-	               0,
-	               connection);
-}
-
-static void
-connection_visibility_changed (NMSettingsConnection *connection,
-                               GParamSpec *pspec,
-                               gpointer user_data)
-{
-	/* Re-emit for listeners like NMPolicy */
-	g_signal_emit (NM_SETTINGS (user_data),
-	               signals[CONNECTION_VISIBILITY_CHANGED],
+	               signals[CONNECTION_FLAGS_CHANGED],
 	               0,
 	               connection);
 }
@@ -933,38 +833,26 @@ connection_removed (NMSettingsConnection *connection, gpointer user_data)
 
 	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_removed), self);
 	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_updated), self);
-	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_updated_by_user), self);
-	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_visibility_changed), self);
-	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_ready_changed), self);
+	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_flags_changed), self);
+	if (!priv->startup_complete)
+		g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (connection_ready_changed), self);
 	g_object_unref (self);
 
 	/* Forget about the connection internally */
 	g_hash_table_remove (priv->connections, (gpointer) cpath);
+	g_clear_pointer (&priv->connections_cached_list, g_free);
 
 	/* Notify D-Bus */
 	g_signal_emit (self, signals[CONNECTION_REMOVED], 0, connection);
 
 	/* Re-emit for listeners like NMPolicy */
-	g_signal_emit_by_name (self, NM_CP_SIGNAL_CONNECTION_REMOVED, connection);
-	g_object_notify (G_OBJECT (self), NM_SETTINGS_CONNECTIONS);
+	_notify (self, PROP_CONNECTIONS);
 	if (nm_exported_object_is_exported (NM_EXPORTED_OBJECT (connection)))
 		nm_exported_object_unexport (NM_EXPORTED_OBJECT (connection));
 
 	check_startup_complete (self);
 
 	g_object_unref (connection);
-}
-
-static void
-secret_agent_registered (NMAgentManager *agent_mgr,
-                         NMSecretAgent *agent,
-                         gpointer user_data)
-{
-	/* Re-emit for listeners like NMPolicy */
-	g_signal_emit (NM_SETTINGS (user_data),
-	               signals[AGENT_REGISTERED],
-	               0,
-	               agent);
 }
 
 #define NM_DBUS_SERVICE_OPENCONNECT    "org.freedesktop.NetworkManager.openconnect"
@@ -1063,14 +951,14 @@ claim_connection (NMSettings *self, NMSettingsConnection *connection)
 	openconnect_migrate_hack (NM_CONNECTION (connection));
 
 	g_object_ref (self);
-	g_signal_connect (connection, NM_SETTINGS_CONNECTION_REMOVED,
-	                  G_CALLBACK (connection_removed), self);
-	g_signal_connect (connection, NM_SETTINGS_CONNECTION_UPDATED,
+	/* This one unexports the connection, it needs to run late to give the active
+	 * connection a chance to deal with its reference to this settings connection. */
+	g_signal_connect_after (connection, NM_SETTINGS_CONNECTION_REMOVED,
+	                        G_CALLBACK (connection_removed), self);
+	g_signal_connect (connection, NM_SETTINGS_CONNECTION_UPDATED_INTERNAL,
 	                  G_CALLBACK (connection_updated), self);
-	g_signal_connect (connection, NM_SETTINGS_CONNECTION_UPDATED_BY_USER,
-	                  G_CALLBACK (connection_updated_by_user), self);
-	g_signal_connect (connection, "notify::" NM_SETTINGS_CONNECTION_VISIBLE,
-	                  G_CALLBACK (connection_visibility_changed),
+	g_signal_connect (connection, "notify::" NM_SETTINGS_CONNECTION_FLAGS,
+	                  G_CALLBACK (connection_flags_changed),
 	                  self);
 	if (!priv->startup_complete) {
 		g_signal_connect (connection, "notify::" NM_SETTINGS_CONNECTION_READY,
@@ -1086,6 +974,7 @@ claim_connection (NMSettings *self, NMSettingsConnection *connection)
 	g_hash_table_insert (priv->connections,
 	                     (gpointer) nm_connection_get_path (NM_CONNECTION (connection)),
 	                     g_object_ref (connection));
+	g_clear_pointer (&priv->connections_cached_list, g_free);
 
 	nm_utils_log_connection_diff (NM_CONNECTION (connection), NULL, LOGL_DEBUG, LOGD_CORE, "new connection", "++ ");
 
@@ -1095,12 +984,32 @@ claim_connection (NMSettings *self, NMSettingsConnection *connection)
 	if (priv->connections_loaded) {
 		/* Internal added signal */
 		g_signal_emit (self, signals[CONNECTION_ADDED], 0, connection);
-		g_signal_emit_by_name (self, NM_CP_SIGNAL_CONNECTION_ADDED, connection);
-		g_object_notify (G_OBJECT (self), NM_SETTINGS_CONNECTIONS);
+		_notify (self, PROP_CONNECTIONS);
 
 		/* Exported D-Bus signal */
 		g_signal_emit (self, signals[NEW_CONNECTION], 0, connection);
 	}
+
+	nm_settings_connection_added (connection);
+}
+
+static gboolean
+secrets_filter_cb (NMSetting *setting,
+                   const char *secret,
+                   NMSettingSecretFlags flags,
+                   gpointer user_data)
+{
+	NMSettingSecretFlags filter_flags = GPOINTER_TO_UINT (user_data);
+
+	/* Returns TRUE to remove the secret */
+
+	/* Can't use bitops with SECRET_FLAG_NONE so handle that specifically */
+	if (   (flags == NM_SETTING_SECRET_FLAG_NONE)
+	    && (filter_flags == NM_SETTING_SECRET_FLAG_NONE))
+		return FALSE;
+
+	/* Otherwise if the secret has at least one of the desired flags keep it */
+	return (flags & filter_flags) ? FALSE : TRUE;
 }
 
 /**
@@ -1111,7 +1020,7 @@ claim_connection (NMSettings *self, NMSettingsConnection *connection)
  * not save to disk
  * @error: on return, a location to store any errors that may occur
  *
- * Creates a new #NMSettingsConnection for the given source @connection.  
+ * Creates a new #NMSettingsConnection for the given source @connection.
  * The returned object is owned by @self and the caller must reference
  * the object to continue using it.
  *
@@ -1153,9 +1062,22 @@ nm_settings_add_connection (NMSettings *self,
 	for (iter = priv->plugins; iter; iter = g_slist_next (iter)) {
 		NMSettingsPlugin *plugin = NM_SETTINGS_PLUGIN (iter->data);
 		GError *add_error = NULL;
+		gs_unref_object NMConnection *simple = NULL;
+		gs_unref_variant GVariant *secrets = NULL;
+
+		/* Make a copy of agent-owned secrets because they won't be present in
+		 * the connection returned by plugins, as plugins return only what was
+		 * reread from the file. */
+		simple = nm_simple_connection_new_clone (connection);
+		nm_connection_clear_secrets_with_flags (simple,
+		                                        secrets_filter_cb,
+		                                        GUINT_TO_POINTER (NM_SETTING_SECRET_FLAG_AGENT_OWNED));
+		secrets = nm_connection_to_dbus (simple, NM_CONNECTION_SERIALIZE_ONLY_SECRETS);
 
 		added = nm_settings_plugin_add_connection (plugin, connection, save_to_disk, &add_error);
 		if (added) {
+			if (secrets)
+				nm_connection_update_secrets (NM_CONNECTION (added), NULL, secrets, NULL);
 			claim_connection (self, added);
 			return added;
 		}
@@ -1169,35 +1091,6 @@ nm_settings_add_connection (NMSettings *self,
 	g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
 	                     "No plugin supported adding this connection");
 	return NULL;
-}
-
-static NMConnection *
-_nm_connection_provider_add_connection (NMConnectionProvider *provider,
-                                        NMConnection *connection,
-                                        gboolean save_to_disk,
-                                        GError **error)
-{
-	g_assert (NM_IS_CONNECTION_PROVIDER (provider) && NM_IS_SETTINGS (provider));
-	return NM_CONNECTION (nm_settings_add_connection (NM_SETTINGS (provider), connection, save_to_disk, error));
-}
-
-static gboolean
-secrets_filter_cb (NMSetting *setting,
-                   const char *secret,
-                   NMSettingSecretFlags flags,
-                   gpointer user_data)
-{
-	NMSettingSecretFlags filter_flags = GPOINTER_TO_UINT (user_data);
-
-	/* Returns TRUE to remove the secret */
-
-	/* Can't use bitops with SECRET_FLAG_NONE so handle that specifically */
-	if (   (flags == NM_SETTING_SECRET_FLAG_NONE)
-	    && (filter_flags == NM_SETTING_SECRET_FLAG_NONE))
-		return FALSE;
-
-	/* Otherwise if the secret has at least one of the desired flags keep it */
-	return (flags & filter_flags) ? FALSE : TRUE;
 }
 
 static void
@@ -1428,12 +1321,12 @@ impl_settings_add_connection_add_cb (NMSettings *self,
 {
 	if (error) {
 		g_dbus_method_invocation_return_gerror (context, error);
-		nm_audit_log_connection_op (NM_AUDIT_OP_CONN_ADD, NULL, FALSE, subject, error->message);
+		nm_audit_log_connection_op (NM_AUDIT_OP_CONN_ADD, NULL, FALSE, NULL, subject, error->message);
 	} else {
 		g_dbus_method_invocation_return_value (
 		    context,
 		    g_variant_new ("(o)", nm_connection_get_path (NM_CONNECTION (connection))));
-		nm_audit_log_connection_op (NM_AUDIT_OP_CONN_ADD, connection, TRUE,
+		nm_audit_log_connection_op (NM_AUDIT_OP_CONN_ADD, connection, TRUE, NULL,
 		                            subject, NULL);
 	}
 }
@@ -1444,7 +1337,7 @@ impl_settings_add_connection_helper (NMSettings *self,
                                      GVariant *settings,
                                      gboolean save_to_disk)
 {
-	NMConnection *connection;
+	gs_unref_object NMConnection *connection = NULL;
 	GError *error = NULL;
 
 	connection = _nm_simple_connection_new_from_dbus (settings,
@@ -1452,23 +1345,18 @@ impl_settings_add_connection_helper (NMSettings *self,
 	                                                  | NM_SETTING_PARSE_FLAGS_NORMALIZE,
 	                                                  &error);
 
-	if (connection) {
-		if (!nm_connection_verify_secrets (connection, &error))
-			goto failure;
-
-		nm_settings_add_connection_dbus (self,
-		                                 connection,
-		                                 save_to_disk,
-		                                 context,
-		                                 impl_settings_add_connection_add_cb,
-		                                 NULL);
-		g_object_unref (connection);
+	if (   !connection
+	    || !nm_connection_verify_secrets (connection, &error)) {
+		g_dbus_method_invocation_take_error (context, error);
 		return;
 	}
 
-failure:
-	g_assert (error);
-	g_dbus_method_invocation_take_error (context, error);
+	nm_settings_add_connection_dbus (self,
+	                                 connection,
+	                                 save_to_disk,
+	                                 context,
+	                                 impl_settings_add_connection_add_cb,
+	                                 NULL);
 }
 
 static void
@@ -1487,31 +1375,6 @@ impl_settings_add_connection_unsaved (NMSettings *self,
 	impl_settings_add_connection_helper (self, context, settings, FALSE);
 }
 
-static gboolean
-ensure_root (NMBusManager          *dbus_mgr,
-             GDBusMethodInvocation *context)
-{
-	gulong caller_uid;
-	GError *error = NULL;
-
-	if (!nm_bus_manager_get_caller_info (dbus_mgr, context, NULL, &caller_uid, NULL)) {
-		error = g_error_new_literal (NM_SETTINGS_ERROR,
-		                             NM_SETTINGS_ERROR_PERMISSION_DENIED,
-		                             "Unable to determine request UID.");
-		g_dbus_method_invocation_take_error (context, error);
-		return FALSE;
-	}
-	if (caller_uid != 0) {
-		error = g_error_new_literal (NM_SETTINGS_ERROR,
-		                             NM_SETTINGS_ERROR_PERMISSION_DENIED,
-		                             "Permission denied");
-		g_dbus_method_invocation_take_error (context, error);
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
 static void
 impl_settings_load_connections (NMSettings *self,
                                 GDBusMethodInvocation *context,
@@ -1522,7 +1385,15 @@ impl_settings_load_connections (NMSettings *self,
 	GSList *iter;
 	int i;
 
-	if (!ensure_root (nm_bus_manager_get (), context))
+	/* The permission is already enforced by the D-Bus daemon, but we ensure
+	 * that the caller is still alive so that clients are forced to wait and
+	 * we'll be able to switch to polkit without breaking behavior.
+	 */
+	if (!nm_bus_manager_ensure_uid (nm_bus_manager_get (),
+	                                context,
+	                                G_MAXULONG,
+	                                NM_SETTINGS_ERROR,
+	                                NM_SETTINGS_ERROR_PERMISSION_DENIED))
 		return;
 
 	failures = g_ptr_array_new ();
@@ -1558,7 +1429,15 @@ impl_settings_reload_connections (NMSettings *self,
 	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
 	GSList *iter;
 
-	if (!ensure_root (nm_bus_manager_get (), context))
+	/* The permission is already enforced by the D-Bus daemon, but we ensure
+	 * that the caller is still alive so that clients are forced to wait and
+	 * we'll be able to switch to polkit without breaking behavior.
+	 */
+	if (!nm_bus_manager_ensure_uid (nm_bus_manager_get (),
+	                                context,
+	                                G_MAXULONG,
+	                                NM_SETTINGS_ERROR,
+	                                NM_SETTINGS_ERROR_PERMISSION_DENIED))
 		return;
 
 	for (iter = priv->plugins; iter; iter = g_slist_next (iter)) {
@@ -1570,141 +1449,7 @@ impl_settings_reload_connections (NMSettings *self,
 	g_dbus_method_invocation_return_value (context, g_variant_new ("(b)", TRUE));
 }
 
-typedef struct {
-	char *hostname;
-	NMSettingsSetHostnameCb cb;
-	gpointer user_data;
-} SetHostnameInfo;
-
-static void
-set_transient_hostname_done (GObject *object,
-                             GAsyncResult *res,
-                             gpointer user_data)
-{
-	GDBusProxy *proxy = G_DBUS_PROXY (object);
-	gs_free SetHostnameInfo *info = user_data;
-	gs_unref_variant GVariant *result = NULL;
-	gs_free_error GError *error = NULL;
-
-	result = g_dbus_proxy_call_finish (proxy, res, &error);
-
-	if (error) {
-		_LOGW ("couldn't set the system hostname to '%s' using hostnamed: %s",
-		       info->hostname, error->message);
-	}
-
-	info->cb (info->hostname, !error, info->user_data);
-	g_free (info->hostname);
-}
-
-void
-nm_settings_set_transient_hostname (NMSettings *self,
-                                    const char *hostname,
-                                    NMSettingsSetHostnameCb cb,
-                                    gpointer user_data)
-{
-	NMSettingsPrivate *priv;
-	SetHostnameInfo *info;
-
-	g_return_if_fail (NM_IS_SETTINGS (self));
-	priv = NM_SETTINGS_GET_PRIVATE (self);
-
-	if (!priv->hostname.hostnamed_proxy) {
-		cb (hostname, FALSE, user_data);
-		return;
-	}
-
-	info = g_new0 (SetHostnameInfo, 1);
-	info->hostname = g_strdup (hostname);
-	info->cb = cb;
-	info->user_data = user_data;
-
-	g_dbus_proxy_call (priv->hostname.hostnamed_proxy,
-	                   "SetHostname",
-	                   g_variant_new ("(sb)", hostname, FALSE),
-	                   G_DBUS_CALL_FLAGS_NONE,
-	                   -1,
-	                   NULL,
-	                   set_transient_hostname_done,
-	                   info);
-}
-
-static gboolean
-write_hostname (NMSettingsPrivate *priv, const char *hostname)
-{
-	char *hostname_eol;
-	gboolean ret;
-	gs_free_error GError *error = NULL;
-	const char *file = priv->hostname.file;
-	gs_free char *link_path = NULL;
-	gs_unref_variant GVariant *var = NULL;
-	struct stat file_stat;
-#if HAVE_SELINUX
-	security_context_t se_ctx_prev = NULL, se_ctx = NULL;
-	mode_t st_mode = 0;
-#endif
-
-	if (priv->hostname.hostnamed_proxy) {
-		var = g_dbus_proxy_call_sync (priv->hostname.hostnamed_proxy,
-		                              "SetStaticHostname",
-		                              g_variant_new ("(sb)", hostname, FALSE),
-		                              G_DBUS_CALL_FLAGS_NONE,
-		                              -1,
-		                              NULL,
-		                              &error);
-		if (error)
-			_LOGW ("could not set hostname: %s", error->message);
-
-		return !error;
-	}
-
-	/* If the hostname file is a symbolic link, follow it to find where the
-	 * real file is located, otherwise g_file_set_contents will attempt to
-	 * replace the link with a plain file.
-	 */
-	if (   lstat (file, &file_stat) == 0
-	    && S_ISLNK (file_stat.st_mode)
-	    && (link_path = g_file_read_link (file, NULL)))
-		file = link_path;
-
-#if HAVE_SELINUX
-	/* Get default context for hostname file and set it for fscreate */
-	if (stat (file, &file_stat) == 0)
-		st_mode = file_stat.st_mode;
-	matchpathcon (file, st_mode, &se_ctx);
-	matchpathcon_fini ();
-	getfscreatecon (&se_ctx_prev);
-	setfscreatecon (se_ctx);
-#endif
-
-#if defined (HOSTNAME_PERSIST_GENTOO)
-	hostname_eol = g_strdup_printf ("#Generated by NetworkManager\n"
-	                                "hostname=\"%s\"\n", hostname);
-#else
-	hostname_eol = g_strdup_printf ("%s\n", hostname);
-#endif
-
-	/* FIXME: g_file_set_contents() writes first to a temporary file
-	 * and renames it atomically. We should hack g_file_set_contents()
-	 * to set the SELINUX labels before renaming the file. */
-	ret = g_file_set_contents (file, hostname_eol, -1, &error);
-
-#if HAVE_SELINUX
-	/* Restore previous context and cleanup */
-	setfscreatecon (se_ctx_prev);
-	freecon (se_ctx);
-	freecon (se_ctx_prev);
-#endif
-
-	g_free (hostname_eol);
-
-	if (!ret) {
-		_LOGW ("could not save hostname to %s: %s", file, error->message);
-		return FALSE;
-	}
-
-	return TRUE;
-}
+/*****************************************************************************/
 
 static void
 pk_hostname_cb (NMAuthChain *chain,
@@ -1737,7 +1482,7 @@ pk_hostname_cb (NMAuthChain *chain,
 	} else {
 		hostname = nm_auth_chain_get_data (chain, "hostname");
 
-		if (!write_hostname (priv, hostname)) {
+		if (!nm_hostname_manager_write_hostname (priv->hostname_manager, hostname)) {
 			error = g_error_new_literal (NM_SETTINGS_ERROR,
 			                             NM_SETTINGS_ERROR_FAILED,
 			                             "Saving the hostname failed.");
@@ -1752,33 +1497,6 @@ pk_hostname_cb (NMAuthChain *chain,
 	nm_auth_chain_unref (chain);
 }
 
-static gboolean
-validate_hostname (const char *hostname)
-{
-	const char *p;
-	gboolean dot = TRUE;
-
-	if (!hostname || !hostname[0])
-		return FALSE;
-
-	for (p = hostname; *p; p++) {
-		if (*p == '.') {
-			if (dot)
-				return FALSE;
-			dot = TRUE;
-		} else {
-			if (!g_ascii_isalnum (*p) && (*p != '-') && (*p != '_'))
-				return FALSE;
-			dot = FALSE;
-		}
-	}
-
-	if (dot)
-		return FALSE;
-
-	return (p - hostname <= HOST_NAME_MAX);
-}
-
 static void
 impl_settings_save_hostname (NMSettings *self,
                              GDBusMethodInvocation *context,
@@ -1789,7 +1507,7 @@ impl_settings_save_hostname (NMSettings *self,
 	GError *error = NULL;
 
 	/* Minimal validation of the hostname */
-	if (!validate_hostname (hostname)) {
+	if (!nm_hostname_manager_validate_hostname (hostname)) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
 		                             NM_SETTINGS_ERROR_INVALID_HOSTNAME,
 		                             "The hostname was too long or contained invalid characters.");
@@ -1813,37 +1531,7 @@ done:
 		g_dbus_method_invocation_take_error (context, error);
 }
 
-static void
-hostname_maybe_changed (NMSettings *settings)
-{
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (settings);
-	char *new_hostname;
-
-	new_hostname = nm_settings_get_hostname (settings);
-
-	if (   (new_hostname && !priv->hostname.value)
-	    || (!new_hostname && priv->hostname.value)
-	    || (priv->hostname.value && new_hostname && strcmp (priv->hostname.value, new_hostname))) {
-
-		_LOGI ("hostname changed from %s%s%s to %s%s%s",
-		       NM_PRINT_FMT_QUOTED (priv->hostname.value, "\"", priv->hostname.value, "\"", "(none)"),
-		       NM_PRINT_FMT_QUOTED (new_hostname, "\"", new_hostname, "\"", "(none)"));
-		g_free (priv->hostname.value);
-		priv->hostname.value = new_hostname;
-		g_object_notify (G_OBJECT (settings), NM_SETTINGS_HOSTNAME);
-	} else
-		g_free (new_hostname);
-}
-
-static void
-hostname_file_changed_cb (GFileMonitor *monitor,
-                          GFile *file,
-                          GFile *other_file,
-                          GFileMonitorEvent event_type,
-                          gpointer user_data)
-{
-	hostname_maybe_changed (user_data);
-}
+/*****************************************************************************/
 
 static gboolean
 have_connection_for_device (NMSettings *self, NMDevice *device)
@@ -1854,11 +1542,11 @@ have_connection_for_device (NMSettings *self, NMDevice *device)
 	NMSettingConnection *s_con;
 	NMSettingWired *s_wired;
 	const char *setting_hwaddr;
-	const char *device_hwaddr;
+	const char *perm_hw_addr;
 
 	g_return_val_if_fail (NM_IS_SETTINGS (self), FALSE);
 
-	device_hwaddr = nm_device_get_hw_address (device);
+	perm_hw_addr = nm_device_get_permanent_hw_address (device);
 
 	/* Find a wired connection locked to the given MAC address, if any */
 	g_hash_table_iter_init (&iter, priv->connections);
@@ -1892,8 +1580,8 @@ have_connection_for_device (NMSettings *self, NMDevice *device)
 		setting_hwaddr = nm_setting_wired_get_mac_address (s_wired);
 		if (setting_hwaddr) {
 			/* A connection mac-locked to this device */
-			if (   device_hwaddr
-			    && nm_utils_hwaddr_matches (setting_hwaddr, -1, device_hwaddr, -1))
+			if (   perm_hw_addr
+			    && nm_utils_hwaddr_matches (setting_hwaddr, -1, perm_hw_addr, -1))
 				return TRUE;
 		} else {
 			/* A connection that applies to any wired device */
@@ -1907,9 +1595,6 @@ have_connection_for_device (NMSettings *self, NMDevice *device)
 
 	return FALSE;
 }
-
-#define DEFAULT_WIRED_CONNECTION_TAG "default-wired-connection"
-#define DEFAULT_WIRED_DEVICE_TAG     "default-wired-device"
 
 static void default_wired_clear_tag (NMSettings *self,
                                      NMDevice *device,
@@ -1926,21 +1611,24 @@ default_wired_connection_removed_cb (NMSettingsConnection *connection, NMSetting
 	 * wired device to the config file and don't create a new default wired
 	 * connection for that device again.
 	 */
-	device = g_object_get_data (G_OBJECT (connection), DEFAULT_WIRED_DEVICE_TAG);
+	device = g_object_get_qdata (G_OBJECT (connection), _default_wired_device_quark ());
 	if (device)
 		default_wired_clear_tag (self, device, connection, TRUE);
 }
 
 static void
-default_wired_connection_updated_by_user_cb (NMSettingsConnection *connection, NMSettings *self)
+default_wired_connection_updated_by_user_cb (NMSettingsConnection *connection, gboolean by_user, NMSettings *self)
 {
 	NMDevice *device;
+
+	if (!by_user)
+		return;
 
 	/* The connection has been changed by the user, it should no longer be
 	 * considered a default wired connection, and should no longer affect
 	 * the no-auto-default configuration option.
 	 */
-	device = g_object_get_data (G_OBJECT (connection), DEFAULT_WIRED_DEVICE_TAG);
+	device = g_object_get_qdata (G_OBJECT (connection), _default_wired_device_quark ());
 	if (device)
 		default_wired_clear_tag (self, device, connection, FALSE);
 }
@@ -1954,11 +1642,11 @@ default_wired_clear_tag (NMSettings *self,
 	g_return_if_fail (NM_IS_SETTINGS (self));
 	g_return_if_fail (NM_IS_DEVICE (device));
 	g_return_if_fail (NM_IS_CONNECTION (connection));
-	g_return_if_fail (device == g_object_get_data (G_OBJECT (connection), DEFAULT_WIRED_DEVICE_TAG));
-	g_return_if_fail (connection == g_object_get_data (G_OBJECT (device), DEFAULT_WIRED_CONNECTION_TAG));
+	g_return_if_fail (device == g_object_get_qdata (G_OBJECT (connection), _default_wired_device_quark ()));
+	g_return_if_fail (connection == g_object_get_qdata (G_OBJECT (device), _default_wired_connection_quark ()));
 
-	g_object_set_data (G_OBJECT (connection), DEFAULT_WIRED_DEVICE_TAG, NULL);
-	g_object_set_data (G_OBJECT (device), DEFAULT_WIRED_CONNECTION_TAG, NULL);
+	g_object_set_qdata (G_OBJECT (connection), _default_wired_device_quark (), NULL);
+	g_object_set_qdata (G_OBJECT (device), _default_wired_connection_quark (), NULL);
 
 	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (default_wired_connection_removed_cb), self);
 	g_signal_handlers_disconnect_by_func (connection, G_CALLBACK (default_wired_connection_updated_by_user_cb), self);
@@ -1985,7 +1673,7 @@ device_realized (NMDevice *device, GParamSpec *pspec, NMSettings *self)
 	 * ignore it.
 	 */
 	if (   !nm_device_get_managed (device, FALSE)
-	    || g_object_get_data (G_OBJECT (device), DEFAULT_WIRED_CONNECTION_TAG)
+	    || g_object_get_qdata (G_OBJECT (device), _default_wired_connection_quark ())
 	    || have_connection_for_device (self, device))
 		return;
 
@@ -2007,10 +1695,10 @@ device_realized (NMDevice *device, GParamSpec *pspec, NMSettings *self)
 		return;
 	}
 
-	g_object_set_data (G_OBJECT (added), DEFAULT_WIRED_DEVICE_TAG, device);
-	g_object_set_data (G_OBJECT (device), DEFAULT_WIRED_CONNECTION_TAG, added);
+	g_object_set_qdata (G_OBJECT (added), _default_wired_device_quark (), device);
+	g_object_set_qdata (G_OBJECT (device), _default_wired_connection_quark (), added);
 
-	g_signal_connect (added, NM_SETTINGS_CONNECTION_UPDATED_BY_USER,
+	g_signal_connect (added, NM_SETTINGS_CONNECTION_UPDATED_INTERNAL,
 	                  G_CALLBACK (default_wired_connection_updated_by_user_cb), self);
 	g_signal_connect (added, NM_SETTINGS_CONNECTION_REMOVED,
 	                  G_CALLBACK (default_wired_connection_removed_cb), self);
@@ -2041,7 +1729,7 @@ nm_settings_device_removed (NMSettings *self, NMDevice *device, gboolean quittin
 	                                      G_CALLBACK (device_realized),
 	                                      self);
 
-	connection = g_object_get_data (G_OBJECT (device), DEFAULT_WIRED_CONNECTION_TAG);
+	connection = g_object_get_qdata (G_OBJECT (device), _default_wired_connection_quark ());
 	if (connection) {
 		default_wired_clear_tag (self, device, connection, FALSE);
 
@@ -2049,114 +1737,11 @@ nm_settings_device_removed (NMSettings *self, NMDevice *device, gboolean quittin
 		 * remains up and can be assumed if NM starts again.
 		 */
 		if (quitting == FALSE)
-			nm_settings_connection_delete (connection, NULL, NULL);
+			nm_settings_connection_delete (connection, NULL);
 	}
 }
 
-/***************************************************************/
-
-/* GCompareFunc helper for sorting "best" connections.
- * The function sorts connections in ascending timestamp order.
- * That means an older connection (lower timestamp) goes before
- * a newer one.
- */
-gint
-nm_settings_sort_connections (gconstpointer a, gconstpointer b)
-{
-	NMSettingsConnection *ac = (NMSettingsConnection *) a;
-	NMSettingsConnection *bc = (NMSettingsConnection *) b;
-	guint64 ats = 0, bts = 0;
-
-	if (ac == bc)
-		return 0;
-	if (!ac)
-		return -1;
-	if (!bc)
-		return 1;
-
-	/* In the future we may use connection priorities in addition to timestamps */
-	nm_settings_connection_get_timestamp (ac, &ats);
-	nm_settings_connection_get_timestamp (bc, &bts);
-
-	if (ats < bts)
-		return -1;
-	else if (ats > bts)
-		return 1;
-	return 0;
-}
-
-static GSList *
-get_best_connections (NMConnectionProvider *provider,
-                      guint max_requested,
-                      const char *ctype1,
-                      const char *ctype2,
-                      NMConnectionFilterFunc func,
-                      gpointer func_data)
-{
-	NMSettings *self = NM_SETTINGS (provider);
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
-	GSList *sorted = NULL;
-	GHashTableIter iter;
-	NMSettingsConnection *connection;
-	guint added = 0;
-	guint64 oldest = 0;
-
-	g_hash_table_iter_init (&iter, priv->connections);
-	while (g_hash_table_iter_next (&iter, NULL, (gpointer) &connection)) {
-		guint64 cur_ts = 0;
-
-		if (ctype1 && !nm_connection_is_type (NM_CONNECTION (connection), ctype1))
-			continue;
-		if (ctype2 && !nm_connection_is_type (NM_CONNECTION (connection), ctype2))
-			continue;
-		if (func && !func (provider, NM_CONNECTION (connection), func_data))
-			continue;
-
-		/* Don't bother with a connection that's older than the oldest one in the list */
-		if (max_requested && added >= max_requested) {
-		    nm_settings_connection_get_timestamp (connection, &cur_ts);
-		    if (cur_ts <= oldest)
-				continue;
-		}
-
-		/* List is sorted with oldest first */
-		sorted = g_slist_insert_sorted (sorted, connection, nm_settings_sort_connections);
-		added++;
-
-		if (max_requested && added > max_requested) {
-			/* Over the limit, remove the oldest one */
-			sorted = g_slist_delete_link (sorted, sorted);
-			added--;
-		}
-
-		nm_settings_connection_get_timestamp (NM_SETTINGS_CONNECTION (sorted->data), &oldest);
-	}
-
-	return g_slist_reverse (sorted);
-}
-
-static const GSList *
-get_connections (NMConnectionProvider *provider)
-{
-	GSList *list = NULL;
-	NMSettings *self = NM_SETTINGS (provider);
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
-
-	list = _nm_utils_hash_values_to_slist (priv->connections);
-
-	/* Cache the list every call so we can keep it 'const' for callers */
-	g_slist_free (priv->get_connections_cache);
-	priv->get_connections_cache = list;
-	return list;
-}
-
-static NMConnection *
-cp_get_connection_by_uuid (NMConnectionProvider *provider, const char *uuid)
-{
-	return NM_CONNECTION (nm_settings_get_connection_by_uuid (NM_SETTINGS (provider), uuid));
-}
-
-/***************************************************************/
+/*****************************************************************************/
 
 gboolean
 nm_settings_get_startup_complete (NMSettings *self)
@@ -2166,103 +1751,30 @@ nm_settings_get_startup_complete (NMSettings *self)
 	return priv->startup_complete;
 }
 
-/***************************************************************/
+/*****************************************************************************/
 
 static void
-hostnamed_properties_changed (GDBusProxy *proxy,
-                              GVariant *changed_properties,
-                              char **invalidated_properties,
-                              gpointer user_data)
+_hostname_changed_cb (NMHostnameManager *hostname_manager,
+                      GParamSpec *pspec,
+                      gpointer user_data)
 {
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (user_data);
-	GVariant *v_hostname;
-	const char *hostname;
-
-	v_hostname = g_dbus_proxy_get_cached_property (priv->hostname.hostnamed_proxy,
-	                                               "StaticHostname");
-	if (!v_hostname)
-		return;
-
-	hostname = g_variant_get_string (v_hostname, NULL);
-
-	if (g_strcmp0 (priv->hostname.value, hostname) != 0) {
-		_LOGI ("hostname changed from %s%s%s to %s%s%s",
-		       NM_PRINT_FMT_QUOTED (priv->hostname.value, "\"", priv->hostname.value, "\"", "(none)"),
-		       NM_PRINT_FMT_QUOTED (hostname, "\"", hostname, "\"", "(none)"));
-		g_free (priv->hostname.value);
-		priv->hostname.value = g_strdup (hostname);
-		g_object_notify (G_OBJECT (user_data), NM_SETTINGS_HOSTNAME);
-		nm_dispatcher_call (DISPATCHER_ACTION_HOSTNAME, NULL, NULL, NULL, NULL, NULL, NULL);
-	}
-
-	g_variant_unref (v_hostname);
+	_notify (user_data, PROP_HOSTNAME);
 }
 
-static void
-setup_hostname_file_monitors (NMSettings *self)
-{
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
-	GFileMonitor *monitor;
-	GFile *file;
-
-	priv->hostname.file = HOSTNAME_FILE;
-	priv->hostname.value = nm_settings_get_hostname (self);
-
-	/* monitor changes to hostname file */
-	file = g_file_new_for_path (priv->hostname.file);
-	monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL, NULL);
-	g_object_unref (file);
-	if (monitor) {
-		priv->hostname.monitor_id = g_signal_connect (monitor, "changed",
-		                                              G_CALLBACK (hostname_file_changed_cb),
-		                                              self);
-		priv->hostname.monitor = monitor;
-	}
-
-#if defined (HOSTNAME_PERSIST_SUSE)
-	/* monitor changes to dhcp file to know whether the hostname is valid */
-	file = g_file_new_for_path (CONF_DHCP);
-	monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL, NULL);
-	g_object_unref (file);
-	if (monitor) {
-		priv->hostname.dhcp_monitor_id = g_signal_connect (monitor, "changed",
-		                                                   G_CALLBACK (hostname_file_changed_cb),
-		                                                   self);
-		priv->hostname.dhcp_monitor = monitor;
-	}
-#endif
-
-	hostname_maybe_changed (self);
-}
-
-NMSettings *
-nm_settings_new (void)
-{
-	NMSettings *self;
-	NMSettingsPrivate *priv;
-
-	self = g_object_new (NM_TYPE_SETTINGS, NULL);
-
-	priv = NM_SETTINGS_GET_PRIVATE (self);
-
-	priv->config = nm_config_get ();
-
-	nm_exported_object_export (NM_EXPORTED_OBJECT (self));
-	return self;
-}
+/*****************************************************************************/
 
 gboolean
 nm_settings_start (NMSettings *self, GError **error)
 {
 	NMSettingsPrivate *priv;
-	GDBusProxy *proxy;
-	GVariant *variant;
-	GError *local_error = NULL;
+	gs_strfreev char **plugins = NULL;
 
 	priv = NM_SETTINGS_GET_PRIVATE (self);
 
 	/* Load the plugins; fail if a plugin is not found. */
-	if (!load_plugins (self, nm_config_get_plugins (priv->config), error)) {
+	plugins = nm_config_data_get_plugins (nm_config_get_data_orig (priv->config), TRUE);
+
+	if (!load_plugins (self, (const char **) plugins, error)) {
 		g_object_unref (self);
 		return FALSE;
 	}
@@ -2270,118 +1782,18 @@ nm_settings_start (NMSettings *self, GError **error)
 	load_connections (self);
 	check_startup_complete (self);
 
-	proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM, 0, NULL,
-	                                       HOSTNAMED_SERVICE_NAME, HOSTNAMED_SERVICE_PATH,
-	                                       HOSTNAMED_SERVICE_INTERFACE, NULL, &local_error);
-	if (proxy) {
-		variant = g_dbus_proxy_get_cached_property (proxy, "StaticHostname");
-		if (variant) {
-			_LOGI ("hostname: using hostnamed");
-			priv->hostname.hostnamed_proxy = proxy;
-			g_signal_connect (proxy, "g-properties-changed",
-			                  G_CALLBACK (hostnamed_properties_changed), self);
-			hostnamed_properties_changed (proxy, NULL, NULL, self);
-			g_variant_unref (variant);
-		} else {
-			_LOGI ("hostname: couldn't get property from hostnamed");
-			g_object_unref (proxy);
-		}
-	} else {
-		_LOGI ("hostname: hostnamed not used as proxy creation failed with: %s",
-		       local_error->message);
-		g_clear_error (&local_error);
-	}
+	priv->hostname_manager = g_object_ref (nm_hostname_manager_get ());
+	g_signal_connect (priv->hostname_manager,
+	                  "notify::"NM_HOSTNAME_MANAGER_HOSTNAME,
+	                  G_CALLBACK (_hostname_changed_cb),
+	                  self);
+	if (nm_hostname_manager_get_hostname (priv->hostname_manager))
+		_notify (self, PROP_HOSTNAME);
 
-	if (!priv->hostname.hostnamed_proxy)
-		setup_hostname_file_monitors (self);
-
-	priv->started = TRUE;
-	g_object_notify (G_OBJECT (self), NM_SETTINGS_HOSTNAME);
 	return TRUE;
 }
 
-static void
-connection_provider_iface_init (NMConnectionProviderInterface *cp_iface)
-{
-    cp_iface->get_best_connections = get_best_connections;
-    cp_iface->get_connections = get_connections;
-    cp_iface->add_connection = _nm_connection_provider_add_connection;
-    cp_iface->get_connection_by_uuid = cp_get_connection_by_uuid;
-}
-
-static void
-nm_settings_init (NMSettings *self)
-{
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
-
-	priv->connections = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
-
-	/* Hold a reference to the agent manager so it stays alive; the only
-	 * other holders are NMSettingsConnection objects which are often
-	 * transient, and we don't want the agent manager to get destroyed and
-	 * recreated often.
-	 */
-	priv->agent_mgr = g_object_ref (nm_agent_manager_get ());
-
-	g_signal_connect (priv->agent_mgr, "agent-registered", G_CALLBACK (secret_agent_registered), self);
-}
-
-static void
-dispose (GObject *object)
-{
-	NMSettings *self = NM_SETTINGS (object);
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
-
-	g_slist_free_full (priv->auths, (GDestroyNotify) nm_auth_chain_unref);
-	priv->auths = NULL;
-
-	g_object_unref (priv->agent_mgr);
-
-	if (priv->hostname.hostnamed_proxy) {
-		g_signal_handlers_disconnect_by_func (priv->hostname.hostnamed_proxy,
-		                                      G_CALLBACK (hostnamed_properties_changed),
-		                                      self);
-		g_clear_object (&priv->hostname.hostnamed_proxy);
-	}
-
-	if (priv->hostname.monitor) {
-		if (priv->hostname.monitor_id)
-			g_signal_handler_disconnect (priv->hostname.monitor, priv->hostname.monitor_id);
-
-		g_file_monitor_cancel (priv->hostname.monitor);
-		g_clear_object (&priv->hostname.monitor);
-	}
-
-	if (priv->hostname.dhcp_monitor) {
-		if (priv->hostname.dhcp_monitor_id)
-			g_signal_handler_disconnect (priv->hostname.dhcp_monitor,
-			                             priv->hostname.dhcp_monitor_id);
-
-		g_file_monitor_cancel (priv->hostname.dhcp_monitor);
-		g_clear_object (&priv->hostname.dhcp_monitor);
-	}
-
-	g_clear_pointer (&priv->hostname.value, g_free);
-
-	G_OBJECT_CLASS (nm_settings_parent_class)->dispose (object);
-}
-
-static void
-finalize (GObject *object)
-{
-	NMSettings *self = NM_SETTINGS (object);
-	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
-
-	g_hash_table_destroy (priv->connections);
-	g_slist_free (priv->get_connections_cache);
-
-	g_slist_free_full (priv->unmanaged_specs, g_free);
-	g_slist_free_full (priv->unrecognized_specs, g_free);
-
-	g_slist_free_full (priv->plugins, g_object_unref);
-
-	G_OBJECT_CLASS (nm_settings_parent_class)->finalize (object);
-}
+/*****************************************************************************/
 
 static void
 get_property (GObject *object, guint prop_id,
@@ -2404,11 +1816,10 @@ get_property (GObject *object, guint prop_id,
 		g_value_take_boxed (value, (char **) g_ptr_array_free (array, FALSE));
 		break;
 	case PROP_HOSTNAME:
-		g_value_take_string (value, nm_settings_get_hostname (self));
-
-		/* Don't ever pass NULL through D-Bus */
-		if (!g_value_get_string (value))
-			g_value_set_static_string (value, "");
+		g_value_set_string (value,
+		                    priv->hostname_manager
+		                      ? nm_hostname_manager_get_hostname (priv->hostname_manager)
+		                      : NULL);
 		break;
 	case PROP_CAN_MODIFY:
 		g_value_set_boolean (value, !!get_plugin (self, NM_SETTINGS_PLUGIN_CAP_MODIFY_CONNECTIONS));
@@ -2430,113 +1841,147 @@ get_property (GObject *object, guint prop_id,
 	}
 }
 
+/*****************************************************************************/
+
+static void
+nm_settings_init (NMSettings *self)
+{
+	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
+
+	priv->connections = g_hash_table_new_full (nm_str_hash, g_str_equal, NULL, g_object_unref);
+
+	priv->agent_mgr = g_object_ref (nm_agent_manager_get ());
+	priv->config = g_object_ref (nm_config_get ());
+}
+
+NMSettings *
+nm_settings_new (void)
+{
+	return g_object_new (NM_TYPE_SETTINGS, NULL);
+}
+
+static void
+dispose (GObject *object)
+{
+	NMSettings *self = NM_SETTINGS (object);
+	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
+
+	g_slist_free_full (priv->auths, (GDestroyNotify) nm_auth_chain_unref);
+	priv->auths = NULL;
+
+	g_object_unref (priv->agent_mgr);
+
+	if (priv->hostname_manager) {
+		g_signal_handlers_disconnect_by_func (priv->hostname_manager,
+		                                      G_CALLBACK (_hostname_changed_cb),
+		                                      self);
+		g_clear_object (&priv->hostname_manager);
+	}
+
+	G_OBJECT_CLASS (nm_settings_parent_class)->dispose (object);
+}
+
+static void
+finalize (GObject *object)
+{
+	NMSettings *self = NM_SETTINGS (object);
+	NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE (self);
+
+	g_hash_table_destroy (priv->connections);
+	g_clear_pointer (&priv->connections_cached_list, g_free);
+
+	g_slist_free_full (priv->unmanaged_specs, g_free);
+	g_slist_free_full (priv->unrecognized_specs, g_free);
+
+	g_slist_free_full (priv->plugins, g_object_unref);
+
+	g_clear_object (&priv->config);
+
+	G_OBJECT_CLASS (nm_settings_parent_class)->finalize (object);
+}
+
 static void
 nm_settings_class_init (NMSettingsClass *class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (class);
 	NMExportedObjectClass *exported_object_class = NM_EXPORTED_OBJECT_CLASS (class);
 
-	g_type_class_add_private (class, sizeof (NMSettingsPrivate));
-
 	exported_object_class->export_path = NM_DBUS_PATH_SETTINGS;
 
-	/* virtual methods */
 	object_class->get_property = get_property;
 	object_class->dispose = dispose;
 	object_class->finalize = finalize;
 
-	/* properties */
+	obj_properties[PROP_UNMANAGED_SPECS] =
+	    g_param_spec_boxed (NM_SETTINGS_UNMANAGED_SPECS, "", "",
+	                        G_TYPE_STRV,
+	                        G_PARAM_READABLE |
+	                        G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_UNMANAGED_SPECS,
-		 g_param_spec_boxed (NM_SETTINGS_UNMANAGED_SPECS, "", "",
-		                     G_TYPE_STRV,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_HOSTNAME] =
+	    g_param_spec_string (NM_SETTINGS_HOSTNAME, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_HOSTNAME,
-		 g_param_spec_string (NM_SETTINGS_HOSTNAME, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_CAN_MODIFY] =
+	    g_param_spec_boolean (NM_SETTINGS_CAN_MODIFY, "", "",
+	                          FALSE,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_CAN_MODIFY,
-		 g_param_spec_boolean (NM_SETTINGS_CAN_MODIFY, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_CONNECTIONS] =
+	    g_param_spec_boxed (NM_SETTINGS_CONNECTIONS, "", "",
+	                        G_TYPE_STRV,
+	                        G_PARAM_READABLE |
+	                        G_PARAM_STATIC_STRINGS);
 
-	g_object_class_install_property
-		(object_class, PROP_CONNECTIONS,
-		 g_param_spec_boxed (NM_SETTINGS_CONNECTIONS, "", "",
-		                     G_TYPE_STRV,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_STARTUP_COMPLETE] =
+	    g_param_spec_boolean (NM_SETTINGS_STARTUP_COMPLETE, "", "",
+	                          FALSE,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
-	/* signals */
-	signals[CONNECTION_ADDED] = 
-	                g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_ADDED,
-	                              G_OBJECT_CLASS_TYPE (object_class),
-	                              G_SIGNAL_RUN_FIRST,
-	                              G_STRUCT_OFFSET (NMSettingsClass, connection_added),
-	                              NULL, NULL,
-	                              g_cclosure_marshal_VOID__OBJECT,
-	                              G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-	signals[CONNECTION_UPDATED] = 
-	                g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_UPDATED,
-	                              G_OBJECT_CLASS_TYPE (object_class),
-	                              G_SIGNAL_RUN_FIRST,
-	                              G_STRUCT_OFFSET (NMSettingsClass, connection_updated),
-	                              NULL, NULL,
-	                              g_cclosure_marshal_VOID__OBJECT,
-	                              G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
+	signals[CONNECTION_ADDED] =
+	    g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_ADDED,
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_FIRST,
+	                  0, NULL, NULL,
+	                  g_cclosure_marshal_VOID__OBJECT,
+	                  G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
 
-	signals[CONNECTION_UPDATED_BY_USER] =
-	                g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_UPDATED_BY_USER,
-	                              G_OBJECT_CLASS_TYPE (object_class),
-	                              G_SIGNAL_RUN_FIRST,
-	                              0,
-	                              NULL, NULL,
-	                              g_cclosure_marshal_VOID__OBJECT,
-	                              G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
+	signals[CONNECTION_UPDATED] =
+	    g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_UPDATED,
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_FIRST,
+	                  0, NULL, NULL,
+	                  NULL,
+	                  G_TYPE_NONE, 2, NM_TYPE_SETTINGS_CONNECTION, G_TYPE_BOOLEAN);
 
-	signals[CONNECTION_REMOVED] = 
-	                g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_REMOVED,
-	                              G_OBJECT_CLASS_TYPE (object_class),
-	                              G_SIGNAL_RUN_FIRST,
-	                              G_STRUCT_OFFSET (NMSettingsClass, connection_removed),
-	                              NULL, NULL,
-	                              g_cclosure_marshal_VOID__OBJECT,
-	                              G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
+	signals[CONNECTION_REMOVED] =
+	    g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_REMOVED,
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_FIRST,
+	                  0, NULL, NULL,
+	                  g_cclosure_marshal_VOID__OBJECT,
+	                  G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
 
-	signals[CONNECTION_VISIBILITY_CHANGED] = 
-	                g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_VISIBILITY_CHANGED,
-	                              G_OBJECT_CLASS_TYPE (object_class),
-	                              G_SIGNAL_RUN_FIRST,
-	                              G_STRUCT_OFFSET (NMSettingsClass, connection_visibility_changed),
-	                              NULL, NULL,
-	                              g_cclosure_marshal_VOID__OBJECT,
-	                              G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
+	signals[CONNECTION_FLAGS_CHANGED] =
+	    g_signal_new (NM_SETTINGS_SIGNAL_CONNECTION_FLAGS_CHANGED,
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_FIRST,
+	                  0, NULL, NULL,
+	                  g_cclosure_marshal_VOID__OBJECT,
+	                  G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
 
-	signals[AGENT_REGISTERED] =
-		g_signal_new (NM_SETTINGS_SIGNAL_AGENT_REGISTERED,
-		              G_OBJECT_CLASS_TYPE (object_class),
-		              G_SIGNAL_RUN_FIRST,
-		              G_STRUCT_OFFSET (NMSettingsClass, agent_registered),
-		              NULL, NULL,
-		              g_cclosure_marshal_VOID__OBJECT,
-		              G_TYPE_NONE, 1, NM_TYPE_SECRET_AGENT);
-
-
-	signals[NEW_CONNECTION] = 
-	                g_signal_new ("new-connection",
-	                              G_OBJECT_CLASS_TYPE (object_class),
-	                              G_SIGNAL_RUN_FIRST, 0, NULL, NULL,
-	                              g_cclosure_marshal_VOID__OBJECT,
-	                              G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
+	signals[NEW_CONNECTION] =
+	    g_signal_new ("new-connection",
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_FIRST, 0, NULL, NULL,
+	                  g_cclosure_marshal_VOID__OBJECT,
+	                  G_TYPE_NONE, 1, NM_TYPE_SETTINGS_CONNECTION);
 
 	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (class),
 	                                        NMDBUS_TYPE_SETTINGS_SKELETON,

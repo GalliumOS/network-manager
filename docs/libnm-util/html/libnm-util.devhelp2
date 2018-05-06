@@ -111,10 +111,6 @@
     <keyword type="signal" name="The “secrets-cleared” signal" link="NMConnection.html#NMConnection-secrets-cleared"/>
     <keyword type="signal" name="The “secrets-updated” signal" link="NMConnection.html#NMConnection-secrets-updated"/>
     <keyword type="function" name="nm_setting_error_quark ()" link="NMSetting.html#nm-setting-error-quark"/>
-    <keyword type="macro" name="NM_SETTING_PARAM_SERIALIZE" link="NMSetting.html#NM-SETTING-PARAM-SERIALIZE:CAPS"/>
-    <keyword type="macro" name="NM_SETTING_PARAM_REQUIRED" link="NMSetting.html#NM-SETTING-PARAM-REQUIRED:CAPS"/>
-    <keyword type="macro" name="NM_SETTING_PARAM_SECRET" link="NMSetting.html#NM-SETTING-PARAM-SECRET:CAPS"/>
-    <keyword type="macro" name="NM_SETTING_PARAM_FUZZY_IGNORE" link="NMSetting.html#NM-SETTING-PARAM-FUZZY-IGNORE:CAPS"/>
     <keyword type="function" name="NMSettingClearSecretsWithFlagsFn ()" link="NMSetting.html#NMSettingClearSecretsWithFlagsFn"/>
     <keyword type="function" name="NMSettingValueIterFn ()" link="NMSetting.html#NMSettingValueIterFn"/>
     <keyword type="function" name="nm_setting_to_hash ()" link="NMSetting.html#nm-setting-to-hash"/>
@@ -135,6 +131,10 @@
     <keyword type="function" name="nm_setting_get_virtual_iface_name ()" link="NMSetting.html#nm-setting-get-virtual-iface-name"/>
     <keyword type="enum" name="enum NMSettingError" link="NMSetting.html#NMSettingError"/>
     <keyword type="macro" name="NM_SETTING_ERROR" link="NMSetting.html#NM-SETTING-ERROR:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_PARAM_SERIALIZE" link="NMSetting.html#NM-SETTING-PARAM-SERIALIZE:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_PARAM_REQUIRED" link="NMSetting.html#NM-SETTING-PARAM-REQUIRED:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_PARAM_SECRET" link="NMSetting.html#NM-SETTING-PARAM-SECRET:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_PARAM_FUZZY_IGNORE" link="NMSetting.html#NM-SETTING-PARAM-FUZZY-IGNORE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_NAME" link="NMSetting.html#NM-SETTING-NAME:CAPS"/>
     <keyword type="enum" name="enum NMSettingSecretFlags" link="NMSetting.html#NMSettingSecretFlags"/>
     <keyword type="enum" name="enum NMSettingCompareFlags" link="NMSetting.html#NMSettingCompareFlags"/>
@@ -429,7 +429,6 @@
     <keyword type="property" name="The “password-flags” property" link="NMSettingCdma.html#NMSettingCdma--password-flags"/>
     <keyword type="property" name="The “username” property" link="NMSettingCdma.html#NMSettingCdma--username"/>
     <keyword type="function" name="nm_setting_gsm_error_quark ()" link="NMSettingGsm.html#nm-setting-gsm-error-quark"/>
-    <keyword type="macro" name="NM_SETTING_GSM_BANDS_MAX" link="NMSettingGsm.html#NM-SETTING-GSM-BANDS-MAX:CAPS" deprecated="0.9.10: No longer used."/>
     <keyword type="function" name="nm_setting_gsm_new ()" link="NMSettingGsm.html#nm-setting-gsm-new"/>
     <keyword type="function" name="nm_setting_gsm_get_number ()" link="NMSettingGsm.html#nm-setting-gsm-get-number"/>
     <keyword type="function" name="nm_setting_gsm_get_username ()" link="NMSettingGsm.html#nm-setting-gsm-get-username"/>
@@ -458,6 +457,7 @@
     <keyword type="macro" name="NM_SETTING_GSM_NETWORK_TYPE" link="NMSettingGsm.html#NM-SETTING-GSM-NETWORK-TYPE:CAPS"/>
     <keyword type="enum" name="enum NMSettingGsmNetworkType" link="NMSettingGsm.html#NMSettingGsmNetworkType" deprecated="0.9.10: No longer used."/>
     <keyword type="enum" name="enum NMSettingGsmNetworkBand" link="NMSettingGsm.html#NMSettingGsmNetworkBand" deprecated="0.9.10: No longer used."/>
+    <keyword type="macro" name="NM_SETTING_GSM_BANDS_MAX" link="NMSettingGsm.html#NM-SETTING-GSM-BANDS-MAX:CAPS" deprecated="0.9.10: No longer used."/>
     <keyword type="property" name="The “allowed-bands” property" link="NMSettingGsm.html#NMSettingGsm--allowed-bands"/>
     <keyword type="property" name="The “apn” property" link="NMSettingGsm.html#NMSettingGsm--apn"/>
     <keyword type="property" name="The “home-only” property" link="NMSettingGsm.html#NMSettingGsm--home-only"/>
@@ -601,7 +601,6 @@
     <keyword type="property" name="The “parent” property" link="NMSettingInfiniband.html#NMSettingInfiniband--parent"/>
     <keyword type="property" name="The “transport-mode” property" link="NMSettingInfiniband.html#NMSettingInfiniband--transport-mode"/>
     <keyword type="function" name="nm_setting_vlan_error_quark ()" link="NMSettingVlan.html#nm-setting-vlan-error-quark"/>
-    <keyword type="macro" name="NM_VLAN_FLAGS_ALL" link="NMSettingVlan.html#NM-VLAN-FLAGS-ALL:CAPS"/>
     <keyword type="function" name="nm_setting_vlan_new ()" link="NMSettingVlan.html#nm-setting-vlan-new"/>
     <keyword type="function" name="nm_setting_vlan_get_interface_name ()" link="NMSettingVlan.html#nm-setting-vlan-get-interface-name"/>
     <keyword type="function" name="nm_setting_vlan_get_parent ()" link="NMSettingVlan.html#nm-setting-vlan-get-parent"/>
@@ -626,6 +625,7 @@
     <keyword type="macro" name="NM_SETTING_VLAN_EGRESS_PRIORITY_MAP" link="NMSettingVlan.html#NM-SETTING-VLAN-EGRESS-PRIORITY-MAP:CAPS"/>
     <keyword type="enum" name="enum NMVlanPriorityMap" link="NMSettingVlan.html#NMVlanPriorityMap"/>
     <keyword type="enum" name="enum NMVlanFlags" link="NMSettingVlan.html#NMVlanFlags"/>
+    <keyword type="macro" name="NM_VLAN_FLAGS_ALL" link="NMSettingVlan.html#NM-VLAN-FLAGS-ALL:CAPS"/>
     <keyword type="property" name="The “egress-priority-map” property" link="NMSettingVlan.html#NMSettingVlan--egress-priority-map"/>
     <keyword type="property" name="The “flags” property" link="NMSettingVlan.html#NMSettingVlan--flags"/>
     <keyword type="property" name="The “id” property" link="NMSettingVlan.html#NMSettingVlan--id"/>
@@ -1162,7 +1162,6 @@
     <keyword type="macro" name="NM_SETTING_VPN_PERSISTENT" link="NMSettingVPN.html#NM-SETTING-VPN-PERSISTENT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VPN_DATA" link="NMSettingVPN.html#NM-SETTING-VPN-DATA:CAPS"/>
     <keyword type="macro" name="NM_SETTING_VPN_SECRETS" link="NMSettingVPN.html#NM-SETTING-VPN-SECRETS:CAPS"/>
-    <keyword type="macro" name="NMSettingVpn" link="NMSettingVPN.html#NMSettingVpn"/>
     <keyword type="property" name="The “data” property" link="NMSettingVPN.html#NMSettingVPN--data"/>
     <keyword type="property" name="The “persistent” property" link="NMSettingVPN.html#NMSettingVPN--persistent"/>
     <keyword type="property" name="The “secrets” property" link="NMSettingVPN.html#NMSettingVPN--secrets"/>

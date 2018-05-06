@@ -13,6 +13,31 @@
     <refpurpose></refpurpose>
   </refnamediv>
 
+  <refsect2 id="NMCapability" role="enum">
+    <title>enum NMCapability</title>
+    <indexterm zone="NMCapability">
+      <primary>NMCapability</primary>
+    </indexterm>
+    <para><para><link linkend="NMCapability">NMCapability</link> names the numbers in the Capabilities property. Capabilities are positive numbers. They are part of stable API and a certain capability number is guaranteed not to change.</para><para>The range 0x7000 - 0x7FFF of capabilities is guaranteed not to be used by upstream NetworkManager. It could thus be used for downstream extensions.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CAPABILITY_TEAM</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Teams can be managed</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
   <refsect2 id="NMState" role="enum">
     <title>enum NMState</title>
     <indexterm zone="NMState">
@@ -30,42 +55,42 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_STATE_UNKNOWN</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>networking state is unknown</para><para></para></entry>
+              <entry role="enum_member_description"><para>Networking state is unknown. This indicates a daemon error that makes it unable to reasonably assess the state. In such event the applications are expected to assume Internet connectivity might be present and not disable controls that require network access. The graphical shells may hide the network accessibility indicator altogether since no meaningful status indication can be provided.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_STATE_ASLEEP</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>networking is not enabled</para><para></para></entry>
+              <entry role="enum_member_description"><para>Networking is not enabled, the system is being suspended or resumed from suspend.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_STATE_DISCONNECTED</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>20</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>there is no active network connection</para><para></para></entry>
+              <entry role="enum_member_description"><para>There is no active network connection. The graphical shell should indicate  no network connectivity and the applications should not attempt to access the network.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_STATE_DISCONNECTING</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>30</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>network connections are being cleaned up</para><para></para></entry>
+              <entry role="enum_member_description"><para>Network connections are being cleaned up. The applications should tear down their network sessions.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_STATE_CONNECTING</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>40</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>a network connection is being started</para><para></para></entry>
+              <entry role="enum_member_description"><para>A network connection is being started The graphical shell should indicate the network is being connected while the applications should still make no attempts to connect the network.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_STATE_CONNECTED_LOCAL</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>50</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>there is only local IPv4 and/or IPv6 connectivity</para><para></para></entry>
+              <entry role="enum_member_description"><para>There is only local IPv4 and/or IPv6 connectivity, but no default route to access the Internet. The graphical shell should indicate no network connectivity.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_STATE_CONNECTED_SITE</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>60</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>there is only site-wide IPv4 and/or IPv6 connectivity</para><para></para></entry>
+              <entry role="enum_member_description"><para>There is only site-wide IPv4 and/or IPv6 connectivity. This means a default route is available, but the Internet connectivity check (see "Connectivity" property) did not succeed. The graphical shell should indicate limited network connectivity.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_STATE_CONNECTED_GLOBAL</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>70</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>there is global IPv4 and/or IPv6 Internet connectivity</para><para></para></entry>
+              <entry role="enum_member_description"><para>There is global IPv4 and/or IPv6 Internet connectivity This means the Internet connectivity check succeeded, the graphical shell should indicate full network connectivity.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -89,27 +114,27 @@
           <tbody>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CONNECTIVITY_UNKNOWN</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>Network connectivity is unknown.</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Network connectivity is unknown. This means the connectivity checks are disabled (e.g. on server installations) or has not run yet. The graphical shell should assume the Internet connection might be available and not present a captive portal window.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CONNECTIVITY_NONE</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>The host is not connected to any network.</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The host is not connected to any network. There's no active connection that contains a default route to the internet and thus it makes no sense to even attempt a connectivity check. The graphical shell should use this state to indicate the network connection is unavailable.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CONNECTIVITY_PORTAL</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>The host is behind a captive portal and cannot reach the full Internet.</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The Internet connection is hijacked by a captive portal gateway. The graphical shell may open a sandboxed web browser window (because the captive portals typically attempt a man-in-the-middle attacks agains the https connections) for the purpose of authenticating to a gateway and retrigger the connectivity check with CheckConnectivity() when the browser window is dismissed.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CONNECTIVITY_LIMITED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>The host is connected to a network, but does not appear to be able to reach the full Internet.</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The host is connected to a network, does not appear to be able to reach the full Internet, but a captive portal has not been detected.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CONNECTIVITY_FULL</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>5</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The host is connected to a network, and appears to be able to reach the full Internet.</para><para></para></entry>
             </row>
           </tbody>
@@ -237,6 +262,36 @@
               <entry role="enum_member_value"><para>= <literal>20</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>a VETH interface</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_MACSEC</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>21</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a MACsec interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_DUMMY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>22</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a dummy interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_PPP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>23</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a PPP interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_OVS_INTERFACE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>24</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a OpenVSwitch interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_OVS_PORT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>25</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a OpenVSwitch port</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_OVS_BRIDGE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>26</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a OpenVSwitch bridge</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -276,6 +331,11 @@
               <entry role="enum_member_name"><para>NM_DEVICE_CAP_IS_SOFTWARE</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x00000004</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>this device is a software device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_CAP_SRIOV</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000008</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>this device supports single-root I/O virtualization</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -386,6 +446,21 @@
               <entry role="enum_member_name"><para>NM_802_11_AP_FLAGS_PRIVACY</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x00000001</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>access point requires authentication and encryption (usually means WEP)</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_FLAGS_WPS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000002</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>access point supports some WPS method</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_FLAGS_WPS_PBC</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000004</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>access point supports push-button WPS</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_FLAGS_WPS_PIN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000008</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>access point supports PIN-based WPS</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1042,6 +1117,21 @@
               <entry role="enum_member_value"><para>= <literal>62</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>the device parent's management changed</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_OVSDB_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>63</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>problem communicating with OpenVSwitch database</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_IP_ADDRESS_DUPLICATE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>64</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a duplicate IP address was detected</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>65</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The selected IP method is not supported</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -1138,6 +1228,101 @@
     </refsect3>
   </refsect2>
 
+  <refsect2 id="NMActiveConnectionStateReason" role="enum">
+    <title>enum NMActiveConnectionStateReason</title>
+    <indexterm zone="NMActiveConnectionStateReason">
+      <primary>NMActiveConnectionStateReason</primary>
+    </indexterm>
+    <para><para>Active connection state reasons.</para><para>Since: 1.8</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The reason for the active connection state change is unknown.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>No reason was given for the active connection state change.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_USER_DISCONNECTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The active connection changed state because the user disconnected it.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The active connection changed state because the device it was using was disconnected.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_STOPPED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The service providing the VPN connection was stopped.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_IP_CONFIG_INVALID</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>5</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The IP config of the active connection was invalid.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_CONNECT_TIMEOUT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>6</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The connection attempt to the VPN service timed out.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_TIMEOUT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>7</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>A timeout occurred while starting the service providing the VPN connection.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>8</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Starting the service providing the VPN connection failed.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_NO_SECRETS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>9</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Necessary secrets for the connection were not provided.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_LOGIN_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Authentication to the server failed.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_CONNECTION_REMOVED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>11</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The connection was deleted from settings.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_DEPENDENCY_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>12</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Master connection of this connection failed to activate.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_REALIZE_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>13</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>Could not create the software device link.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_REMOVED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>14</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The device this connection depended on disappeared.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
   <refsect2 id="NMSecretAgentGetSecretsFlags" role="enum">
     <title>enum NMSecretAgentGetSecretsFlags</title>
     <indexterm zone="NMSecretAgentGetSecretsFlags">
@@ -1171,6 +1356,11 @@
               <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_USER_REQUESTED</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x4</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>set if the request was initiated by user-requested action via the D-Bus interface, as opposed to automatically initiated by NetworkManager in response to (for example) scan results or carrier changes.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_WPS_PBC_ACTIVE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x8</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>indicates that WPS enrollment is active with PBC method. The agent may suggest that the user pushes a button on the router instead of supplying a PSK.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SECRET_AGENT_GET_SECRETS_FLAG_ONLY_SYSTEM</para><para></para></entry>
@@ -1281,6 +1471,196 @@
               <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_VTI6</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>9</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>IPv6 VTI tunnel</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMCheckpointCreateFlags" role="enum">
+    <title>enum NMCheckpointCreateFlags</title>
+    <indexterm zone="NMCheckpointCreateFlags">
+      <primary>NMCheckpointCreateFlags</primary>
+    </indexterm>
+    <para><para>The flags for CheckpointCreate call</para><para>Since: 1.4</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>no flags</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_DESTROY_ALL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x01</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>when creating a new checkpoint, destroy all existing ones.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x02</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>upon rollback, delete any new connection added after the checkpoint (Since: 1.6)</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x04</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>upon rollback, disconnect any new device appeared after the checkpoint (Since: 1.6)</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMRollbackResult" role="enum">
+    <title>enum NMRollbackResult</title>
+    <indexterm zone="NMRollbackResult">
+      <primary>NMRollbackResult</primary>
+    </indexterm>
+    <para><para>The result of a checkpoint Rollback() operation for a specific device.</para><para>Since: 1.4</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ROLLBACK_RESULT_OK</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the rollback succeeded.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ROLLBACK_RESULT_ERR_NO_DEVICE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device no longer exists.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ROLLBACK_RESULT_ERR_DEVICE_UNMANAGED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is now unmanaged.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ROLLBACK_RESULT_ERR_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>other errors during rollback.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMActivationStateFlags" role="enum">
+    <title>enum NMActivationStateFlags</title>
+    <indexterm zone="NMActivationStateFlags">
+      <primary>NMActivationStateFlags</primary>
+    </indexterm>
+    <para><para>Flags describing the current activation state.</para><para>Since: 1.10</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an alias for numeric zero, no flags set.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_IS_MASTER</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is a master.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_IS_SLAVE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is a slave.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_LAYER2_READY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>layer2 is activated and ready.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_IP4_READY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IPv4 setting is completed.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_IP6_READY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IPv6 setting is completed.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The master has any slave devices attached. This only makes sense if the device is a master.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMSettingsUpdate2Flags" role="enum">
+    <title>enum NMSettingsUpdate2Flags</title>
+    <indexterm zone="NMSettingsUpdate2Flags">
+      <primary>NMSettingsUpdate2Flags</primary>
+    </indexterm>
+    <para><para>Since: 1.10.2</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an alias for numeric zero, no flags set.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_TO_DISK</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>to persist the connection to disk.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>to make the connection in-memory only. If the connection was previously persistent, the corresponding file on disk is not deleted but merely the connection is decoupled from the file on disk. If you later delete an in-memory connection, the connection on disk will be deleted as well.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on disk, the association between the connection and the file is forgotten but the file is not modified. The difference to %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY is if you later save the connection again to disk, a new file name will be chosen without overwriting the remaining file on disk. Also, if you delete the connection later, the file on disk will not be deleted.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on disk, the file on disk will be deleted.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_VOLATILE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>This can be specified with either %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED or %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY. After making the connection in-memory only, the connection is marked as volatile. That means, if the connection is currently not active it will be deleted right away. Otherwise, it is marked to for deletion once the connection deactivates. A volatile connection cannot autoactivate again (because it's about to be deleted), but a manual activation will clear the volatile flag.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>usually, when the connection has autoconnect enabled and is modified, it becomes elegible to autoconnect right away. Setting this flag, disables autoconnect until the connection is manually activated.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>

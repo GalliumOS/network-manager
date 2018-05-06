@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2007 - 2014 Red Hat, Inc.
+ * Copyright 2007 - 2017 Red Hat, Inc.
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
@@ -27,7 +27,7 @@
 #error "Only <NetworkManager.h> can be included directly."
 #endif
 
-#include <nm-setting.h>
+#include "nm-setting.h"
 
 G_BEGIN_DECLS
 
@@ -68,8 +68,46 @@ typedef enum {
 	NM_WEP_KEY_TYPE_KEY = 1,          /* Hex or ASCII */
 	NM_WEP_KEY_TYPE_PASSPHRASE = 2,   /* 104/128-bit Passphrase */
 
-	NM_WEP_KEY_TYPE_LAST = NM_WEP_KEY_TYPE_PASSPHRASE
+	NM_WEP_KEY_TYPE_LAST = NM_WEP_KEY_TYPE_PASSPHRASE, /*< skip >*/
 } NMWepKeyType;
+
+/**
+ * NMSettingWirelessSecurityPmf:
+ * @NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT: use the default value
+ * @NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE: disable PMF
+ * @NM_SETTING_WIRELESS_SECURITY_PMF_OPTIONAL: enable PMF if the supplicant and the AP support it
+ * @NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED: require PMF and fail if not available
+ *
+ * These flags indicate whether PMF must be enabled.
+ **/
+typedef enum {
+	NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT       = 0,
+	NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE       = 1,
+	NM_SETTING_WIRELESS_SECURITY_PMF_OPTIONAL      = 2,
+	NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED      = 3,
+	_NM_SETTING_WIRELESS_SECURITY_PMF_NUM, /*< skip >*/
+	NM_SETTING_WIRELESS_SECURITY_PMF_LAST          =  _NM_SETTING_WIRELESS_SECURITY_PMF_NUM - 1, /*< skip >*/
+} NMSettingWirelessSecurityPmf;
+
+/**
+ * NMSettingWirelessSecurityWpsMethod:
+ * @NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DEFAULT: Attempt whichever method AP supports
+ * @NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED: WPS can not be used.
+ * @NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_AUTO: Use WPS, any method
+ * @NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_PBC: use WPS push-buthon method
+ * @NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_PIN: use PIN method
+ *
+ * Configure the use of WPS by a connection while it activates.
+ *
+ * Since: 1.10
+ **/
+typedef enum {
+	NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DEFAULT     = 0x00000000,
+	NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED    = 0x00000001,
+	NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_AUTO        = 0x00000002,
+	NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_PBC         = 0x00000004,
+	NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_PIN         = 0x00000008,
+} NMSettingWirelessSecurityWpsMethod;
 
 #define NM_SETTING_WIRELESS_SECURITY_KEY_MGMT "key-mgmt"
 #define NM_SETTING_WIRELESS_SECURITY_WEP_TX_KEYIDX "wep-tx-keyidx"
@@ -77,6 +115,7 @@ typedef enum {
 #define NM_SETTING_WIRELESS_SECURITY_PROTO "proto"
 #define NM_SETTING_WIRELESS_SECURITY_PAIRWISE "pairwise"
 #define NM_SETTING_WIRELESS_SECURITY_GROUP "group"
+#define NM_SETTING_WIRELESS_SECURITY_PMF "pmf"
 #define NM_SETTING_WIRELESS_SECURITY_LEAP_USERNAME "leap-username"
 #define NM_SETTING_WIRELESS_SECURITY_WEP_KEY0 "wep-key0"
 #define NM_SETTING_WIRELESS_SECURITY_WEP_KEY1 "wep-key1"
@@ -88,9 +127,12 @@ typedef enum {
 #define NM_SETTING_WIRELESS_SECURITY_PSK_FLAGS "psk-flags"
 #define NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD "leap-password"
 #define NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS "leap-password-flags"
+#define NM_SETTING_WIRELESS_SECURITY_WPS_METHOD "wps-method"
 
 /**
  * NMSettingWirelessSecurity:
+ *
+ * Wi-Fi Security Settings
  */
 struct _NMSettingWirelessSecurity {
 	NMSetting parent;
@@ -130,6 +172,9 @@ void        nm_setting_wireless_security_remove_group          (NMSettingWireles
 gboolean    nm_setting_wireless_security_remove_group_by_value (NMSettingWirelessSecurity *setting, const char *group);
 void        nm_setting_wireless_security_clear_groups          (NMSettingWirelessSecurity *setting);
 
+NM_AVAILABLE_IN_1_10
+NMSettingWirelessSecurityPmf nm_setting_wireless_security_get_pmf (NMSettingWirelessSecurity *setting);
+
 const char *nm_setting_wireless_security_get_psk           (NMSettingWirelessSecurity *setting);
 NMSettingSecretFlags nm_setting_wireless_security_get_psk_flags (NMSettingWirelessSecurity *setting);
 
@@ -144,6 +189,9 @@ const char *nm_setting_wireless_security_get_auth_alg      (NMSettingWirelessSec
 
 NMSettingSecretFlags nm_setting_wireless_security_get_wep_key_flags (NMSettingWirelessSecurity *setting);
 NMWepKeyType nm_setting_wireless_security_get_wep_key_type (NMSettingWirelessSecurity *setting);
+
+NM_AVAILABLE_IN_1_10
+NMSettingWirelessSecurityWpsMethod nm_setting_wireless_security_get_wps_method (NMSettingWirelessSecurity *setting);
 
 G_END_DECLS
 

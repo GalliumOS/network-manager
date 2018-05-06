@@ -21,44 +21,30 @@
 #ifndef __NETWORKMANAGER_FIREWALL_MANAGER_H__
 #define __NETWORKMANAGER_FIREWALL_MANAGER_H__
 
-#include "nm-default.h"
-
 #define FIREWALL_DBUS_SERVICE         "org.fedoraproject.FirewallD1"
 #define FIREWALL_DBUS_PATH            "/org/fedoraproject/FirewallD1"
 #define FIREWALL_DBUS_INTERFACE       "org.fedoraproject.FirewallD1"
 #define FIREWALL_DBUS_INTERFACE_ZONE  "org.fedoraproject.FirewallD1.zone"
 
+#define NM_TYPE_FIREWALL_MANAGER                (nm_firewall_manager_get_type ())
+#define NM_FIREWALL_MANAGER(obj)                (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_FIREWALL_MANAGER, NMFirewallManager))
+#define NM_FIREWALL_MANAGER_CLASS(klass)        (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_FIREWALL_MANAGER, NMFirewallManagerClass))
+#define NM_IS_FIREWALL_MANAGER(obj)             (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_FIREWALL_MANAGER))
+#define NM_IS_FIREWALL_MANAGER_CLASS(klass)     (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_FIREWALL_MANAGER))
+#define NM_FIREWALL_MANAGER_GET_CLASS(obj)      (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_FIREWALL_MANAGER, NMFirewallManagerClass))
 
-G_BEGIN_DECLS
+#define NM_FIREWALL_MANAGER_STATE_CHANGED "state-changed"
 
-#define NM_TYPE_FIREWALL_MANAGER				(nm_firewall_manager_get_type ())
-#define NM_FIREWALL_MANAGER(obj)				(G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_FIREWALL_MANAGER, NMFirewallManager))
-#define NM_FIREWALL_MANAGER_CLASS(klass)		(G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_FIREWALL_MANAGER, NMFirewallManagerClass))
-#define NM_IS_FIREWALL_MANAGER(obj)				(G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_FIREWALL_MANAGER))
-#define NM_IS_FIREWALL_MANAGER_CLASS(klass)		(G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_FIREWALL_MANAGER))
-#define NM_FIREWALL_MANAGER_GET_CLASS(obj)		(G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_FIREWALL_MANAGER, NMFirewallManagerClass))
-
-#define NM_FIREWALL_MANAGER_AVAILABLE "available"
-
-#define NM_FIREWALL_MANAGER_STARTED "started"
-
-struct _NMFirewallManagerCallId;
 typedef struct _NMFirewallManagerCallId *NMFirewallManagerCallId;
 
-typedef struct {
-	GObject parent;
-} NMFirewallManager;
-
-typedef struct {
-	GObjectClass parent;
-
-	/* Signals */
-	void (*started) (NMFirewallManager *manager);
-} NMFirewallManagerClass;
+typedef struct _NMFirewallManager NMFirewallManager;
+typedef struct _NMFirewallManagerClass NMFirewallManagerClass;
 
 GType nm_firewall_manager_get_type (void);
 
 NMFirewallManager *nm_firewall_manager_get (void);
+
+gboolean nm_firewall_manager_get_running (NMFirewallManager *self);
 
 typedef void (*NMFirewallManagerAddRemoveCallback) (NMFirewallManager *self,
                                                     NMFirewallManagerCallId call_id,

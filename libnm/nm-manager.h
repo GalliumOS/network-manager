@@ -22,8 +22,8 @@
 #ifndef __NM_MANAGER_H__
 #define __NM_MANAGER_H__
 
-#include <nm-object.h>
-#include <nm-client.h>
+#include "nm-object.h"
+#include "nm-client.h"
 
 G_BEGIN_DECLS
 
@@ -37,7 +37,6 @@ G_BEGIN_DECLS
 #define NM_MANAGER_VERSION "version"
 #define NM_MANAGER_STATE "state"
 #define NM_MANAGER_STARTUP "startup"
-#define NM_MANAGER_NM_RUNNING "nm-running"
 #define NM_MANAGER_NETWORKING_ENABLED "networking-enabled"
 #define NM_MANAGER_WIRELESS_ENABLED "wireless-enabled"
 #define NM_MANAGER_WIRELESS_HARDWARE_ENABLED "wireless-hardware-enabled"
@@ -47,6 +46,8 @@ G_BEGIN_DECLS
 #define NM_MANAGER_WIMAX_HARDWARE_ENABLED "wimax-hardware-enabled"
 #define NM_MANAGER_ACTIVE_CONNECTIONS "active-connections"
 #define NM_MANAGER_CONNECTIVITY "connectivity"
+#define NM_MANAGER_CONNECTIVITY_CHECK_AVAILABLE "connectivity-check-available"
+#define NM_MANAGER_CONNECTIVITY_CHECK_ENABLED "connectivity-check-enabled"
 #define NM_MANAGER_PRIMARY_CONNECTION "primary-connection"
 #define NM_MANAGER_ACTIVATING_CONNECTION "activating-connection"
 #define NM_MANAGER_DEVICES "devices"
@@ -72,7 +73,7 @@ typedef struct {
 	                            NMClientPermission permission,
 	                            NMClientPermissionResult result);
 
-	/* Beware: no more slots. Cannot extend struct without breaking ABI. */
+	/* nm-manager.h is internal API. We can add more slots without breaking ABI. */
 } NMManagerClass;
 
 GType nm_manager_get_type (void);
@@ -80,7 +81,6 @@ GType nm_manager_get_type (void);
 const char *nm_manager_get_version        (NMManager *manager);
 NMState   nm_manager_get_state            (NMManager *manager);
 gboolean  nm_manager_get_startup          (NMManager *manager);
-gboolean  nm_manager_get_nm_running       (NMManager *manager);
 
 gboolean  nm_manager_networking_get_enabled (NMManager *manager);
 gboolean  nm_manager_networking_set_enabled (NMManager *manager,
@@ -98,6 +98,16 @@ gboolean  nm_manager_wwan_hardware_get_enabled (NMManager *manager);
 gboolean  nm_manager_wimax_get_enabled (NMManager *manager);
 void      nm_manager_wimax_set_enabled (NMManager *manager, gboolean enabled);
 gboolean  nm_manager_wimax_hardware_get_enabled (NMManager *manager);
+
+NM_AVAILABLE_IN_1_10
+gboolean  nm_manager_connectivity_check_get_available (NMManager *manager);
+
+NM_AVAILABLE_IN_1_10
+gboolean  nm_manager_connectivity_check_get_enabled (NMManager *manager);
+
+NM_AVAILABLE_IN_1_10
+void      nm_manager_connectivity_check_set_enabled (NMManager *manager,
+                                                     gboolean enabled);
 
 gboolean nm_manager_get_logging (NMManager *manager,
                                  char **level,

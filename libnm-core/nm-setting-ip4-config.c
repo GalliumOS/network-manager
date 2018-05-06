@@ -51,7 +51,7 @@
  **/
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingIP4Config, nm_setting_ip4_config, NM_TYPE_SETTING_IP_CONFIG,
-                         _nm_register_setting (IP4_CONFIG, 4))
+                         _nm_register_setting (IP4_CONFIG, NM_SETTING_PRIORITY_IP))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_IP4_CONFIG)
 
 #define NM_SETTING_IP4_CONFIG_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_IP4_CONFIG, NMSettingIP4ConfigPrivate))
@@ -191,7 +191,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
-	if (priv->dhcp_client_id && !strlen (priv->dhcp_client_id)) {
+	if (priv->dhcp_client_id && !priv->dhcp_client_id[0]) {
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
 		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -223,6 +223,32 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		                     _("property cannot be set when dhcp-hostname is also set"));
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME, NM_SETTING_IP4_CONFIG_DHCP_FQDN);
 		return FALSE;
+	}
+
+	/* Failures from here on are NORMALIZABLE_ERROR... */
+
+	if (   nm_streq (method, NM_SETTING_IP4_CONFIG_METHOD_SHARED)
+	    && nm_setting_ip_config_get_num_addresses (s_ip) > 1) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("multiple addresses are not allowed for '%s=%s'"),
+		             NM_SETTING_IP_CONFIG_METHOD,
+		             NM_SETTING_IP4_CONFIG_METHOD_SHARED);
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_ADDRESSES);
+		return NM_SETTING_VERIFY_NORMALIZABLE_ERROR;
+	}
+
+	/* Failures from here on are NORMALIZABLE... */
+
+	if (   !strcmp (method, NM_SETTING_IP4_CONFIG_METHOD_DISABLED)
+	    && !nm_setting_ip_config_get_may_fail (s_ip)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property should be TRUE when method is set to disabled"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_MAY_FAIL);
+		return NM_SETTING_VERIFY_NORMALIZABLE;
 	}
 
 	return TRUE;
@@ -589,7 +615,7 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *ip4_class)
 	 * ---end---
 	 * ---ifcfg-rh---
 	 * property: routes
-	 * variable: ADDRESS1, NETMASK1, GATEWAY1, METRIC1, ...
+	 * variable: ADDRESS1, NETMASK1, GATEWAY1, METRIC1, OPTIONS1, ...
 	 * description: List of static routes. They are not stored in ifcfg-* file,
 	 *   but in route-* file instead.
 	 * ---end---
@@ -654,17 +680,52 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *ip4_class)
 	 * ---end---
 	 */
 
+	/* ---ifcfg-rh---
+	 * property: route-table
+	 * variable: IPV4_ROUTE_TABLE(+)
+	 * default: 0
+	 * description: IPV4_ROUTE_TABLE enables policy-routing and sets the default routing table.
+	 * ---end---
+	 */
+
+	/* ---ifcfg-rh---
+	 * property: dns-options
+	 * variable: RES_OPTIONS(+)
+	 * description: List of DNS options to be added to /etc/resolv.conf
+	 * example: RES_OPTIONS=ndots:2 timeout:3
+	 * ---end---
+	 */
+
+	/* ---ifcfg-rh---
+	 * property: dns-priority
+	 * variable: IPV4_DNS_PRIORITY(+)
+	 * description: The priority for DNS servers of this connection. Lower values have higher priority.
+	 *    If zero, the default value will be used (50 for VPNs, 100 for other connections).
+	 *    A negative value prevents DNS from other connections with greater values to be used.
+	 * default: 0
+	 * example: IPV4_DNS_PRIORITY=20
+	 * ---end---
+	 */
+
 	/**
 	 * NMSettingIP4Config:dhcp-client-id:
 	 *
 	 * A string sent to the DHCP server to identify the local machine which the
 	 * DHCP server may use to customize the DHCP lease and options.
+	 * When the property is a hex string ('aa:bb:cc') it is interpreted as a
+	 * binary client ID, in which case the first byte is assumed to be the
+	 * 'type' field as per RFC 2132 section 9.14 and the remaining bytes may be
+	 * an hardware address (e.g. '01:xx:xx:xx:xx:xx:xx' where 1 is the Ethernet
+	 * ARP type and the rest is a MAC address).
+	 * If the property is not a hex string it is considered as a
+	 * non-hardware-address client ID and the 'type' field is set to 0.
 	 **/
 	/* ---ifcfg-rh---
 	 * property: dhcp-client-id
 	 * variable: DHCP_CLIENT_ID(+)
 	 * description: A string sent to the DHCP server to identify the local machine.
-	 * example: DHCP_CLIENT_ID=ax-srv-1
+	 *    A binary value can be specified using hex notation ('aa:bb:cc').
+	 * example: DHCP_CLIENT_ID=ax-srv-1; DHCP_CLIENT_ID=01:44:44:44:44:44:44"
 	 * ---end---
 	 */
 	g_object_class_install_property

@@ -24,52 +24,31 @@
 #include "nm-device.h"
 
 #include <string.h>
-#include <gudev/gudev.h>
+#include <libudev.h>
 
+#include "nm-libnm-utils.h"
 #include "nm-dbus-interface.h"
 #include "nm-active-connection.h"
-#include "nm-device-ethernet.h"
-#include "nm-device-adsl.h"
-#include "nm-device-wifi.h"
-#include "nm-device-modem.h"
 #include "nm-device-bt.h"
-#include "nm-device-olpc-mesh.h"
-#include "nm-device-wimax.h"
-#include "nm-device-infiniband.h"
-#include "nm-device-bond.h"
-#include "nm-device-team.h"
-#include "nm-device-bridge.h"
-#include "nm-device-vlan.h"
-#include "nm-device-vxlan.h"
-#include "nm-device-generic.h"
-#include "nm-device-ip-tunnel.h"
-#include "nm-device-macvlan.h"
-#include "nm-device-private.h"
 #include "nm-dhcp4-config.h"
 #include "nm-dhcp6-config.h"
 #include "nm-ip4-config.h"
 #include "nm-ip6-config.h"
 #include "nm-object-private.h"
-#include "nm-object-cache.h"
 #include "nm-remote-connection.h"
 #include "nm-core-internal.h"
 #include "nm-utils.h"
 #include "nm-dbus-helpers.h"
 #include "nm-device-tun.h"
 #include "nm-setting-connection.h"
+#include "shared/nm-utils/nm-udev-utils.h"
 
-#include "nmdbus-device.h"
+#include "introspection/org.freedesktop.NetworkManager.Device.h"
 
-static GType _nm_device_decide_type (GVariant *value);
 static gboolean connection_compatible (NMDevice *device, NMConnection *connection, GError **error);
 static NMLldpNeighbor *nm_lldp_neighbor_dup (NMLldpNeighbor *neighbor);
 
-G_DEFINE_TYPE_WITH_CODE (NMDevice, nm_device, NM_TYPE_OBJECT,
-                         _nm_object_register_type_func (g_define_type_id,
-                                                        _nm_device_decide_type,
-                                                        NM_DBUS_INTERFACE_DEVICE,
-                                                        "DeviceType");
-                         )
+G_DEFINE_ABSTRACT_TYPE (NMDevice, nm_device, NM_TYPE_OBJECT);
 
 #define NM_DEVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DEVICE, NMDevicePrivate))
 
@@ -102,8 +81,8 @@ typedef struct {
 	NMActiveConnection *active_connection;
 	GPtrArray *available_connections;
 
-	GUdevClient *client;
-	char *product, *short_product;
+	struct udev *udev;
+	char *product;
 	char *vendor, *short_vendor;
 	char *description, *bus_name;
 
@@ -213,11 +192,7 @@ demarshal_lldp_neighbors (NMObject *object, GParamSpec *pspec, GVariant *value, 
 }
 
 static void
-device_state_changed (NMDBusDevice *proxy,
-                      guint new_state,
-                      guint old_state,
-                      guint reason,
-                      gpointer user_data);
+device_state_reason_changed (GObject *object, GParamSpec *pspec, gpointer user_data);
 
 static void
 init_dbus (NMObject *object)
@@ -226,6 +201,7 @@ init_dbus (NMObject *object)
 	const NMPropertiesInfo property_info[] = {
 		{ NM_DEVICE_UDI,               &priv->udi },
 		{ NM_DEVICE_INTERFACE,         &priv->iface },
+		{ NM_DEVICE_DEVICE_TYPE,       &priv->device_type },
 		{ NM_DEVICE_IP_INTERFACE,      &priv->ip_iface },
 		{ NM_DEVICE_DRIVER,            &priv->driver },
 		{ NM_DEVICE_DRIVER_VERSION,    &priv->driver_version },
@@ -251,7 +227,6 @@ init_dbus (NMObject *object)
 
 		/* Properties that exist in D-Bus but that we don't track */
 		{ "ip4-address", NULL },
-		{ "device-type", NULL },
 
 		{ NULL },
 	};
@@ -263,136 +238,55 @@ init_dbus (NMObject *object)
 	                                NM_DBUS_INTERFACE_DEVICE,
 	                                property_info);
 
-	g_signal_connect (priv->proxy, "state-changed",
-	                  G_CALLBACK (device_state_changed), object);
-}
-
-typedef struct {
-	NMDeviceState old_state;
-	NMDeviceState new_state;
-	NMDeviceStateReason reason;
-} StateChangeData;
-
-static void
-device_state_change_reloaded (GObject *object,
-                              GAsyncResult *result,
-                              gpointer user_data)
-{
-	NMDevice *self = NM_DEVICE (object);
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
-	StateChangeData *data = user_data;
-	NMDeviceState old_state = data->old_state;
-	NMDeviceState new_state = data->new_state;
-	NMDeviceStateReason reason = data->reason;
-
-	g_slice_free (StateChangeData, data);
-
-	_nm_object_reload_properties_finish (NM_OBJECT (object), result, NULL);
-
-	/* If the device changes state several times in rapid succession, then we'll
-	 * queue several reload_properties() calls, and there's no guarantee that
-	 * they'll finish in the right order. In that case, only emit the signal
-	 * for the last one.
-	 */
-	if (priv->last_seen_state != new_state)
-		return;
-
-	/* Ensure that nm_device_get_state() will return the right value even if
-	 * we haven't processed the corresponding PropertiesChanged yet.
-	 */
-	priv->state = new_state;
-
-	g_signal_emit (self, signals[STATE_CHANGED], 0,
-	               new_state, old_state, reason);
+	g_signal_connect (priv->proxy, "notify::state-reason",
+	                  G_CALLBACK (device_state_reason_changed), object);
 }
 
 static void
-device_state_changed (NMDBusDevice *proxy,
-                      guint new_state,
-                      guint old_state,
-                      guint reason,
-                      gpointer user_data)
+device_state_reason_changed (GObject *object, GParamSpec *pspec, gpointer user_data)
 {
 	NMDevice *self = NM_DEVICE (user_data);
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
-	StateChangeData *data;
 
-	if (old_state == new_state)
-		return;
-
-	/* Our object-valued properties (eg, ip4_config) will still
-	 * have their old values at this point, because NMObject is
-	 * in the process of asynchronously reading the new values.
-	 * Wait for that to finish before emitting the signal.
-	 */
-	priv->last_seen_state = new_state;
-
-	data = g_slice_new (StateChangeData);
-	data->old_state = old_state;
-	data->new_state = new_state;
-	data->reason = reason;
-	_nm_object_reload_properties_async (NM_OBJECT (user_data),
-	                                    NULL,
-	                                    device_state_change_reloaded,
-	                                    data);
+	g_signal_emit (self, signals[STATE_CHANGED], 0,
+	               priv->state, priv->last_seen_state, priv->reason);
+	priv->last_seen_state = priv->state;
 }
 
-static GType
-_nm_device_gtype_from_dtype (NMDeviceType dtype)
+static NMDeviceType
+coerce_type (NMDeviceType type)
 {
-	switch (dtype) {
-	case NM_DEVICE_TYPE_VETH:
+	switch (type) {
 	case NM_DEVICE_TYPE_ETHERNET:
-		return NM_TYPE_DEVICE_ETHERNET;
 	case NM_DEVICE_TYPE_WIFI:
-		return NM_TYPE_DEVICE_WIFI;
-	case NM_DEVICE_TYPE_MODEM:
-		return NM_TYPE_DEVICE_MODEM;
 	case NM_DEVICE_TYPE_BT:
-		return NM_TYPE_DEVICE_BT;
-	case NM_DEVICE_TYPE_ADSL:
-		return NM_TYPE_DEVICE_ADSL;
 	case NM_DEVICE_TYPE_OLPC_MESH:
-		return NM_TYPE_DEVICE_OLPC_MESH;
+	case NM_DEVICE_TYPE_OVS_INTERFACE:
+	case NM_DEVICE_TYPE_OVS_PORT:
+	case NM_DEVICE_TYPE_OVS_BRIDGE:
 	case NM_DEVICE_TYPE_WIMAX:
-		return NM_TYPE_DEVICE_WIMAX;
+	case NM_DEVICE_TYPE_MODEM:
 	case NM_DEVICE_TYPE_INFINIBAND:
-		return NM_TYPE_DEVICE_INFINIBAND;
 	case NM_DEVICE_TYPE_BOND:
-		return NM_TYPE_DEVICE_BOND;
 	case NM_DEVICE_TYPE_TEAM:
-		return NM_TYPE_DEVICE_TEAM;
 	case NM_DEVICE_TYPE_BRIDGE:
-		return NM_TYPE_DEVICE_BRIDGE;
 	case NM_DEVICE_TYPE_VLAN:
-		return NM_TYPE_DEVICE_VLAN;
-	case NM_DEVICE_TYPE_GENERIC:
-		return NM_TYPE_DEVICE_GENERIC;
-	case NM_DEVICE_TYPE_TUN:
-		return NM_TYPE_DEVICE_TUN;
-	case NM_DEVICE_TYPE_IP_TUNNEL:
-		return NM_TYPE_DEVICE_IP_TUNNEL;
+	case NM_DEVICE_TYPE_ADSL:
+	case NM_DEVICE_TYPE_MACSEC:
 	case NM_DEVICE_TYPE_MACVLAN:
-		return NM_TYPE_DEVICE_MACVLAN;
 	case NM_DEVICE_TYPE_VXLAN:
-		return NM_TYPE_DEVICE_VXLAN;
-	default:
-		g_warning ("Unknown device type %d", dtype);
-		return G_TYPE_INVALID;
+	case NM_DEVICE_TYPE_IP_TUNNEL:
+	case NM_DEVICE_TYPE_TUN:
+	case NM_DEVICE_TYPE_VETH:
+	case NM_DEVICE_TYPE_GENERIC:
+	case NM_DEVICE_TYPE_UNUSED1:
+	case NM_DEVICE_TYPE_UNUSED2:
+	case NM_DEVICE_TYPE_UNKNOWN:
+	case NM_DEVICE_TYPE_DUMMY:
+	case NM_DEVICE_TYPE_PPP:
+		return type;
 	}
-}
-
-static void
-constructed (GObject *object)
-{
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
-
-	G_OBJECT_CLASS (nm_device_parent_class)->constructed (object);
-
-	/* Catch failure of subclasses to call _nm_device_set_device_type() */
-	g_warn_if_fail (priv->device_type != NM_DEVICE_TYPE_UNKNOWN);
-	/* Catch a subclass setting the wrong type */
-	g_warn_if_fail (G_OBJECT_TYPE (object) == _nm_device_gtype_from_dtype (priv->device_type));
+	return NM_DEVICE_TYPE_UNKNOWN;
 }
 
 static void
@@ -404,11 +298,17 @@ dispose (GObject *object)
 	g_clear_object (&priv->dhcp4_config);
 	g_clear_object (&priv->ip6_config);
 	g_clear_object (&priv->dhcp6_config);
-	g_clear_object (&priv->client);
 	g_clear_object (&priv->active_connection);
+
+	udev_unref (priv->udev);
+	priv->udev = NULL;
 
 	g_clear_pointer (&priv->available_connections, g_ptr_array_unref);
 	g_clear_pointer (&priv->lldp_neighbors, g_ptr_array_unref);
+
+	if (priv->proxy)
+		g_signal_handlers_disconnect_by_func (priv->proxy, device_state_reason_changed, object);
+	g_clear_object (&priv->proxy);
 
 	G_OBJECT_CLASS (nm_device_parent_class)->dispose (object);
 }
@@ -425,7 +325,6 @@ finalize (GObject *object)
 	g_free (priv->driver_version);
 	g_free (priv->firmware_version);
 	g_free (priv->product);
-	g_free (priv->short_product);
 	g_free (priv->vendor);
 	g_free (priv->short_vendor);
 	g_free (priv->description);
@@ -446,7 +345,7 @@ get_property (GObject *object,
 
 	switch (prop_id) {
 	case PROP_DEVICE_TYPE:
-		g_value_set_enum (value, nm_device_get_device_type (device));
+		g_value_set_enum (value, coerce_type (nm_device_get_device_type (device)));
 		break;
 	case PROP_UDI:
 		g_value_set_string (value, nm_device_get_udi (device));
@@ -543,10 +442,6 @@ set_property (GObject *object,
 	gboolean b;
 
 	switch (prop_id) {
-	case PROP_DEVICE_TYPE:
-		/* Construct only */
-		priv->device_type = g_value_get_enum (value);
-		break;
 	case PROP_MANAGED:
 		b = g_value_get_boolean (value);
 		if (priv->managed != b)
@@ -571,11 +466,7 @@ nm_device_class_init (NMDeviceClass *device_class)
 
 	g_type_class_add_private (device_class, sizeof (NMDevicePrivate));
 
-	_nm_object_class_add_interface (nm_object_class, NM_DBUS_INTERFACE_DEVICE);
-	_nm_dbus_register_proxy_type (NM_DBUS_INTERFACE_DEVICE, NMDBUS_TYPE_DEVICE_PROXY);
-
 	/* virtual methods */
-	object_class->constructed = constructed;
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 	object_class->dispose = dispose;
@@ -954,35 +845,6 @@ nm_device_class_init (NMDeviceClass *device_class)
 }
 
 /**
- * _nm_device_set_device_type:
- * @device: the device
- * @dtype: the NM device type
- *
- * Sets the NM device type if it wasn't set during construction.  INTERNAL
- * ONLY METHOD.
- **/
-void
-_nm_device_set_device_type (NMDevice *device, NMDeviceType dtype)
-{
-	NMDevicePrivate *priv;
-
-	g_return_if_fail (device != NULL);
-	g_return_if_fail (dtype != NM_DEVICE_TYPE_UNKNOWN);
-
-	priv = NM_DEVICE_GET_PRIVATE (device);
-	if (priv->device_type == NM_DEVICE_TYPE_UNKNOWN)
-		priv->device_type = dtype;
-	else
-		g_warn_if_fail (dtype == priv->device_type);
-}
-
-static GType
-_nm_device_decide_type (GVariant *value)
-{
-	return _nm_device_gtype_from_dtype (g_variant_get_uint32 (value));
-}
-
-/**
  * nm_device_get_iface:
  * @device: a #NMDevice
  *
@@ -996,7 +858,7 @@ nm_device_get_iface (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->iface;
+	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->iface);
 }
 
 /**
@@ -1014,7 +876,7 @@ nm_device_get_ip_iface (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->ip_iface;
+	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->ip_iface);
 }
 
 /**
@@ -1048,7 +910,7 @@ nm_device_get_udi (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->udi;
+	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->udi);
 }
 
 /**
@@ -1065,7 +927,7 @@ nm_device_get_driver (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->driver;
+	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->driver);
 }
 
 /**
@@ -1082,7 +944,7 @@ nm_device_get_driver_version (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->driver_version;
+	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->driver_version);
 }
 
 /**
@@ -1099,7 +961,7 @@ nm_device_get_firmware_version (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->firmware_version;
+	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->firmware_version);
 }
 
 /**
@@ -1124,7 +986,7 @@ nm_device_get_type_description (NMDevice *device)
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
 	if (priv->type_description)
-		return priv->type_description;
+		return nm_str_not_empty (priv->type_description);
 
 	if (NM_DEVICE_GET_CLASS (device)->get_type_description) {
 		desc = NM_DEVICE_GET_CLASS (device)->get_type_description (device);
@@ -1137,7 +999,7 @@ nm_device_get_type_description (NMDevice *device)
 		typename += 8;
 	priv->type_description = g_ascii_strdown (typename, -1);
 
-	return priv->type_description;
+	return nm_str_not_empty (priv->type_description);
 }
 
 /**
@@ -1435,56 +1297,19 @@ nm_device_get_available_connections (NMDevice *device)
 	return NM_DEVICE_GET_PRIVATE (device)->available_connections;
 }
 
-static inline guint8
-hex2byte (const char *hex)
+void
+_nm_device_set_udev (NMDevice *device, struct udev *udev)
 {
-	int a, b;
-	a = g_ascii_xdigit_value (*hex++);
-	if (a < 0)
-		return -1;
-	b = g_ascii_xdigit_value (*hex++);
-	if (b < 0)
-		return -1;
-	return (a << 4) | b;
-}
+	NMDevicePrivate *priv;
 
-static char *
-get_decoded_property (GUdevDevice *device, const char *property)
-{
-	const char *orig, *p;
-	char *unescaped, *n;
-	guint len;
+	nm_assert (NM_IS_DEVICE (device));
+	nm_assert (udev);
 
-	p = orig = g_udev_device_get_property (device, property);
-	if (!orig)
-		return NULL;
+	priv = NM_DEVICE_GET_PRIVATE (device);
 
-	len = strlen (orig);
-	n = unescaped = g_malloc0 (len + 1);
-	while (*p) {
-		if ((len >= 4) && (*p == '\\') && (*(p+1) == 'x')) {
-			*n++ = (char) hex2byte (p + 2);
-			p += 4;
-			len -= 4;
-		} else {
-			*n++ = *p++;
-			len--;
-		}
-	}
+	nm_assert (!priv->udev);
 
-	return unescaped;
-}
-
-static gboolean
-ensure_udev_client (NMDevice *device)
-{
-	static const char *const subsys[3] = { "net", "tty", NULL };
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
-
-	if (!priv->client)
-		priv->client = g_udev_client_new (subsys);
-
-	return priv->client != NULL;
+	priv->udev = udev_ref (udev);
 }
 
 static char *
@@ -1493,51 +1318,37 @@ _get_udev_property (NMDevice *device,
                     const char *db_prop)   /* ID_XXX_FROM_DATABASE */
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
-	GUdevDevice *udev_device = NULL, *tmpdev, *olddev;
+	struct udev_device *udev_device, *tmpdev;
 	const char *ifname;
 	guint32 count = 0;
 	char *enc_value = NULL, *db_value = NULL;
 
-	if (!ensure_udev_client (device))
+	if (!priv->udev)
 		return NULL;
 
 	ifname = nm_device_get_iface (device);
 	if (!ifname)
 		return NULL;
 
-	udev_device = g_udev_client_query_by_subsystem_and_name (priv->client, "net", ifname);
-	if (!udev_device)
-		udev_device = g_udev_client_query_by_subsystem_and_name (priv->client, "tty", ifname);
-	if (!udev_device)
-		return NULL;
-
+	udev_device = udev_device_new_from_subsystem_sysname (priv->udev, "net", ifname);
+	if (!udev_device) {
+		udev_device = udev_device_new_from_subsystem_sysname (priv->udev, "tty", ifname);
+		if (!udev_device)
+			return NULL;
+	}
 	/* Walk up the chain of the device and its parents a few steps to grab
 	 * vendor and device ID information off it.
 	 */
-
-	/* Ref the device again because we have to unref it each iteration,
-	 * as g_udev_device_get_parent() returns a ref-ed object.
-	 */
-	tmpdev = g_object_ref (udev_device);
+	tmpdev = udev_device;
 	while ((count++ < 3) && tmpdev && !enc_value) {
 		if (!enc_value)
-			enc_value = get_decoded_property (tmpdev, enc_prop);
+			enc_value = nm_udev_utils_property_decode_cp (udev_device_get_property_value (tmpdev, enc_prop));
 		if (!db_value)
-			db_value = g_strdup (g_udev_device_get_property (tmpdev, db_prop));
+			db_value = g_strdup (udev_device_get_property_value (tmpdev, db_prop));
 
-		olddev = tmpdev;
-		tmpdev = g_udev_device_get_parent (tmpdev);
-		g_object_unref (olddev);
+		tmpdev = udev_device_get_parent (tmpdev);
 	}
-
-	/* Unref the last device if we found what we needed before running out
-	 * of parents.
-	 */
-	if (tmpdev)
-		g_object_unref (tmpdev);
-
-	/* Balance the initial g_udev_client_query_by_subsystem_and_name() */
-	g_object_unref (udev_device);
+	udev_device_unref (udev_device);
 
 	/* Prefer the encoded value which comes directly from the device
 	 * over the hwdata database value.
@@ -1550,6 +1361,17 @@ _get_udev_property (NMDevice *device,
 	return db_value;
 }
 
+static char *
+_get_udev_property_utf8safe (NMDevice *device,
+                             const char *enc_prop,  /* ID_XXX_ENC */
+                             const char *db_prop)   /* ID_XXX_FROM_DATABASE */
+{
+	return nm_utils_str_utf8safe_escape_take (_get_udev_property (device,
+	                                                              enc_prop,
+	                                                              db_prop),
+	                                          NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL);
+}
+
 /**
  * nm_device_get_product:
  * @device: a #NMDevice
@@ -1558,6 +1380,9 @@ _get_udev_property (NMDevice *device,
  *
  * Returns: the product name of the device. This is the internal string used by the
  * device, and must not be modified.
+ *
+ * The string is backslash escaped (C escaping) for invalid characters. The escaping
+ * can be reverted with g_strcompress(), however the result may not be valid UTF-8.
  **/
 const char *
 nm_device_get_product (NMDevice *device)
@@ -1567,15 +1392,16 @@ nm_device_get_product (NMDevice *device)
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
 	priv = NM_DEVICE_GET_PRIVATE (device);
-	if (!priv->product)
-		priv->product = _get_udev_property (device, "ID_MODEL_ENC", "ID_MODEL_FROM_DATABASE");
+	if (!priv->product) {
+		priv->product = _get_udev_property_utf8safe (device, "ID_MODEL_ENC", "ID_MODEL_FROM_DATABASE");
 
-	/* Sometimes ID_PRODUCT_FROM_DATABASE is used? */
-	if (!priv->product)
-		priv->product = _get_udev_property (device, "ID_MODEL_ENC", "ID_PRODUCT_FROM_DATABASE");
+		/* Sometimes ID_PRODUCT_FROM_DATABASE is used? */
+		if (!priv->product)
+			priv->product = _get_udev_property_utf8safe (device, "ID_MODEL_ENC", "ID_PRODUCT_FROM_DATABASE");
 
-	if (!priv->product)
-		priv->product = g_strdup ("");
+		if (!priv->product)
+			priv->product = g_strdup ("");
+	}
 
 	return priv->product;
 }
@@ -1588,6 +1414,9 @@ nm_device_get_product (NMDevice *device)
  *
  * Returns: the vendor name of the device. This is the internal string used by the
  * device, and must not be modified.
+ *
+ * The string is backslash escaped (C escaping) for invalid characters. The escaping
+ * can be reverted with g_strcompress(), however the result may not be valid UTF-8.
  **/
 const char *
 nm_device_get_vendor (NMDevice *device)
@@ -1599,7 +1428,7 @@ nm_device_get_vendor (NMDevice *device)
 	priv = NM_DEVICE_GET_PRIVATE (device);
 
 	if (!priv->vendor)
-		priv->vendor = _get_udev_property (device, "ID_VENDOR_ENC", "ID_VENDOR_FROM_DATABASE");
+		priv->vendor = _get_udev_property_utf8safe (device, "ID_VENDOR_ENC", "ID_VENDOR_FROM_DATABASE");
 
 	if (!priv->vendor)
 		priv->vendor = g_strdup ("");
@@ -1607,150 +1436,42 @@ nm_device_get_vendor (NMDevice *device)
 	return priv->vendor;
 }
 
-static const char * const ignored_words[] = {
-	"Semiconductor",
-	"Components",
-	"Corporation",
-	"Communications",
-	"Company",
-	"Corp.",
-	"Corp",
-	"Co.",
-	"Inc.",
-	"Inc",
-	"Incorporated",
-	"Ltd.",
-	"Limited.",
-	"Intel?",
-	"chipset",
-	"adapter",
-	"[hex]",
-	"NDIS",
-	"Module",
-	NULL
-};
-
-static const char * const ignored_phrases[] = {
-	"Multiprotocol MAC/baseband processor",
-	"Wireless LAN Controller",
-	"Wireless LAN Adapter",
-	"Wireless Adapter",
-	"Network Connection",
-	"Wireless Cardbus Adapter",
-	"Wireless CardBus Adapter",
-	"54 Mbps Wireless PC Card",
-	"Wireless PC Card",
-	"Wireless PC",
-	"PC Card with XJACK(r) Antenna",
-	"Wireless cardbus",
-	"Wireless LAN PC Card",
-	"Technology Group Ltd.",
-	"Communication S.p.A.",
-	"Business Mobile Networks BV",
-	"Mobile Broadband Minicard Composite Device",
-	"Mobile Communications AB",
-	"(PC-Suite Mode)",
-	NULL
-};
-
-static char *
-fixup_desc_string (const char *desc)
-{
-	char *p, *temp;
-	char **words, **item;
-	GString *str;
-	int i;
-
-	if (!desc)
-		return NULL;
-
-	p = temp = g_strdup (desc);
-	while (*p) {
-		if (*p == '_' || *p == ',')
-			*p = ' ';
-		p++;
-	}
-
-	/* Attempt to shorten ID by ignoring certain phrases */
-	for (i = 0; ignored_phrases[i]; i++) {
-		p = strstr (temp, ignored_phrases[i]);
-		if (p) {
-			guint32 ignored_len = strlen (ignored_phrases[i]);
-
-			memmove (p, p + ignored_len, strlen (p + ignored_len) + 1); /* +1 for the \0 */
-		}
-	}
-
-	/* Attempt to shorten ID by ignoring certain individual words */
-	words = g_strsplit (temp, " ", 0);
-	str = g_string_new_len (NULL, strlen (temp));
-	g_free (temp);
-
-	for (item = words; *item; item++) {
-		gboolean ignore = FALSE;
-
-		if (**item == '\0')
-			continue;
-
-		for (i = 0; ignored_words[i]; i++) {
-			if (!strcmp (*item, ignored_words[i])) {
-				ignore = TRUE;
-				break;
-			}
-		}
-
-		if (!ignore) {
-			if (str->len)
-				g_string_append_c (str, ' ');
-			g_string_append (str, *item);
-		}
-	}
-	g_strfreev (words);
-
-	temp = str->str;
-	g_string_free (str, FALSE);
-
-	return temp;
-}
-
 static void
-get_description (NMDevice *device)
+ensure_description (NMDevice *device)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
-	const char *dev_product;
-	const char *dev_vendor;
-	char *pdown;
-	char *vdown;
-	GString *str;
+	GParamSpec *name_prop;
+	gs_free char *short_product = NULL;
 
-	dev_product = nm_device_get_product (device);
-	priv->short_product = fixup_desc_string (dev_product);
+	priv->short_vendor = nm_str_realloc (nm_utils_fixup_desc_string (nm_device_get_vendor (device)));
 
-	dev_vendor = nm_device_get_vendor (device);
-	priv->short_vendor = fixup_desc_string (dev_vendor);
-
-	if (!dev_product || !dev_vendor) {
-		priv->description = g_strdup (nm_device_get_iface (device));
-		return;
+	/* Grab device's preferred name, if any */
+	name_prop = g_object_class_find_property (G_OBJECT_GET_CLASS (G_OBJECT (device)), "name");
+	if (name_prop) {
+		g_object_get (device, "name", &priv->description, NULL);
+		if (priv->description && priv->description[0])
+			return;
+		g_clear_pointer (&priv->description, g_free);
 	}
 
-	str = g_string_new_len (NULL, strlen (priv->short_vendor) + strlen (priv->short_product) + 1);
+	if (   !priv->short_vendor
+	    || !(short_product = nm_utils_fixup_desc_string (nm_device_get_product (device)))) {
+		priv->description = g_strdup (nm_device_get_iface (device) ?: "");
+		return;
+	}
 
 	/* Another quick hack; if all of the fixed up vendor string
 	 * is found in product, ignore the vendor.
 	 */
-	pdown = g_ascii_strdown (priv->short_product, -1);
-	vdown = g_ascii_strdown (priv->short_vendor, -1);
-	if (!strstr (pdown, vdown)) {
-		g_string_append (str, priv->short_vendor);
-		g_string_append_c (str, ' ');
+	{
+		gs_free char *pdown = g_ascii_strdown (short_product, -1);
+		gs_free char *vdown = g_ascii_strdown (priv->short_vendor, -1);
+
+		if (!strstr (pdown, vdown))
+			priv->description = g_strconcat (priv->short_vendor, " ", short_product, NULL);
+		else
+			priv->description = g_steal_pointer (&short_product);
 	}
-	g_free (pdown);
-	g_free (vdown);
-
-	g_string_append (str, priv->short_product);
-
-	priv->description = g_string_free (str, FALSE);
 }
 
 static const char *
@@ -1763,7 +1484,7 @@ get_short_vendor (NMDevice *device)
 	priv = NM_DEVICE_GET_PRIVATE (device);
 
 	if (!priv->description)
-		get_description (device);
+		ensure_description (device);
 
 	return priv->short_vendor;
 }
@@ -1787,7 +1508,7 @@ nm_device_get_description (NMDevice *device)
 	priv = NM_DEVICE_GET_PRIVATE (device);
 
 	if (!priv->description)
-		get_description (device);
+		ensure_description (device);
 
 	return priv->description;
 }
@@ -1804,6 +1525,12 @@ get_type_name (NMDevice *device)
 		return _("Bluetooth");
 	case NM_DEVICE_TYPE_OLPC_MESH:
 		return _("OLPC Mesh");
+	case NM_DEVICE_TYPE_OVS_INTERFACE:
+		return _("OpenVSwitch Interface");
+	case NM_DEVICE_TYPE_OVS_PORT:
+		return _("OpenVSwitch Port");
+	case NM_DEVICE_TYPE_OVS_BRIDGE:
+		return _("OpenVSwitch Bridge");
 	case NM_DEVICE_TYPE_WIMAX:
 		return _("WiMAX");
 	case NM_DEVICE_TYPE_MODEM:
@@ -1830,6 +1557,12 @@ get_type_name (NMDevice *device)
 		return _("Tun");
 	case NM_DEVICE_TYPE_VETH:
 		return _("Veth");
+	case NM_DEVICE_TYPE_MACSEC:
+		return _("MACsec");
+	case NM_DEVICE_TYPE_DUMMY:
+		return _("Dummy");
+	case NM_DEVICE_TYPE_PPP:
+		return _("PPP");
 	case NM_DEVICE_TYPE_GENERIC:
 	case NM_DEVICE_TYPE_UNUSED1:
 	case NM_DEVICE_TYPE_UNUSED2:
@@ -1871,26 +1604,26 @@ static const char *
 get_bus_name (NMDevice *device)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
-	GUdevDevice *udevice;
+	struct udev_device *udevice;
 	const char *ifname, *bus;
 
 	if (priv->bus_name)
 		goto out;
 
-	if (!ensure_udev_client (device))
+	if (!priv->udev)
 		return NULL;
 
 	ifname = nm_device_get_iface (device);
 	if (!ifname)
 		return NULL;
 
-	udevice = g_udev_client_query_by_subsystem_and_name (priv->client, "net", ifname);
-	if (!udevice)
-		udevice = g_udev_client_query_by_subsystem_and_name (priv->client, "tty", ifname);
-	if (!udevice)
-		return NULL;
-
-	bus = g_udev_device_get_property (udevice, "ID_BUS");
+	udevice = udev_device_new_from_subsystem_sysname (priv->udev, "net", ifname);
+	if (!udevice) {
+		udevice = udev_device_new_from_subsystem_sysname (priv->udev, "tty", ifname);
+		if (!udevice)
+			return NULL;
+	}
+	bus = udev_device_get_property_value (udevice, "ID_BUS");
 	if (!g_strcmp0 (bus, "pci"))
 		priv->bus_name = g_strdup (_("PCI"));
 	else if (!g_strcmp0 (bus, "usb"))
@@ -1901,6 +1634,7 @@ get_bus_name (NMDevice *device)
 		 */
 		priv->bus_name = g_strdup ("");
 	}
+	udev_device_unref (udevice);
 
 out:
 	if (*priv->bus_name)
@@ -2074,16 +1808,9 @@ done:
 const char *
 nm_device_get_physical_port_id (NMDevice *device)
 {
-	NMDevicePrivate *priv;
-
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
-
-	if (priv->physical_port_id && *priv->physical_port_id)
-		return priv->physical_port_id;
-	else
-		return NULL;
+	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->physical_port_id);
 }
 
 /**
@@ -2278,6 +2005,8 @@ nm_device_reapply_async (NMDevice *device,
 
 	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
 	                                    nm_device_reapply_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 
 	nmdbus_device_call_reapply (NM_DEVICE_GET_PRIVATE (device)->proxy,
 	                            dict, version_id, flags, cancellable,
@@ -2423,7 +2152,7 @@ out:
  * @callback: callback to be called when the reapply operation completes
  * @user_data: caller-specific data passed to @callback
  *
- * Asynchronously begins an get the a currently applied connection.
+ * Asynchronously begins and gets the currently applied connection.
  *
  * Since: 1.2
  **/
@@ -2441,6 +2170,8 @@ nm_device_get_applied_connection_async  (NMDevice *device,
 
 	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
 	                                    nm_device_get_applied_connection_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 
 	nmdbus_device_call_get_applied_connection (NM_DEVICE_GET_PRIVATE (device)->proxy,
 	                                           flags, cancellable,
@@ -2562,6 +2293,8 @@ nm_device_disconnect_async (NMDevice *device,
 
 	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
 	                                    nm_device_disconnect_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 
 	nmdbus_device_call_disconnect (NM_DEVICE_GET_PRIVATE (device)->proxy,
 	                               cancellable,
@@ -2663,6 +2396,8 @@ nm_device_delete_async (NMDevice *device,
 
 	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
 	                                    nm_device_delete_async);
+	if (cancellable)
+		g_simple_async_result_set_check_cancellable (simple, cancellable);
 
 	nmdbus_device_call_delete (NM_DEVICE_GET_PRIVATE (device)->proxy,
 	                           cancellable,

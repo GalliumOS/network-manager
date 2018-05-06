@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>NMSettingIPConfig: libnm Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIP6Config.html" title="NMSettingIP6Config">
 <link rel="next" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel">
-<meta name="generator" content="GTK-Doc V1.24 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -36,7 +36,7 @@
 </tr></table></div>
 <div class="refsect1">
 <a name="NMSettingIPConfig.functions"></a><h2>Functions</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="functions_return">
 <col class="functions_name">
@@ -76,7 +76,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-ip-address-equal" title="nm_ip_address_equal ()">nm_ip_address_equal</a> <span class="c_punctuation">()</span>
@@ -131,7 +131,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-ip-address-get-prefix" title="nm_ip_address_get_prefix ()">nm_ip_address_get_prefix</a> <span class="c_punctuation">()</span>
@@ -155,7 +155,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">GVariant</span> *
+<a href="../glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-ip-address-get-attribute" title="nm_ip_address_get_attribute ()">nm_ip_address_get_attribute</a> <span class="c_punctuation">()</span>
@@ -203,10 +203,18 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-equal" title="nm_ip_route_equal ()">nm_ip_route_equal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-ip-route-equal-full" title="nm_ip_route_equal_full ()">nm_ip_route_equal_full</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -258,7 +266,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-get-prefix" title="nm_ip_route_get_prefix ()">nm_ip_route_get_prefix</a> <span class="c_punctuation">()</span>
@@ -289,7 +297,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-get-next-hop-binary" title="nm_ip_route_get_next_hop_binary ()">nm_ip_route_get_next_hop_binary</a> <span class="c_punctuation">()</span>
@@ -305,7 +313,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gint64</span>
+<a href="../glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-get-metric" title="nm_ip_route_get_metric ()">nm_ip_route_get_metric</a> <span class="c_punctuation">()</span>
@@ -329,7 +337,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">GVariant</span> *
+<a href="../glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-ip-route-get-attribute" title="nm_ip_route_get_attribute ()">nm_ip_route_get_attribute</a> <span class="c_punctuation">()</span>
@@ -344,6 +352,21 @@
 </td>
 </tr>
 <tr>
+<td class="function_type">const <a class="link" href="libnm-nm-utils.html#NMVariantAttributeSpec" title="NMVariantAttributeSpec"><span class="returnvalue">NMVariantAttributeSpec</span></a> *const *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-ip-route-get-variant-attribute-spec" title="nm_ip_route_get_variant_attribute_spec ()">nm_ip_route_get_variant_attribute_spec</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-ip-route-attribute-validate" title="nm_ip_route_attribute_validate ()">nm_ip_route_attribute_validate</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">const <span class="returnvalue">char</span> *
 </td>
 <td class="function_name">
@@ -352,7 +375,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-num-dns" title="nm_setting_ip_config_get_num_dns ()">nm_setting_ip_config_get_num_dns</a> <span class="c_punctuation">()</span>
@@ -367,7 +390,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-add-dns" title="nm_setting_ip_config_add_dns ()">nm_setting_ip_config_add_dns</a> <span class="c_punctuation">()</span>
@@ -383,7 +406,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-remove-dns-by-value" title="nm_setting_ip_config_remove_dns_by_value ()">nm_setting_ip_config_remove_dns_by_value</a> <span class="c_punctuation">()</span>
@@ -399,7 +422,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-num-dns-searches" title="nm_setting_ip_config_get_num_dns_searches ()">nm_setting_ip_config_get_num_dns_searches</a> <span class="c_punctuation">()</span>
@@ -414,7 +437,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-add-dns-search" title="nm_setting_ip_config_add_dns_search ()">nm_setting_ip_config_add_dns_search</a> <span class="c_punctuation">()</span>
@@ -430,7 +453,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-remove-dns-search-by-value" title="nm_setting_ip_config_remove_dns_search_by_value ()">nm_setting_ip_config_remove_dns_search_by_value</a> <span class="c_punctuation">()</span>
@@ -446,7 +469,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-num-dns-options" title="nm_setting_ip_config_get_num_dns_options ()">nm_setting_ip_config_get_num_dns_options</a> <span class="c_punctuation">()</span>
@@ -454,7 +477,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-has-dns-options" title="nm_setting_ip_config_has_dns_options ()">nm_setting_ip_config_has_dns_options</a> <span class="c_punctuation">()</span>
@@ -469,7 +492,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gint</span>
+<a href="../glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-next-valid-dns-option" title="nm_setting_ip_config_next_valid_dns_option ()">nm_setting_ip_config_next_valid_dns_option</a> <span class="c_punctuation">()</span>
@@ -477,7 +500,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-add-dns-option" title="nm_setting_ip_config_add_dns_option ()">nm_setting_ip_config_add_dns_option</a> <span class="c_punctuation">()</span>
@@ -493,7 +516,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-remove-dns-option-by-value" title="nm_setting_ip_config_remove_dns_option_by_value ()">nm_setting_ip_config_remove_dns_option_by_value</a> <span class="c_punctuation">()</span>
@@ -509,7 +532,15 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dns-priority" title="nm_setting_ip_config_get_dns_priority ()">nm_setting_ip_config_get_dns_priority</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-num-addresses" title="nm_setting_ip_config_get_num_addresses ()">nm_setting_ip_config_get_num_addresses</a> <span class="c_punctuation">()</span>
@@ -525,7 +556,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-add-address" title="nm_setting_ip_config_add_address ()">nm_setting_ip_config_add_address</a> <span class="c_punctuation">()</span>
@@ -541,7 +572,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-remove-address-by-value" title="nm_setting_ip_config_remove_address_by_value ()">nm_setting_ip_config_remove_address_by_value</a> <span class="c_punctuation">()</span>
@@ -564,7 +595,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">guint</span>
+<a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-num-routes" title="nm_setting_ip_config_get_num_routes ()">nm_setting_ip_config_get_num_routes</a> <span class="c_punctuation">()</span>
@@ -580,7 +611,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-add-route" title="nm_setting_ip_config_add_route ()">nm_setting_ip_config_add_route</a> <span class="c_punctuation">()</span>
@@ -596,7 +627,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-remove-route-by-value" title="nm_setting_ip_config_remove_route_by_value ()">nm_setting_ip_config_remove_route_by_value</a> <span class="c_punctuation">()</span>
@@ -612,7 +643,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gint64</span>
+<a href="../glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-route-metric" title="nm_setting_ip_config_get_route_metric ()">nm_setting_ip_config_get_route_metric</a> <span class="c_punctuation">()</span>
@@ -620,7 +651,15 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-route-table" title="nm_setting_ip_config_get_route_table ()">nm_setting_ip_config_get_route_table</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-ignore-auto-routes" title="nm_setting_ip_config_get_ignore_auto_routes ()">nm_setting_ip_config_get_ignore_auto_routes</a> <span class="c_punctuation">()</span>
@@ -628,7 +667,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-ignore-auto-dns" title="nm_setting_ip_config_get_ignore_auto_dns ()">nm_setting_ip_config_get_ignore_auto_dns</a> <span class="c_punctuation">()</span>
@@ -643,7 +682,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-send-hostname" title="nm_setting_ip_config_get_dhcp_send_hostname ()">nm_setting_ip_config_get_dhcp_send_hostname</a> <span class="c_punctuation">()</span>
@@ -651,7 +690,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-never-default" title="nm_setting_ip_config_get_never_default ()">nm_setting_ip_config_get_never_default</a> <span class="c_punctuation">()</span>
@@ -659,7 +698,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-may-fail" title="nm_setting_ip_config_get_may_fail ()">nm_setting_ip_config_get_may_fail</a> <span class="c_punctuation">()</span>
@@ -667,7 +706,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gint</span>
+<a href="../glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dad-timeout" title="nm_setting_ip_config_get_dad_timeout ()">nm_setting_ip_config_get_dad_timeout</a> <span class="c_punctuation">()</span>
@@ -675,7 +714,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gint</span>
+<a href="../glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-timeout" title="nm_setting_ip_config_get_dhcp_timeout ()">nm_setting_ip_config_get_dhcp_timeout</a> <span class="c_punctuation">()</span>
@@ -686,7 +725,7 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIPConfig.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table border="0">
+<div class="informaltable"><table class="informaltable" border="0">
 <colgroup>
 <col width="150px" class="properties_type">
 <col width="300px" class="properties_name">
@@ -695,86 +734,96 @@
 <tbody>
 <tr>
 <td class="property_type">
-<span class="type">GPtrArray</span> *</td>
+<a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--addresses" title="The “addresses” property">addresses</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dad-timeout" title="The “dad-timeout” property">dad-timeout</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname" title="The “dhcp-hostname” property">dhcp-hostname</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname" title="The “dhcp-send-hostname” property">dhcp-send-hostname</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gint</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-timeout" title="The “dhcp-timeout” property">dhcp-timeout</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">GStrv</span></td>
+<td class="property_type"><a href="../glib/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns" title="The “dns” property">dns</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">GStrv</span></td>
+<td class="property_type"><a href="../glib/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns-options" title="The “dns-options” property">dns-options</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">GStrv</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns-priority" title="The “dns-priority” property">dns-priority</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type"><a href="../glib/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns-search" title="The “dns-search” property">dns-search</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--gateway" title="The “gateway” property">gateway</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-dns" title="The “ignore-auto-dns” property">ignore-auto-dns</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-routes" title="The “ignore-auto-routes” property">ignore-auto-routes</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--may-fail" title="The “may-fail” property">may-fail</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
 <td class="property_type">
-<span class="type">gchar</span> *</td>
+<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--method" title="The “method” property">method</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--never-default" title="The “never-default” property">never-default</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gint64</span></td>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--route-metric" title="The “route-metric” property">route-metric</a></td>
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
+<td class="property_type"><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--route-table" title="The “route-table” property">route-table</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
 <td class="property_type">
-<span class="type">GPtrArray</span> *</td>
+<a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--routes" title="The “routes” property">routes</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -783,12 +832,72 @@
 </div>
 <a name="NMIPAddress"></a><a name="NMIPRoute"></a><div class="refsect1">
 <a name="NMSettingIPConfig.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table width="100%" border="0">
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
 </colgroup>
 <tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-TABLE:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_TABLE">NM_IP_ROUTE_ATTRIBUTE_TABLE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-SRC:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_SRC">NM_IP_ROUTE_ATTRIBUTE_SRC</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-FROM:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_FROM">NM_IP_ROUTE_ATTRIBUTE_FROM</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-TOS:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_TOS">NM_IP_ROUTE_ATTRIBUTE_TOS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-ONLINK:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_ONLINK">NM_IP_ROUTE_ATTRIBUTE_ONLINK</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-WINDOW:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_WINDOW">NM_IP_ROUTE_ATTRIBUTE_WINDOW</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-CWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_CWND">NM_IP_ROUTE_ATTRIBUTE_CWND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-INITCWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_INITCWND">NM_IP_ROUTE_ATTRIBUTE_INITCWND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-INITRWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_INITRWND">NM_IP_ROUTE_ATTRIBUTE_INITRWND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-MTU:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_MTU">NM_IP_ROUTE_ATTRIBUTE_MTU</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-WINDOW:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW">NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-CWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND">NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-INITCWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND">NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-INITRWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND">NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-MTU:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU">NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU</a></td>
+</tr>
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DAD-TIMEOUT-MAX:CAPS" title="NM_SETTING_IP_CONFIG_DAD_TIMEOUT_MAX">NM_SETTING_IP_CONFIG_DAD_TIMEOUT_MAX</a></td>
@@ -811,6 +920,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DNS-PRIORITY:CAPS" title="NM_SETTING_IP_CONFIG_DNS_PRIORITY">NM_SETTING_IP_CONFIG_DNS_PRIORITY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-ADDRESSES:CAPS" title="NM_SETTING_IP_CONFIG_ADDRESSES">NM_SETTING_IP_CONFIG_ADDRESSES</a></td>
 </tr>
 <tr>
@@ -824,6 +937,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-ROUTE-METRIC:CAPS" title="NM_SETTING_IP_CONFIG_ROUTE_METRIC">NM_SETTING_IP_CONFIG_ROUTE_METRIC</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-ROUTE-TABLE:CAPS" title="NM_SETTING_IP_CONFIG_ROUTE_TABLE">NM_SETTING_IP_CONFIG_ROUTE_TABLE</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -926,10 +1043,10 @@
 </div>
 <div class="refsect1">
 <a name="NMSettingIPConfig.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GBoxed
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Boxed-Types.html">GBoxed</a>
     <span class="lineart">├──</span> NMIPAddress
     <span class="lineart">╰──</span> NMIPRoute
-    GObject
+    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSettingIPConfig
             <span class="lineart">├──</span> <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config">NMSettingIP4Config</a>
@@ -954,12 +1071,12 @@ related to IP addressing, routing, and Domain Name Service.</p>
 <pre class="programlisting"><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="returnvalue">NMIPAddress</span></a> *
 nm_ip_address_new (<em class="parameter"><code><span class="type">int</span> family</code></em>,
                    <em class="parameter"><code>const <span class="type">char</span> *addr</code></em>,
-                   <em class="parameter"><code><span class="type">guint</span> prefix</code></em>,
-                   <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+                   <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> prefix</code></em>,
+                   <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.2.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -984,15 +1101,15 @@ nm_ip_address_new (<em class="parameter"><code><span class="type">int</span> fam
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>location to store error, or <code class="literal">NULL</code></p></td>
+<td class="parameter_description"><p>location to store error, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.2.6"></a><h4>Returns</h4>
-<p> the new <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> object, or <code class="literal">NULL</code> on error. </p>
+<a name="nm-ip-address-new.returns"></a><h4>Returns</h4>
+<p>the new <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> object, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
@@ -1001,16 +1118,16 @@ nm_ip_address_new (<em class="parameter"><code><span class="type">int</span> fam
 <a name="nm-ip-address-new-binary"></a><h3>nm_ip_address_new_binary ()</h3>
 <pre class="programlisting"><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="returnvalue">NMIPAddress</span></a> *
 nm_ip_address_new_binary (<em class="parameter"><code><span class="type">int</span> family</code></em>,
-                          <em class="parameter"><code><span class="type">gconstpointer</span> addr</code></em>,
-                          <em class="parameter"><code><span class="type">guint</span> prefix</code></em>,
-                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+                          <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gconstpointer"><span class="type">gconstpointer</span></a> addr</code></em>,
+                          <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> prefix</code></em>,
+                          <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> object. <em class="parameter"><code>addr</code></em>
  must point to a buffer of the
 correct size for <em class="parameter"><code>family</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.3.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-new-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1035,15 +1152,15 @@ correct size for <em class="parameter"><code>family</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>location to store error, or <code class="literal">NULL</code></p></td>
+<td class="parameter_description"><p>location to store error, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.3.6"></a><h4>Returns</h4>
-<p> the new <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> object, or <code class="literal">NULL</code> on error. </p>
+<a name="nm-ip-address-new-binary.returns"></a><h4>Returns</h4>
+<p>the new <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> object, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
@@ -1054,8 +1171,8 @@ correct size for <em class="parameter"><code>family</code></em>
 nm_ip_address_ref (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>);</pre>
 <p>Increases the reference count of the object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.4.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-ref.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1077,8 +1194,8 @@ nm_ip_address_unref (<em class="parameter"><code><a class="link" href="NMSetting
 <p>Decreases the reference count of the object.  If the reference count
 reaches zero, the object will be destroyed.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.5.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-unref.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1095,14 +1212,14 @@ reaches zero, the object will be destroyed.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-address-equal"></a><h3>nm_ip_address_equal ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_ip_address_equal (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>,
                      <em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *other</code></em>);</pre>
 <p>Determines if two <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> objects contain the same address and prefix
 (attributes are not compared).</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.6.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-equal.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1124,8 +1241,8 @@ to.</p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.6.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the objects contain the same values, <code class="literal">FALSE</code> if they do not.</p>
+<a name="nm-ip-address-equal.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the objects contain the same values, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if they do not.</p>
 </div>
 </div>
 <hr>
@@ -1136,8 +1253,8 @@ nm_ip_address_dup (<em class="parameter"><code><a class="link" href="NMSettingIP
 <p>Creates a copy of <em class="parameter"><code>address</code></em>
 </p>
 <div class="refsect3">
-<a name="id-1.4.19.11.7.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-dup.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1151,8 +1268,8 @@ nm_ip_address_dup (<em class="parameter"><code><a class="link" href="NMSettingIP
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.7.6"></a><h4>Returns</h4>
-<p> a copy of <em class="parameter"><code>address</code></em>
+<a name="nm-ip-address-dup.returns"></a><h4>Returns</h4>
+<p>a copy of <em class="parameter"><code>address</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -1165,8 +1282,8 @@ nm_ip_address_get_family (<em class="parameter"><code><a class="link" href="NMSe
 <p>Gets the IP address family (eg, AF_INET) property of this address
 object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.8.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-get-family.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1180,7 +1297,7 @@ object.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.8.6"></a><h4>Returns</h4>
+<a name="nm-ip-address-get-family.returns"></a><h4>Returns</h4>
 <p> the IP address family</p>
 </div>
 </div>
@@ -1191,8 +1308,8 @@ object.</p>
 nm_ip_address_get_address (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>);</pre>
 <p>Gets the IP address property of this address object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.9.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-get-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1206,7 +1323,7 @@ nm_ip_address_get_address (<em class="parameter"><code><a class="link" href="NMS
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.9.6"></a><h4>Returns</h4>
+<a name="nm-ip-address-get-address.returns"></a><h4>Returns</h4>
 <p> the IP address</p>
 </div>
 </div>
@@ -1222,8 +1339,8 @@ nm_ip_address_set_address (<em class="parameter"><code><a class="link" href="NMS
 's family. If you aren't sure you
 have a valid address, use <a class="link" href="libnm-nm-utils.html#nm-utils-ipaddr-valid" title="nm_utils_ipaddr_valid ()"><code class="function">nm_utils_ipaddr_valid()</code></a> to check it.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.10.6"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-set-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1249,15 +1366,15 @@ have a valid address, use <a class="link" href="libnm-nm-utils.html#nm-utils-ipa
 <a name="nm-ip-address-get-address-binary"></a><h3>nm_ip_address_get_address_binary ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_address_get_address_binary (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>,
-                                  <em class="parameter"><code><span class="type">gpointer</span> addr</code></em>);</pre>
+                                  <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> addr</code></em>);</pre>
 <p>Gets the IP address property of this address object.</p>
 <p><em class="parameter"><code>addr</code></em>
  must point to a buffer that is the correct size for <em class="parameter"><code>address</code></em>
 's family.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="id-1.4.19.11.11.7"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-get-address-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1283,15 +1400,15 @@ nm_ip_address_get_address_binary (<em class="parameter"><code><a class="link" hr
 <a name="nm-ip-address-set-address-binary"></a><h3>nm_ip_address_set_address_binary ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_address_set_address_binary (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>,
-                                  <em class="parameter"><code><span class="type">gconstpointer</span> addr</code></em>);</pre>
+                                  <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gconstpointer"><span class="type">gconstpointer</span></a> addr</code></em>);</pre>
 <p>Sets the IP address property of this address object.</p>
 <p><em class="parameter"><code>addr</code></em>
  must point to a buffer that is the correct size for <em class="parameter"><code>address</code></em>
 's family.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="id-1.4.19.11.12.7"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-set-address-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1315,13 +1432,13 @@ nm_ip_address_set_address_binary (<em class="parameter"><code><a class="link" hr
 <hr>
 <div class="refsect2">
 <a name="nm-ip-address-get-prefix"></a><h3>nm_ip_address_get_prefix ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_ip_address_get_prefix (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>);</pre>
 <p>Gets the IP address prefix (ie "24" or "30" etc) property of this address
 object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.13.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-get-prefix.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1335,7 +1452,7 @@ object.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.13.6"></a><h4>Returns</h4>
+<a name="nm-ip-address-get-prefix.returns"></a><h4>Returns</h4>
 <p> the IP address prefix</p>
 </div>
 </div>
@@ -1344,11 +1461,11 @@ object.</p>
 <a name="nm-ip-address-set-prefix"></a><h3>nm_ip_address_set_prefix ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_address_set_prefix (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>,
-                          <em class="parameter"><code><span class="type">guint</span> prefix</code></em>);</pre>
+                          <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> prefix</code></em>);</pre>
 <p>Sets the IP address prefix property of this address object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.14.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-set-prefix.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1377,8 +1494,8 @@ nm_ip_address_get_attribute_names (<em class="parameter"><code><a class="link" h
 <p>Gets an array of attribute names defined on <em class="parameter"><code>address</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.15.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-get-attribute-names.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1392,23 +1509,23 @@ nm_ip_address_get_attribute_names (<em class="parameter"><code><a class="link" h
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.15.6"></a><h4>Returns</h4>
-<p> a <code class="literal">NULL</code>-terminated array of attribute names,. </p>
+<a name="nm-ip-address-get-attribute-names.returns"></a><h4>Returns</h4>
+<p>a <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names,. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-address-get-attribute"></a><h3>nm_ip_address_get_attribute ()</h3>
-<pre class="programlisting"><span class="returnvalue">GVariant</span> *
+<pre class="programlisting"><a href="../glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
 nm_ip_address_get_attribute (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>,
                              <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
 <p>Gets the value of the attribute with name <em class="parameter"><code>name</code></em>
  on <em class="parameter"><code>address</code></em>
 </p>
 <div class="refsect3">
-<a name="id-1.4.19.11.16.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-get-attribute.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1429,11 +1546,11 @@ nm_ip_address_get_attribute (<em class="parameter"><code><a class="link" href="N
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.16.6"></a><h4>Returns</h4>
-<p> the value of the attribute with name <em class="parameter"><code>name</code></em>
+<a name="nm-ip-address-get-attribute.returns"></a><h4>Returns</h4>
+<p>the value of the attribute with name <em class="parameter"><code>name</code></em>
 on
 <em class="parameter"><code>address</code></em>
-, or <code class="literal">NULL</code> if <em class="parameter"><code>address</code></em>
+, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>address</code></em>
 has no such attribute. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -1444,12 +1561,12 @@ has no such attribute. </p>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_address_set_attribute (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>,
                              <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
-                             <em class="parameter"><code><span class="type">GVariant</span> *value</code></em>);</pre>
+                             <em class="parameter"><code><a href="../glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
 <p>Sets or clears the named attribute on <em class="parameter"><code>address</code></em>
  to the given value.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.17.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-address-set-attribute.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1468,7 +1585,7 @@ nm_ip_address_set_attribute (<em class="parameter"><code><a class="link" href="N
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p> the value. </p></td>
+<td class="parameter_description"><p>the value. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
@@ -1481,14 +1598,14 @@ nm_ip_address_set_attribute (<em class="parameter"><code><a class="link" href="N
 <pre class="programlisting"><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="returnvalue">NMIPRoute</span></a> *
 nm_ip_route_new (<em class="parameter"><code><span class="type">int</span> family</code></em>,
                  <em class="parameter"><code>const <span class="type">char</span> *dest</code></em>,
-                 <em class="parameter"><code><span class="type">guint</span> prefix</code></em>,
+                 <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> prefix</code></em>,
                  <em class="parameter"><code>const <span class="type">char</span> *next_hop</code></em>,
-                 <em class="parameter"><code><span class="type">gint64</span> metric</code></em>,
-                 <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+                 <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a> metric</code></em>,
+                 <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.18.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1513,7 +1630,7 @@ nm_ip_route_new (<em class="parameter"><code><span class="type">int</span> famil
 </tr>
 <tr>
 <td class="parameter_name"><p>next_hop</p></td>
-<td class="parameter_description"><p> the IP address of the next hop (or <code class="literal">NULL</code>). </p></td>
+<td class="parameter_description"><p>the IP address of the next hop (or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -1523,15 +1640,15 @@ nm_ip_route_new (<em class="parameter"><code><span class="type">int</span> famil
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>location to store error, or <code class="literal">NULL</code></p></td>
+<td class="parameter_description"><p>location to store error, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.18.6"></a><h4>Returns</h4>
-<p> the new <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> object, or <code class="literal">NULL</code> on error. </p>
+<a name="nm-ip-route-new.returns"></a><h4>Returns</h4>
+<p>the new <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> object, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
@@ -1540,19 +1657,19 @@ nm_ip_route_new (<em class="parameter"><code><span class="type">int</span> famil
 <a name="nm-ip-route-new-binary"></a><h3>nm_ip_route_new_binary ()</h3>
 <pre class="programlisting"><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="returnvalue">NMIPRoute</span></a> *
 nm_ip_route_new_binary (<em class="parameter"><code><span class="type">int</span> family</code></em>,
-                        <em class="parameter"><code><span class="type">gconstpointer</span> dest</code></em>,
-                        <em class="parameter"><code><span class="type">guint</span> prefix</code></em>,
-                        <em class="parameter"><code><span class="type">gconstpointer</span> next_hop</code></em>,
-                        <em class="parameter"><code><span class="type">gint64</span> metric</code></em>,
-                        <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+                        <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gconstpointer"><span class="type">gconstpointer</span></a> dest</code></em>,
+                        <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> prefix</code></em>,
+                        <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gconstpointer"><span class="type">gconstpointer</span></a> next_hop</code></em>,
+                        <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a> metric</code></em>,
+                        <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>Creates a new <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> object. <em class="parameter"><code>dest</code></em>
  and <em class="parameter"><code>next_hop</code></em>
- (if non-<code class="literal">NULL</code>) must
+ (if non-<a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) must
 point to buffers of the correct size for <em class="parameter"><code>family</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.19.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-new-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1577,7 +1694,7 @@ point to buffers of the correct size for <em class="parameter"><code>family</cod
 </tr>
 <tr>
 <td class="parameter_name"><p>next_hop</p></td>
-<td class="parameter_description"><p> the IP address of the next hop (or <code class="literal">NULL</code>). </p></td>
+<td class="parameter_description"><p>the IP address of the next hop (or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -1587,15 +1704,15 @@ point to buffers of the correct size for <em class="parameter"><code>family</cod
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>location to store error, or <code class="literal">NULL</code></p></td>
+<td class="parameter_description"><p>location to store error, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.19.6"></a><h4>Returns</h4>
-<p> the new <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> object, or <code class="literal">NULL</code> on error. </p>
+<a name="nm-ip-route-new-binary.returns"></a><h4>Returns</h4>
+<p>the new <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> object, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
@@ -1606,8 +1723,8 @@ point to buffers of the correct size for <em class="parameter"><code>family</cod
 nm_ip_route_ref (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>);</pre>
 <p>Increases the reference count of the object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.20.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-ref.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1629,8 +1746,8 @@ nm_ip_route_unref (<em class="parameter"><code><a class="link" href="NMSettingIP
 <p>Decreases the reference count of the object.  If the reference count
 reaches zero, the object will be destroyed.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.21.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-unref.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1647,14 +1764,14 @@ reaches zero, the object will be destroyed.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-route-equal"></a><h3>nm_ip_route_equal ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_ip_route_equal (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
                    <em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *other</code></em>);</pre>
 <p>Determines if two <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects contain the same destination, prefix,
 next hop, and metric. (Attributes are not compared.)</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.22.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-equal.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1676,9 +1793,54 @@ to.</p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.22.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the objects contain the same values, <code class="literal">FALSE</code> if they do not.</p>
+<a name="nm-ip-route-equal.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the objects contain the same values, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if they do not.</p>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip-route-equal-full"></a><h3>nm_ip_route_equal_full ()</h3>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+nm_ip_route_equal_full (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
+                        <em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *other</code></em>,
+                        <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> cmp_flags</code></em>);</pre>
+<p>Determines if two <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects contain the same destination, prefix,
+next hop, and metric.</p>
+<div class="refsect3">
+<a name="nm-ip-route-equal-full.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>route</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>other</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> to compare <em class="parameter"><code>route</code></em>
+to.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cmp_flags</p></td>
+<td class="parameter_description"><p>tune how to compare attributes. Currently only
+NM_IP_ROUTE_EQUAL_CMP_FLAGS_NONE (0) and NM_IP_ROUTE_EQUAL_CMP_FLAGS_WITH_ATTRS (1)
+is supported.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-ip-route-equal-full.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the objects contain the same values, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if they do not.</p>
+</div>
+<p class="since">Since: 1.10</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1688,8 +1850,8 @@ nm_ip_route_dup (<em class="parameter"><code><a class="link" href="NMSettingIPCo
 <p>Creates a copy of <em class="parameter"><code>route</code></em>
 </p>
 <div class="refsect3">
-<a name="id-1.4.19.11.23.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-dup.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1703,8 +1865,8 @@ nm_ip_route_dup (<em class="parameter"><code><a class="link" href="NMSettingIPCo
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.23.6"></a><h4>Returns</h4>
-<p> a copy of <em class="parameter"><code>route</code></em>
+<a name="nm-ip-route-dup.returns"></a><h4>Returns</h4>
+<p>a copy of <em class="parameter"><code>route</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -1717,8 +1879,8 @@ nm_ip_route_get_family (<em class="parameter"><code><a class="link" href="NMSett
 <p>Gets the IP address family (eg, AF_INET) property of this route
 object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.24.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-family.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1732,7 +1894,7 @@ object.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.24.6"></a><h4>Returns</h4>
+<a name="nm-ip-route-get-family.returns"></a><h4>Returns</h4>
 <p> the IP address family</p>
 </div>
 </div>
@@ -1743,8 +1905,8 @@ object.</p>
 nm_ip_route_get_dest (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>);</pre>
 <p>Gets the IP destination address property of this route object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.25.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-dest.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1758,7 +1920,7 @@ nm_ip_route_get_dest (<em class="parameter"><code><a class="link" href="NMSettin
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.25.6"></a><h4>Returns</h4>
+<a name="nm-ip-route-get-dest.returns"></a><h4>Returns</h4>
 <p> the IP address of the route's destination</p>
 </div>
 </div>
@@ -1774,8 +1936,8 @@ nm_ip_route_set_dest (<em class="parameter"><code><a class="link" href="NMSettin
 's family. If you aren't sure you
 have a valid address, use <a class="link" href="libnm-nm-utils.html#nm-utils-ipaddr-valid" title="nm_utils_ipaddr_valid ()"><code class="function">nm_utils_ipaddr_valid()</code></a> to check it.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.26.6"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-set-dest.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1801,15 +1963,15 @@ have a valid address, use <a class="link" href="libnm-nm-utils.html#nm-utils-ipa
 <a name="nm-ip-route-get-dest-binary"></a><h3>nm_ip_route_get_dest_binary ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_route_get_dest_binary (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
-                             <em class="parameter"><code><span class="type">gpointer</span> dest</code></em>);</pre>
+                             <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dest</code></em>);</pre>
 <p>Gets the destination property of this route object.</p>
 <p><em class="parameter"><code>dest</code></em>
  must point to a buffer that is the correct size for <em class="parameter"><code>route</code></em>
 's family.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="id-1.4.19.11.27.7"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-dest-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1835,15 +1997,15 @@ nm_ip_route_get_dest_binary (<em class="parameter"><code><a class="link" href="N
 <a name="nm-ip-route-set-dest-binary"></a><h3>nm_ip_route_set_dest_binary ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_route_set_dest_binary (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
-                             <em class="parameter"><code><span class="type">gconstpointer</span> dest</code></em>);</pre>
+                             <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gconstpointer"><span class="type">gconstpointer</span></a> dest</code></em>);</pre>
 <p>Sets the destination property of this route object.</p>
 <p><em class="parameter"><code>dest</code></em>
  must point to a buffer that is the correct size for <em class="parameter"><code>route</code></em>
 's family.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="id-1.4.19.11.28.7"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-set-dest-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1867,12 +2029,12 @@ nm_ip_route_set_dest_binary (<em class="parameter"><code><a class="link" href="N
 <hr>
 <div class="refsect2">
 <a name="nm-ip-route-get-prefix"></a><h3>nm_ip_route_get_prefix ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_ip_route_get_prefix (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>);</pre>
 <p>Gets the IP prefix (ie "24" or "30" etc) of this route.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.29.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-prefix.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1886,7 +2048,7 @@ nm_ip_route_get_prefix (<em class="parameter"><code><a class="link" href="NMSett
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.29.6"></a><h4>Returns</h4>
+<a name="nm-ip-route-get-prefix.returns"></a><h4>Returns</h4>
 <p> the IP prefix</p>
 </div>
 </div>
@@ -1895,11 +2057,11 @@ nm_ip_route_get_prefix (<em class="parameter"><code><a class="link" href="NMSett
 <a name="nm-ip-route-set-prefix"></a><h3>nm_ip_route_set_prefix ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_route_set_prefix (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
-                        <em class="parameter"><code><span class="type">guint</span> prefix</code></em>);</pre>
+                        <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> prefix</code></em>);</pre>
 <p>Sets the prefix property of this route object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.30.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-set-prefix.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1925,11 +2087,11 @@ nm_ip_route_set_prefix (<em class="parameter"><code><a class="link" href="NMSett
 <a name="nm-ip-route-get-next-hop"></a><h3>nm_ip_route_get_next_hop ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_ip_route_get_next_hop (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>);</pre>
-<p>Gets the IP address of the next hop of this route; this will be <code class="literal">NULL</code> if the
+<p>Gets the IP address of the next hop of this route; this will be <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the
 route has no next hop.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.31.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-next-hop.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1943,8 +2105,8 @@ route has no next hop.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.31.6"></a><h4>Returns</h4>
-<p> the IP address of the next hop, or <code class="literal">NULL</code> if this is a device route.</p>
+<a name="nm-ip-route-get-next-hop.returns"></a><h4>Returns</h4>
+<p> the IP address of the next hop, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if this is a device route.</p>
 </div>
 </div>
 <hr>
@@ -1955,13 +2117,13 @@ nm_ip_route_set_next_hop (<em class="parameter"><code><a class="link" href="NMSe
                           <em class="parameter"><code>const <span class="type">char</span> *next_hop</code></em>);</pre>
 <p>Sets the next-hop property of this route object.</p>
 <p><em class="parameter"><code>next_hop</code></em>
- (if non-<code class="literal">NULL</code>) must be a valid address of <em class="parameter"><code>route</code></em>
+ (if non-<a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) must be a valid address of <em class="parameter"><code>route</code></em>
 's family. If you
 aren't sure you have a valid address, use <a class="link" href="libnm-nm-utils.html#nm-utils-ipaddr-valid" title="nm_utils_ipaddr_valid ()"><code class="function">nm_utils_ipaddr_valid()</code></a> to check
 it.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.32.6"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-set-next-hop.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -1975,7 +2137,7 @@ it.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>next_hop</p></td>
-<td class="parameter_description"><p> the route's next hop, as a string. </p></td>
+<td class="parameter_description"><p>the route's next hop, as a string. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
@@ -1985,17 +2147,17 @@ it.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-route-get-next-hop-binary"></a><h3>nm_ip_route_get_next_hop_binary ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_ip_route_get_next_hop_binary (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
-                                 <em class="parameter"><code><span class="type">gpointer</span> next_hop</code></em>);</pre>
+                                 <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> next_hop</code></em>);</pre>
 <p>Gets the next hop property of this route object.</p>
 <p><em class="parameter"><code>next_hop</code></em>
  must point to a buffer that is the correct size for <em class="parameter"><code>route</code></em>
 's family.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="id-1.4.19.11.33.7"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-next-hop-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2016,9 +2178,9 @@ nm_ip_route_get_next_hop_binary (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.33.8"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if <em class="parameter"><code>route</code></em>
-has a next hop, <code class="literal">FALSE</code> if not (in which case
+<a name="nm-ip-route-get-next-hop-binary.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>route</code></em>
+has a next hop, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not (in which case
 <em class="parameter"><code>next_hop</code></em>
 will be zeroed out)</p>
 </div>
@@ -2028,16 +2190,16 @@ will be zeroed out)</p>
 <a name="nm-ip-route-set-next-hop-binary"></a><h3>nm_ip_route_set_next_hop_binary ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_route_set_next_hop_binary (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
-                                 <em class="parameter"><code><span class="type">gconstpointer</span> next_hop</code></em>);</pre>
+                                 <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gconstpointer"><span class="type">gconstpointer</span></a> next_hop</code></em>);</pre>
 <p>Sets the destination property of this route object.</p>
 <p><em class="parameter"><code>next_hop</code></em>
- (if non-<code class="literal">NULL</code>) must point to a buffer that is the correct size for
+ (if non-<a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) must point to a buffer that is the correct size for
 <em class="parameter"><code>route</code></em>
 's family.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="id-1.4.19.11.34.7"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-set-next-hop-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2061,14 +2223,14 @@ nm_ip_route_set_next_hop_binary (<em class="parameter"><code><a class="link" hre
 <hr>
 <div class="refsect2">
 <a name="nm-ip-route-get-metric"></a><h3>nm_ip_route_get_metric ()</h3>
-<pre class="programlisting"><span class="returnvalue">gint64</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 nm_ip_route_get_metric (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>);</pre>
 <p>Gets the route metric property of this route object; lower values
 indicate "better" or more preferred routes; -1 indicates "default"
 (meaning NetworkManager will set it appropriately).</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.35.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-metric.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2082,7 +2244,7 @@ indicate "better" or more preferred routes; -1 indicates "default"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.35.6"></a><h4>Returns</h4>
+<a name="nm-ip-route-get-metric.returns"></a><h4>Returns</h4>
 <p> the route metric</p>
 </div>
 </div>
@@ -2091,11 +2253,11 @@ indicate "better" or more preferred routes; -1 indicates "default"
 <a name="nm-ip-route-set-metric"></a><h3>nm_ip_route_set_metric ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_route_set_metric (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
-                        <em class="parameter"><code><span class="type">gint64</span> metric</code></em>);</pre>
+                        <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a> metric</code></em>);</pre>
 <p>Sets the metric property of this route object.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.36.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-set-metric.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2124,8 +2286,8 @@ nm_ip_route_get_attribute_names (<em class="parameter"><code><a class="link" hre
 <p>Gets an array of attribute names defined on <em class="parameter"><code>route</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.37.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-attribute-names.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2139,23 +2301,23 @@ nm_ip_route_get_attribute_names (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.37.6"></a><h4>Returns</h4>
-<p> a <code class="literal">NULL</code>-terminated array of attribute names. </p>
+<a name="nm-ip-route-get-attribute-names.returns"></a><h4>Returns</h4>
+<p>a <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-route-get-attribute"></a><h3>nm_ip_route_get_attribute ()</h3>
-<pre class="programlisting"><span class="returnvalue">GVariant</span> *
+<pre class="programlisting"><a href="../glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
 nm_ip_route_get_attribute (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
                            <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
 <p>Gets the value of the attribute with name <em class="parameter"><code>name</code></em>
  on <em class="parameter"><code>route</code></em>
 </p>
 <div class="refsect3">
-<a name="id-1.4.19.11.38.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-get-attribute.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2176,11 +2338,11 @@ nm_ip_route_get_attribute (<em class="parameter"><code><a class="link" href="NMS
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.38.6"></a><h4>Returns</h4>
-<p> the value of the attribute with name <em class="parameter"><code>name</code></em>
+<a name="nm-ip-route-get-attribute.returns"></a><h4>Returns</h4>
+<p>the value of the attribute with name <em class="parameter"><code>name</code></em>
 on
 <em class="parameter"><code>route</code></em>
-, or <code class="literal">NULL</code> if <em class="parameter"><code>route</code></em>
+, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>route</code></em>
 has no such attribute. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -2191,12 +2353,12 @@ has no such attribute. </p>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_route_set_attribute (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>,
                            <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
-                           <em class="parameter"><code><span class="type">GVariant</span> *value</code></em>);</pre>
+                           <em class="parameter"><code><a href="../glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
 <p>Sets the named attribute on <em class="parameter"><code>route</code></em>
  to the given value.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.39.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-ip-route-set-attribute.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2215,7 +2377,7 @@ nm_ip_route_set_attribute (<em class="parameter"><code><a class="link" href="NMS
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p> the value. </p></td>
+<td class="parameter_description"><p>the value. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
@@ -2224,12 +2386,78 @@ nm_ip_route_set_attribute (<em class="parameter"><code><a class="link" href="NMS
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-ip-route-get-variant-attribute-spec"></a><h3>nm_ip_route_get_variant_attribute_spec ()</h3>
+<pre class="programlisting">const <a class="link" href="libnm-nm-utils.html#NMVariantAttributeSpec" title="NMVariantAttributeSpec"><span class="returnvalue">NMVariantAttributeSpec</span></a> *const *
+nm_ip_route_get_variant_attribute_spec
+                               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="refsect3">
+<a name="nm-ip-route-get-variant-attribute-spec.returns"></a><h4>Returns</h4>
+<p> the specifiers for route attributes</p>
+</div>
+<p class="since">Since: 1.8</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip-route-attribute-validate"></a><h3>nm_ip_route_attribute_validate ()</h3>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+nm_ip_route_attribute_validate (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                                <em class="parameter"><code><a href="../glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>,
+                                <em class="parameter"><code><span class="type">int</span> family</code></em>,
+                                <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *known</code></em>,
+                                <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>Validates a route attribute, i.e. checks that the attribute is a known one
+and the value is of the correct type and well-formed.</p>
+<div class="refsect3">
+<a name="nm-ip-route-attribute-validate.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the attribute name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>value</p></td>
+<td class="parameter_description"><p>the attribute value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>family</p></td>
+<td class="parameter_description"><p>IP address family of the route</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>known</p></td>
+<td class="parameter_description"><p>on return, whether the attribute name is a known one. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for a <a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-ip-route-attribute-validate.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the attribute is valid, <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</p>
+</div>
+<p class="since">Since: 1.8</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-ip-config-get-method"></a><h3>nm_setting_ip_config_get_method ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_config_get_method (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.40.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-method.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2243,7 +2471,7 @@ nm_setting_ip_config_get_method (<em class="parameter"><code><a class="link" hre
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.40.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-method.returns"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--method" title="The “method” property"><span class="type">“method”</span></a> property of the setting; see
 <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> and <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> for details of the
 methods available with each type.</p>
@@ -2252,11 +2480,11 @@ methods available with each type.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-num-dns"></a><h3>nm_setting_ip_config_get_num_dns ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_config_get_num_dns (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.41.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-num-dns.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2270,7 +2498,7 @@ nm_setting_ip_config_get_num_dns (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.41.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-num-dns.returns"></a><h4>Returns</h4>
 <p> the number of configured DNS servers</p>
 </div>
 </div>
@@ -2281,8 +2509,8 @@ nm_setting_ip_config_get_num_dns (<em class="parameter"><code><a class="link" hr
 nm_setting_ip_config_get_dns (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                               <em class="parameter"><code><span class="type">int</span> idx</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.42.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-dns.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2303,7 +2531,7 @@ nm_setting_ip_config_get_dns (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.42.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-dns.returns"></a><h4>Returns</h4>
 <p> the IP address of the DNS server at index <em class="parameter"><code>idx</code></em>
 </p>
 </div>
@@ -2311,13 +2539,13 @@ nm_setting_ip_config_get_dns (<em class="parameter"><code><a class="link" href="
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-add-dns"></a><h3>nm_setting_ip_config_add_dns ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_add_dns (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                               <em class="parameter"><code>const <span class="type">char</span> *dns</code></em>);</pre>
 <p>Adds a new DNS server to the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.43.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-add-dns.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2338,8 +2566,8 @@ nm_setting_ip_config_add_dns (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.43.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the DNS server was added; <code class="literal">FALSE</code> if the server was already
+<a name="nm-setting-ip-config-add-dns.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the DNS server was added; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the server was already
 known</p>
 </div>
 </div>
@@ -2352,8 +2580,8 @@ nm_setting_ip_config_remove_dns (<em class="parameter"><code><a class="link" hre
 <p>Removes the DNS server at index <em class="parameter"><code>idx</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.44.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-dns.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2377,15 +2605,15 @@ nm_setting_ip_config_remove_dns (<em class="parameter"><code><a class="link" hre
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-remove-dns-by-value"></a><h3>nm_setting_ip_config_remove_dns_by_value ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_remove_dns_by_value
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> *dns</code></em>);</pre>
 <p>Removes the DNS server <em class="parameter"><code>dns</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.45.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-dns-by-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2406,8 +2634,8 @@ nm_setting_ip_config_remove_dns_by_value
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.45.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the DNS server was found and removed; <code class="literal">FALSE</code> if it was not.</p>
+<a name="nm-setting-ip-config-remove-dns-by-value.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the DNS server was found and removed; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</p>
 </div>
 </div>
 <hr>
@@ -2417,8 +2645,8 @@ nm_setting_ip_config_remove_dns_by_value
 nm_setting_ip_config_clear_dns (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Removes all configured DNS servers.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.46.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-clear-dns.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2435,12 +2663,12 @@ nm_setting_ip_config_clear_dns (<em class="parameter"><code><a class="link" href
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-num-dns-searches"></a><h3>nm_setting_ip_config_get_num_dns_searches ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_config_get_num_dns_searches
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.47.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-num-dns-searches.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2454,7 +2682,7 @@ nm_setting_ip_config_get_num_dns_searches
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.47.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-num-dns-searches.returns"></a><h4>Returns</h4>
 <p> the number of configured DNS search domains</p>
 </div>
 </div>
@@ -2465,8 +2693,8 @@ nm_setting_ip_config_get_num_dns_searches
 nm_setting_ip_config_get_dns_search (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                      <em class="parameter"><code><span class="type">int</span> idx</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.48.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-dns-search.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2487,7 +2715,7 @@ nm_setting_ip_config_get_dns_search (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.48.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-dns-search.returns"></a><h4>Returns</h4>
 <p> the DNS search domain at index <em class="parameter"><code>idx</code></em>
 </p>
 </div>
@@ -2495,13 +2723,13 @@ nm_setting_ip_config_get_dns_search (<em class="parameter"><code><a class="link"
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-add-dns-search"></a><h3>nm_setting_ip_config_add_dns_search ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_add_dns_search (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                      <em class="parameter"><code>const <span class="type">char</span> *dns_search</code></em>);</pre>
 <p>Adds a new DNS search domain to the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.49.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-add-dns-search.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2522,8 +2750,8 @@ nm_setting_ip_config_add_dns_search (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.49.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the DNS search domain was added; <code class="literal">FALSE</code> if the search
+<a name="nm-setting-ip-config-add-dns-search.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the DNS search domain was added; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the search
 domain was already known</p>
 </div>
 </div>
@@ -2537,8 +2765,8 @@ nm_setting_ip_config_remove_dns_search
 <p>Removes the DNS search domain at index <em class="parameter"><code>idx</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.50.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-dns-search.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2562,15 +2790,15 @@ nm_setting_ip_config_remove_dns_search
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-remove-dns-search-by-value"></a><h3>nm_setting_ip_config_remove_dns_search_by_value ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_remove_dns_search_by_value
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> *dns_search</code></em>);</pre>
 <p>Removes the DNS search domain <em class="parameter"><code>dns_search</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.51.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-dns-search-by-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2591,8 +2819,8 @@ nm_setting_ip_config_remove_dns_search_by_value
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.51.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the DNS search domain was found and removed; <code class="literal">FALSE</code> if it was not.</p>
+<a name="nm-setting-ip-config-remove-dns-search-by-value.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the DNS search domain was found and removed; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</p>
 <p>Since 0.9.10</p>
 </div>
 </div>
@@ -2604,8 +2832,8 @@ nm_setting_ip_config_clear_dns_searches
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Removes all configured DNS search domains.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.52.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-clear-dns-searches.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2622,12 +2850,12 @@ nm_setting_ip_config_clear_dns_searches
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-num-dns-options"></a><h3>nm_setting_ip_config_get_num_dns_options ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_config_get_num_dns_options
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.53.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-num-dns-options.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2641,7 +2869,7 @@ nm_setting_ip_config_get_num_dns_options
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.53.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-num-dns-options.returns"></a><h4>Returns</h4>
 <p> the number of configured DNS options</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -2649,7 +2877,7 @@ nm_setting_ip_config_get_num_dns_options
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-has-dns-options"></a><h3>nm_setting_ip_config_has_dns_options ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_has_dns_options (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>NMSettingIPConfig can have a list of dns-options. If the list
 is empty, there are two similar (but differentiated) states.
@@ -2657,8 +2885,8 @@ Either the options are explicitly set to have no values,
 or the options are left undefined. The latter means to use
 a default configuration, while the former explicitly means "no-options".</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.54.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-has-dns-options.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2672,8 +2900,8 @@ a default configuration, while the former explicitly means "no-options".</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.54.6"></a><h4>Returns</h4>
-<p> whether DNS options are initalized or left unset (the default).</p>
+<a name="nm-setting-ip-config-has-dns-options.returns"></a><h4>Returns</h4>
+<p> whether DNS options are initialized or left unset (the default).</p>
 </div>
 </div>
 <hr>
@@ -2681,10 +2909,10 @@ a default configuration, while the former explicitly means "no-options".</p>
 <a name="nm-setting-ip-config-get-dns-option"></a><h3>nm_setting_ip_config_get_dns_option ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_config_get_dns_option (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
-                                     <em class="parameter"><code><span class="type">guint</span> idx</code></em>);</pre>
+                                     <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> idx</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.55.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-dns-option.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2705,7 +2933,7 @@ nm_setting_ip_config_get_dns_option (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.55.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-dns-option.returns"></a><h4>Returns</h4>
 <p> the DNS option at index <em class="parameter"><code>idx</code></em>
 </p>
 </div>
@@ -2714,13 +2942,13 @@ nm_setting_ip_config_get_dns_option (<em class="parameter"><code><a class="link"
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-next-valid-dns-option"></a><h3>nm_setting_ip_config_next_valid_dns_option ()</h3>
-<pre class="programlisting"><span class="returnvalue">gint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
 nm_setting_ip_config_next_valid_dns_option
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
-                                <em class="parameter"><code><span class="type">guint</span> idx</code></em>);</pre>
+                                <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> idx</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.56.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-next-valid-dns-option.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2741,7 +2969,7 @@ nm_setting_ip_config_next_valid_dns_option
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.56.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-next-valid-dns-option.returns"></a><h4>Returns</h4>
 <p> the index, greater or equal than <em class="parameter"><code>idx</code></em>
 , of the first valid
 DNS option, or -1 if no valid option is found</p>
@@ -2751,13 +2979,13 @@ DNS option, or -1 if no valid option is found</p>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-add-dns-option"></a><h3>nm_setting_ip_config_add_dns_option ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_add_dns_option (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                      <em class="parameter"><code>const <span class="type">char</span> *dns_option</code></em>);</pre>
 <p>Adds a new DNS option to the setting.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.57.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-add-dns-option.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2778,8 +3006,8 @@ nm_setting_ip_config_add_dns_option (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.57.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the DNS option was added; <code class="literal">FALSE</code> otherwise</p>
+<a name="nm-setting-ip-config-add-dns-option.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the DNS option was added; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2793,8 +3021,8 @@ nm_setting_ip_config_remove_dns_option
 <p>Removes the DNS option at index <em class="parameter"><code>idx</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.58.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-dns-option.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2819,15 +3047,15 @@ nm_setting_ip_config_remove_dns_option
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-remove-dns-option-by-value"></a><h3>nm_setting_ip_config_remove_dns_option_by_value ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_remove_dns_option_by_value
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> *dns_option</code></em>);</pre>
 <p>Removes the DNS option <em class="parameter"><code>dns_option</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.59.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-dns-option-by-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2848,8 +3076,8 @@ nm_setting_ip_config_remove_dns_option_by_value
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.59.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the DNS option was found and removed; <code class="literal">FALSE</code> if it was not.</p>
+<a name="nm-setting-ip-config-remove-dns-option-by-value.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the DNS option was found and removed; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2859,11 +3087,11 @@ nm_setting_ip_config_remove_dns_option_by_value
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_setting_ip_config_clear_dns_options
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
-                                <em class="parameter"><code><span class="type">gboolean</span> is_set</code></em>);</pre>
+                                <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> is_set</code></em>);</pre>
 <p>Removes all configured DNS options.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.60.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-clear-dns-options.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2888,13 +3116,12 @@ Specify how to clear the options.</p></td>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-setting-ip-config-get-num-addresses"></a><h3>nm_setting_ip_config_get_num_addresses ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
-nm_setting_ip_config_get_num_addresses
-                               (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
+<a name="nm-setting-ip-config-get-dns-priority"></a><h3>nm_setting_ip_config_get_dns_priority ()</h3>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
+nm_setting_ip_config_get_dns_priority (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.61.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-dns-priority.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2908,7 +3135,34 @@ nm_setting_ip_config_get_num_addresses
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.61.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-dns-priority.returns"></a><h4>Returns</h4>
+<p> the priority of DNS servers</p>
+</div>
+<p class="since">Since: 1.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-config-get-num-addresses"></a><h3>nm_setting_ip_config_get_num_addresses ()</h3>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
+nm_setting_ip_config_get_num_addresses
+                               (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-num-addresses.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-num-addresses.returns"></a><h4>Returns</h4>
 <p> the number of configured addresses</p>
 </div>
 </div>
@@ -2919,8 +3173,8 @@ nm_setting_ip_config_get_num_addresses
 nm_setting_ip_config_get_address (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                   <em class="parameter"><code><span class="type">int</span> idx</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.62.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2941,8 +3195,8 @@ nm_setting_ip_config_get_address (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.62.5"></a><h4>Returns</h4>
-<p> the address at index <em class="parameter"><code>idx</code></em>
+<a name="nm-setting-ip-config-get-address.returns"></a><h4>Returns</h4>
+<p>the address at index <em class="parameter"><code>idx</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -2950,14 +3204,14 @@ nm_setting_ip_config_get_address (<em class="parameter"><code><a class="link" hr
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-add-address"></a><h3>nm_setting_ip_config_add_address ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_add_address (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                   <em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>);</pre>
 <p>Adds a new IP address and associated information to the setting.  The
 given address is duplicated internally and is not changed by this function.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.63.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-add-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -2978,8 +3232,8 @@ given address is duplicated internally and is not changed by this function.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.63.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the address was added; <code class="literal">FALSE</code> if the address was already
+<a name="nm-setting-ip-config-add-address.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the address was added; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the address was already
 known.</p>
 </div>
 </div>
@@ -2992,8 +3246,8 @@ nm_setting_ip_config_remove_address (<em class="parameter"><code><a class="link"
 <p>Removes the address at index <em class="parameter"><code>idx</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.64.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-address.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3017,15 +3271,15 @@ nm_setting_ip_config_remove_address (<em class="parameter"><code><a class="link"
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-remove-address-by-value"></a><h3>nm_setting_ip_config_remove_address_by_value ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_remove_address_by_value
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                 <em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *address</code></em>);</pre>
 <p>Removes the address <em class="parameter"><code>address</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.65.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-address-by-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3046,8 +3300,8 @@ nm_setting_ip_config_remove_address_by_value
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.65.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the address was found and removed; <code class="literal">FALSE</code> if it was not.</p>
+<a name="nm-setting-ip-config-remove-address-by-value.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the address was found and removed; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</p>
 </div>
 </div>
 <hr>
@@ -3057,8 +3311,8 @@ nm_setting_ip_config_remove_address_by_value
 nm_setting_ip_config_clear_addresses (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Removes all configured addresses.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.66.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-clear-addresses.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3078,8 +3332,8 @@ nm_setting_ip_config_clear_addresses (<em class="parameter"><code><a class="link
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_config_get_gateway (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.67.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-gateway.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3093,19 +3347,19 @@ nm_setting_ip_config_get_gateway (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.67.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-gateway.returns"></a><h4>Returns</h4>
 <p> the IP address of the gateway associated with this configuration, or
-<code class="literal">NULL</code>.</p>
+<a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-num-routes"></a><h3>nm_setting_ip_config_get_num_routes ()</h3>
-<pre class="programlisting"><span class="returnvalue">guint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_config_get_num_routes (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.68.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-num-routes.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3119,7 +3373,7 @@ nm_setting_ip_config_get_num_routes (<em class="parameter"><code><a class="link"
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.68.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-num-routes.returns"></a><h4>Returns</h4>
 <p> the number of configured routes</p>
 </div>
 </div>
@@ -3130,8 +3384,8 @@ nm_setting_ip_config_get_num_routes (<em class="parameter"><code><a class="link"
 nm_setting_ip_config_get_route (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                 <em class="parameter"><code><span class="type">int</span> idx</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.69.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-route.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3152,8 +3406,8 @@ nm_setting_ip_config_get_route (<em class="parameter"><code><a class="link" href
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.69.5"></a><h4>Returns</h4>
-<p> the route at index <em class="parameter"><code>idx</code></em>
+<a name="nm-setting-ip-config-get-route.returns"></a><h4>Returns</h4>
+<p>the route at index <em class="parameter"><code>idx</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -3161,14 +3415,19 @@ nm_setting_ip_config_get_route (<em class="parameter"><code><a class="link" href
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-add-route"></a><h3>nm_setting_ip_config_add_route ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_add_route (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                 <em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>);</pre>
-<p>Adds a new route and associated information to the setting.  The
-given route is duplicated internally and is not changed by this function.</p>
+<p>Appends a new route and associated information to the setting.  The
+given route is duplicated internally and is not changed by this function.
+If an identical route (considering attributes as well) already exists, the
+route is not added and the function returns <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.</p>
+<p>Note that before 1.10, this function would not consider route attributes
+and not add a route that has an existing route with same dest/prefix,next_hop,metric
+parameters.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.70.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-add-route.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3189,8 +3448,8 @@ given route is duplicated internally and is not changed by this function.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.70.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the route was added; <code class="literal">FALSE</code> if the route was already known.</p>
+<a name="nm-setting-ip-config-add-route.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the route was added; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the route was already known.</p>
 </div>
 </div>
 <hr>
@@ -3202,8 +3461,8 @@ nm_setting_ip_config_remove_route (<em class="parameter"><code><a class="link" h
 <p>Removes the route at index <em class="parameter"><code>idx</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.71.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-route.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3227,15 +3486,18 @@ nm_setting_ip_config_remove_route (<em class="parameter"><code><a class="link" h
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-remove-route-by-value"></a><h3>nm_setting_ip_config_remove_route_by_value ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_remove_route_by_value
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>,
                                 <em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> *route</code></em>);</pre>
-<p>Removes the route <em class="parameter"><code>route</code></em>
-.</p>
+<p>Removes the first matching route that matches <em class="parameter"><code>route</code></em>
+.
+Note that before 1.10, this function would only compare dest/prefix,next_hop,metric
+and ignore route attributes. Now, <em class="parameter"><code>route</code></em>
+ must match exactly.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.72.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-remove-route-by-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3256,8 +3518,8 @@ nm_setting_ip_config_remove_route_by_value
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.72.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if the route was found and removed; <code class="literal">FALSE</code> if it was not.</p>
+<a name="nm-setting-ip-config-remove-route-by-value.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the route was found and removed; <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</p>
 </div>
 </div>
 <hr>
@@ -3267,8 +3529,8 @@ nm_setting_ip_config_remove_route_by_value
 nm_setting_ip_config_clear_routes (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Removes all configured routes.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.73.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-clear-routes.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3285,13 +3547,13 @@ nm_setting_ip_config_clear_routes (<em class="parameter"><code><a class="link" h
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-route-metric"></a><h3>nm_setting_ip_config_get_route_metric ()</h3>
-<pre class="programlisting"><span class="returnvalue">gint64</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 nm_setting_ip_config_get_route_metric (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--route-metric" title="The “route-metric” property"><span class="type">“route-metric”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.74.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-route-metric.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3305,22 +3567,21 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.74.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-route-metric.returns"></a><h4>Returns</h4>
 <p> the route metric that is used for routes that don't explicitly
 specify a metric. See <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--route-metric" title="The “route-metric” property"><span class="type">“route-metric”</span></a> for more details.</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-setting-ip-config-get-ignore-auto-routes"></a><h3>nm_setting_ip_config_get_ignore_auto_routes ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
-nm_setting_ip_config_get_ignore_auto_routes
-                               (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-routes" title="The “ignore-auto-routes” property"><span class="type">“ignore-auto-routes”</span></a>
+<a name="nm-setting-ip-config-get-route-table"></a><h3>nm_setting_ip_config_get_route_table ()</h3>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
+nm_setting_ip_config_get_route_table (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
+<p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--route-table" title="The “route-table” property"><span class="type">“route-table”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.75.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-route-table.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3334,22 +3595,51 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.75.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if automatically configured (ie via DHCP) routes should be
+<a name="nm-setting-ip-config-get-route-table.returns"></a><h4>Returns</h4>
+<p> the configured route-table.</p>
+</div>
+<p class="since">Since: 1.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-config-get-ignore-auto-routes"></a><h3>nm_setting_ip_config_get_ignore_auto_routes ()</h3>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+nm_setting_ip_config_get_ignore_auto_routes
+                               (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
+<p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-routes" title="The “ignore-auto-routes” property"><span class="type">“ignore-auto-routes”</span></a>
+property.</p>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-ignore-auto-routes.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-ignore-auto-routes.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if automatically configured (ie via DHCP) routes should be
 ignored.</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-ignore-auto-dns"></a><h3>nm_setting_ip_config_get_ignore_auto_dns ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_ignore_auto_dns
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-dns" title="The “ignore-auto-dns” property"><span class="type">“ignore-auto-dns”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.76.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-ignore-auto-dns.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3363,8 +3653,8 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.76.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if automatically configured (ie via DHCP) DNS information
+<a name="nm-setting-ip-config-get-ignore-auto-dns.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if automatically configured (ie via DHCP) DNS information
 should be ignored.</p>
 </div>
 </div>
@@ -3377,8 +3667,8 @@ nm_setting_ip_config_get_dhcp_hostname
 <p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname" title="The “dhcp-hostname” property"><span class="type">“dhcp-hostname”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.77.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-dhcp-hostname.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3392,21 +3682,21 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.77.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-dhcp-hostname.returns"></a><h4>Returns</h4>
 <p> the configured hostname to send to the DHCP server</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-dhcp-send-hostname"></a><h3>nm_setting_ip_config_get_dhcp_send_hostname ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_dhcp_send_hostname
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname" title="The “dhcp-send-hostname” property"><span class="type">“dhcp-send-hostname”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.78.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-dhcp-send-hostname.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3420,8 +3710,8 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.78.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if NetworkManager should send the machine hostname to the
+<a name="nm-setting-ip-config-get-dhcp-send-hostname.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if NetworkManager should send the machine hostname to the
 DHCP server when requesting addresses to allow the server to automatically
 update DNS information for this machine.</p>
 </div>
@@ -3429,14 +3719,14 @@ update DNS information for this machine.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-never-default"></a><h3>nm_setting_ip_config_get_never_default ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_never_default
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--never-default" title="The “never-default” property"><span class="type">“never-default”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.79.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-never-default.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3450,21 +3740,21 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.79.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if this connection should never be the default
+<a name="nm-setting-ip-config-get-never-default.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if this connection should never be the default
 connection</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-may-fail"></a><h3>nm_setting_ip_config_get_may_fail ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_may_fail (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--may-fail" title="The “may-fail” property"><span class="type">“may-fail”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.80.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-may-fail.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3478,19 +3768,19 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.80.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if this connection doesn't require this type of IP
+<a name="nm-setting-ip-config-get-may-fail.returns"></a><h4>Returns</h4>
+<p> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if this connection doesn't require this type of IP
 addressing to complete for the connection to succeed.</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-dad-timeout"></a><h3>nm_setting_ip_config_get_dad_timeout ()</h3>
-<pre class="programlisting"><span class="returnvalue">gint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
 nm_setting_ip_config_get_dad_timeout (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.4.19.11.81.4"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-dad-timeout.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3504,7 +3794,7 @@ nm_setting_ip_config_get_dad_timeout (<em class="parameter"><code><a class="link
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.81.5"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-dad-timeout.returns"></a><h4>Returns</h4>
 <p> the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dad-timeout" title="The “dad-timeout” property"><span class="type">“dad-timeout”</span></a> property.</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -3512,13 +3802,13 @@ nm_setting_ip_config_get_dad_timeout (<em class="parameter"><code><a class="link
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-dhcp-timeout"></a><h3>nm_setting_ip_config_get_dhcp_timeout ()</h3>
-<pre class="programlisting"><span class="returnvalue">gint</span>
+<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
 nm_setting_ip_config_get_dhcp_timeout (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
 <p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-timeout" title="The “dhcp-timeout” property"><span class="type">“dhcp-timeout”</span></a>
 property.</p>
 <div class="refsect3">
-<a name="id-1.4.19.11.82.5"></a><h4>Parameters</h4>
-<div class="informaltable"><table width="100%" border="0">
+<a name="nm-setting-ip-config-get-dhcp-timeout.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
 <col class="parameters_description">
@@ -3532,7 +3822,7 @@ property.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.19.11.82.6"></a><h4>Returns</h4>
+<a name="nm-setting-ip-config-get-dhcp-timeout.returns"></a><h4>Returns</h4>
 <p> the configured DHCP timeout in seconds. 0 = default for
 the particular kind of device.</p>
 </div>
@@ -3541,6 +3831,96 @@ the particular kind of device.</p>
 </div>
 <div class="refsect1">
 <a name="NMSettingIPConfig.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-TABLE:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_TABLE</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_TABLE          "table"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-SRC:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_SRC</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_SRC            "src"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-FROM:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_FROM</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_FROM           "from"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-TOS:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_TOS</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_TOS            "tos"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-ONLINK:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_ONLINK</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_ONLINK         "onlink"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-WINDOW:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_WINDOW</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_WINDOW         "window"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-CWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_CWND</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_CWND           "cwnd"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-INITCWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_INITCWND</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_INITCWND       "initcwnd"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-INITRWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_INITRWND</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_INITRWND       "initrwnd"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-MTU:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_MTU</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_MTU            "mtu"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-LOCK-WINDOW:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW    "lock-window"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-LOCK-CWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND      "lock-cwnd"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-LOCK-INITCWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND  "lock-initcwnd"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-LOCK-INITRWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND  "lock-initrwnd"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-LOCK-MTU:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU       "lock-mtu"
+</pre>
+</div>
+<hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DAD-TIMEOUT-MAX:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DAD_TIMEOUT_MAX</h3>
 <pre class="programlisting">#define NM_SETTING_IP_CONFIG_DAD_TIMEOUT_MAX     30000
@@ -3572,6 +3952,12 @@ the particular kind of device.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-SETTING-IP-CONFIG-DNS-PRIORITY:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DNS_PRIORITY</h3>
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS_PRIORITY       "dns-priority"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-ADDRESSES:CAPS"></a><h3>NM_SETTING_IP_CONFIG_ADDRESSES</h3>
 <pre class="programlisting">#define NM_SETTING_IP_CONFIG_ADDRESSES          "addresses"
 </pre>
@@ -3592,6 +3978,12 @@ the particular kind of device.</p>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-ROUTE-METRIC:CAPS"></a><h3>NM_SETTING_IP_CONFIG_ROUTE_METRIC</h3>
 <pre class="programlisting">#define NM_SETTING_IP_CONFIG_ROUTE_METRIC       "route-metric"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-CONFIG-ROUTE-TABLE:CAPS"></a><h3>NM_SETTING_IP_CONFIG_ROUTE_TABLE</h3>
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ROUTE_TABLE        "route-table"
 </pre>
 </div>
 <hr>
@@ -3742,7 +4134,7 @@ the particular kind of device.</p>
 <a name="NMSettingIPConfig.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingIPConfig--addresses"></a><h3>The <code class="literal">“addresses”</code> property</h3>
-<pre class="programlisting">  “addresses”                <span class="type">GPtrArray</span> *</pre>
+<pre class="programlisting">  “addresses”                <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
 <p>Array of IP addresses.</p>
 <p>Element-Type: NMIPAddress</p>
 <p>Flags: Read / Write</p>
@@ -3750,7 +4142,7 @@ the particular kind of device.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--dad-timeout"></a><h3>The <code class="literal">“dad-timeout”</code> property</h3>
-<pre class="programlisting">  “dad-timeout”              <span class="type">gint</span></pre>
+<pre class="programlisting">  “dad-timeout”              <a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Timeout in milliseconds used to check for the presence of duplicate IP
 addresses on the network.  If an address conflict is detected, the
 activation will fail.  A zero value means that no duplicate address
@@ -3765,8 +4157,8 @@ timeout in milliseconds.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--dhcp-hostname"></a><h3>The <code class="literal">“dhcp-hostname”</code> property</h3>
-<pre class="programlisting">  “dhcp-hostname”            <span class="type">gchar</span> *</pre>
-<p>If the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname" title="The “dhcp-send-hostname” property"><span class="type">“dhcp-send-hostname”</span></a> property is <code class="literal">TRUE</code>, then the
+<pre class="programlisting">  “dhcp-hostname”            <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>If the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname" title="The “dhcp-send-hostname” property"><span class="type">“dhcp-send-hostname”</span></a> property is <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, then the
 specified name will be sent to the DHCP server when acquiring a lease.
 This property and <a class="link" href="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-fqdn" title="The “dhcp-fqdn” property"><span class="type">“dhcp-fqdn”</span></a> are mutually exclusive and
 cannot be set at the same time.</p>
@@ -3776,19 +4168,19 @@ cannot be set at the same time.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--dhcp-send-hostname"></a><h3>The <code class="literal">“dhcp-send-hostname”</code> property</h3>
-<pre class="programlisting">  “dhcp-send-hostname”       <span class="type">gboolean</span></pre>
-<p>If <code class="literal">TRUE</code>, a hostname is sent to the DHCP server when acquiring a lease.
+<pre class="programlisting">  “dhcp-send-hostname”       <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>If <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, a hostname is sent to the DHCP server when acquiring a lease.
 Some DHCP servers use this hostname to update DNS databases, essentially
 providing a static hostname for the computer.  If the
-<a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname" title="The “dhcp-hostname” property"><span class="type">“dhcp-hostname”</span></a> property is <code class="literal">NULL</code> and this property is
-<code class="literal">TRUE</code>, the current persistent hostname of the computer is sent.</p>
+<a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname" title="The “dhcp-hostname” property"><span class="type">“dhcp-hostname”</span></a> property is <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> and this property is
+<a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, the current persistent hostname of the computer is sent.</p>
 <p>Flags: Read / Write / Construct</p>
 <p>Default value: TRUE</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--dhcp-timeout"></a><h3>The <code class="literal">“dhcp-timeout”</code> property</h3>
-<pre class="programlisting">  “dhcp-timeout”             <span class="type">gint</span></pre>
+<pre class="programlisting">  “dhcp-timeout”             <a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>A timeout for a DHCP transaction in seconds.</p>
 <p>Flags: Read / Write</p>
 <p>Allowed values: &gt;= 0</p>
@@ -3797,16 +4189,16 @@ providing a static hostname for the computer.  If the
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--dns"></a><h3>The <code class="literal">“dns”</code> property</h3>
-<pre class="programlisting">  “dns”                      <span class="type">GStrv</span></pre>
+<pre class="programlisting">  “dns”                      <a href="../glib/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></pre>
 <p>Array of IP addresses of DNS servers.</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--dns-options"></a><h3>The <code class="literal">“dns-options”</code> property</h3>
-<pre class="programlisting">  “dns-options”              <span class="type">GStrv</span></pre>
-<p>Array of DNS options.</p>
-<p><code class="literal">NULL</code> means that the options are unset and left at the default.
+<pre class="programlisting">  “dns-options”              <a href="../glib/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></pre>
+<p>Array of DNS options as described in man 5 resolv.conf.</p>
+<p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> means that the options are unset and left at the default.
 In this case NetworkManager will use default options. This is
 distinct from an empty list of properties.</p>
 <p>Flags: Read / Write</p>
@@ -3814,15 +4206,39 @@ distinct from an empty list of properties.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingIPConfig--dns-priority"></a><h3>The <code class="literal">“dns-priority”</code> property</h3>
+<pre class="programlisting">  “dns-priority”             <a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<p>Intra-connection DNS priority.</p>
+<p>The relative priority to be used when determining the order of DNS
+servers in resolv.conf.  A lower value means that servers will be on top
+of the file.  Zero selects the default value, which is 50 for VPNs and
+100 for other connections.  Note that the priority is to order DNS
+settings for multiple active connections. It does not disambiguate
+multiple DNS servers within the same connection profile. For that,
+just specify the DNS servers in the desired order.
+When multiple devices have configurations with the same priority, the
+one with an active default route will be preferred.
+Note that when using dns=dnsmasq the order is meaningless
+since dnsmasq forwards queries to all known servers at the same time.</p>
+<p>Negative values have the special effect of excluding other configurations
+with a greater priority value; so in presence of at least a negative
+priority, only DNS servers from connections with the lowest priority
+value will be used.</p>
+<p>Flags: Read / Write / Construct</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.4</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingIPConfig--dns-search"></a><h3>The <code class="literal">“dns-search”</code> property</h3>
-<pre class="programlisting">  “dns-search”               <span class="type">GStrv</span></pre>
+<pre class="programlisting">  “dns-search”               <a href="../glib/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></pre>
 <p>Array of DNS search domains.</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--gateway"></a><h3>The <code class="literal">“gateway”</code> property</h3>
-<pre class="programlisting">  “gateway”                  <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “gateway”                  <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The gateway associated with this configuration. This is only meaningful
 if <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--addresses" title="The “addresses” property"><span class="type">“addresses”</span></a> is also set.</p>
 <p>Flags: Read / Write</p>
@@ -3831,9 +4247,9 @@ if <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--addresses" ti
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--ignore-auto-dns"></a><h3>The <code class="literal">“ignore-auto-dns”</code> property</h3>
-<pre class="programlisting">  “ignore-auto-dns”          <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “ignore-auto-dns”          <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>When <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--method" title="The “method” property"><span class="type">“method”</span></a> is set to "auto" and this property to
-<code class="literal">TRUE</code>, automatically configured nameservers and search domains are
+<a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, automatically configured nameservers and search domains are
 ignored and only nameservers and search domains specified in the
 <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns" title="The “dns” property"><span class="type">“dns”</span></a> and <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns-search" title="The “dns-search” property"><span class="type">“dns-search”</span></a> properties, if
 any, are used.</p>
@@ -3843,9 +4259,9 @@ any, are used.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--ignore-auto-routes"></a><h3>The <code class="literal">“ignore-auto-routes”</code> property</h3>
-<pre class="programlisting">  “ignore-auto-routes”       <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “ignore-auto-routes”       <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>When <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--method" title="The “method” property"><span class="type">“method”</span></a> is set to "auto" and this property to
-<code class="literal">TRUE</code>, automatically configured routes are ignored and only routes
+<a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, automatically configured routes are ignored and only routes
 specified in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--routes" title="The “routes” property"><span class="type">“routes”</span></a> property, if any, are used.</p>
 <p>Flags: Read / Write / Construct</p>
 <p>Default value: FALSE</p>
@@ -3853,12 +4269,12 @@ specified in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig-
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--may-fail"></a><h3>The <code class="literal">“may-fail”</code> property</h3>
-<pre class="programlisting">  “may-fail”                 <span class="type">gboolean</span></pre>
-<p>If <code class="literal">TRUE</code>, allow overall network configuration to proceed even if the
+<pre class="programlisting">  “may-fail”                 <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>If <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, allow overall network configuration to proceed even if the
 configuration specified by this property times out.  Note that at least
 one IP configuration must succeed or overall network configuration will
 still fail.  For example, in IPv6-only networks, setting this property to
-<code class="literal">TRUE</code> on the <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> allows the overall network configuration
+<a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on the <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> allows the overall network configuration
 to succeed if IPv4 configuration fails but IPv6 configuration completes
 successfully.</p>
 <p>Flags: Read / Write / Construct</p>
@@ -3867,7 +4283,7 @@ successfully.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--method"></a><h3>The <code class="literal">“method”</code> property</h3>
-<pre class="programlisting">  “method”                   <span class="type">gchar</span> *</pre>
+<pre class="programlisting">  “method”                   <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>IP configuration method.</p>
 <p><a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> and <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> both support "auto",
 "manual", and "link-local". See the subclass-specific documentation for
@@ -3887,8 +4303,8 @@ manual IPv4 address or otherwise 10.42.x.0/24 is chosen.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--never-default"></a><h3>The <code class="literal">“never-default”</code> property</h3>
-<pre class="programlisting">  “never-default”            <span class="type">gboolean</span></pre>
-<p>If <code class="literal">TRUE</code>, this connection will never be the default connection for this
+<pre class="programlisting">  “never-default”            <a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>If <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, this connection will never be the default connection for this
 IP type, meaning it will never be assigned the default route by
 NetworkManager.</p>
 <p>Flags: Read / Write / Construct</p>
@@ -3897,9 +4313,9 @@ NetworkManager.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPConfig--route-metric"></a><h3>The <code class="literal">“route-metric”</code> property</h3>
-<pre class="programlisting">  “route-metric”             <span class="type">gint64</span></pre>
+<pre class="programlisting">  “route-metric”             <a href="../glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a></pre>
 <p>The default metric for routes that don't explicitly specify a metric.
-The default value -1 means that the metric is choosen automatically
+The default value -1 means that the metric is chosen automatically
 based on the device type.
 The metric applies to dynamic routes, manual (static) routes that
 don't have an explicit metric setting, address prefix routes, and
@@ -3914,8 +4330,28 @@ For IPv4, zero is a regular value for the metric.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingIPConfig--route-table"></a><h3>The <code class="literal">“route-table”</code> property</h3>
+<pre class="programlisting">  “route-table”              <a href="../glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<p>Enable policy routing (source routing) and set the routing table used when adding routes.</p>
+<p>This affects all routes, including device-routes, IPv4LL, DHCP, SLAAC, default-routes
+and static routes. But note that static routes can individually overwrite the setting
+by explicitly specifying a non-zero routing table.</p>
+<p>If the table setting is left at zero, it is eligible to be overwritten via global
+configuration. If the property is zero even after applying the global configuration
+value, policy routing is disabled for the address family of this connection.</p>
+<p>Policy routing disabled means that NetworkManager will add all routes to the main
+table (except static routes that explicitly configure a different table). Additionally,
+NetworkManager will not delete any extraneous routes from tables except the main table.
+This is to preserve backward compatibility for users who manage routing tables outside
+of NetworkManager.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.10</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingIPConfig--routes"></a><h3>The <code class="literal">“routes”</code> property</h3>
-<pre class="programlisting">  “routes”                   <span class="type">GPtrArray</span> *</pre>
+<pre class="programlisting">  “routes”                   <a href="../glib/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
 <p>Array of IP routes.</p>
 <p>Element-Type: NMIPRoute</p>
 <p>Flags: Read / Write</p>
@@ -3927,6 +4363,6 @@ For IPv4, zero is a regular value for the metric.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.24</div>
+<hr>Generated by GTK-Doc V1.27</div>
 </body>
 </html>

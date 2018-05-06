@@ -30,6 +30,8 @@
 
 #include "NetworkManager.h"
 
+#include "nm-utils/nm-hash-utils.h"
+
 #include "nmtui.h"
 #include "nmt-connect-connection-list.h"
 
@@ -88,6 +90,7 @@ nmt_connect_connection_free (NmtConnectConnection *nmtconn)
 	g_clear_object (&nmtconn->ap);
 	g_clear_object (&nmtconn->active);
 	g_free (nmtconn->ssid);
+	g_slice_free (NmtConnectConnection, nmtconn);
 }
 
 static void
@@ -97,6 +100,7 @@ nmt_connect_device_free (NmtConnectDevice *nmtdev)
 	g_clear_object (&nmtdev->device);
 
 	g_slist_free_full (nmtdev->conns, (GDestroyNotify) nmt_connect_connection_free);
+	g_slice_free (NmtConnectDevice, nmtdev);
 }
 
 static const char *device_sort_order[] = {
@@ -107,6 +111,7 @@ static const char *device_sort_order[] = {
 	NM_SETTING_BOND_SETTING_NAME,
 	NM_SETTING_TEAM_SETTING_NAME,
 	NM_SETTING_BRIDGE_SETTING_NAME,
+	NM_SETTING_IP_TUNNEL_SETTING_NAME,
 	"NMDeviceModem",
 	"NMDeviceBt"
 };
@@ -271,7 +276,7 @@ add_connections_for_aps (NmtConnectDevice *nmtdev,
 	if (!aps->len)
 		return;
 
-	seen_ssids = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+	seen_ssids = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, NULL);
 
 	for (i = 0; i < aps->len; i++) {
 		ap = aps->pdata[i];
@@ -359,7 +364,7 @@ append_nmt_devices_for_virtual_devices (GSList          *nmt_devices,
 	NmtConnectConnection *nmtconn;
 	int sort_order;
 
-	devices_by_name = g_hash_table_new (g_str_hash, g_str_equal);
+	devices_by_name = g_hash_table_new (nm_str_hash, g_str_equal);
 
 	for (i = 0; i < connections->len; i++) {
 		conn = connections->pdata[i];
@@ -638,11 +643,13 @@ nmt_connect_connection_list_get_connection (NmtConnectConnectionList  *list,
 			if (conn) {
 				if (conn == nmtconn->conn)
 					goto found;
-			} else if (nmtconn->ssid && !strcmp (identifier, nmtconn->ssid))
+			} else if (nm_streq0 (identifier, nmtconn->ssid))
 				goto found;
 		}
 
-		if (!conn && nmtdev->device && !strcmp (identifier, nm_device_get_ip_iface (nmtdev->device))) {
+		if (   !conn
+		    && nmtdev->device
+		    && nm_streq0 (identifier, nm_device_get_ip_iface (nmtdev->device))) {
 			nmtconn = nmtdev->conns->data;
 			goto found;
 		}
@@ -650,7 +657,7 @@ nmt_connect_connection_list_get_connection (NmtConnectConnectionList  *list,
 
 	return FALSE;
 
- found:
+found:
 	if (connection)
 		*connection = nmtconn->conn;
 	if (device)

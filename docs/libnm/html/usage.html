@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Using libnm: libnm Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libnm Reference Manual">
+<link rel="up" href="ref-overview.html" title="Overview">
+<link rel="prev" href="ref-overview.html" title="Overview">
+<link rel="next" href="ch02.html" title="Client Object API Reference">
+<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ref-overview.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ref-overview.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch02.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="usage"></a>Using libnm</h2></div></div></div>
+<div class="simplesect">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="id-1.2.3.2"></a>When to use libnm</h3></div></div></div>
+<p>
+          libnm is fairly simple to use from C. It's based on glib and GObject.
+          If your project uses these already you'll find integration libnm with your
+          project rather convenient. In fact, the <span class="command"><strong>nmcli</strong></span> tool shipped
+          with NetworkManager is based on libnm.
+        </p>
+<p>
+          libnm should be also the way to go if your project does something non-trivial
+          with NetworkManager, such as manipulating the connection profiles.
+          That is, if you're writing a specialized networking control tool or a desktop
+          environment, libnm is probably the right choice. The popular desktop
+          environments in fact all use libnm directly or with nm-applet and
+          nm-connection-editor that are all based on libnm.
+        </p>
+<p>
+          An alternative to use of libnm is the use of the
+          <a class="ulink" href="https://developer.gnome.org/NetworkManager/stable/spec.html" target="_top">D-Bus API</a>
+          directly.  This gives you larger flexibility and reduces the overhead of linking
+          with the libnm library. This makes sense if your task is simple and you have a good
+          D-Bus library at your disposal. Activating a particular connection profile
+          from a Python script is a good example of a task that is perfectly simple
+          without using libnm.
+        </p>
+</div>
+<div class="simplesect">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="id-1.2.3.3"></a>How to use libnm</h3></div></div></div>
+<p>
+          You can use the libnm's C API directly. To do so, all libnm programs need to
+          include <code class="filename">NetworkManager.h</code> that provides necessary definitions.
+          The rest of the API is documented in the reference manual.
+        </p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;glib.h&gt;</span>
+<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;NetworkManager.h&gt;</span>
+
+<span class="type">int</span>
+<span class="function">main</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">argv</span><span class="symbol">[])</span>
+<span class="cbracket">{</span>
+<span class="normal">    </span><span class="usertype">NMClient</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">client</span><span class="symbol">;</span>
+
+<span class="normal">    client </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="NMClient.html#nm-client-new">nm_client_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">    </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">client</span><span class="symbol">)</span>
+<span class="normal">        </span><span class="function"><a href="../glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"NetworkManager version: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="NMClient.html#nm-client-get-version">nm_client_get_version</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">client</span><span class="symbol">));</span>
+<span class="cbracket">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+          Use <span class="command"><strong>pkg-config</strong></span> for <code class="varname">libnm</code> to discover the necessary
+          compiler flags.
+        </p>
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>cc $(pkg-config --libs --cflags libnm) -o hello-nm hello-nm.c</code></strong>
+  <code class="prompt">$ </code><strong class="userinput"><code>./hello-nm</code></strong>
+  NetworkManager version: 1.10.6
+
+  <code class="prompt">$ </code></pre>
+<p>
+          Utilize the <code class="varname">PKG_CHECK_MODULES</code> macro to integrate with an
+          autoconf-based build system. It's also recommended to use
+          <code class="varname">NM_VERSION_MIN_REQUIRED</code> and <code class="varname">NM_VERSION_MAX_ALLOWED</code>
+          macros to tell libnm headers which API version does your application need to work with.
+          If you use them, the compiler will warn you when you use functionality that is not
+          available in the versions you specified.
+        </p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function">PKG_CHECK_MODULES</span><span class="symbol">(</span><span class="normal">LIBNM</span><span class="symbol">,</span><span class="normal"> libnm </span><span class="symbol">&gt;=</span><span class="normal"> </span><span class="number">1.8</span><span class="symbol">)</span>
+<span class="normal">LIBNM_CFLAGS</span><span class="symbol">=</span><span class="string">"$LIBNM_CFLAGS -DNM_VERSION_MIN_REQUIRED=NM_VERSION_1_8"</span>
+<span class="normal">LIBNM_CFLAGS</span><span class="symbol">=</span><span class="string">"$LIBNM_CFLAGS -DNM_VERSION_MAX_ALLOWED=NM_VERSION_1_8"</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+          You can use libnm from other languages than C with the use of GObject introspection.
+          This includes Perl, Python, Javascript, Lua, Ruby and more. The example below shows what the
+          typical libnm use in Python would look like.
+        </p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">import gi</span>
+<span class="normal">gi</span><span class="symbol">.</span><span class="function">require_version</span><span class="symbol">(</span><span class="string">'NM'</span><span class="symbol">,</span><span class="normal"> </span><span class="string">'1.0'</span><span class="symbol">)</span>
+<span class="usertype">from</span><span class="normal"> gi</span><span class="symbol">.</span><span class="normal">repository import NM</span>
+
+<span class="normal">client </span><span class="symbol">=</span><span class="normal"> NM</span><span class="symbol">.</span><span class="normal">Client</span><span class="symbol">.</span><span class="function">new</span><span class="symbol">(</span><span class="normal">None</span><span class="symbol">)</span>
+<span class="function">print</span><span class="normal"> </span><span class="symbol">(</span><span class="string">"NetworkManager version "</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> client</span><span class="symbol">.</span><span class="function">get_version</span><span class="symbol">())</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+          There's <a class="ulink" href="https://lazka.github.io/pgi-docs/#NM-1.0" target="_top">NM-1.0 Python API Reference</a>
+          maintained a third party that is generated from the introspection metadata.
+        </p>
+<p>
+          In general, the C API documentation applies to the use GObject introspection
+          from other languages, with the calling convention respecting the language's
+          customs. Consult the source tree for
+          <a class="ulink" href="https://cgit.freedesktop.org/NetworkManager/NetworkManager/tree/examples" target="_top">some examples</a>.
+        </p>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.27</div>
+</body>
+</html>

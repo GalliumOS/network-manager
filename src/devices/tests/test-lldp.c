@@ -26,14 +26,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "nm-lldp-listener.h"
-#include "nm-sd.h"
+#include "devices/nm-lldp-listener.h"
+#include "systemd/nm-sd.h"
 
-#include "sd-lldp.h"
+#include "platform/tests/test-common.h"
 
-#include "test-common.h"
-
-#include "nm-test-utils.h"
+#include "nm-test-utils-core.h"
 
 /*****************************************************************************/
 
@@ -352,19 +350,23 @@ _test_recv_fixture_setup (TestRecvFixture *fixture, gconstpointer user_data)
 	struct ifreq ifr = { };
 	int fd, s;
 
-	fd = open ("/dev/net/tun", O_RDWR);
-	g_assert (fd >= 0);
+	fd = open ("/dev/net/tun", O_RDWR | O_CLOEXEC);
+	if (fd == -1) {
+		g_test_skip ("Unable to open /dev/net/tun");
+		fixture->ifindex = 0;
+		return;
+	}
 
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	nm_utils_ifname_cpy (ifr.ifr_name, TEST_IFNAME);
 	g_assert (ioctl (fd, TUNSETIFF, &ifr) >= 0);
 
 	/* Bring the interface up */
-	s = socket (AF_INET, SOCK_DGRAM, 0);
+	s = socket (AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	g_assert (s >= 0);
 	ifr.ifr_flags |= IFF_UP;
 	g_assert (ioctl (s, SIOCSIFFLAGS, &ifr) >= 0);
-	close (s);
+	nm_close (s);
 
 	link = nmtstp_assert_wait_for_link (NM_PLATFORM_GET, TEST_IFNAME, NM_LINK_TYPE_TAP, 100);
 	fixture->ifindex = link->ifindex;
@@ -396,6 +398,11 @@ test_recv (TestRecvFixture *fixture, gconstpointer user_data)
 	gulong notify_id;
 	GError *error = NULL;
 	guint sd_id;
+
+	if (fixture->ifindex == 0) {
+		g_test_skip ("Tun device not available");
+		return;
+	}
 
 	listener = nm_lldp_listener_new ();
 	g_assert (listener != NULL);
@@ -429,10 +436,13 @@ test_recv (TestRecvFixture *fixture, gconstpointer user_data)
 static void
 _test_recv_fixture_teardown (TestRecvFixture *fixture, gconstpointer user_data)
 {
-	nm_platform_link_delete (NM_PLATFORM_GET, fixture->ifindex);
+	if (fixture->ifindex)
+		nm_platform_link_delete (NM_PLATFORM_GET, fixture->ifindex);
 }
 
 /*****************************************************************************/
+
+NMTstpSetupFunc const _nmtstp_setup_platform_func = nm_linux_platform_setup;
 
 void
 _nmtstp_init_tests (int *argc, char ***argv)

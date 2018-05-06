@@ -24,6 +24,7 @@
 #include "nm-setting-ip6-config.h"
 
 #include <string.h>
+#include <arpa/inet.h>
 
 #include "nm-setting-private.h"
 #include "nm-core-enum-types.h"
@@ -51,7 +52,7 @@
  **/
 
 G_DEFINE_TYPE_WITH_CODE (NMSettingIP6Config, nm_setting_ip6_config, NM_TYPE_SETTING_IP_CONFIG,
-                         _nm_register_setting (IP6_CONFIG, 4))
+                         _nm_register_setting (IP6_CONFIG, NM_SETTING_PRIORITY_IP))
 NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_IP6_CONFIG)
 
 #define NM_SETTING_IP6_CONFIG_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_IP6_CONFIG, NMSettingIP6ConfigPrivate))
@@ -59,6 +60,7 @@ NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_IP6_CONFIG)
 typedef struct {
 	NMSettingIP6ConfigPrivacy ip6_privacy;
 	NMSettingIP6ConfigAddrGenMode addr_gen_mode;
+	char *token;
 } NMSettingIP6ConfigPrivate;
 
 
@@ -66,6 +68,7 @@ enum {
 	PROP_0,
 	PROP_IP6_PRIVACY,
 	PROP_ADDR_GEN_MODE,
+	PROP_TOKEN,
 
 	LAST_PROP
 };
@@ -120,6 +123,25 @@ nm_setting_ip6_config_get_addr_gen_mode (NMSettingIP6Config *setting)
 	return NM_SETTING_IP6_CONFIG_GET_PRIVATE (setting)->addr_gen_mode;
 }
 
+/**
+ * nm_setting_ip6_config_get_token:
+ * @setting: the #NMSettingIP6Config
+ *
+ * Returns the value contained in the #NMSettingIP6Config:token
+ * property.
+ *
+ * Returns: A string.
+ *
+ * Since: 1.4
+ **/
+const char *
+nm_setting_ip6_config_get_token (NMSettingIP6Config *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_IP6_CONFIG (setting), NULL);
+
+	return NM_SETTING_IP6_CONFIG_GET_PRIVATE (setting)->token;
+}
+
 static gboolean
 verify (NMSetting *setting, NMConnection *connection, GError **error)
 {
@@ -127,6 +149,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	NMSettingIPConfig *s_ip = NM_SETTING_IP_CONFIG (setting);
 	NMSettingVerifyResult ret;
 	const char *method;
+	gboolean token_needs_normalization = FALSE;
 
 	ret = NM_SETTING_CLASS (nm_setting_ip6_config_parent_class)->verify (setting, connection, error);
 	if (ret != NM_SETTING_VERIFY_SUCCESS)
@@ -149,34 +172,38 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	} else if (   !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE)
 	           || !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL)
 	           || !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_SHARED)) {
-		if (nm_setting_ip_config_get_num_dns (s_ip) > 0) {
-			g_set_error (error,
-			             NM_CONNECTION_ERROR,
-			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             _("this property is not allowed for '%s=%s'"),
-			             NM_SETTING_IP_CONFIG_METHOD, method);
-			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_DNS);
-			return FALSE;
-		}
 
-		if (nm_setting_ip_config_get_num_dns_searches (s_ip) > 0) {
-			g_set_error (error,
-			             NM_CONNECTION_ERROR,
-			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             _("this property is not allowed for '%s=%s'"),
-			             NM_SETTING_IP_CONFIG_METHOD, method);
-			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_DNS_SEARCH);
-			return FALSE;
-		}
+		/* Shared allows IP addresses and DNS; link-local and disabled do not */
+		if (strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_SHARED) != 0) {
+			if (nm_setting_ip_config_get_num_dns (s_ip) > 0) {
+				g_set_error (error,
+				             NM_CONNECTION_ERROR,
+				             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("this property is not allowed for '%s=%s'"),
+				             NM_SETTING_IP_CONFIG_METHOD, method);
+				g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_DNS);
+				return FALSE;
+			}
 
-		if (nm_setting_ip_config_get_num_addresses (s_ip) > 0) {
-			g_set_error (error,
-			             NM_CONNECTION_ERROR,
-			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             _("this property is not allowed for '%s=%s'"),
-			             NM_SETTING_IP_CONFIG_METHOD, method);
-			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_ADDRESSES);
-			return FALSE;
+			if (nm_setting_ip_config_get_num_dns_searches (s_ip) > 0) {
+				g_set_error (error,
+				             NM_CONNECTION_ERROR,
+				             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("this property is not allowed for '%s=%s'"),
+				             NM_SETTING_IP_CONFIG_METHOD, method);
+				g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_DNS_SEARCH);
+				return FALSE;
+			}
+
+			if (nm_setting_ip_config_get_num_addresses (s_ip) > 0) {
+				g_set_error (error,
+				             NM_CONNECTION_ERROR,
+				             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("this property is not allowed for '%s=%s'"),
+				             NM_SETTING_IP_CONFIG_METHOD, method);
+				g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_ADDRESSES);
+				return FALSE;
+			}
 		}
 	} else if (   !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_AUTO)
 	           || !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_DHCP)) {
@@ -197,8 +224,58 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		                     NM_CONNECTION_ERROR,
 		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
 		                      _("property is invalid"));
-		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_METHOD);
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE);
 		return FALSE;
+	}
+
+	if (priv->token) {
+		if (priv->addr_gen_mode == NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64) {
+			struct in6_addr i6_token;
+			char s_token[NM_UTILS_INET_ADDRSTRLEN];
+
+			if (   inet_pton (AF_INET6, priv->token, &i6_token) != 1
+			    || !_nm_utils_inet6_is_token (&i6_token)) {
+				g_set_error_literal (error,
+				                     NM_CONNECTION_ERROR,
+				                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				                      _("value is not a valid token"));
+				g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_TOKEN);
+				return FALSE;
+			}
+
+			if (g_strcmp0 (priv->token, nm_utils_inet6_ntop (&i6_token, s_token)))
+				token_needs_normalization = TRUE;
+		} else {
+			g_set_error_literal (error,
+			                     NM_CONNECTION_ERROR,
+			                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+			                      _("only makes sense with EUI64 address generation mode"));
+			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_TOKEN);
+			return FALSE;
+		}
+	}
+
+	/* Failures from here on, are NORMALIZABLE_ERROR... */
+
+	if (token_needs_normalization) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("token is not in canonical form"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP6_CONFIG_TOKEN);
+		return NM_SETTING_VERIFY_NORMALIZABLE_ERROR;
+	}
+
+	/* Failures from here on are NORMALIZABLE... */
+
+	if (   !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE)
+	    && !nm_setting_ip_config_get_may_fail (s_ip)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("property should be TRUE when method is set to ignore"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_MAY_FAIL);
+		return NM_SETTING_VERIFY_NORMALIZABLE;
 	}
 
 	return TRUE;
@@ -388,6 +465,10 @@ set_property (GObject *object, guint prop_id,
 	case PROP_ADDR_GEN_MODE:
 		priv->addr_gen_mode = g_value_get_int (value);
 		break;
+	case PROP_TOKEN:
+		g_free (priv->token);
+		priv->token = g_value_dup_string (value);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -407,10 +488,24 @@ get_property (GObject *object, guint prop_id,
 	case PROP_ADDR_GEN_MODE:
 		g_value_set_int (value, priv->addr_gen_mode);
 		break;
+	case PROP_TOKEN:
+		g_value_set_string (value, priv->token);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
 	}
+}
+
+static void
+finalize (GObject *object)
+{
+	NMSettingIP6Config *self = NM_SETTING_IP6_CONFIG (object);
+	NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE (self);
+
+	g_free (priv->token);
+
+	G_OBJECT_CLASS (nm_setting_ip6_config_parent_class)->finalize (object);
 }
 
 static void
@@ -424,6 +519,7 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *ip6_class)
 	/* virtual methods */
 	object_class->set_property = set_property;
 	object_class->get_property = get_property;
+	object_class->finalize = finalize;
 	setting_class->verify = verify;
 
 	/* Properties */
@@ -454,7 +550,7 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *ip6_class)
 
 	/* ---ifcfg-rh---
 	 * property: dns-search
-	 * variable: DOMAIN
+	 * variable: IPV6_DOMAIN
 	 * format:   string (space-separated domains)
 	 * description: List of DNS search domains.
 	 * ---end---
@@ -556,6 +652,33 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *ip6_class)
 	 * ---end---
 	 */
 
+	/* ---ifcfg-rh---
+	 * property: route-table
+	 * variable: IPV6_ROUTE_TABLE(+)
+	 * default: 0
+	 * description: IPV6_ROUTE_TABLE enables policy-routing and sets the default routing table.
+	 * ---end---
+	 */
+
+	/* ---ifcfg-rh---
+	 * property: dns-priority
+	 * variable: IPV6_DNS_PRIORITY(+)
+	 * description: The priority for DNS servers of this connection. Lower values have higher priority.
+	 *    If zero, the default value will be used (50 for VPNs, 100 for other connections).
+	 *    A negative value prevents DNS from other connections with greater values to be used.
+	 * default: 0
+	 * example: IPV6_DNS_PRIORITY=20
+	 * ---end---
+	 */
+
+	/* ---ifcfg-rh---
+	 * property: dns-options
+	 * variable: IPV6_RES_OPTIONS(+)
+	 * description: List of DNS options to be added to /etc/resolv.conf
+	 * example: IPV6_RES_OPTIONS=ndots:2 timeout:3
+	 * ---end---
+	 */
+
 	/**
 	 * NMSettingIP6Config:ip6-privacy:
 	 *
@@ -600,25 +723,26 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *ip6_class)
 	 * NMSettingIP6Config:addr-gen-mode:
 	 *
 	 * Configure method for creating the address for use with RFC4862 IPv6
-	 * Stateless Address Autoconfiguration. The permitted values are: "eui64",
-	 * or "stable-privacy".
+	 * Stateless Address Autoconfiguration. The permitted values are:
+	 * %NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 or
+	 * %NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY.
 	 *
-	 * If the property is set to "eui64", the addresses will be generated
-	 * using the interface tokens derived from  hardware address. This makes
+	 * If the property is set to EUI64, the addresses will be generated
+	 * using the interface tokens derived from hardware address. This makes
 	 * the host part of the address to stay constant, making it possible
 	 * to track host's presence when it changes networks. The address changes
 	 * when the interface hardware is replaced.
 	 *
-	 * The value of "stable-privacy" enables use of cryptographically
-	 * secure hash of a secret host-specific key along with the connection
-	 * identification and the network address as specified by RFC7217.
+	 * The value of stable-privacy enables use of cryptographically
+	 * secure hash of a secret host-specific key along with the connection's
+	 * stable-id and the network address as specified by RFC7217.
 	 * This makes it impossible to use the address track host's presence,
 	 * and makes the address stable when the network interface hardware is
 	 * replaced.
 	 *
 	 * On D-Bus, the absence of an addr-gen-mode setting equals enabling
-	 * "stable-privacy". For keyfile plugin, the absence of the setting
-	 * on disk means "eui64" so that the property doesn't change on upgrade
+	 * stable-privacy. For keyfile plugin, the absence of the setting
+	 * on disk means EUI64 so that the property doesn't change on upgrade
 	 * from older versions.
 	 *
 	 * Note that this setting is distinct from the Privacy Extensions as
@@ -644,6 +768,30 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *ip6_class)
 		                   G_PARAM_READWRITE |
 		                   G_PARAM_CONSTRUCT |
 		                   G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingIP6Config:token:
+	 *
+	 * Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02
+	 * IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.
+	 *
+	 * Since: 1.4
+	 **/
+	/* ---ifcfg-rh---
+	 * property: token
+	 * variable: IPV6_TOKEN
+	 * description: The IPv6 tokenized interface identifier token
+	 * example: IPV6_TOKEN=::53
+	 * ---end---
+	 */
+        g_object_class_install_property
+                (object_class, PROP_TOKEN,
+                 g_param_spec_string (NM_SETTING_IP6_CONFIG_TOKEN, "", "",
+                                      NULL,
+                                      G_PARAM_READWRITE |
+                                      NM_SETTING_PARAM_INFERRABLE |
+                                      G_PARAM_STATIC_STRINGS));
+
 
 	/* IP6-specific property overrides */
 

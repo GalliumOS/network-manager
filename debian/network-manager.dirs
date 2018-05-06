@@ -1,6 +1,10 @@
-var/lib/NetworkManager/
 etc/NetworkManager/conf.d/
+etc/NetworkManager/dispatcher.d/no-wait.d/
+etc/NetworkManager/dispatcher.d/pre-down.d/
+etc/NetworkManager/dispatcher.d/pre-up.d/
 etc/NetworkManager/dnsmasq.d/
 etc/NetworkManager/dnsmasq-shared.d/
 etc/NetworkManager/system-connections/
-etc/NetworkManager/VPN/
+usr/lib/NetworkManager/conf.d/
+usr/lib/NetworkManager/VPN/
+var/lib/NetworkManager/

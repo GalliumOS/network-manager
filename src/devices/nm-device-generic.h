@@ -23,8 +23,6 @@
 
 #include "nm-device.h"
 
-G_BEGIN_DECLS
-
 #define NM_TYPE_DEVICE_GENERIC            (nm_device_generic_get_type ())
 #define NM_DEVICE_GENERIC(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE_GENERIC, NMDeviceGeneric))
 #define NM_DEVICE_GENERIC_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_DEVICE_GENERIC, NMDeviceGenericClass))
@@ -34,19 +32,12 @@ G_BEGIN_DECLS
 
 #define NM_DEVICE_GENERIC_TYPE_DESCRIPTION "type-description"
 
-typedef struct {
-	NMDevice parent;
-} NMDeviceGeneric;
-
-typedef struct {
-	NMDeviceClass parent;
-
-} NMDeviceGenericClass;
+typedef struct _NMDeviceGeneric NMDeviceGeneric;
+typedef struct _NMDeviceGenericClass NMDeviceGenericClass;
 
 GType nm_device_generic_get_type (void);
 
-NMDevice *nm_device_generic_new (const NMPlatformLink *plink);
+NMDevice *nm_device_generic_new (const NMPlatformLink *plink,
+                                 gboolean nm_plugin_missing);
 
-G_END_DECLS
-
-#endif	/* NM_DEVICE_GENERIC_H */
+#endif /* __NETWORKMANAGER_DEVICE_GENERIC_H__ */

@@ -15,7 +15,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2005 - 2014 Red Hat, Inc.
+ * Copyright 2005 - 2017 Red Hat, Inc.
  */
 
 #ifndef __NM_UTILS_H__
@@ -35,8 +35,11 @@
 
 #include "nm-core-enum-types.h"
 #include "nm-setting-wireless-security.h"
+#include "nm-setting-tc-config.h"
 
 G_BEGIN_DECLS
+
+typedef struct _NMVariantAttributeSpec NMVariantAttributeSpec;
 
 /* SSID helpers */
 gboolean    nm_utils_is_empty_ssid (const guint8 *ssid, gsize len);
@@ -89,6 +92,9 @@ gboolean nm_utils_ap_mode_security_valid (NMUtilsSecurityType type,
 
 gboolean nm_utils_wep_key_valid (const char *key, NMWepKeyType wep_type);
 gboolean nm_utils_wpa_psk_valid (const char *psk);
+
+NM_AVAILABLE_IN_1_6
+gboolean nm_utils_is_json_object (const char *str, GError **error);
 
 GVariant  *nm_utils_ip4_dns_to_variant (char **dns);
 char     **nm_utils_ip4_dns_from_variant (GVariant *value);
@@ -174,7 +180,10 @@ gboolean    nm_utils_hwaddr_matches   (gconstpointer hwaddr1,
 char *nm_utils_bin2hexstr (gconstpointer src, gsize len, int final_len);
 GBytes *nm_utils_hexstr2bin (const char *hex);
 
-gboolean    nm_utils_iface_valid_name(const char *name);
+NM_DEPRECATED_IN_1_6_FOR(nm_utils_is_valid_iface_name)
+gboolean    nm_utils_iface_valid_name (const char *name);
+NM_AVAILABLE_IN_1_6
+gboolean    nm_utils_is_valid_iface_name (const char *name, GError **error);
 
 gboolean nm_utils_is_uuid (const char *str);
 
@@ -205,6 +214,39 @@ gboolean nm_utils_enum_from_str (GType type, const char *str, int *out_value, ch
 
 NM_AVAILABLE_IN_1_2
 const char **nm_utils_enum_get_values (GType type, gint from, gint to);
+
+NM_AVAILABLE_IN_1_6
+guint nm_utils_version (void);
+
+NM_AVAILABLE_IN_1_8
+GHashTable * nm_utils_parse_variant_attributes (const char *string,
+                                                char attr_separator,
+                                                char key_value_separator,
+                                                gboolean ignore_unknown,
+                                                const NMVariantAttributeSpec *const *spec,
+                                                GError **error);
+
+NM_AVAILABLE_IN_1_8
+char * nm_utils_format_variant_attributes (GHashTable *attributes,
+                                           char attr_separator,
+                                           char key_value_separator);
+
+/*****************************************************************************/
+
+NM_AVAILABLE_IN_1_10_2
+NMTCQdisc *nm_utils_tc_qdisc_from_str      (const char *str, GError **error);
+NM_AVAILABLE_IN_1_10_2
+char *nm_utils_tc_qdisc_to_str             (NMTCQdisc *qdisc, GError **error);
+
+NM_AVAILABLE_IN_1_10_2
+NMTCAction *nm_utils_tc_action_from_str    (const char *str, GError **error);
+NM_AVAILABLE_IN_1_10_2
+char *nm_utils_tc_action_to_str            (NMTCAction *action, GError **error);
+
+NM_AVAILABLE_IN_1_10_2
+NMTCTfilter *nm_utils_tc_tfilter_from_str  (const char *str, GError **error);
+NM_AVAILABLE_IN_1_10_2
+char *nm_utils_tc_tfilter_to_str           (NMTCTfilter *tfilter, GError **error);
 
 G_END_DECLS
 
