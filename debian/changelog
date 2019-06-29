@@ -1,4 +1,4 @@
-network-manager (1.10.6-2ubuntu1-galliumos0) bismuth; urgency=medium
+network-manager (1.10.6-2ubuntu1-galliumos1) bismuth; urgency=medium
 
   * Prepare for GalliumOS 3.0
     - patches from 1.2.2-0ubuntu0.16.04.3-galliumos1
